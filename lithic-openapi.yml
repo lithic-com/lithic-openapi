@@ -859,6 +859,51 @@ paths:
               responses:
                 '200':
                   description: OK
+
+  /auth_stream/secret:
+    get:
+      tags:
+        - Auth Stream Access (ASA)
+      summary: Retrieve the ASA HMAC secret key
+      description: >
+        Retrieve the ASA HMAC secret key. If one does not exist in our system, it is created first and
+        then returned to the client.
+      operationId: getAuthStreamSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The shared HMAC ASA secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth_stream/secret/rotate:
+    post:
+      tags:
+        - Auth Stream Access (ASA)
+      summary: Rotate the ASA HMAC secret key
+      description: >
+        Generate a new ASA HMAC secret key. The old ASA HMAC secret key will be deactivated 24 hours
+        after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](#/Auth%20Stream%20Access%20(ASA)/getAuthStreamSecret)
+        request to retrieve the new secret key.
+      operationId: rotateAuthStreamSecret
+      responses:
+        '204':
+          description: We have successfully rotated the secret key.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /cards:
     get:
       tags:
