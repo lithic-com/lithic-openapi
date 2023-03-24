@@ -859,6 +859,51 @@ paths:
               responses:
                 '200':
                   description: OK
+
+  /auth_stream/secret:
+    get:
+      tags:
+        - Auth Stream Access (ASA)
+      summary: Retrieve the ASA HMAC secret key
+      description: >
+        Retrieve the ASA HMAC secret key. If one does not exist in our system, it is created first and
+        then returned to the client.
+      operationId: getAuthStreamSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The shared HMAC ASA secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth_stream/secret/rotate:
+    post:
+      tags:
+        - Auth Stream Access (ASA)
+      summary: Rotate the ASA HMAC secret key
+      description: >
+        Generate a new ASA HMAC secret key. The old ASA HMAC secret key will be deactivated 24 hours
+        after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret)
+        request to retrieve the new secret key.
+      operationId: rotateAuthStreamSecret
+      responses:
+        '204':
+          description: We have successfully rotated the secret key.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /cards:
     get:
       tags:
@@ -3862,6 +3907,63 @@ components:
           description: |
             List of identifiers for the Auth Rule(s) that are applied on the account.
           example: ['b68b7424-aa69-4cbc-a946-30d90181b621']
+        verification_address:
+          type: object
+          properties:
+            address1:
+              type: string
+              description: Valid deliverable address (no PO boxes).
+              example: 124 Old Forest Way
+            address2:
+              type: string
+              description: Unit or apartment number (if applicable).
+              example: Apt 21
+            city:
+              type: string
+              description: City name.
+              example: Seattle
+            state:
+              type: string
+              description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+              example: WA
+            postal_code:
+              type: string
+              description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+              example: 98109
+            country:
+              type: string
+              description: Country name. Only USA is currently supported.
+              example: USA
+          required:
+            - address1
+            - city
+            - state
+            - postal_code
+            - country
+        account_holder:
+          type: object
+          properties:
+            token:
+              type: string
+              description: Globally unique identifier for the account holder.
+              example: 95e5f1b7-cfd5-4520-aa3c-2451bab8608d
+            phone_number:
+              type: string
+              description: Phone number of the individual.
+              example: +12124007676
+            email:
+              type: string
+              description: Email address.
+              example: jack@lithic.com
+            business_account_token:
+              type: string
+              description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Account_token of the enrolled business associated with an enrolled AUTHORIZED_USER individual.
+              example: e87db14a-4abf-4901-adad-5d5c9f46aff2
+          required:
+            - token
+            - phone_number
+            - email
+            - business_account_token
       required:
         - token
         - spend_limit
