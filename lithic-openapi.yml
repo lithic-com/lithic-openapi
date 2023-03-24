@@ -1074,7 +1074,7 @@ paths:
                     - STANDARD_WITH_TRACKING
                     - EXPEDITED
                   description: |
-                    Shipping method for the card. Only applies to cards of type PHYSICAL [beta]. Use of options besides `STANDARD` require additional permissions.
+                    Shipping method for the card. Only applies to cards of type PHYSICAL. Use of options besides `STANDARD` require additional permissions.
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
@@ -1337,7 +1337,7 @@ paths:
       description: |
         Initiate print and shipment of a duplicate physical card.
 
-        Only applies to cards of type `PHYSICAL` [beta].
+        Only applies to cards of type `PHYSICAL`.
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -1367,7 +1367,7 @@ paths:
                   description: >
                     Specifies the configuration (e.g. physical card art) that
                     the card should be manufactured with, and only applies to
-                    cards of type `PHYSICAL` [beta]. This must be configured
+                    cards of type `PHYSICAL`. This must be configured
                     with Lithic before use.
             examples:
               reissueCardNewAddress:
