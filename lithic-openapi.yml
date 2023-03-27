@@ -2006,7 +2006,7 @@ paths:
                     type: string
                     enum: &eventTypes
                       - dispute.updated
-                      - digital_wallet.token_approval_request
+                      - digital_wallet.tokenization_approval_request
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2098,7 +2098,7 @@ paths:
                     type: string
                     enum: &eventTypes
                       - dispute.updated
-                      - digital_wallet.token_approval_request
+                      - digital_wallet.tokenization_approval_request
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -4998,7 +4998,7 @@ components:
           description: |
             Event types:
             * `dispute.updated` - A dispute has been updated.
-            * `digital_wallet.token_approval_request` - Card network's request to Lithic to activate a digital wallet token.
+            * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
         payload:
           type: object
         created:
