@@ -2818,14 +2818,14 @@ paths:
                   type: string
                   format: uuid
                   description: The transaction token returned from the /v1/simulate/authorize response.
-              examples:
-                simulateAuthorizationAdvice:
-                  summary: Simulate an authorization
-                  value:
-                    amount: 3831
-                    descriptor: 'COFFEE SHOP'
-                    pan: '4111111289144142'
-                    token: 'fabd829d-7f7b-4432-a8f2-07ea4889aaac'
+            examples:
+              simulateAuthorizationAdvice:
+                summary: Simulate an authorization
+                value:
+                  amount: 3831
+                  descriptor: 'COFFEE SHOP'
+                  pan: '4111111289144142'
+                  token: 'fabd829d-7f7b-4432-a8f2-07ea4889aaac'
       responses:
         '201':
           description: OK
