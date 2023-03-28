@@ -859,6 +859,52 @@ paths:
               responses:
                 '200':
                   description: OK
+
+  /auth_stream/secret:
+    get:
+      tags:
+        - Auth Stream Access (ASA)
+      summary: Retrieve the ASA HMAC secret key
+      description: >
+        Retrieve the ASA HMAC secret key. If one does not exist your program yet, calling this endpoint will create one for you. 
+        The headers (which you can use to verify webhooks) will begin appearing shortly after calling this endpoint for the first time.
+        See [this page](https://docs.lithic.com/docs/auth-stream-access-asa#asa-webhook-verification) for more detail about verifying ASA webhooks.
+      operationId: getAuthStreamSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The shared HMAC ASA secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth_stream/secret/rotate:
+    post:
+      tags:
+        - Auth Stream Access (ASA)
+      summary: Rotate the ASA HMAC secret key
+      description: >
+        Generate a new ASA HMAC secret key. The old ASA HMAC secret key will be deactivated 24 hours
+        after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret)
+        request to retrieve the new secret key.
+      operationId: rotateAuthStreamSecret
+      responses:
+        '204':
+          description: We have successfully rotated the secret key.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /cards:
     get:
       tags:
@@ -1029,7 +1075,7 @@ paths:
                     - STANDARD_WITH_TRACKING
                     - EXPEDITED
                   description: |
-                    Shipping method for the card. Only applies to cards of type PHYSICAL [beta]. Use of options besides `STANDARD` require additional permissions.
+                    Shipping method for the card. Only applies to cards of type PHYSICAL. Use of options besides `STANDARD` require additional permissions.
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
@@ -1292,7 +1338,7 @@ paths:
       description: |
         Initiate print and shipment of a duplicate physical card.
 
-        Only applies to cards of type `PHYSICAL` [beta].
+        Only applies to cards of type `PHYSICAL`.
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -1322,7 +1368,7 @@ paths:
                   description: >
                     Specifies the configuration (e.g. physical card art) that
                     the card should be manufactured with, and only applies to
-                    cards of type `PHYSICAL` [beta]. This must be configured
+                    cards of type `PHYSICAL`. This must be configured
                     with Lithic before use.
             examples:
               reissueCardNewAddress:
@@ -1960,7 +2006,7 @@ paths:
                     type: string
                     enum: &eventTypes
                       - dispute.updated
-                      - digital_wallet.token_approval_request
+                      - digital_wallet.tokenization_approval_request
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2052,7 +2098,7 @@ paths:
                     type: string
                     enum: &eventTypes
                       - dispute.updated
-                      - digital_wallet.token_approval_request
+                      - digital_wallet.tokenization_approval_request
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2736,6 +2782,69 @@ paths:
                     type: string
                     format: uuid
                     description: A unique token to reference this transaction with later calls to void or clear the authorization.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/SimulateAuthorizationFailure'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /simulate/authorization_advice:
+    post:
+      tags:
+        - Transaction
+      summary: Simulate authorization advice
+      description: >
+        Simulates an authorization advice request from the payment network as if
+        it came from a merchant acquirer. An authorization advice request changes the
+        amount of the transaction.
+      operationId: postSimulateAuthorizationAdvice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - token
+              properties:
+                amount:
+                  type: integer
+                  description: Amount (in cents) to authorize. This amount will override the transaction's amount that was originally set by /v1/simulate/authorize.
+                  minimum: 0
+                token:
+                  type: string
+                  format: uuid
+                  description: The transaction token returned from the /v1/simulate/authorize response.
+              examples:
+                simulateAuthorizationAdvice:
+                  summary: Simulate an authorization
+                  value:
+                    amount: 3831
+                    descriptor: 'COFFEE SHOP'
+                    pan: '4111111289144142'
+                    token: 'fabd829d-7f7b-4432-a8f2-07ea4889aaac'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              example:
+                debugging_request_id: d31645af-da9e-4952-b7dc-3ffb06618b39
+                token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
+              schema:
+                type: object
+                properties:
+                  debugging_request_id:
+                    type: string
+                    format: uuid
+                    description: Debugging request ID to share with Lithic Support team.
+                  token:
+                    type: string
+                    format: uuid
+                    description: A unique token to reference this transaction.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3862,6 +3971,63 @@ components:
           description: |
             List of identifiers for the Auth Rule(s) that are applied on the account.
           example: ['b68b7424-aa69-4cbc-a946-30d90181b621']
+        verification_address:
+          type: object
+          properties:
+            address1:
+              type: string
+              description: Valid deliverable address (no PO boxes).
+              example: 124 Old Forest Way
+            address2:
+              type: string
+              description: Unit or apartment number (if applicable).
+              example: Apt 21
+            city:
+              type: string
+              description: City name.
+              example: Seattle
+            state:
+              type: string
+              description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+              example: WA
+            postal_code:
+              type: string
+              description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+              example: 98109
+            country:
+              type: string
+              description: Country name. Only USA is currently supported.
+              example: USA
+          required:
+            - address1
+            - city
+            - state
+            - postal_code
+            - country
+        account_holder:
+          type: object
+          properties:
+            token:
+              type: string
+              description: Globally unique identifier for the account holder.
+              example: 95e5f1b7-cfd5-4520-aa3c-2451bab8608d
+            phone_number:
+              type: string
+              description: Phone number of the individual.
+              example: +12124007676
+            email:
+              type: string
+              description: Email address.
+              example: jack@lithic.com
+            business_account_token:
+              type: string
+              description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Account_token of the enrolled business associated with an enrolled AUTHORIZED_USER individual.
+              example: e87db14a-4abf-4901-adad-5d5c9f46aff2
+          required:
+            - token
+            - phone_number
+            - email
+            - business_account_token
       required:
         - token
         - spend_limit
@@ -4895,7 +5061,7 @@ components:
           description: |
             Event types:
             * `dispute.updated` - A dispute has been updated.
-            * `digital_wallet.token_approval_request` - Card network's request to Lithic to activate a digital wallet token.
+            * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
         payload:
           type: object
         created:
