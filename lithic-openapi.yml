@@ -866,7 +866,7 @@ paths:
         - Auth Stream Access (ASA)
       summary: Retrieve the ASA HMAC secret key
       description: >
-        Retrieve the ASA HMAC secret key. If one does not exist your program yet, calling this endpoint will create one for you. 
+        Retrieve the ASA HMAC secret key. If one does not exist your program yet, calling this endpoint will create one for you.
         The headers (which you can use to verify webhooks) will begin appearing shortly after calling this endpoint for the first time.
         See [this page](https://docs.lithic.com/docs/auth-stream-access-asa#asa-webhook-verification) for more detail about verifying ASA webhooks.
       operationId: getAuthStreamSecret
@@ -900,6 +900,59 @@ paths:
       responses:
         '204':
           description: We have successfully rotated the secret key.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /tokenization_decisioning/secret:
+    get:
+      tags:
+        - Card
+      summary: Retrieve the Tokenization Decisioning HMAC secret key
+      description: >
+        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
+        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
+        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
+      operationId: getTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /tokenization_decisioning/secret/rotate:
+    post:
+      tags:
+        - Card
+      summary: Rotate the Tokenization Decisioning HMAC secret key
+      description: >
+        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
+        after a successful request to this endpoint.
+      operationId: rotateTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The new Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
         '401':
           $ref: '#/components/responses/Unauthorized'
         '429':
