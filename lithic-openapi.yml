@@ -866,7 +866,7 @@ paths:
         - Auth Stream Access (ASA)
       summary: Retrieve the ASA HMAC secret key
       description: >
-        Retrieve the ASA HMAC secret key. If one does not exist your program yet, calling this endpoint will create one for you. 
+        Retrieve the ASA HMAC secret key. If one does not exist your program yet, calling this endpoint will create one for you.
         The headers (which you can use to verify webhooks) will begin appearing shortly after calling this endpoint for the first time.
         See [this page](https://docs.lithic.com/docs/auth-stream-access-asa#asa-webhook-verification) for more detail about verifying ASA webhooks.
       operationId: getAuthStreamSecret
@@ -900,6 +900,59 @@ paths:
       responses:
         '204':
           description: We have successfully rotated the secret key.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /tokenization_decisioning/secret:
+    get:
+      tags:
+        - Card
+      summary: Retrieve the Tokenization Decisioning HMAC secret key
+      description: >
+        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
+        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
+        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
+      operationId: getTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /tokenization_decisioning/secret/rotate:
+    post:
+      tags:
+        - Card
+      summary: Rotate the Tokenization Decisioning HMAC secret key
+      description: >
+        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
+        after a successful request to this endpoint.
+      operationId: rotateTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The new Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
         '401':
           $ref: '#/components/responses/Unauthorized'
         '429':
@@ -1004,11 +1057,6 @@ paths:
                   minLength: 4
                   maxLength: 4
                   example: '2027'
-                funding_token:
-                  type: string
-                  format: uuid
-                  description: The token for the desired `FundingAccount` to use when making transactions with this card.
-                  example: 'ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1'
                 memo:
                   type: string
                   description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
@@ -1169,11 +1217,6 @@ paths:
             schema:
               type: object
               properties:
-                funding_token:
-                  type: string
-                  format: uuid
-                  description: The token for the desired `FundingAccount` to use when making transactions with this card.
-                  example: 'ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1'
                 memo:
                   type: string
                   description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
@@ -2405,261 +2448,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
-  /funding_sources:
-    get:
-      tags:
-        - Funding
-      summary: List funding sources
-      description: List all the funding sources associated with the Lithic account.
-      operationId: getFundingSources
-      parameters:
-        - in: query
-          name: account_token
-          schema:
-            type: string
-            format: uuid
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              example:
-                data:
-                  - account_name: Sandbox
-                    created: '2020-07-08 17:57:36'
-                    last_four: '5263'
-                    nickname: ''
-                    state: ENABLED
-                    token: 'b0f0d91a-3697-46d8-85f3-20f0a585cbea'
-                    type: DEPOSITORY_CHECKING
-                page: 1
-                total_pages: 1
-                total_entries: 1
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FundingAccount'
-                  page:
-                    type: integer
-                    description: Page number. Will always be 1.
-                  total_entries:
-                    type: integer
-                    description: Total number of entries.
-                  total_pages:
-                    type: integer
-                    description: Total number of pages. Will always be 1.
-                required:
-                  - data
-                  - page
-                  - total_entries
-                  - total_pages
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-    post:
-      tags:
-        - Funding
-      summary: Add funding source
-      description: |
-        Add a funding source using bank routing and account numbers or via Plaid.
-
-        In the production environment, funding accounts will be set to `PENDING` state until micro-deposit validation completes while funding accounts in sandbox will be set to `ENABLED` state automatically.
-      operationId: postFundingSources
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              oneOf:
-                - $ref: '#/components/schemas/BANK'
-                - $ref: '#/components/schemas/PLAID'
-              discriminator:
-                propertyName: validation_method
-            examples:
-              addBank:
-                summary: Add bank funding source
-                value:
-                  account_name: 'Sandbox'
-                  account_number: '13719713158835300'
-                  routing_number: '011103093'
-                  validation_method: BANK
-              addBankViaPlaid:
-                summary: Add bank funding source via Plaid
-                value:
-                  processor_token: 'processor-sandbox-0asd1-a92nc'
-                  validation_method: PLAID
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              example:
-                account_name: Sandbox
-                created: '2020-07-08 17:57:36'
-                last_four: '5263'
-                nickname: 'some nickname'
-                state: DELETED
-                token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
-                type: DEPOSITORY_CHECKING
-              schema:
-                $ref: '#/components/schemas/FundingAccount'
-        '4XX':
-          description: >
-            More documentation on these fields can be found on the
-            Errors page in Plaid's documentation.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error_data:
-                    type: object
-                    properties:
-                      error_code:
-                        type: string
-                      error_message:
-                        type: string
-                      error_type:
-                        type: string
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /funding_sources/{funding_source_token}:
-    patch:
-      tags:
-        - Funding
-      summary: Update bank account
-      description: Update a funding source.
-      operationId: patchFundingSourceByToken
-      parameters:
-        - $ref: '#/components/parameters/fundingSourceToken'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                account_token:
-                  type: string
-                  format: uuid
-                  description: Only required for multi-account users. Token identifying the account that the bank account will be associated with. Only applicable if using account holder enrollment. See [Managing Your Program](https://docs.lithic.com/docs/managing-your-program) for more information.
-                state:
-                  type: string
-                  enum:
-                    - DELETED
-                    - ENABLED
-                  description: |
-                    The desired state of the bank account.
-
-                    If a bank account is set to `DELETED`, all cards linked to this account will no longer be associated with it. If there are no other bank accounts in state `ENABLED` on the account, authorizations will not be accepted on the card until a new funding account is added.
-            examples:
-              updateBank:
-                summary: Update bank account
-                value:
-                  state: DELETED
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              example:
-                account_name: Sandbox
-                created: '2020-07-08 17:57:36'
-                last_four: '5263'
-                nickname: ''
-                state: DELETED
-                token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
-                type: DEPOSITORY_CHECKING
-              schema:
-                $ref: '#/components/schemas/FundingAccount'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
-  /funding_sources/{funding_source_token}/verify:
-    post:
-      tags:
-        - Funding
-      summary: Verify bank account
-      description: Verify a bank account as a funding source by providing received micro-deposit amounts.
-      operationId: postFundingSourceVerify
-      parameters:
-        - $ref: '#/components/parameters/fundingSourceToken'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - micro_deposits
-              properties:
-                account_token:
-                  type: string
-                  format: uuid
-                  description: >
-                    Only required for multi-account users.
-                    Token identifying the account that the bank account will be
-                    associated with. Only applicable if using account holder enrollment.
-                    See [Managing Your Program](https://docs.lithic.com/docs/managing-your-program)
-                    for more information.
-                micro_deposits:
-                  type: array
-                  items:
-                    type: integer
-                    minLength: 2
-                    maxLength: 2
-                  description: An array of dollar amounts (in cents) received in two credit transactions.
-                  example: ['11', '23']
-            examples:
-              addBank:
-                summary: Verify a bank funding source
-                value:
-                  micro_deposits: ['11', '23']
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              example:
-                account_name: Sandbox
-                created: '2020-07-08 17:57:36'
-                last_four: '5263'
-                nickname: ''
-                state: DELETED
-                token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
-                type: DEPOSITORY_CHECKING
-              schema:
-                $ref: '#/components/schemas/FundingAccount'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
   /simulate/authorize:
     post:
       tags:
@@ -5257,52 +5045,6 @@ components:
             Types of funding source:
             * `DEPOSITORY_CHECKING` - Bank checking account.
             * `DEPOSITORY_SAVINGS` - Bank savings account.
-
-    BANK:
-      type: object
-      required:
-        - account_number
-        - routing_number
-        - validation_method
-      properties:
-        validation_method:
-          type: string
-          enum:
-            - BANK
-        account_name:
-          type: string
-          description: The name associated with the bank account. This property is only for identification purposes, and has no bearing on the external properties of the bank.
-          example: 'Sandbox'
-        account_number:
-          type: string
-          description: The account number of the bank account.
-          example: '13719713158835300'
-        account_token:
-          type: string
-          format: uuid
-          description: Only required for multi-account users. Token identifying the account that the bank account will be associated with. Only applicable if using account holder enrollment. See [Managing Your Program](https://docs.lithic.com/docs/managing-your-program) for more information.
-        routing_number:
-          type: string
-          description: The routing number of the bank account.
-          example: '011103093'
-
-    PLAID:
-      type: object
-      required:
-        - processor_token
-        - validation_method
-      properties:
-        validation_method:
-          type: string
-          enum:
-            - PLAID
-        account_token:
-          type: string
-          format: uuid
-          description: Only required for multi-account users. Token identifying the account associated with the bank account. Only applicable if using account holder enrollment. See [Managing Your Program](https://docs.lithic.com/docs/managing-your-program) for more information.
-        processor_token:
-          type: string
-          description: The processor token associated with the bank account.
 
     Merchant:
       type: object
