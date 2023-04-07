@@ -3477,7 +3477,7 @@ paths:
                 type:
                   type: string
                   enum:
-                    - tokenization_decisioning
+                    - TOKENIZATION_DECISIONING
                   description: The type of the endpoint.
       responses:
         200:
@@ -3500,7 +3500,7 @@ paths:
           schema:
             type: string
             enum:
-              - tokenization_decisioning
+              - TOKENIZATION_DECISIONING
           required: true
           description: The type of the endpoint.
       responses:
@@ -3517,7 +3517,7 @@ paths:
           schema:
             type: string
             enum:
-              - tokenization_decisioning
+              - TOKENIZATION_DECISIONING
           required: true
           description: The type of the endpoint.
       responses:
