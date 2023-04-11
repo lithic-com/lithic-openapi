@@ -1043,7 +1043,7 @@ paths:
                 card_program_token:
                   type: string
                   format: uuid
-                  description: For card programs with more than one BIN range. This must be configured with Lithic before use. Identifies the card program/BIN range under which to create the card. If omitted, will utilize the program's default `card_program_token`. In Sandbox, use 00000000-0000-0000-1000-000000000000 and 00000000-0000-0000-2000-000000000000 to test creating cards on specific card programs.
+                  description: For physical card programs with more than one BIN range. This must be configured with Lithic before use. Identifies the card program/BIN range under which to create the card. If omitted, will utilize the program's default `card_program_token`. In Sandbox, use 00000000-0000-0000-1000-000000000000 and 00000000-0000-0000-2000-000000000000 to test creating cards on specific card programs.
                   example: '00000000-0000-0000-1000-000000000000'
                 exp_month:
                   type: string
@@ -1858,13 +1858,11 @@ paths:
           description: A base64 encoded JSON string of an EmbedRequest to specify which card to load.
           schema:
             type: string
-          required: true
         - in: query
           name: hmac
           description: SHA256 HMAC of the embed_request JSON string with base64 digest.
           schema:
             type: string
-          required: true
       responses:
         '200':
           description: |
@@ -3458,84 +3456,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /responder_endpoints:
-    post:
-      tags:
-        - Responder Endpoints
-      summary: Enroll a responder endpoint
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: uri
-                  description: The URL for the responder endpoint (must be http(s)).
-                type:
-                  type: string
-                  enum:
-                    - TOKENIZATION_DECISIONING
-                  description: The type of the endpoint.
-      responses:
-        200:
-          description: Endpoint enrolled successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  enrolled:
-                    type: boolean
-                    description: True if the endpoint was enrolled successfully.
-    delete:
-      tags:
-        - Responder Endpoints
-      summary: Disenroll a responder endpoint
-      parameters:
-        - in: query
-          name: type
-          schema:
-            type: string
-            enum:
-              - TOKENIZATION_DECISIONING
-          required: true
-          description: The type of the endpoint.
-      responses:
-        200:
-          description: Endpoint disenrolled successfully
-          content: {}
-    get:
-      tags:
-        - Responder Endpoints
-      summary: Check the status of a responder endpoint
-      parameters:
-        - in: query
-          name: type
-          schema:
-            type: string
-            enum:
-              - TOKENIZATION_DECISIONING
-          required: true
-          description: The type of the endpoint.
-      responses:
-        200:
-          description: Responder endpoint status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  enrolled:
-                    type: boolean
-                    description: True if the instance has an endpoint enrolled.
-                  url:
-                    type: string
-                    nullable: true
-                    format: uri
-                    description: The URL of the currently enrolled endpoint or null.
 
 components:
   parameters:
