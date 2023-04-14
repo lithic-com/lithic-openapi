@@ -2605,12 +2605,6 @@ paths:
       operationId: getBalance
       parameters:
         - in: query
-          name: financial_account_token
-          schema:
-            type: string
-            format: uuid
-          description: Balance for a given financial_account_token.
-        - in: query
           name: balance_date
           schema:
             type: string
@@ -2624,6 +2618,7 @@ paths:
           description: |
             Balance after a given financial event occured. 
             For example, passing the event_token of a $5 CARD_CLEARING financial event will return a balance decreased by $5
+        - $ref: '#/components/parameters/financialAccountToken'
       responses:
         '200':
           description: OK
@@ -2688,6 +2683,7 @@ paths:
               - APPROVED
               - DECLINED
           description: Financial Transaction result to be returned.
+        - $ref: '#/components/parameters/financialAccountToken'
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/startingAfter'
@@ -2727,6 +2723,9 @@ paths:
       summary: Get Financial Transaction
       description: Get the financial transaction for the provided token.
       operationId: getFinancialTransactionByToken
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/financialTransactionToken'
       responses:
         '200':
           description: OK
@@ -3990,7 +3989,7 @@ components:
         type: string
         format: uuid
       examples:
-        accountTokenExample:
+        financialAccountTokenExample:
           value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
           summary: A sample financial account token
     financialTransactionToken:
@@ -4002,7 +4001,7 @@ components:
         type: string
         format: uuid
       examples:
-        accountTokenExample:
+        financialTransactionTokenExample:
           value: 18394f8e-711b-4b3e-ae21-d35a9eafe7d1
           summary: A sample financial transaction token
     fundingSourceToken:
