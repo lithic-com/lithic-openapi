@@ -859,6 +859,50 @@ paths:
               responses:
                 '200':
                   description: OK
+  /aggregate_balances:
+    get:
+      tags:
+        - Balance
+      summary: List Aggregate Balances
+      description: Get the aggregated balance across all end-user accounts by financial account type
+      operationId: getAggregateBalances
+      parameters:
+        - in: query
+          name: financial_account_type
+          schema:
+            type: string
+            enum: &financialAccountTypes
+              - ISSUING
+              - RESERVE
+          description: Get the aggregate balance for a given Financial Account type.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AggregateBalance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
   /auth_stream/secret:
     get:
@@ -957,6 +1001,60 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /balances:
+    get:
+      tags:
+        - Balance
+      summary: List Balances
+      description: Get the balances for a program or a given end-user account
+      operationId: getBalances
+      parameters:
+        - in: query
+          name: account_token
+          schema:
+            type: string
+            format: uuid
+          description: List balances for all financial accounts of a given account_token.
+        - in: query
+          name: balance_date
+          schema:
+            type: string
+            format: date-time
+          description: UTC date and time of the balances to retrieve. Defaults to latest available balances
+        - in: query
+          name: financial_account_type
+          schema:
+            type: string
+            enum: *financialAccountTypes
+          description: List balances for a given Financial Account type.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Balance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
   /cards:
     get:
@@ -1043,7 +1141,7 @@ paths:
                 card_program_token:
                   type: string
                   format: uuid
-                  description: For physical card programs with more than one BIN range. This must be configured with Lithic before use. Identifies the card program/BIN range under which to create the card. If omitted, will utilize the program's default `card_program_token`. In Sandbox, use 00000000-0000-0000-1000-000000000000 and 00000000-0000-0000-2000-000000000000 to test creating cards on specific card programs.
+                  description: For card programs with more than one BIN range. This must be configured with Lithic before use. Identifies the card program/BIN range under which to create the card. If omitted, will utilize the program's default `card_program_token`. In Sandbox, use 00000000-0000-0000-1000-000000000000 and 00000000-0000-0000-2000-000000000000 to test creating cards on specific card programs.
                   example: '00000000-0000-0000-1000-000000000000'
                 exp_month:
                   type: string
@@ -1858,11 +1956,13 @@ paths:
           description: A base64 encoded JSON string of an EmbedRequest to specify which card to load.
           schema:
             type: string
+          required: true
         - in: query
           name: hmac
           description: SHA256 HMAC of the embed_request JSON string with base64 digest.
           schema:
             type: string
+          required: true
       responses:
         '200':
           description: |
@@ -2448,6 +2548,203 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /financial_accounts:
+    get:
+      tags:
+        - Financial Account
+      summary: List Financial Accounts
+      description: Retrieve information on your financial accounts including routing and account number.
+      operationId: getFinancialAccounts
+      parameters:
+        - in: query
+          name: account_token
+          schema:
+            type: string
+            format: uuid
+          description: List financial accounts for a given account_token
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: *financialAccountTypes
+          description: List financial accounts of a given type
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FinancialAccount'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/balances:
+    get:
+      tags:
+        - Balance
+      summary: Get balances
+      description: Get the balances for a given financial account.
+      operationId: getBalance
+      parameters:
+        - in: query
+          name: financial_account_token
+          schema:
+            type: string
+            format: uuid
+          description: Balance for a given financial_account_token.
+        - in: query
+          name: balance_date
+          schema:
+            type: string
+            format: date-time
+          description: UTC date of the balance to retrieve. Defaults to latest available balance
+        - in: query
+          name: last_transaction_event_token
+          schema:
+            type: string
+            format: uuid
+          description: |
+            Balance after a given financial event occured. 
+            For example, passing the event_token of a $5 CARD_CLEARING financial event will return a balance decreased by $5
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Balance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/financial_transactions:
+    get:
+      tags:
+        - Financial Transaction
+      summary: List Financial Transactions
+      description: List the financial transactions for a given financial account.
+      operationId: getFinancialTransactions
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum:
+              - ACH
+              - CARD
+              - TRANSFER
+          description: Financial Transaction category to be returned.
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - DECLINED
+              - EXPIRED
+              - PENDING
+              - SETTLED
+              - VOIDED
+          description: Financial Transaction status to be returned.
+        - in: query
+          name: result
+          schema:
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+          description: Financial Transaction result to be returned.
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FinancialTransaction'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/financial_transactions/{financial_transaction_token}:
+    get:
+      tags:
+        - Financial Transaction
+      summary: Get Financial Transaction
+      description: Get the financial transaction for the provided token.
+      operationId: getFinancialTransactionByToken
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialTransaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /simulate/authorize:
     post:
       tags:
@@ -2990,6 +3287,60 @@ paths:
                 properties:
                   message:
                     type: string
+  /transfer:
+    post:
+      tags:
+        - Financial Transaction
+      summary: Transfer funds within Lithic
+      description: Transfer funds between two financial accounts
+      operationId: postTransfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from
+                - to
+                - amount
+              properties:
+                from:
+                  type: string
+                  description: Globally unique identifier for the financial account that will send the funds.
+                  $ref: '#/components/schemas/FinancialAccount'
+                to:
+                  type: string
+                  description: Globally unique identifier for the financial account that will receive the funds.
+                  $ref: '#/components/schemas/FinancialAccount'
+                amount:
+                  type: integer
+                  description: Amount to be transferred in the currency’s smallest unit (e.g., cents for USD). This should always be a positive value.
+                memo:
+                  type: string
+                  description: Optional descriptor for the transfer.
+                transaction_token:
+                  type: string
+                  format: uuid
+                  description: Customer-provided transaction_token that will serve as an idempotency token.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /transactions:
     get:
       tags:
@@ -3456,6 +3807,84 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /responder_endpoints:
+    post:
+      tags:
+        - Responder Endpoints
+      summary: Enroll a responder endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: The URL for the responder endpoint (must be http(s)).
+                type:
+                  type: string
+                  enum:
+                    - TOKENIZATION_DECISIONING
+                  description: The type of the endpoint.
+      responses:
+        200:
+          description: Endpoint enrolled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enrolled:
+                    type: boolean
+                    description: True if the endpoint was enrolled successfully.
+    delete:
+      tags:
+        - Responder Endpoints
+      summary: Disenroll a responder endpoint
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum:
+              - TOKENIZATION_DECISIONING
+          required: true
+          description: The type of the endpoint.
+      responses:
+        200:
+          description: Endpoint disenrolled successfully
+          content: {}
+    get:
+      tags:
+        - Responder Endpoints
+      summary: Check the status of a responder endpoint
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum:
+              - TOKENIZATION_DECISIONING
+          required: true
+          description: The type of the endpoint.
+      responses:
+        200:
+          description: Responder endpoint status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enrolled:
+                    type: boolean
+                    description: True if the instance has an endpoint enrolled.
+                  url:
+                    type: string
+                    nullable: true
+                    format: uri
+                    description: The URL of the currently enrolled endpoint or null.
 
 components:
   parameters:
@@ -3552,6 +3981,30 @@ components:
         documentTokenExample:
           value: 76ca80c3-bf90-491a-97d9-f64788f8b2ab
           summary: A sample document token
+    financialAccountToken:
+      in: path
+      name: financial_account_token
+      required: true
+      description: Globally unique identifier for financial account.
+      schema:
+        type: string
+        format: uuid
+      examples:
+        accountTokenExample:
+          value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          summary: A sample financial account token
+    financialTransactionToken:
+      in: path
+      name: financial_transaction_token
+      required: true
+      description: Globally unique identifier for financial transaction token.
+      schema:
+        type: string
+        format: uuid
+      examples:
+        accountTokenExample:
+          value: 18394f8e-711b-4b3e-ae21-d35a9eafe7d1
+          summary: A sample financial transaction token
     fundingSourceToken:
       in: path
       name: funding_source_token
@@ -3938,6 +4391,111 @@ components:
               - OTHER_VERIFICATION_FAILURE
               - RISK_THRESHOLD_FAILURE
               - WATCHLIST_ALERT_FAILURE
+
+    AggregateBalance:
+      type: object
+      description: Aggregate Balance across all end-user accounts
+      required:
+        - financial_account_type
+        - currency
+        - available_amount
+        - pending_amount
+        - total_amount
+        - created
+        - updated
+        - last_transaction_token
+        - last_transaction_event_token
+        - last_financial_account_token
+      properties:
+        financial_account_type:
+          type: string
+          description: Type of financial account
+          enum: *financialAccountTypes
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the balance.
+        available_amount:
+          type: integer
+          description: Funds available for spend in the currency's smallest unit (e.g., cents for USD)
+        pending_amount:
+          type: integer
+          description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD)
+        total_amount:
+          type: integer
+          description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD)
+        created:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was first created.
+        updated:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was last updated.
+        last_transaction_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last transaction that impacted this balance
+        last_transaction_event_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last transaction event that impacted this balance
+        last_financial_account_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the financial account that had its balance updated most recently
+
+    Balance:
+      type: object
+      description: Balance of a Financial Account
+      required:
+        - available_amount
+        - created
+        - currency
+        - last_transaction_event_token
+        - last_transaction_token
+        - pending_amount
+        - token
+        - total_amount
+        - type
+        - updated
+      properties:
+        available_amount:
+          type: integer
+          description: Funds available for spend in the currency's smallest unit (e.g., cents for USD)
+        created:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was first created.
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the balance.
+        last_transaction_event_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last financial transaction event that impacted this balance.
+        last_transaction_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last financial transaction that impacted this balance.
+        pending_amount:
+          type: integer
+          description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD).
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the financial account that holds this balance.
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        total_amount:
+          type: integer
+          description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD).
+        type:
+          type: string
+          description: Type of financial account.
+          enum: *financialAccountTypes
+        updated:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was last updated.
 
     CardholderAuthentication:
       type: object
@@ -4993,6 +5551,177 @@ components:
             * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit funds without additional clearing.
             * `RETURN` - A refund has been processed on the transaction.
             * `RETURN_REVERSAL` - A refund has been reversed (e.g., when a merchant reverses an incorrect refund).
+
+    FinancialAccount:
+      type: object
+      description: Financial Account
+      required:
+        - created
+        - token
+        - type
+        - updated
+      properties:
+        account_number:
+          type: string
+          description: Account number for your Lithic-assigned bank account number, if applicable.
+        created:
+          type: string
+          format: date-time
+          description: Date and time for when the financial account was first created.
+        routing_number:
+          type: string
+          description: Routing number for your Lithic-assigned bank account number, if applicable.
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the financial account.
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type:
+          type: string
+          description: Type of financial account
+          enum: *financialAccountTypes
+        updated:
+          type: string
+          format: date-time
+          description: Date and time for when the financial account was last updated.
+
+    FinancialEvent:
+      type: object
+      properties:
+        amount:
+          type: integer
+          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the financial event occurred. UTC time zone.
+        result:
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier.
+        type:
+          type: string
+          enum:
+            - ACH_INSUFFICIENT_FUNDS
+            - ACH_ORIGINATION_PENDING
+            - ACH_ORIGINATION_RELEASED
+            - ACH_RECEIPT_PENDING
+            - ACH_RECEIPT_RELEASED
+            - ACH_RETURN
+            - AUTHORIZATION
+            - AUTHORIZATION_ADVICE
+            - AUTHORIZATION_EXPIRY
+            - AUTHORIZATION_REVERSAL
+            - BALANCE_INQUIRY
+            - CLEARING
+            - CORRECTION_DEBIT
+            - CORRECTION_CREDIT
+            - CREDIT_AUTHORIZATION
+            - CREDIT_AUTHORIZATION_ADVICE
+            - FINANCIAL_AUTHORIZATION
+            - FINANCIAL_CREDIT_AUTHORIZATION
+            - RETURN
+            - RETURN_REVERSAL
+            - TRANSFER
+            - TRANSFER_INSUFFICIENT_FUNDS
+          description: |
+            Event types:
+            * `ACH_INSUFFICIENT_FUNDS` - Attempted ACH origination declined due to insufficient balance.
+            * `ACH_ORIGINATION_PENDING` - ACH origination pending release from an ACH hold.
+            * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+            * `ACH_RECEIPT_PENDING` - ACH receipt pending release from an ACH holder.
+            * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+            * `ACH_RETURN` - ACH origination returned by the Receiving Depository Financial Institution.
+            * `AUTHORIZATION` - Authorize a card transaction.
+            * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
+            * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
+            * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
+            * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
+            * `CLEARING` - Card Transaction is settled.
+            * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
+            * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
+            * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
+            * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
+            * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
+            * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
+            * `RETURN` - A card refund has been processed on the transaction.
+            * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
+            * `TRANSFER` - Successful internal transfer of funds between financial accounts.
+            * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internl transfer of funds due to insufficient balance of the sender.
+
+    FinancialTransaction:
+      type: object
+      properties:
+        category:
+          type: string
+          enum:
+            - CARD
+            - ACH
+            - TRANSFER
+          description: |
+            Status types:
+            * `CARD` - Issuing card transaction.
+            * `ACH` - Transaction over ACH.
+            * `TRANSFER` - Internal transfer of funds between financial accounts in your program.
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the financial transaction first occurred. UTC time zone.
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the settling currency of the transaction.
+        descriptor:
+          type: string
+          description: A string that provides a description of the financial transaction; may be useful to display to users.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialEvent'
+          description: A list of all financial events that have modified this financial transaction.
+        pending_amount:
+          type: integer
+          description: |
+            Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
+            The value of this field will go to zero over time once the financial transaction is settled.
+        result:
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+          description: APPROVED transactions were successful while DECLINED transactions were declined by user, Lithic, or the network.
+        settled_amount:
+          type: integer
+          description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents), including any acquirer fees. This may change over time.
+        status:
+          type: string
+          enum:
+            - DECLINED
+            - EXPIRED
+            - PENDING
+            - SETTLED
+            - VOIDED
+          description: |
+            Status types:
+            * `DECLINED` - The card transaction was declined.
+            * `EXPIRED` - Lithic reversed the card authorization as it has passed its expiration time.
+            * `PENDING` - Authorization is pending completion from the merchant or pending release from ACH hold period
+            * `SETTLED` - The financial transaction is completed.
+            * `VOIDED` - The merchant has voided the previously pending card authorization.
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier.
+        updated:
+          type: string
+          format: date-time
+          description: Date and time when the financial transaction was last updated. UTC time zone.
+
     FundingAccount:
       type: object
       required:
@@ -5272,6 +6001,79 @@ components:
           minLength: 8
           maxLength: 16
           example: '+12124007676'
+
+    Transfer:
+      type: object
+      properties:
+        category:
+          type: string
+          enum:
+            - TRANSFER
+          description: |
+            Status types:
+            * `TRANSFER` - Internal transfer of funds between financial accounts in your program.
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the transfer occurred. UTC time zone.
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the settling currency of the transaction.
+        descriptor:
+          type: string
+          description: A string that provides a description of the transfer; may be useful to display to users.
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialEvent'
+          description: A list of all financial events that have modified this trasnfer.
+        pending_amount:
+          type: integer
+          description: |
+            Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
+            The value of this field will go to zero over time once the financial transaction is settled.
+        result:
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+          description: APPROVED transactions were successful while DECLINED transactions were declined by user, Lithic, or the network.
+        settled_amount:
+          type: integer
+          description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
+        status:
+          type: string
+          enum:
+            - DECLINED
+            - EXPIRED
+            - PENDING
+            - SETTLED
+            - VOIDED
+          description: |
+            Status types:
+            * `DECLINED` - The transfer was declined.
+            * `EXPIRED` - The transfer was held in pending for too long and expired.
+            * `PENDING` - The transfer is pending release from a hold.
+            * `SETTLED` - The transfer is completed.
+            * `VOIDED` - The transfer was reversed before it settled.
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the transfer event.
+        updated:
+          type: string
+          format: date-time
+          description: Date and time when the financial transaction was last updated. UTC time zone.
+        from_balance:
+          type: array
+          items:
+            $ref: '#/components/schemas/Balance'
+          description: The updated balance of the sending financial account.
+        to_balance:
+          type: array
+          items:
+            $ref: '#/components/schemas/Balance'
+          description: The updated balance of the receiving financial account.
 
     Transaction:
       type: object
