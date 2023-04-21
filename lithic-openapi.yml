@@ -941,6 +941,11 @@ paths:
         after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret)
         request to retrieve the new secret key.
       operationId: rotateAuthStreamSecret
+      requestBody: # TODO remove once we don't enforce content-type json
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '204':
           description: We have successfully rotated the secret key.
@@ -985,6 +990,11 @@ paths:
         Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
         after a successful request to this endpoint.
       operationId: rotateTokenizationDecisioningSecret
+      requestBody: # TODO remove once we don't enforce content-type json
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: OK
@@ -2350,7 +2360,7 @@ paths:
           required: true
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-      requestBody:
+      requestBody: # TODO remove once we don't enforce content-type json
         content:
           application/json:
             schema:
@@ -2418,7 +2428,7 @@ paths:
           schema:
             type: string
           required: true
-      requestBody:
+      requestBody: # TODO remove once we don't enforce content-type json
         content:
           application/json:
             schema:
