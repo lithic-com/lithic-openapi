@@ -941,11 +941,6 @@ paths:
         after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret)
         request to retrieve the new secret key.
       operationId: rotateAuthStreamSecret
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '204':
           description: We have successfully rotated the secret key.
