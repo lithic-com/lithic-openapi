@@ -4797,9 +4797,6 @@ components:
           type: string
           format: uuid
           description: Dispute token evidence is attached to.
-        download_url:
-          type: string
-          description: URL to download evidence. Only shown when `upload_status` is `UPLOADED`.
         token:
           type: string
           format: uuid
