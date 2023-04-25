@@ -941,11 +941,6 @@ paths:
         after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret)
         request to retrieve the new secret key.
       operationId: rotateAuthStreamSecret
-      requestBody: # TODO remove once we don't enforce content-type json
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '204':
           description: We have successfully rotated the secret key.
@@ -990,11 +985,6 @@ paths:
         Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
         after a successful request to this endpoint.
       operationId: rotateTokenizationDecisioningSecret
-      requestBody: # TODO remove once we don't enforce content-type json
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '200':
           description: OK
@@ -2360,11 +2350,6 @@ paths:
           required: true
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-      requestBody: # TODO remove once we don't enforce content-type json
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '202':
           description: OK
@@ -2428,11 +2413,6 @@ paths:
           schema:
             type: string
           required: true
-      requestBody: # TODO remove once we don't enforce content-type json
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '204':
           description: OK
@@ -4797,6 +4777,9 @@ components:
           type: string
           format: uuid
           description: Dispute token evidence is attached to.
+        download_url:
+          type: string
+          description: URL to download evidence. Only shown when `upload_status` is `UPLOADED`.
         token:
           type: string
           format: uuid
