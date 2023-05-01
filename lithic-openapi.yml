@@ -1858,22 +1858,13 @@ paths:
       operationId: postEvidenceDocument
       parameters:
         - $ref: '#/components/parameters/disputeToken'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
       responses:
         '201':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  upload_url:
-                    type: string
-                description: URL to upload document image to. The URL will expire in 5 minutes.
+                $ref: '#/components/schemas/DisputeEvidence'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4772,7 +4763,7 @@ components:
         created:
           type: string
           format: date-time
-          description: Timestamp of when first Dispute was reported.
+          description: Timestamp of when dispute evidence was created.
         dispute_token:
           type: string
           format: uuid
@@ -6168,4 +6159,3 @@ components:
 # Apply the API key globally to all operations
 security:
   - ApiKeyAuth: [] # see securitySchemes
-
