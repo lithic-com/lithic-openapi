@@ -949,58 +949,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
-  /tokenization_decisioning/secret:
-    get:
-      tags:
-        - Card
-      summary: Retrieve the Tokenization Decisioning HMAC secret key
-      description: >
-        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
-        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
-        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
-      operationId: getTokenizationDecisioningSecret
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
-  /tokenization_decisioning/secret/rotate:
-    post:
-      tags:
-        - Card
-      summary: Rotate the Tokenization Decisioning HMAC secret key
-      description: >
-        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
-        after a successful request to this endpoint.
-      operationId: rotateTokenizationDecisioningSecret
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The new Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
   /balances:
     get:
       tags:
@@ -1198,8 +1146,8 @@ paths:
                     Card types:
                     * `VIRTUAL` - Card will authorize at any merchant and can be added to a digital wallet like Apple Pay or Google Pay (if the card program is digital wallet-enabled).
                     * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+                    * `SINGLE_USE` - Card is closed upon first successful authorization.
                     * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-                    * `SINGLE_USE` - *[Deprecated]* Card is closed upon first successful authorization.
                 pin:
                   type: string
                   description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block-enterprise).
@@ -1563,6 +1511,58 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /tokenization_decisioning/secret:
+    get:
+      tags:
+        - Card
+      summary: Retrieve the Tokenization Decisioning HMAC secret key
+      description: >
+        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
+        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
+        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
+      operationId: getTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /tokenization_decisioning/secret/rotate:
+    post:
+      tags:
+        - Card
+      summary: Rotate the Tokenization Decisioning HMAC secret key
+      description: >
+        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
+        after a successful request to this endpoint.
+      operationId: rotateTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The new Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -2597,7 +2597,7 @@ paths:
             type: string
             format: uuid
           description: |
-            Balance after a given financial event occured. 
+            Balance after a given financial event occured.
             For example, passing the event_token of a $5 CARD_CLEARING financial event will return a balance decreased by $5
         - $ref: '#/components/parameters/financialAccountToken'
       responses:
@@ -5321,8 +5321,8 @@ components:
             Card types:
             * `VIRTUAL` - Card will authorize at any merchant and can be added to a digital wallet like Apple Pay or Google Pay (if the card program is digital wallet-enabled).
             * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+            * `SINGLE_USE` - Card is closed upon first successful authorization.
             * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-            * `SINGLE_USE` - *[Deprecated]* Card is closed upon first successful authorization.
         digital_card_art_token:
           type: string
           format: uuid
