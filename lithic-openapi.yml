@@ -6060,6 +6060,23 @@ components:
 
     Transaction:
       type: object
+      required:
+        - acquirer_reference_number
+        - amount
+        - authorization_amount
+        - authorization_code
+        - card_token
+        - created
+        - events
+        - merchant
+        - merchant_amount
+        - merchant_authorization_amount
+        - merchant_currency
+        - network
+        - result
+        - settled_amount
+        - status
+        - token
       properties:
         acquirer_reference_number:
           type: string
@@ -6074,17 +6091,6 @@ components:
         authorization_amount:
           type: integer
           description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
-        cardholder_authentication:
-          $ref: '#/components/schemas/CardholderAuthentication'
-        merchant_amount:
-          type: integer
-          description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
-        merchant_authorization_amount:
-          type: integer
-          description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
-        merchant_currency:
-          type: string
-          description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
         authorization_code:
           type: string
           minLength: 6
@@ -6093,8 +6099,9 @@ components:
         card_token:
           type: string
           format: uuid
-          description: >
-            Token for the card used in this transaction.
+          description: Token for the card used in this transaction.
+        cardholder_authentication:
+          $ref: '#/components/schemas/CardholderAuthentication'
         created:
           type: string
           format: date-time
@@ -6106,6 +6113,15 @@ components:
           description: A list of all events that have modified this transaction.
         merchant:
           $ref: '#/components/schemas/Merchant'
+        merchant_amount:
+          type: integer
+          description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+        merchant_authorization_amount:
+          type: integer
+          description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+        merchant_currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
         network:
           type: string
           description: >
