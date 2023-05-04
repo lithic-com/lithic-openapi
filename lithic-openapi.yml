@@ -910,7 +910,7 @@ paths:
         - Auth Stream Access (ASA)
       summary: Retrieve the ASA HMAC secret key
       description: >
-        Retrieve the ASA HMAC secret key. If one does not exist for your program yet, calling this endpoint will create one for you.
+        Retrieve the ASA HMAC secret key. If one does not exist your program yet, calling this endpoint will create one for you.
         The headers (which you can use to verify webhooks) will begin appearing shortly after calling this endpoint for the first time.
         See [this page](https://docs.lithic.com/docs/auth-stream-access-asa#asa-webhook-verification) for more detail about verifying ASA webhooks.
       operationId: getAuthStreamSecret
@@ -949,6 +949,58 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /tokenization_decisioning/secret:
+    get:
+      tags:
+        - Card
+      summary: Retrieve the Tokenization Decisioning HMAC secret key
+      description: >
+        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
+        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
+        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
+      operationId: getTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /tokenization_decisioning/secret/rotate:
+    post:
+      tags:
+        - Card
+      summary: Rotate the Tokenization Decisioning HMAC secret key
+      description: >
+        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
+        after a successful request to this endpoint.
+      operationId: rotateTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The new Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /balances:
     get:
       tags:
@@ -1146,8 +1198,8 @@ paths:
                     Card types:
                     * `VIRTUAL` - Card will authorize at any merchant and can be added to a digital wallet like Apple Pay or Google Pay (if the card program is digital wallet-enabled).
                     * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
-                    * `SINGLE_USE` - Card is closed upon first successful authorization.
                     * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
+                    * `SINGLE_USE` - *[Deprecated]* Card is closed upon first successful authorization.
                 pin:
                   type: string
                   description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block-enterprise).
@@ -1511,58 +1563,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /tokenization_decisioning/secret:
-    get:
-      tags:
-        - Card
-      summary: Retrieve the Tokenization Decisioning HMAC secret key
-      description: >
-        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
-        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
-        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
-      operationId: getTokenizationDecisioningSecret
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
-  /tokenization_decisioning/secret/rotate:
-    post:
-      tags:
-        - Card
-      summary: Rotate the Tokenization Decisioning HMAC secret key
-      description: >
-        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
-        after a successful request to this endpoint.
-      operationId: rotateTokenizationDecisioningSecret
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The new Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -2597,7 +2597,7 @@ paths:
             type: string
             format: uuid
           description: |
-            Balance after a given financial event occured.
+            Balance after a given financial event occured. 
             For example, passing the event_token of a $5 CARD_CLEARING financial event will return a balance decreased by $5
         - $ref: '#/components/parameters/financialAccountToken'
       responses:
@@ -5321,8 +5321,8 @@ components:
             Card types:
             * `VIRTUAL` - Card will authorize at any merchant and can be added to a digital wallet like Apple Pay or Google Pay (if the card program is digital wallet-enabled).
             * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
-            * `SINGLE_USE` - Card is closed upon first successful authorization.
             * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
+            * `SINGLE_USE` - *[Deprecated]* Card is closed upon first successful authorization.
         digital_card_art_token:
           type: string
           format: uuid
@@ -6060,23 +6060,6 @@ components:
 
     Transaction:
       type: object
-      required:
-        - acquirer_reference_number
-        - amount
-        - authorization_amount
-        - authorization_code
-        - card_token
-        - created
-        - events
-        - merchant
-        - merchant_amount
-        - merchant_authorization_amount
-        - merchant_currency
-        - network
-        - result
-        - settled_amount
-        - status
-        - token
       properties:
         acquirer_reference_number:
           type: string
@@ -6091,6 +6074,17 @@ components:
         authorization_amount:
           type: integer
           description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
+        cardholder_authentication:
+          $ref: '#/components/schemas/CardholderAuthentication'
+        merchant_amount:
+          type: integer
+          description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+        merchant_authorization_amount:
+          type: integer
+          description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+        merchant_currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
         authorization_code:
           type: string
           minLength: 6
@@ -6099,9 +6093,8 @@ components:
         card_token:
           type: string
           format: uuid
-          description: Token for the card used in this transaction.
-        cardholder_authentication:
-          $ref: '#/components/schemas/CardholderAuthentication'
+          description: >
+            Token for the card used in this transaction.
         created:
           type: string
           format: date-time
@@ -6113,15 +6106,6 @@ components:
           description: A list of all events that have modified this transaction.
         merchant:
           $ref: '#/components/schemas/Merchant'
-        merchant_amount:
-          type: integer
-          description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
-        merchant_authorization_amount:
-          type: integer
-          description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
-        merchant_currency:
-          type: string
-          description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
         network:
           type: string
           description: >
