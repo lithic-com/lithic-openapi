@@ -1581,14 +1581,6 @@ paths:
             format: uuid
           description: List disputes of a given transaction token.
         - in: query
-          name: transaction_tokens
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-          description: List disputes from list of transaction tokens.
-        - in: query
           name: status
           schema:
             type: string
