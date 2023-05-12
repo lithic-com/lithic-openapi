@@ -1582,9 +1582,10 @@ paths:
             items:
               type: string
               format: uuid
+            maxItems: 50
           style: form
           explode: false
-          description: List disputes of a given transaction token.
+          description: Transaction tokens to filter by.
         - in: query
           name: status
           required: false
@@ -2240,13 +2241,7 @@ paths:
                   type: array
                   items:
                     type: string
-                    enum: &eventTypes
-                      - card.created
-                      - card.shipped
-                      - card_transaction.updated
-                      - digital_wallet.tokenization_approval_request
-                      - digital_wallet.tokenization_two_factor_authentication_code
-                      - dispute.updated
+                    enum: *eventTypes
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2446,8 +2441,11 @@ paths:
           name: event_types
           required: false
           schema:
-            type: string
-            enum: *eventTypes
+            type: array
+            items:
+              type: string
+              enum: *eventTypes
+            maxLength: 10
           style: form
           explode: false
           description: Event types to filter events by.
