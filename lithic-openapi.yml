@@ -1575,23 +1575,16 @@ paths:
       operationId: getDisputes
       parameters:
         - in: query
-          name: transaction_tokens
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            maxItems: 50
-          style: form
-          explode: false
-          description: Transaction tokens to filter by.
-        - in: query
-          name: status
-          required: false
+          name: transaction_token
           schema:
             type: string
-            enum: &disputeStatusTypes
+            format: uuid
+          description: List disputes of a given transaction token.
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
               - NEW
               - PENDING_CUSTOMER
               - SUBMITTED
@@ -2146,12 +2139,8 @@ paths:
                   items:
                     type: string
                     enum: &eventTypes
-                      - card.created
-                      - card.shipped
-                      - card_transaction.updated
-                      - digital_wallet.tokenization_approval_request
-                      - digital_wallet.tokenization_two_factor_authentication_code
                       - dispute.updated
+                      - digital_wallet.tokenization_approval_request
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2241,7 +2230,9 @@ paths:
                   type: array
                   items:
                     type: string
-                    enum: *eventTypes
+                    enum: &eventTypes
+                      - dispute.updated
+                      - digital_wallet.tokenization_approval_request
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2438,17 +2429,13 @@ paths:
         - $ref: '#/components/parameters/startingAfter'
         - $ref: '#/components/parameters/endingBefore'
         - in: query
-          name: event_types
+          name: event_types[]
           required: false
           schema:
             type: array
             items:
               type: string
               enum: *eventTypes
-            maxLength: 10
-          style: form
-          explode: false
-          description: Event types to filter events by.
       responses:
         '200':
           description: OK
@@ -4061,14 +4048,14 @@ components:
       in: query
       name: starting_after
       required: false
-      description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+      description: The unique identifier of the last item in the previous page. Used to retrieve the next page.
       schema:
         type: string
     endingBefore:
       in: query
       name: ending_before
       required: false
-      description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+      description: The unique identifier of the first item in the previous page. Used to retrieve the previous page.
       schema:
         type: string
 
@@ -4736,7 +4723,15 @@ components:
             * `WON_PREARBITRATION`: Won prearbitration.
         status:
           type: string
-          enum: *disputeStatusTypes
+          enum: &disputeStatusTypes
+            - NEW
+            - PENDING_CUSTOMER
+            - SUBMITTED
+            - REPRESENTMENT
+            - PREARBITRATION
+            - ARBITRATION
+            - CASE_WON
+            - CASE_CLOSED
           description: |
             Status types:
             * `NEW` - New dispute case is opened.
@@ -5394,12 +5389,8 @@ components:
           enum: *eventTypes
           description: |
             Event types:
-            * `card.created` - Notification that a card has been created.
-            * `card.shipped` - Physical card shipment notification. See https://docs.lithic.com/docs/cards#physical-card-shipped-webhook.
-            * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
-            * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
         payload:
           type: object
         created:
