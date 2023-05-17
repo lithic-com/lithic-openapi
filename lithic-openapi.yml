@@ -1380,15 +1380,15 @@ paths:
                 nonce:
                   type: string
                   format: byte
-                  description: Required for `APPLE_PAY`. Base64 cryptographic nonce provided by the device's wallet.
+                  description: Only applicable if `digital_wallet` is `APPLE_PAY`. Omit to receive only `activationData` in the response. Base64 cryptographic nonce provided by the device's wallet.
                 nonce_signature:
                   type: string
                   format: byte
-                  description: Required for `APPLE_PAY`. Base64 cryptographic nonce provided by the device's wallet.
+                  description: Only applicable if `digital_wallet` is `APPLE_PAY`. Omit to receive only `activationData` in the response. Base64 cryptographic nonce provided by the device's wallet.
                 certificate:
                   type: string
                   format: byte
-                  description: Required for `APPLE_PAY`. Apple's public leaf certificate. Base64 encoded in PEM format with headers `(-----BEGIN CERTIFICATE-----)` and trailers omitted. Provided by the device's wallet.
+                  description: Only applicable if `digital_wallet` is `APPLE_PAY`. Omit to receive only `activationData` in the response. Apple's public leaf certificate. Base64 encoded in PEM format with headers `(-----BEGIN CERTIFICATE-----)` and trailers omitted. Provided by the device's wallet.
             examples:
               provisionGoogleCard:
                 summary: Provision a card in Google Pay
@@ -1575,16 +1575,23 @@ paths:
       operationId: getDisputes
       parameters:
         - in: query
-          name: transaction_token
+          name: transaction_tokens
+          required: false
           schema:
-            type: string
-            format: uuid
-          description: List disputes of a given transaction token.
+            type: array
+            items:
+              type: string
+              format: uuid
+            maxItems: 50
+          style: form
+          explode: false
+          description: Transaction tokens to filter by.
         - in: query
           name: status
+          required: false
           schema:
             type: string
-            enum:
+            enum: &disputeStatusTypes
               - NEW
               - PENDING_CUSTOMER
               - SUBMITTED
@@ -2139,8 +2146,12 @@ paths:
                   items:
                     type: string
                     enum: &eventTypes
-                      - dispute.updated
+                      - card.created
+                      - card.shipped
+                      - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
+                      - digital_wallet.tokenization_two_factor_authentication_code
+                      - dispute.updated
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2230,9 +2241,7 @@ paths:
                   type: array
                   items:
                     type: string
-                    enum: &eventTypes
-                      - dispute.updated
-                      - digital_wallet.tokenization_approval_request
+                    enum: *eventTypes
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2429,13 +2438,17 @@ paths:
         - $ref: '#/components/parameters/startingAfter'
         - $ref: '#/components/parameters/endingBefore'
         - in: query
-          name: event_types[]
+          name: event_types
           required: false
           schema:
             type: array
             items:
               type: string
               enum: *eventTypes
+            maxLength: 10
+          style: form
+          explode: false
+          description: Event types to filter events by.
       responses:
         '200':
           description: OK
@@ -4048,14 +4061,14 @@ components:
       in: query
       name: starting_after
       required: false
-      description: The unique identifier of the last item in the previous page. Used to retrieve the next page.
+      description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
       schema:
         type: string
     endingBefore:
       in: query
       name: ending_before
       required: false
-      description: The unique identifier of the first item in the previous page. Used to retrieve the previous page.
+      description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
       schema:
         type: string
 
@@ -4723,15 +4736,7 @@ components:
             * `WON_PREARBITRATION`: Won prearbitration.
         status:
           type: string
-          enum: &disputeStatusTypes
-            - NEW
-            - PENDING_CUSTOMER
-            - SUBMITTED
-            - REPRESENTMENT
-            - PREARBITRATION
-            - ARBITRATION
-            - CASE_WON
-            - CASE_CLOSED
+          enum: *disputeStatusTypes
           description: |
             Status types:
             * `NEW` - New dispute case is opened.
@@ -5389,8 +5394,12 @@ components:
           enum: *eventTypes
           description: |
             Event types:
+            * `card.created` - Notification that a card has been created.
+            * `card.shipped` - Physical card shipment notification. See https://docs.lithic.com/docs/cards#physical-card-shipped-webhook.
+            * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
+            * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
         payload:
           type: object
         created:
