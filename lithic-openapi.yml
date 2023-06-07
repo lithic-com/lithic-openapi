@@ -3500,7 +3500,6 @@ paths:
                 value:
                   allowed_mcc: ['3000']
                   allowed_countries: ['USA', 'CAN']
-                  avs_type: ZIP_ONLY
                   program_level: True
             schema:
               oneOf:
@@ -3584,7 +3583,6 @@ paths:
                 value:
                   allowed_mcc: ['3000', '3001']
                   allowed_countries: ['USA']
-                  avs_type: ZIP_ONLY
             schema:
               type: object
               properties:
@@ -3616,12 +3614,6 @@ paths:
                   description: |
                     Array of country codes for which the Auth Rule will automatically decline transactions.
                     Note that only this field or `allowed_countries` can be used for a given Auth Rule.
-                avs_type:
-                  type: string
-                  enum:
-                    - ZIP_ONLY
-                  description: |
-                    Address verification to confirm that postal code entered at point of transaction (if applicable) matches the postal code on file for a given card.
       responses:
         '200':
           description: OK
@@ -5181,13 +5173,6 @@ components:
             type: string
           description: Countries in which the Auth Rule automatically declines transactions.
           example: ['USA', 'CAN']
-        avs_type:
-          enum:
-            - ZIP_ONLY
-          type: string
-          description: |
-            Address verification to confirm that postal code entered at point of transaction (if applicable) matches the postal code on file for a given card. Since this check is performed against the address submitted via the Enroll Consumer endpoint, it should only be used in cases where card users are enrolled with their own accounts. Available values:
-            * `ZIP_ONLY` - AVS check is performed to confirm ZIP code entered at point of transaction (if applicable) matches address on file.
         account_tokens:
           type: array
           items:
