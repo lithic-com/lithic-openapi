@@ -1628,6 +1628,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
@@ -1792,8 +1794,8 @@ paths:
                     - MISSING_AUTH
                     - OTHER
                     - PROCESSING_ERROR
-                    - RECURRING_TRANSACTION_NOT_CANCELLED
                     - REFUND_NOT_PROCESSED
+                    - RECURRING_TRANSACTION_NOT_CANCELLED
                   description: Reason for dispute
       responses:
         '200':
@@ -1863,16 +1865,6 @@ paths:
       operationId: postEvidenceDocument
       parameters:
         - $ref: '#/components/parameters/disputeToken'
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                filename:
-                  type: string
-                  description: Filename of the evidence.
       responses:
         '201':
           description: OK
@@ -3508,6 +3500,7 @@ paths:
                 value:
                   allowed_mcc: ['3000']
                   allowed_countries: ['USA', 'CAN']
+                  avs_type: ZIP_ONLY
                   program_level: True
             schema:
               oneOf:
@@ -3591,6 +3584,7 @@ paths:
                 value:
                   allowed_mcc: ['3000', '3001']
                   allowed_countries: ['USA']
+                  avs_type: ZIP_ONLY
             schema:
               type: object
               properties:
@@ -3622,6 +3616,12 @@ paths:
                   description: |
                     Array of country codes for which the Auth Rule will automatically decline transactions.
                     Note that only this field or `allowed_countries` can be used for a given Auth Rule.
+                avs_type:
+                  type: string
+                  enum:
+                    - ZIP_ONLY
+                  description: |
+                    Address verification to confirm that postal code entered at point of transaction (if applicable) matches the postal code on file for a given card.
       responses:
         '200':
           description: OK
@@ -4615,7 +4615,6 @@ components:
         arbitration_date:
           type: string
           format: date-time
-          nullable: true
           description: Date dispute entered arbitration.
         created:
           type: string
@@ -4624,35 +4623,28 @@ components:
         customer_filed_date:
           type: string
           format: date-time
-          nullable: true
           description: Date that the dispute was filed by the customer making the dispute.
         customer_note:
           type: string
-          nullable: true
           description: End customer description of the reason for the dispute.
           maxLength: 10000
         network_claim_ids:
           type: array
           items:
             type: string
-          nullable: true
           description: Unique identifiers for the dispute from the network.
         primary_claim_id:
           type: string
-          nullable: true
           description: Unique identifier for the dispute from the network. If there are multiple, this will be the first claim id set by the network
         network_filed_date:
           type: string
           format: date-time
-          nullable: true
           description: Date that the dispute was submitted to the network.
         network_reason_code:
           type: string
-          nullable: true
           description: Network reason code used to file the dispute.
         prearbitration_date:
           type: string
-          nullable: true
           format: date-time
           description: Date dispute entered pre-arbitration.
         reason:
@@ -4691,25 +4683,20 @@ components:
         representment_date:
           type: string
           format: date-time
-          nullable: true
           description: Date the representment was received.
         resolution_amount:
           type: integer
-          nullable: true
           description: Resolution amount net of network fees.
         resolution_date:
           type: string
           format: date-time
-          nullable: true
           description: Date that the dispute was resolved.
         resolution_note:
           type: string
-          nullable: true
           description: Note by Dispute team on the case resolution.
           maxLength: 10000
         resolution_reason:
           type: string
-          nullable: true
           enum: &disputeResolutionReasonTypes
             - CASE_LOST
             - NETWORK_REJECTED
@@ -4789,9 +4776,6 @@ components:
         download_url:
           type: string
           description: URL to download evidence. Only shown when `upload_status` is `UPLOADED`.
-        filename:
-          type: string
-          description: File name of evidence. Recommended to give the dispute evidence a human-readable identifier.
         token:
           type: string
           format: uuid
@@ -5197,6 +5181,13 @@ components:
             type: string
           description: Countries in which the Auth Rule automatically declines transactions.
           example: ['USA', 'CAN']
+        avs_type:
+          enum:
+            - ZIP_ONLY
+          type: string
+          description: |
+            Address verification to confirm that postal code entered at point of transaction (if applicable) matches the postal code on file for a given card. Since this check is performed against the address submitted via the Enroll Consumer endpoint, it should only be used in cases where card users are enrolled with their own accounts. Available values:
+            * `ZIP_ONLY` - AVS check is performed to confirm ZIP code entered at point of transaction (if applicable) matches address on file.
         account_tokens:
           type: array
           items:
