@@ -1628,8 +1628,6 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
@@ -4793,7 +4791,7 @@ components:
           description: URL to download evidence. Only shown when `upload_status` is `UPLOADED`.
         filename:
           type: string
-          description: File name of evidence.
+          description: File name of evidence. Recommended to give the dispute evidence a human-readable identifier.
         token:
           type: string
           format: uuid
