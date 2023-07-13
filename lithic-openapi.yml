@@ -2182,6 +2182,9 @@ paths:
                       - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
                       - dispute.updated
+                      - payment_transaction.created
+                      - payment_transaction.updated
+                      - transfer_transaction.created
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
