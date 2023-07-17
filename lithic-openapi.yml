@@ -1028,6 +1028,18 @@ paths:
             format: uuid
           description: >
             Returns cards associated with the specified account.
+        - in: query
+          name: state
+          schema:
+            type: string
+            enum:
+              - OPEN
+              - PAUSED
+              - CLOSED
+              - PENDING_FULFILLMENT
+              - PENDING_ACTIVATION
+          description: >
+            Returns cards with the specified state.
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/page'
@@ -2167,8 +2179,12 @@ paths:
                       - card.shipped
                       - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
+                      - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
                       - dispute.updated
+                      - payment_transaction.created
+                      - payment_transaction.updated
+                      - transfer_transaction.created
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -3793,11 +3809,6 @@ paths:
                     items:
                       type: string
                     example: ['ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1']
-                  previous_auth_rule_tokens:
-                    type: array
-                    items:
-                      type: string
-                    example: ['ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1']
                   program_level:
                     type: boolean
                     example: false
@@ -4915,7 +4926,6 @@ components:
         - control_person
         - nature_of_business
         - tos_timestamp
-        - website_url
         - workflow
 
     KycExempt:
@@ -5170,12 +5180,6 @@ components:
             - INACTIVE
           type: string
           description: Indicates whether the Auth Rule is ACTIVE or INACTIVE
-        previous_auth_rule_tokens:
-          type: array
-          items:
-            type: string
-          description: Identifier for the Auth Rule(s) that a new Auth Rule replaced; will be returned only if an Auth Rule is applied to entities that previously already had one applied.
-          example: ['3fa85f64-5717-4562-b3fc-2c963f66afa6']
 
     AuthRuleRequest:
       type: object
@@ -5417,6 +5421,7 @@ components:
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
+            * `digital_wallet.tokenization_result` - Notification of the end result of a tokenization, whether successful or failed.
             * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
         payload:
           type: object
