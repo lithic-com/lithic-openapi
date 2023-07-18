@@ -2582,7 +2582,7 @@ paths:
         - Event
       summary: List message attempts for an event subscription
       description: List all the message attempts for a given event subscription.
-      operationId: getEventAttemptsForEventSubscription
+      operationId: getMessageAttemptsForEventSubscription
       parameters:
         - $ref: '#/components/parameters/eventSubscriptionToken'
         - $ref: '#/components/parameters/pageSize'
@@ -2594,7 +2594,7 @@ paths:
           name: status
           schema:
             type: string
-            enum: &eventAttemptStatus
+            enum: &messageAttemptStatus
               - FAILED
               - PENDING
               - SENDING
@@ -2610,7 +2610,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/EventAttempt'
+                      $ref: '#/components/schemas/MessageAttempt'
                   has_more:
                     type: boolean
                 required:
@@ -2634,7 +2634,7 @@ paths:
         - Event
       summary: List message attempts for an event
       description: List all the message attempts for a given event.
-      operationId: getEventAttemptsForEvent
+      operationId: getMessageAttemptsForEvent
       parameters:
         - $ref: '#/components/parameters/eventToken'
         - $ref: '#/components/parameters/pageSize'
@@ -2646,7 +2646,7 @@ paths:
           name: status
           schema:
             type: string
-            enum: *eventAttemptStatus
+            enum: *messageAttemptStatus
       responses:
         '200':
           description: OK
@@ -2658,7 +2658,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/EventAttempt'
+                      $ref: '#/components/schemas/MessageAttempt'
                   has_more:
                     type: boolean
                 required:
@@ -5547,7 +5547,7 @@ components:
 
             If no timezone is specified, UTC will be used.
 
-    EventAttempt:
+    MessageAttempt:
       type: object
       description: A subscription to specific event types.
       required:
@@ -5570,7 +5570,7 @@ components:
         event_subscription_token:
           type: string
           description: Globally unique identifier.
-          example: 'es_1srOrx2ZWZBpBUvZwXKQmoEYga1'
+          example: 'ep_1srOrx2ZWZBpBUvZwXKQmoEYga1'
         event_token:
           type: string
           description: Globally unique identifier.
@@ -5583,7 +5583,7 @@ components:
           description: The response status code from the event subscription's URL.
         status:
           type: string
-          enum: *eventAttemptStatus
+          enum: *messageAttemptStatus
           description: The status of the event attempt.
         url:
           type: string
