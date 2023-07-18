@@ -2333,54 +2333,6 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /event_subscriptions/{event_subscription_token}/attempts:
-    get:
-      tags:
-        - Event
-      summary: List event attempts for an event subscription
-      description: List all the event attempts for a given event subscription.
-      operationId: getEventAttemptsForEventSubscription
-      parameters:
-        - $ref: '#/components/parameters/eventSubscriptionToken'
-        - $ref: '#/components/parameters/pageSize'
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/beginTime'
-        - $ref: '#/components/parameters/endTime'
-        - in: query
-          name: status
-          schema:
-            type: string
-            enum: &eventAttemptStatus
-              - FAILED
-              - PENDING
-              - SENDING
-              - SUCCESS
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/EventAttempt'
-                  has_more:
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
 
   /event_subscriptions/{event_subscription_token}/recover:
     post:
@@ -2587,12 +2539,97 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /events/{event_token}/event_subscriptions/{event_subscription_token}/resend:
+    post:
+      tags:
+        - Event
+      summary: Resend event
+      description: Resend an event to an event subscription.
+      operationId: resendEvent
+      parameters:
+        - in: path
+          name: event_token
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: event_subscription_token
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /event_subscriptions/{event_subscription_token}/attempts:
+    get:
+      tags:
+        - Event
+      summary: List message attempts for an event subscription
+      description: List all the message attempts for a given event subscription.
+      operationId: getEventAttemptsForEventSubscription
+      parameters:
+        - $ref: '#/components/parameters/eventSubscriptionToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: &eventAttemptStatus
+              - FAILED
+              - PENDING
+              - SENDING
+              - SUCCESS
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventAttempt'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /events/{event_token}/attempts:
     get:
       tags:
         - Event
-      summary: List event attempts for an event
-      description: List all the event attempts for a given event.
+      summary: List message attempts for an event
+      description: List all the message attempts for a given event.
       operationId: getEventAttemptsForEvent
       parameters:
         - $ref: '#/components/parameters/eventToken'
@@ -2627,42 +2664,6 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /events/{event_token}/event_subscriptions/{event_subscription_token}/resend:
-    post:
-      tags:
-        - Event
-      summary: Resend event
-      description: Resend an event to an event subscription.
-      operationId: resendEvent
-      parameters:
-        - in: path
-          name: event_token
-          schema:
-            type: string
-          required: true
-        - in: path
-          name: event_subscription_token
-          schema:
-            type: string
-          required: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '202':
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
