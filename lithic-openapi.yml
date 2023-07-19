@@ -2333,6 +2333,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+
   /event_subscriptions/{event_subscription_token}/recover:
     post:
       tags:
@@ -2482,6 +2483,12 @@ paths:
           style: form
           explode: false
           description: Event types to filter events by.
+        - in: query
+          name: with_content
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include the event payload content in the response.
       responses:
         '200':
           description: OK
@@ -2570,6 +2577,119 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /event_subscriptions/{event_subscription_token}/attempts:
+    get:
+      tags:
+        - Event
+      summary: List message attempts for an event subscription
+      description: List all the message attempts for a given event subscription.
+      operationId: getMessageAttemptsForEventSubscription
+      parameters:
+        - $ref: '#/components/parameters/eventSubscriptionToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: &messageAttemptStatus
+              - FAILED
+              - PENDING
+              - SENDING
+              - SUCCESS
+        - in: query
+          name: with_content
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include the event payload content in the response.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageAttempt'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /events/{event_token}/attempts:
+    get:
+      tags:
+        - Event
+      summary: List message attempts for an event
+      description: List all the message attempts for a given event.
+      operationId: getMessageAttemptsForEvent
+      parameters:
+        - $ref: '#/components/parameters/eventToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: *messageAttemptStatus
+        - in: query
+          name: with_content
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include the event payload content in the response.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageAttempt'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
@@ -3994,6 +4114,18 @@ components:
         documentTokenExample:
           value: 76ca80c3-bf90-491a-97d9-f64788f8b2ab
           summary: A sample document token
+    eventToken:
+      in: path
+      name: event_token
+      required: true
+      schema:
+        type: string
+    eventSubscriptionToken:
+      in: path
+      name: event_subscription_token
+      required: true
+      schema:
+        type: string
     financialAccountToken:
       in: path
       name: financial_account_token
@@ -5432,6 +5564,52 @@ components:
             An RFC 3339 timestamp for when the event was created. UTC time zone.
 
             If no timezone is specified, UTC will be used.
+
+    MessageAttempt:
+      type: object
+      description: A subscription to specific event types.
+      required:
+        - created
+        - event_subscription_token
+        - event_token
+        - response
+        - response_status_code
+        - status
+        - token
+        - url
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: |
+            An RFC 3339 timestamp for when the event was created. UTC time zone.
+
+            If no timezone is specified, UTC will be used.
+        event_subscription_token:
+          type: string
+          description: Globally unique identifier.
+          example: 'ep_1srOrx2ZWZBpBUvZwXKQmoEYga1'
+        event_token:
+          type: string
+          description: Globally unique identifier.
+          example: 'msg_1srOrx2ZWZBpBUvZwXKQmoEYga1'
+        response:
+          type: string
+          description: The response body from the event subscription's URL.
+        response_status_code:
+          type: integer
+          description: The response status code from the event subscription's URL.
+        status:
+          type: string
+          enum: *messageAttemptStatus
+          description: The status of the event attempt.
+        url:
+          type: string
+          format: uri
+        token:
+          type: string
+          description: Globally unique identifier.
+          example: 'atmpt_1srOrx2ZWZBpBUvZwXKQmoEYga2'
 
     EventSubscription:
       type: object
