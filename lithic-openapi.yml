@@ -1028,18 +1028,6 @@ paths:
             format: uuid
           description: >
             Returns cards associated with the specified account.
-        - in: query
-          name: state
-          schema:
-            type: string
-            enum:
-              - OPEN
-              - PAUSED
-              - CLOSED
-              - PENDING_FULFILLMENT
-              - PENDING_ACTIVATION
-          description: >
-            Returns cards with the specified state.
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/page'
@@ -2179,12 +2167,8 @@ paths:
                       - card.shipped
                       - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
-                      - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
                       - dispute.updated
-                      - payment_transaction.created
-                      - payment_transaction.updated
-                      - transfer_transaction.created
                   description: Indicates types of events that will be sent to this subscription. If left blank, all types will be sent.
                 url:
                   type: string
@@ -2333,7 +2317,6 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
   /event_subscriptions/{event_subscription_token}/recover:
     post:
       tags:
@@ -2571,107 +2554,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
-  /event_subscriptions/{event_subscription_token}/attempts:
-    get:
-      tags:
-        - Event
-      summary: List message attempts for an event subscription
-      description: List all the message attempts for a given event subscription.
-      operationId: getMessageAttemptsForEventSubscription
-      parameters:
-        - $ref: '#/components/parameters/eventSubscriptionToken'
-        - $ref: '#/components/parameters/pageSize'
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/beginTime'
-        - $ref: '#/components/parameters/endTime'
-        - in: query
-          name: status
-          schema:
-            type: string
-            enum: &messageAttemptStatus
-              - FAILED
-              - PENDING
-              - SENDING
-              - SUCCESS
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/MessageAttempt'
-                  has_more:
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /events/{event_token}/attempts:
-    get:
-      tags:
-        - Event
-      summary: List message attempts for an event
-      description: List all the message attempts for a given event.
-      operationId: getMessageAttemptsForEvent
-      parameters:
-        - $ref: '#/components/parameters/eventToken'
-        - $ref: '#/components/parameters/pageSize'
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/beginTime'
-        - $ref: '#/components/parameters/endTime'
-        - in: query
-          name: status
-          schema:
-            type: string
-            enum: *messageAttemptStatus
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/MessageAttempt'
-                  has_more:
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
@@ -3911,6 +3793,11 @@ paths:
                     items:
                       type: string
                     example: ['ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1']
+                  previous_auth_rule_tokens:
+                    type: array
+                    items:
+                      type: string
+                    example: ['ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1']
                   program_level:
                     type: boolean
                     example: false
@@ -4096,18 +3983,6 @@ components:
         documentTokenExample:
           value: 76ca80c3-bf90-491a-97d9-f64788f8b2ab
           summary: A sample document token
-    eventToken:
-      in: path
-      name: event_token
-      required: true
-      schema:
-        type: string
-    eventSubscriptionToken:
-      in: path
-      name: event_subscription_token
-      required: true
-      schema:
-        type: string
     financialAccountToken:
       in: path
       name: financial_account_token
@@ -5040,6 +4915,7 @@ components:
         - control_person
         - nature_of_business
         - tos_timestamp
+        - website_url
         - workflow
 
     KycExempt:
@@ -5294,6 +5170,12 @@ components:
             - INACTIVE
           type: string
           description: Indicates whether the Auth Rule is ACTIVE or INACTIVE
+        previous_auth_rule_tokens:
+          type: array
+          items:
+            type: string
+          description: Identifier for the Auth Rule(s) that a new Auth Rule replaced; will be returned only if an Auth Rule is applied to entities that previously already had one applied.
+          example: ['3fa85f64-5717-4562-b3fc-2c963f66afa6']
 
     AuthRuleRequest:
       type: object
@@ -5535,7 +5417,6 @@ components:
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
-            * `digital_wallet.tokenization_result` - Notification of the end result of a tokenization, whether successful or failed.
             * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
         payload:
           type: object
@@ -5546,52 +5427,6 @@ components:
             An RFC 3339 timestamp for when the event was created. UTC time zone.
 
             If no timezone is specified, UTC will be used.
-
-    MessageAttempt:
-      type: object
-      description: A subscription to specific event types.
-      required:
-        - created
-        - event_subscription_token
-        - event_token
-        - response
-        - response_status_code
-        - status
-        - token
-        - url
-      properties:
-        created:
-          type: string
-          format: date-time
-          description: |
-            An RFC 3339 timestamp for when the event was created. UTC time zone.
-
-            If no timezone is specified, UTC will be used.
-        event_subscription_token:
-          type: string
-          description: Globally unique identifier.
-          example: 'ep_1srOrx2ZWZBpBUvZwXKQmoEYga1'
-        event_token:
-          type: string
-          description: Globally unique identifier.
-          example: 'msg_1srOrx2ZWZBpBUvZwXKQmoEYga1'
-        response:
-          type: string
-          description: The response body from the event subscription's URL.
-        response_status_code:
-          type: integer
-          description: The response status code from the event subscription's URL.
-        status:
-          type: string
-          enum: *messageAttemptStatus
-          description: The status of the event attempt.
-        url:
-          type: string
-          format: uri
-        token:
-          type: string
-          description: Globally unique identifier.
-          example: 'atmpt_1srOrx2ZWZBpBUvZwXKQmoEYga2'
 
     EventSubscription:
       type: object
