@@ -2333,6 +2333,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+
   /event_subscriptions/{event_subscription_token}/recover:
     post:
       tags:
@@ -2482,6 +2483,12 @@ paths:
           style: form
           explode: false
           description: Event types to filter events by.
+        - in: query
+          name: with_content
+          required: false
+          schema:
+            type: boolean
+          description: Whether to include the event payload content in the response.
       responses:
         '200':
           description: OK
@@ -2574,12 +2581,489 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /external_bank_accounts:
+    post:
+      tags:
+        - External Bank Account
+      summary: Create external bank account
+      description: Creates an external bank account within a program or Lithic account.
+      operationId: createExternalBankAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/PlaidCreateBankAccountApiRequest'
+                - $ref: '#/components/schemas/BankVerifiedCreateBankAccountApiRequest'
+              discriminator:
+                propertyName: verification_method
+            examples:
+              createBankAccountViaPlaid:
+                summary: Add external bank account via Plaid Verification
+                value:
+                  verification_method: 'PLAID'
+                  processor_token: 'processor-sandbox-0asd1-a92nc'
+                  owner_type: 'BUSINESS'
+                  owner: 'John Doe'
+              createBankAccountViaMicroDeposits:
+                summary: Add external bank account via Micro Deposit Verification
+                value:
+                  verification_method: 'MICRO_DEPOSIT'
+                  owner_type: 'BUSINESS'
+                  owner: 'John Doe'
+                  type: 'CHECKING'
+                  routing_number: '011103093'
+                  account_number: '13719713158835300'
+                  name: 'John Does Checking'
+                  country: 'US'
+                  currency: 'USD'
+                  address:
+                    address1: '5 Broad Street'
+                    city: 'New York'
+                    state: 'NY'
+                    postal_code: '10001'
+                    country: 'US'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    get:
+      tags:
+        - External Bank Account
+      summary: List external bank accounts
+      description: List all the external bank accounts for the provided search criteria.
+      operationId: searchExternalBankAccounts
+      parameters:
+        - required: false
+          schema:
+            title: Account Token
+            type: string
+            format: uuid
+          name: account_token
+          in: query
+        - required: false
+          schema:
+            title: Owner Types
+            type: array
+            items:
+              $ref: '#/components/schemas/OwnerType'
+          name: owner_types
+          in: query
+        - required: false
+          schema:
+            title: Account Types
+            type: array
+            items:
+              $ref: '#/components/schemas/AccountType'
+          name: account_types
+          in: query
+        - required: false
+          schema:
+            title: Account States
+            type: array
+            items:
+              $ref: '#/components/schemas/AccountState'
+          name: states
+          in: query
+        - required: false
+          schema:
+            title: Verification States
+            type: array
+            items:
+              $ref: '#/components/schemas/VerificationState'
+          name: verification_states
+          in: query
+        - required: false
+          schema:
+            title: Countries
+            type: array
+            items:
+              type: string
+          name: countries
+          in: query
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountsApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /external_bank_accounts/{external_bank_account_token}:
+    get:
+      tags:
+        - External Bank Account
+      summary: Get external bank account by token
+      description: Get the external bank account by token.
+      operationId: getExternalBankAccountByToken
+      parameters:
+        - required: true
+          schema:
+            title: External Bank Account Token
+            type: string
+            format: uuid
+          name: external_bank_account_token
+          in: path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags:
+        - External Bank Account
+      summary: Patch external bank account
+      operationId: patchExternalBankAccountByToken
+      description: Update the external bank account by token.
+      parameters:
+        - required: true
+          schema:
+            title: External Bank Account Token
+            type: string
+            format: uuid
+          name: external_bank_account_token
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBankAccountApiRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /external_bank_accounts/{external_bank_account_token}/micro_deposits:
+    post:
+      tags:
+        - External Bank Account
+      summary: Verify external bank account via micro deposit amounts
+      description: Verify the external bank account by providing the micro deposit amounts.
+      operationId: verifyExternalBankAccountByMicroDeposits
+      parameters:
+        - required: true
+          schema:
+            title: External Bank Account Token
+            type: string
+            format: uuid
+          name: external_bank_account_token
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicroDepositVerificationDetails'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /payments:
+    post:
+      tags:
+        - Payment
+      summary: Create payment
+      description: Initiates a payment between a financial account and an external bank account.
+      operationId: createPayment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '202':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPaymentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    get:
+      tags:
+        - Payment
+      summary: List payments
+      description: List all the payments for the provided search criteria.
+      operationId: searchPayments
+      parameters:
+        - required: false
+          schema:
+            title: Financial Account Token
+            type: string
+            format: uuid
+          name: financial_account_token
+          in: query
+        - required: false
+          schema:
+            title: Status
+            type: string
+            enum:
+              - PENDING
+              - VOIDED
+              - SETTLED
+              - DECLINED
+              - EXPIRED
+          name: status
+          in: query
+        - required: false
+          schema:
+            title: Result
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+          name: result
+          in: query
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentResponse'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /payments/{payment_token}:
+    get:
+      tags:
+        - Payment
+      summary: Get payment by token
+      description: Get the payment by token.
+      operationId: getPaymentByToken
+      parameters:
+        - required: true
+          schema:
+            title: Payment Token
+            type: string
+            format: uuid
+          name: payment_token
+          in: path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /simulate/payments/release:
+    post:
+      tags:
+        - Payment
+      summary: Release payment
+      description: Simulates a release of a Payment.
+      operationId: simulatePaymentsRelease
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulateReturnOrReleaseRequest'
+      responses:
+        '202':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulateReturnOrReleaseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /event_subscriptions/{event_subscription_token}/attempts:
+    get:
+      tags:
+        - Event
+      summary: List message attempts for an event subscription
+      description: List all the message attempts for a given event subscription.
+      operationId: getMessageAttemptsForEventSubscription
+      parameters:
+        - $ref: '#/components/parameters/eventSubscriptionToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: &messageAttemptStatus
+              - FAILED
+              - PENDING
+              - SENDING
+              - SUCCESS
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageAttempt'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /events/{event_token}/attempts:
+    get:
+      tags:
+        - Event
+      summary: List message attempts for an event
+      description: List all the message attempts for a given event.
+      operationId: getMessageAttemptsForEvent
+      parameters:
+        - $ref: '#/components/parameters/eventToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: *messageAttemptStatus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageAttempt'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
   /financial_accounts:
     get:
       tags:
         - Financial Account
-      summary: List Financial Accounts
+      summary: List financial accounts
       description: Retrieve information on your financial accounts including routing and account number.
       operationId: getFinancialAccounts
       parameters:
@@ -2678,7 +3162,7 @@ paths:
     get:
       tags:
         - Financial Transaction
-      summary: List Financial Transactions
+      summary: List financial transactions
       description: List the financial transactions for a given financial account.
       operationId: getFinancialTransactions
       parameters:
@@ -2747,7 +3231,7 @@ paths:
     get:
       tags:
         - Financial Transaction
-      summary: Get Financial Transaction
+      summary: Get financial transaction
       description: Get the financial transaction for the provided token.
       operationId: getFinancialTransactionByToken
       parameters:
@@ -3478,7 +3962,7 @@ paths:
                       state: NY
                     result: APPROVED
                     settled_amount: -7666
-                    status: SETTLING
+                    status: SETTLED
                     token: 9b4c99b1-2e90-4e24-b54b-90dc8af4695b
                 page: 1
                 total_entries: 1
@@ -3809,6 +4293,7 @@ paths:
                     items:
                       type: string
                     example: ['ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1']
+
                   program_level:
                     type: boolean
                     example: false
@@ -3994,6 +4479,18 @@ components:
         documentTokenExample:
           value: 76ca80c3-bf90-491a-97d9-f64788f8b2ab
           summary: A sample document token
+    eventToken:
+      in: path
+      name: event_token
+      required: true
+      schema:
+        type: string
+    eventSubscriptionToken:
+      in: path
+      name: event_subscription_token
+      required: true
+      schema:
+        type: string
     financialAccountToken:
       in: path
       name: financial_account_token
@@ -4926,7 +5423,6 @@ components:
         - control_person
         - nature_of_business
         - tos_timestamp
-        - website_url
         - workflow
 
     KycExempt:
@@ -5433,6 +5929,52 @@ components:
             An RFC 3339 timestamp for when the event was created. UTC time zone.
 
             If no timezone is specified, UTC will be used.
+
+    MessageAttempt:
+      type: object
+      description: A subscription to specific event types.
+      required:
+        - created
+        - event_subscription_token
+        - event_token
+        - response
+        - response_status_code
+        - status
+        - token
+        - url
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: |
+            An RFC 3339 timestamp for when the event was created. UTC time zone.
+
+            If no timezone is specified, UTC will be used.
+        event_subscription_token:
+          type: string
+          description: Globally unique identifier.
+          example: 'ep_1srOrx2ZWZBpBUvZwXKQmoEYga1'
+        event_token:
+          type: string
+          description: Globally unique identifier.
+          example: 'msg_1srOrx2ZWZBpBUvZwXKQmoEYga1'
+        response:
+          type: string
+          description: The response body from the event subscription's URL.
+        response_status_code:
+          type: integer
+          description: The response status code from the event subscription's URL.
+        status:
+          type: string
+          enum: *messageAttemptStatus
+          description: The status of the event attempt.
+        url:
+          type: string
+          format: uri
+        token:
+          type: string
+          description: Globally unique identifier.
+          example: 'atmpt_1srOrx2ZWZBpBUvZwXKQmoEYga2'
 
     EventSubscription:
       type: object
@@ -6185,7 +6727,6 @@ components:
             - EXPIRED
             - PENDING
             - SETTLED
-            - SETTLING
             - VOIDED
           description: |
             Status types:
@@ -6198,6 +6739,478 @@ components:
           type: string
           format: uuid
           description: Globally unique identifier.
+    AccountState:
+      title: AccountState
+      enum: &externalBankAccountStates
+        - ENABLED
+        - CLOSED
+        - PAUSED
+    VerificationState:
+      title: VerificationState
+      enum: &externalBankAccountVerificationStates
+        - PENDING
+        - ENABLED
+        - FAILED_VERIFICATION
+    AccountType:
+      title: AccountType
+      enum: &externalBankAccountTypes
+        - CHECKING
+        - SAVINGS
+    VerificationMethod:
+      title: VerificationMethod
+      type: string
+      enum: &externalBankAccountVerificationMethods
+        - MANUAL
+        - MICRO_DEPOSIT
+        - PLAID
+    OwnerType:
+      title: OwnerType
+      type: string
+      enum: &externalBankAccountOwnerTypes
+        - INDIVIDUAL
+        - BUSINESS
+    BankAccountApiResponse:
+      title: BankAccountApiResponse
+      required:
+        - token
+        - type
+        - verification_method
+        - owner_type
+        - owner
+        - state
+        - verification_state
+        - routing_number
+        - last_four
+        - currency
+        - country
+        - created
+      type: object
+      properties:
+        token:
+          title: Token
+          type: string
+          format: uuid
+          description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+        type:
+          title: Type
+          type: string
+          enum: *externalBankAccountTypes
+        verification_method:
+          title: Verification Method
+          type: string
+          enum: *externalBankAccountVerificationMethods
+        owner_type:
+          title: Owner Type
+          type: string
+          enum: *externalBankAccountOwnerTypes
+        owner:
+          title: Owner
+          type: string
+          description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+        state:
+          title: State
+          type: string
+          enum: *externalBankAccountStates
+        verification_state:
+          title: Verification State
+          type: string
+          enum: *externalBankAccountVerificationStates
+        routing_number:
+          title: Routing Number
+          type: string
+        last_four:
+          title: Last Four
+          type: string
+          description: 'The last 4 digits of the bank account. Derived by Lithic from the account number passed'
+        name:
+          title: Name
+          type: string
+          description: 'The nickname given to this record of External Bank Account'
+        currency:
+          title: Currency
+          type: string
+          description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+        country:
+          title: Country
+          type: string
+          description: 'The country that the bank account is located in using ISO 3166-1. We will only accept US bank accounts e.g., US'
+        account_token:
+          title: Account Token
+          type: string
+          format: uuid
+          description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+        created:
+          title: Created
+          type: string
+          format: date-time
+          description: 'An ISO 8601 string representing when this funding source was added to the Lithic account. '
+        company_id:
+          title: Company Id
+          type: string
+          description: 'Optional field that helps identify bank accounts in receipts'
+        address:
+          $ref: '#/components/schemas/ExternalBankAccountAddress'
+        dob:
+          title: Date of Birth
+          type: string
+          format: date
+          description: 'Date of Birth of the Individual that owns the external bank account'
+        doing_business_as:
+          title: Doing Business As
+          type: string
+
+    BankAccountsApiResponse:
+      title: BankAccountsApiResponse
+      required:
+        - data
+        - has_more
+      type: object
+      properties:
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/BankAccountApiResponse'
+        has_more:
+          title: Has More
+          type: boolean
+    PlaidCreateBankAccountApiRequest:
+      title: PlaidCreateBankAccountApiRequest
+      required:
+        - verification_method
+        - owner_type
+        - owner
+        - processor_token
+      type: object
+      properties:
+        verification_method:
+          $ref: '#/components/schemas/VerificationMethod'
+        owner_type:
+          $ref: '#/components/schemas/OwnerType'
+        owner:
+          title: Owner
+          maxLength: 22
+          minLength: 1
+          pattern: ^[!-~ ]*$
+          type: string
+        account_token:
+          title: Account Token
+          type: string
+          format: uuid
+        company_id:
+          title: Company Id
+          maxLength: 10
+          minLength: 1
+          pattern: ^[a-zA-Z0-9]*$
+          type: string
+        processor_token:
+          title: Processor Token
+          minLength: 1
+          type: string
+        dob:
+          title: Date of Birth
+          type: string
+          format: date
+          description: 'Date of Birth of the Individual that owns the external bank account'
+        doing_business_as:
+          title: Doing Business As
+          type: string
+    ExternalBankAccountAddress:
+      title: Address
+      required:
+        - address1
+        - city
+        - state
+        - postal_code
+        - country
+      type: object
+      description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules.
+      properties:
+        address1:
+          title: Address1
+          type: string
+          maxLength: 40
+          minLength: 1
+        address2:
+          title: Address2
+          type: string
+          maxLength: 40
+          minLength: 1
+        city:
+          title: City
+          type: string
+          maxLength: 40
+          minLength: 1
+        state:
+          title: State
+          type: string
+          maxLength: 2
+          minLength: 2
+        postal_code:
+          title: Postal Code
+          type: string
+          maxLength: 10
+          minLength: 5
+          pattern: ^[0-9]{5}(-[0-9]{4})?$
+        country:
+          title: Country
+          type: string
+          maxLength: 2
+          minLength: 2
+          pattern: ^[A-Z]{2}$
+    BankVerifiedCreateBankAccountApiRequest:
+      title: BankVerifiedCreateBankAccountApiRequest
+      required:
+        - verification_method
+        - owner_type
+        - owner
+        - type
+        - routing_number
+        - account_number
+        - country
+        - currency
+      type: object
+      properties:
+        verification_method:
+          $ref: '#/components/schemas/VerificationMethod'
+        owner_type:
+          $ref: '#/components/schemas/OwnerType'
+        owner:
+          title: Owner
+          maxLength: 22
+          minLength: 1
+          pattern: ^[!-~ ]*$
+          type: string
+        account_token:
+          title: Account Token
+          type: string
+          format: uuid
+        company_id:
+          title: Company Id
+          maxLength: 10
+          minLength: 1
+          pattern: ^[a-zA-Z0-9]*$
+          type: string
+        type:
+          $ref: '#/components/schemas/AccountType'
+        routing_number:
+          title: Routing Number
+          minLength: 1
+          pattern: ^[0-9]{9}$
+          type: string
+        account_number:
+          title: Account Number
+          type: string
+        name:
+          title: Name
+          maxLength: 50
+          minLength: 1
+          pattern: ^[!-~ ]*$
+          type: string
+        country:
+          title: Country
+          maxLength: 2
+          minLength: 2
+          pattern: ^[A-Z]{2}$
+          type: string
+        currency:
+          title: Currency
+          maxLength: 3
+          minLength: 3
+          pattern: ^[A-Z]{3}$
+          type: string
+        verification_enforcement:
+          title: Verification Enforcement
+          type: boolean
+          default: true
+          description: 'Indicates whether verification was enforced for a given association record. For MICRO_DEPOSIT, option to disable verification if the external bank account has already been verified before. By default, verification will be required unless users pass in a value of false'
+        address:
+          $ref: '#/components/schemas/ExternalBankAccountAddress'
+        dob:
+          title: Date of Birth
+          type: string
+          format: date
+          description: 'Date of Birth of the Individual that owns the external bank account'
+        doing_business_as:
+          title: Doing Business As
+          type: string
+    UpdateBankAccountApiRequest:
+      title: UpdateBankAccountApiRequest
+      type: object
+      properties:
+        owner:
+          title: Owner
+          maxLength: 22
+          minLength: 1
+          pattern: ^[!-~ ]*$
+          type: string
+        owner_type:
+          $ref: '#/components/schemas/OwnerType'
+        name:
+          title: Name
+          maxLength: 50
+          minLength: 1
+          pattern: ^[!-~ ]*$
+          type: string
+        company_id:
+          title: Company Id
+          maxLength: 10
+          minLength: 1
+          pattern: ^[a-zA-Z0-9]*$
+          type: string
+        address:
+          $ref: '#/components/schemas/ExternalBankAccountAddress'
+        dob:
+          title: Date of Birth
+          type: string
+          format: date
+          description: 'Date of Birth of the Individual that owns the external bank account'
+        doing_business_as:
+          title: Doing Business As
+          type: string
+    MicroDepositVerificationDetails:
+      title: MicroDepositVerificationDetails
+      required:
+        - micro_deposits
+      type: object
+      properties:
+        micro_deposits:
+          title: Micro Deposits
+          type: array
+          items:
+            type: integer
+    SimulateReturnOrReleaseRequest:
+      title: SimulateReturnOrReleaseRequest
+      required:
+        - payment_token
+      type: object
+      properties:
+        payment_token:
+          title: Payment Token
+          type: string
+          format: uuid
+    SimulateReturnOrReleaseResponse:
+      title: SimulateReturnOrReleaseResponse
+      type: object
+      properties:
+        debugging_request_id:
+          title: Debugging Request Id
+          type: string
+          format: uuid
+        result:
+          title: Result
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+        transaction_event_token:
+          title: Transaction Event Token
+          type: string
+          format: uuid
+    CreatePaymentRequest:
+      title: CreatePaymentRequest
+      required:
+        - financial_account_token
+        - external_bank_account_token
+        - type
+        - amount
+        - method_attributes
+        - method
+      type: object
+      properties:
+        financial_account_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+        external_bank_account_token:
+          title: External Bank Account Token
+          type: string
+          format: uuid
+        type:
+          title: Payment Type
+          type: string
+          enum:
+            - PAYMENT
+            - COLLECTION
+        amount:
+          title: Amount
+          type: integer
+          minimum: 1
+        memo:
+          title: Memo
+          type: string
+          maxLength: 512
+        method_attributes:
+          $ref: '#/components/schemas/PaymentMethodAttributes'
+        method:
+          title: Payment Method
+          type: string
+          enum:
+            - ACH_NEXT_DAY
+            - ACH_SAME_DAY
+        token:
+          title: Token
+          type: string
+          format: uuid
+        user_defined_id:
+          title: User Defined Id
+          type: string
+          maxLength: 512
+    PaymentMethodAttributes:
+      title: PaymentMethodAttributes
+      required:
+        - sec_code
+      type: object
+      properties:
+        sec_code:
+          title: SEC Code
+          type: string
+          enum:
+            - PPD
+            - CCD
+            - WEB
+    PostPaymentResponse:
+      title: PostPaymentResponse
+      allOf:
+        - $ref: '#/components/schemas/PaymentResponse'
+        - type: object
+          properties:
+            balance:
+              $ref: '#/components/schemas/Balance'
+    PaymentResponse:
+      title: PaymentResponse
+      allOf:
+        - $ref: '#/components/schemas/FinancialTransaction'
+        - type: object
+          properties:
+            method_attributes:
+              $ref: '#/components/schemas/PaymentMethodAttributes'
+            external_bank_account_token:
+              title: External Bank Account Token
+              type: string
+              format: uuid
+            direction:
+              title: ACH Direction
+              type: string
+              enum:
+                - CREDIT
+                - DEBIT
+            source:
+              title: Payment Message Source
+              type: string
+              enum:
+                - LITHIC
+                - CUSTOMER
+            method:
+              title: Payment Method
+              type: string
+              enum:
+                - ACH_NEXT_DAY
+                - ACH_SAME_DAY
+            user_defined_id:
+              title: User Defined Id
+              type: string
+              maxLength: 512
 
   securitySchemes:
     ApiKeyAuth:
