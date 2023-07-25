@@ -2941,14 +2941,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SimulateReturnOrReleaseRequest'
+              $ref: '#/components/schemas/SimulateReleaseRequest'
       responses:
         '202':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SimulateReturnOrReleaseResponse'
+                $ref: '#/components/schemas/SimulateReleaseResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -6216,8 +6216,17 @@ components:
     FinancialTransaction:
       type: object
       required:
-        - token
+        - category
         - created
+        - currency
+        - descriptor
+        - events
+        - pending_amount
+        - result
+        - settled_amount
+        - status
+        - token
+        - updated
       properties:
         category:
           type: string
@@ -7082,8 +7091,8 @@ components:
           type: array
           items:
             type: integer
-    SimulateReturnOrReleaseRequest:
-      title: SimulateReturnOrReleaseRequest
+    SimulateReleaseRequest:
+      title: SimulateReleaseRequest
       required:
         - payment_token
       type: object
@@ -7092,8 +7101,8 @@ components:
           title: Payment Token
           type: string
           format: uuid
-    SimulateReturnOrReleaseResponse:
-      title: SimulateReturnOrReleaseResponse
+    SimulateReleaseResponse:
+      title: SimulateReleaseResponse
       type: object
       properties:
         debugging_request_id:
@@ -7185,6 +7194,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/FinancialTransaction'
         - type: object
+          required:
+            - method_attributes
+            - direction
+            - source
+            - method
           properties:
             method_attributes:
               $ref: '#/components/schemas/PaymentMethodAttributes'
