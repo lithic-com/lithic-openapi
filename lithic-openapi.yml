@@ -939,7 +939,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
   /auth_stream/secret/rotate:
     post:
       tags:
@@ -1560,7 +1559,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
   /tokenization_decisioning/secret/rotate:
     post:
       tags:
@@ -2333,7 +2331,6 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
   /event_subscriptions/{event_subscription_token}/recover:
     post:
       tags:
@@ -2615,14 +2612,14 @@ paths:
                   routing_number: '011103093'
                   account_number: '13719713158835300'
                   name: 'John Does Checking'
-                  country: 'US'
+                  country: 'USA'
                   currency: 'USD'
                   address:
                     address1: '5 Broad Street'
                     city: 'New York'
                     state: 'NY'
                     postal_code: '10001'
-                    country: 'US'
+                    country: 'USA'
       responses:
         '201':
           description: Created
@@ -4000,6 +3997,503 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /three_ds_authentication/{three_ds_authentication_token}:
+    get:
+      tags:
+        - 3DS
+      summary: Get 3DS Authentication
+      description: Get 3DS Authentication by token
+      operationId: getThreeDsAuthenticationByToken
+      parameters:
+        - in: path
+          name: three_ds_authentication_token
+          schema:
+            type: string
+            format: uuid
+          description: 3DS Authentication Token
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_type:
+                    description: >
+                      Type of account/card that is being used for the transaction. Maps to EMV 3DS field acctType.
+                    enum:
+                      - NOT_APPLICABLE
+                      - CREDIT
+                      - DEBIT
+                    type: string
+                    nullable: true
+                  additional_data:
+                    type: object
+                    description: >
+                      Object containing additional data about the 3DS request that is beyond the EMV 3DS standard spec
+                      (e.g., specific fields that only certain card networks send but are not required across all 3DS requests).
+                    properties:
+                      network_decision:
+                        description: >
+                          Mastercard only: Indicates whether the network would have considered the authentication request to be low risk or not.
+                        enum:
+                          - LOW_RISK
+                          - NOT_LOW_RISK
+                        type: string
+                        nullable: true
+                      network_risk_score:
+                        description: >
+                          Mastercard only: Assessment by the network of the authentication
+                          risk level, with a higher value indicating a higher amount of risk.
+                        type: number
+                        nullable: true
+                  app:
+                    description: >
+                      Object containing data about the app used in the e-commerce transaction.
+                      Present if the channel is 'APP_BASED'.
+                    properties:
+                      device_info:
+                        description: >
+                          Device information gathered from the cardholder's device - JSON
+                          name/value pairs that is Base64url encoded. Maps to EMV 3DS field deviceInfo.
+                        type: string
+                        nullable: true
+                      ip:
+                        anyOf:
+                          - format: ipv4
+                            type: string
+                          - format: ipv6
+                            type: string
+                        description: >
+                          External IP address used by the app generating the 3DS authentication
+                          request. Maps to EMV 3DS field appIp.
+                  authentication_request_type:
+                    description: >
+                      Type of authentication request - i.e., the type of transaction or
+                      interaction is causing the merchant to request an authentication. Maps to EMV
+                      3DS field threeDSRequestorAuthenticationInd.
+                    enum:
+                      - PAYMENT_TRANSACTION
+                      - RECURRING_TRANSACTION
+                      - INSTALLMENT_TRANSACTION
+                      - ADD_CARD
+                      - MAINTAIN_CARD
+                      - EMV_TOKEN_CARDHOLDER_VERIFICATION
+                      - BILLING_AGREEMENT
+                      - SPLIT_SHIPMENT
+                      - DELAYED_SHIPMENT
+                      - SPLIT_PAYMENT
+                    type: string
+                    nullable: true
+                  authentication_result:
+                    description: Indicates the outcome of the 3DS authentication process.
+                    enum:
+                      - SUCCESS
+                      - DECLINE
+                    type: string
+                    nullable: true
+                  browser:
+                    description: >
+                      Object containing data about the browser used in the e-commerce transaction.
+                      Present if the channel is 'BROWSER'.
+                    properties:
+                      ip:
+                        anyOf:
+                          - format: ipv4
+                            type: string
+                          - format: ipv6
+                            type: string
+                        nullable: true
+                        description: >
+                          IP address of the browser as returned by the HTTP headers to
+                          the 3DS requestor (e.g., merchant or digital wallet).
+                          Maps to EMV 3DS field browserIP.
+                      java_enabled:
+                        description: >
+                          Indicates whether the cardholder's browser has the ability to
+                          execute Java. Maps to EMV 3DS field browserJavaEnabled.
+                        type: boolean
+                        nullable: true
+                      javascript_enabled:
+                        description: >
+                          Indicates whether the cardholder's browser has the ability to
+                          execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
+                        type: boolean
+                        nullable: true
+                      language:
+                        description: >
+                          Language of the cardholder's browser as defined in IETF
+                          BCP47. Maps to EMV 3DS field browserLanguage.
+                        type: string
+                        nullable: true
+                      time_zone:
+                        description: >
+                          Time zone of the cardholder's browser offset in minutes
+                          between UTC and the cardholder browser's local time. The offset is
+                          positive if the local time is behind UTC and negative if it is ahead.
+                          Maps to EMV 3DS field browserTz.
+                        type: string
+                        nullable: true
+                      user_agent:
+                        description: >
+                          Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
+                        type: string
+                        nullable: true
+                  card_expiry_check:
+                    description: >
+                      Indicates whether the expiration date provided by the cardholder
+                      during checkout matches Lithic's record of the card's expiration date.
+                    enum:
+                      - MATCH
+                      - MISMATCH
+                      - NOT_PRESENT
+                    type: string
+                  card_token:
+                    description: Globally unique identifier for the card on which the 3DS authentication has occurred.
+                    format: uuid
+                    type: string
+                  cardholder:
+                    description: Object containing data about the cardholder provided during the transaction.
+                    properties:
+                      address_match:
+                        description: >
+                          Indicates whether the shipping address and billing address provided
+                          by the cardholder are the same. This value - and assessment of whether the
+                          addresses match - is provided directly in the 3DS request and is not determined
+                          by Lithic. Maps to EMV 3DS field addrMatch.
+                        type: boolean
+                        nullable: true
+                      billing_address:
+                        $ref: '#/components/schemas/ThreeDSAddress'
+                        description: Object containing data on the billing address provided during the transaction.
+                        type: object
+                      email:
+                        description: >
+                          Email address that is either provided by the cardholder or is
+                          on file with the merchant in a 3RI request. Maps to EMV 3DS field email.
+                        type: string
+                        maxLength: 254
+                        minLength: 1
+                        nullable: true
+                      name:
+                        description: Name of the cardholder. Maps to EMV 3DS field cardholderName.
+                        type: string
+                        maxLength: 36
+                        minLength: 1
+                        nullable: true
+                      phone_number_home:
+                        description: >
+                          Home phone number provided by the cardholder. Maps to EMV 3DS
+                          fields homePhone.cc and homePhone.subscriber.
+                        type: string
+                        maxLength: 18
+                        minLength: 1
+                        nullable: true
+                      phone_number_mobile:
+                        description: >
+                          Mobile/cell phone number provided by the cardholder. Maps to
+                          EMV 3DS fields mobilePhone.cc and mobilePhone.subscriber.
+                        type: string
+                        nullable: true
+                        maxLength: 18
+                        minLength: 1
+                      phone_number_work:
+                        description: >
+                          Work phone number provided by the cardholder. Maps to EMV 3DS
+                          fields workPhone.cc and workPhone.subscriber.
+                        type: string
+                        nullable: true
+                        maxLength: 18
+                        minLength: 1
+                      shipping_address:
+                        $ref: '#/components/schemas/ThreeDSAddress'
+                        description: Object containing data on the shipping address provided during the transaction.
+                        type: object
+                    type: object
+                  channel:
+                    description: Channel in which the authentication occurs. Maps to EMV 3DS field deviceChannel.
+                    enum:
+                      - APP_BASED
+                      - BROWSER
+                      - THREE_RI_REQUESTER_INITIATED
+                    type: string
+                  created:
+                    description: >
+                      Date and time when the authentication was created in Lithic's system.
+                    format: date-time
+                    type: string
+                  decision_made_by:
+                    description: Entity that made the authentication decision.
+                    enum:
+                      - LITHIC_DEFAULT
+                      - LITHIC_RULES
+                      - CUSTOMER_ENDPOINT
+                    type: string
+                    nullable: true
+                  merchant:
+                    description: Object containing data about the merchant involved in the e-commerce
+                      transaction.
+                    properties:
+                      country:
+                        description: >
+                          Country code of the merchant requesting 3DS authentication.
+                          Maps to EMV 3DS field merchantCountryCode.
+                        maxLength: 3
+                        minLength: 3
+                        type: string
+                      id:
+                        description: >
+                          Merchant identifier as assigned by the acquirer. Maps to EMV
+                          3DS field acquirerMerchantId.
+                        type: string
+                      mcc:
+                        description: >
+                          Merchant category code assigned to the merchant that describes
+                          its business activity type. Maps to EMV 3DS field mcc.
+                        maxLength: 4
+                        minLength: 4
+                        type: string
+                      name:
+                        description: Name of the merchant. Maps to EMV 3DS field merchantName.
+                        type: string
+                      risk_indicator:
+                        description: >
+                          Object containing additional data indicating additional risk
+                          factors related to the e-commerce transaction.
+                        properties:
+                          delivery_email_address:
+                            description: >
+                              In transactions with electronic delivery, email address to
+                              which merchandise is delivered. Maps to EMV 3DS field deliveryEmailAddress.
+                            type: string
+                            nullable: true
+                          delivery_time_frame:
+                            description: >
+                              The delivery time frame for the merchandise. Maps to EMV
+                              3DS field deliveryTimeframe.
+                            enum:
+                              - ELECTRONIC_DELIVERY
+                              - SAME_DAY_SHIPPING
+                              - OVERNIGHT_SHIPPING
+                              - TWO_DAY_OR_MORE_SHIPPING
+                              - null
+                            type: string
+                            nullable: true
+                          gift_card_amount:
+                            description: >
+                              In prepaid or gift card purchase transactions, purchase amount
+                              total in major units (e.g., a purchase of USD $205.10 would be 205).
+                              Maps to EMV 3DS field giftCardAmount.
+                            type: number
+                            nullable: true
+                          gift_card_count:
+                            description: >
+                              In prepaid or gift card purchase transactions, count of individual
+                              prepaid or gift cards/codes purchased. Maps to EMV 3DS field giftCardCount.
+                            type: number
+                            nullable: true
+                          gift_card_currency:
+                            description: >
+                              In prepaid or gift card purchase transactions, currency
+                              code of the gift card. Maps to EMV 3DS field giftCardCurr.
+                            maxLength: 3
+                            minLength: 3
+                            type: string
+                            nullable: true
+                          order_availability:
+                            description: >
+                              Indicates whether the purchase is for merchandise that is
+                              available now or at a future date. Maps to EMV 3DS field preOrderPurchaseInd.
+                            enum:
+                              - MERCHANDISE_AVAILABLE
+                              - FUTURE_AVAILABILITY
+                            type: string
+                            nullable: true
+                          pre_order_available_date:
+                            description: >
+                              In pre-order purchase transactions, the expected date that
+                              the merchandise will be available. Maps to EMV 3DS field preOrderDate.
+                            format: date-time
+                            type: string
+                            nullable: true
+                          reorder_items:
+                            description: Indicates whether the cardholder is reordering previously
+                              purchased merchandise. Maps to EMV 3DS field reorderItemsInd.
+                            enum:
+                              - FIRST_TIME_ORDERED
+                              - REORDERED
+                              - null
+                            type: string
+                            nullable: true
+                          shipping_method:
+                            description: >
+                              Shipping method that the cardholder chose for the transaction.
+                              If purchase includes one or more item, this indicator is used for the
+                              physical goods; if the purchase only includes digital goods, this indicator
+                              is used to describe the most expensive item purchased. Maps to EMV 3DS
+                              field shipIndicator.
+                            enum:
+                              - SHIP_TO_BILLING_ADDRESS
+                              - SHIP_TO_OTHER_VERIFIED_ADDRESS
+                              - SHIP_TO_NON_BILLING_ADDRESS
+                              - SHIP_TO_STORE
+                              - DIGITAL_GOODS
+                              - TRAVEL_AND_EVENT_TICKETS
+                              - OTHER
+                              - PICK_UP_AND_GO_DELIVERY
+                              - LOCKER_DELIVERY
+                              - null
+                            type: string
+                            nullable: true
+                        type: object
+                    required:
+                      - country
+                      - id
+                      - mcc
+                      - name
+                      - risk_indicator
+                    type: object
+                  three_ri_request_type:
+                    description: >
+                      Type of 3DS Requestor Initiated (3RI) request i.e., a 3DS
+                      authentication that takes place at the initiation of the merchant rather than
+                      the cardholder. The most common example of this is where a merchant is authenticating
+                      before billing for a recurring transaction such as a pay TV subscription or
+                      a utility bill. Maps to EMV 3DS field threeRIInd.
+                    enum:
+                      - RECURRING_TRANSACTION
+                      - INSTALLMENT_TRANSACTION
+                      - ADD_CARD
+                      - MAINTAIN_CARD_INFO
+                      - ACCOUNT_VERIFICATION
+                      - SPLIT_SHIPMENT
+                      - TOP_UP
+                      - MAIL_ORDER
+                      - TELEPHONE_ORDER
+                      - TRUST_LIST_STATUS_CHECK
+                      - OTHER_PAYMENT
+                      - BILLING_AGREEMENT
+                      - DEVICE_BINDING_STATUS_CHECK
+                      - CARD_SECURITY_CODE_STATUS_CHECK
+                      - DELAYED_SHIPMENT
+                      - SPLIT_PAYMENT
+                    type: string
+                    nullable: true
+                  token:
+                    description: >
+                      Globally unique identifier for the 3DS authentication.
+                    format: uuid
+                    type: string
+                  transaction:
+                    description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
+                    properties:
+                      amount:
+                        description: >
+                          Amount of the purchase in minor units of currency with all punctuation
+                          removed. Maps to EMV 3DS field purchaseAmount.
+                        type: number
+                      currency:
+                        description: >
+                          Currency of the purchase. Maps to EMV 3DS field purchaseCurrency.
+                        maxLength: 3
+                        minLength: 3
+                        type: string
+                      currency_exponent:
+                        description: >
+                          Minor units of currency, as specified in ISO 4217 currency exponent.
+                          Maps to EMV 3DS field purchaseExponent.
+                        type: number
+                      date_time:
+                        description: >
+                          Date and time when the authentication was generated by the merchant/acquirer's
+                          3DS server. Maps to EMV 3DS field purchaseDate.
+                        format: date-time
+                        type: string
+                      type:
+                        description: >
+                          Type of the transaction for which a 3DS authentication request
+                          is occurring. Maps to EMV 3DS field transType.
+                        enum:
+                          - GOODS_SERVICE_PURCHASE
+                          - CHECK_ACCEPTANCE
+                          - ACCOUNT_FUNDING
+                          - QUASI_CASH_TRANSACTION
+                          - PREPAID_ACTIVATION_AND_LOAD
+                        type: string
+                        nullable: true
+                    required:
+                      - amount
+                      - currency
+                      - currency_exponent
+                      - date_time
+                      - type
+                required:
+                  - token
+                  - created
+                  - card_token
+                  - channel
+                  - decision_made_by
+                  - card_expiry_check
+                  - cardholder
+                  - merchant
+                  - transaction
+                  - additional_data
+                  - account_type
+                  - authentication_result
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /three_ds_decisioning/secret:
+    get:
+      tags:
+        - 3DS
+      summary: Retrieve the 3DS Decisioning HMAC secret key
+      description: >
+        Retrieve the 3DS Decisioning HMAC secret key. If one does not exist for your program yet, calling this endpoint will create one for you.
+        The headers (which you can use to verify 3DS Decisioning requests) will begin appearing shortly after calling this endpoint for the first time.
+        See [this page](https://docs.lithic.com/docs/3ds-decisioning#3ds-decisioning-hmac-secrets) for more detail about verifying 3DS Decisioning requests.
+      operationId: get3DSDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The 3DS Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /three_ds_decisioning/secret/rotate:
+    post:
+      tags:
+        - 3DS
+      summary: Rotate the 3DS Decisioning HMAC secret key
+      description: >
+        Generate a new 3DS Decisioning HMAC secret key. The old secret key will be deactivated 24 hours
+        after a successful request to this endpoint. Make a [`GET /three_ds_decisioning/secret`](https://docs.lithic.com/reference/getthreedsdecisioningsecret)
+        request to retrieve the new secret key.
+      operationId: rotate3DSDecisioningSecret
+      responses:
+        '204':
+          description: We have successfully rotated the secret key.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth_rules:
     post:
       tags:
@@ -4309,6 +4803,7 @@ paths:
     post:
       tags:
         - Responder Endpoints
+        - 3DS
       summary: Enroll a responder endpoint
       requestBody:
         required: true
@@ -4325,6 +4820,7 @@ paths:
                   type: string
                   enum:
                     - TOKENIZATION_DECISIONING
+                    - THREE_DS_DECISIONING
                   description: The type of the endpoint.
       responses:
         200:
@@ -4348,6 +4844,7 @@ paths:
             type: string
             enum:
               - TOKENIZATION_DECISIONING
+              - THREE_DS_DECISIONING
           required: true
           description: The type of the endpoint.
       responses:
@@ -4365,6 +4862,7 @@ paths:
             type: string
             enum:
               - TOKENIZATION_DECISIONING
+              - THREE_DS_DECISIONING
           required: true
           description: The type of the endpoint.
       responses:
@@ -4665,6 +5163,37 @@ components:
             $ref: '#/components/schemas/Error'
 
   schemas:
+    ThreeDSAddress:
+      properties:
+        address1:
+          description: First line of the street address provided by the cardholder.
+          type: string
+          nullable: true
+        address2:
+          description: Second line of the street address provided by the cardholder.
+          type: string
+          nullable: true
+        address3:
+          description: Third line of the street address provided by the cardholder.
+          type: string
+          nullable: true
+        city:
+          description: City of the address provided by the cardholder.
+          type: string
+          nullable: true
+        country:
+          description: Country of the address provided by the cardholder in ISO 3166-1
+            alpha-3 format (e.g. USA)
+          maxLength: 3
+          minLength: 3
+          type: string
+          nullable: true
+        postal_code:
+          description: Postal code (e.g., ZIP code) of the address provided by the cardholder
+          type: string
+          nullable: true
+      type: object
+
     AccountConfiguration:
       type: object
       properties:
@@ -6845,7 +7374,7 @@ components:
         country:
           title: Country
           type: string
-          description: 'The country that the bank account is located in using ISO 3166-1. We will only accept US bank accounts e.g., US'
+          description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
         account_token:
           title: Account Token
           type: string
@@ -6967,9 +7496,9 @@ components:
         country:
           title: Country
           type: string
-          maxLength: 2
-          minLength: 2
-          pattern: ^[A-Z]{2}$
+          maxLength: 3
+          minLength: 3
+          pattern: ^[A-Z]{3}$
     BankVerifiedCreateBankAccountApiRequest:
       title: BankVerifiedCreateBankAccountApiRequest
       required:
@@ -7021,9 +7550,9 @@ components:
           type: string
         country:
           title: Country
-          maxLength: 2
-          minLength: 2
-          pattern: ^[A-Z]{2}$
+          maxLength: 3
+          minLength: 3
+          pattern: ^[A-Z]{3}$
           type: string
         currency:
           title: Currency
