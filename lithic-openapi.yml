@@ -1193,6 +1193,8 @@ paths:
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                carrier:
+                  $ref: '#/components/schemas/Carrier'
             examples:
               createCard:
                 summary: Create card
@@ -1202,6 +1204,24 @@ paths:
                   spend_limit_duration: TRANSACTION
                   state: OPEN
                   type: VIRTUAL
+              createPhysicalCard:
+                summary: Create a physical card
+                value:
+                  type: PHYSICAL
+                  memo: New physical card
+                  state: OPEN
+                  shipping_address:
+                    first_name: Johnny
+                    last_name: Appleseed
+                    address1: '123'
+                    city: NEW YORK
+                    state: NY
+                    postal_code: '10001'
+                    country: USA
+                  product_id: '783991122'
+                  carrier:
+                    qr_code_url: https://lithic.com/activate-card/1
+
       responses:
         '200':
           description: OK
@@ -1479,6 +1499,9 @@ paths:
                     the card should be manufactured with, and only applies to
                     cards of type `PHYSICAL`. This must be configured
                     with Lithic before use.
+                carrier:
+                  $ref: '#/components/schemas/Carrier'
+                  description: If omitted, the previous carrier will be used.
             examples:
               reissueCardNewAddress:
                 summary: Reissue card with a new address
@@ -1494,6 +1517,8 @@ paths:
                     country: USA
                   shipping_method: STANDARD
                   product_id: '100'
+                  carrier:
+                    qr_code_url: https://lithic.com/activate-card/1
       responses:
         '200':
           description: OK
@@ -7100,6 +7125,13 @@ components:
           minLength: 8
           maxLength: 16
           example: '+12124007676'
+
+    Carrier:
+      type: object
+      properties:
+        qr_code_url:
+          type: string
+          description: QR code url to display on the card carrier
 
     Transfer:
       type: object
