@@ -2450,13 +2450,12 @@ paths:
           content:
             application/json:
               example:
-                secret: whsec_C2FVsBQIhrscChlQIMA
+                key: whsec_C2FVsBQIhrscChlQIMA
               schema:
                 type: object
                 properties:
-                  secret:
+                  key:
                     type: string
-                    description: The secret for the event subscription.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
