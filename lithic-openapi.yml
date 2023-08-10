@@ -1187,12 +1187,20 @@ paths:
                   enum:
                     - STANDARD
                     - STANDARD_WITH_TRACKING
+                    - PRIORITY
+                    - EXPRESS
+                    - 2_DAY
                     - EXPEDITED
                   description: |
                     Shipping method for the card. Only applies to cards of type PHYSICAL. Use of options besides `STANDARD` require additional permissions.
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
                     * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                carrier:
+                  $ref: '#/components/schemas/Carrier'
             examples:
               createCard:
                 summary: Create card
@@ -1202,6 +1210,24 @@ paths:
                   spend_limit_duration: TRANSACTION
                   state: OPEN
                   type: VIRTUAL
+              createPhysicalCard:
+                summary: Create a physical card
+                value:
+                  type: PHYSICAL
+                  memo: New physical card
+                  state: OPEN
+                  shipping_address:
+                    first_name: Johnny
+                    last_name: Appleseed
+                    address1: '123'
+                    city: NEW YORK
+                    state: NY
+                    postal_code: '10001'
+                    country: USA
+                  product_id: '783991122'
+                  carrier:
+                    qr_code_url: https://lithic.com/activate-card/1
+
       responses:
         '200':
           description: OK
@@ -1466,11 +1492,17 @@ paths:
                   enum:
                     - STANDARD
                     - STANDARD_WITH_TRACKING
+                    - PRIORITY
+                    - EXPRESS
+                    - 2-DAY
                     - EXPEDITED
                   description: |
                     Shipping method for the card. Use of options besides `STANDARD` require additional permissions.
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
                     * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
                 product_id:
                   type: string
@@ -1479,6 +1511,9 @@ paths:
                     the card should be manufactured with, and only applies to
                     cards of type `PHYSICAL`. This must be configured
                     with Lithic before use.
+                carrier:
+                  $ref: '#/components/schemas/Carrier'
+                  description: If omitted, the previous carrier will be used.
             examples:
               reissueCardNewAddress:
                 summary: Reissue card with a new address
@@ -1494,6 +1529,8 @@ paths:
                     country: USA
                   shipping_method: STANDARD
                   product_id: '100'
+                  carrier:
+                    qr_code_url: https://lithic.com/activate-card/1
       responses:
         '200':
           description: OK
@@ -2413,12 +2450,13 @@ paths:
           content:
             application/json:
               example:
-                key: whsec_C2FVsBQIhrscChlQIMA
+                secret: whsec_C2FVsBQIhrscChlQIMA
               schema:
                 type: object
                 properties:
-                  key:
+                  secret:
                     type: string
+                    description: The secret for the event subscription.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7100,6 +7138,13 @@ components:
           minLength: 8
           maxLength: 16
           example: '+12124007676'
+
+    Carrier:
+      type: object
+      properties:
+        qr_code_url:
+          type: string
+          description: QR code url to display on the card carrier
 
     Transfer:
       type: object
