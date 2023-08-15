@@ -5113,7 +5113,8 @@ components:
       name: Idempotency-Key
       schema:
         type: string
-      description: Idempoency key for the request.
+        maxLength: 255
+      description: Idempotency key for the POST request.
     transactionToken:
       in: path
       name: transaction_token
