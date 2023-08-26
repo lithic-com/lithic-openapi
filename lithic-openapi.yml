@@ -1634,7 +1634,7 @@ paths:
   /disputes:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: List disputes
       description: List disputes.
       operationId: getDisputes
@@ -1699,7 +1699,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     post:
       tags:
-        - Disputes
+        - Dispute
       summary: Initiate dispute
       description: Initiate a dispute.
       operationId: postDisputes
@@ -1775,7 +1775,7 @@ paths:
   /disputes/{dispute_token}:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: Get dispute
       description: Get dispute.
       operationId: getDisputeByToken
@@ -1798,7 +1798,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags:
-        - Disputes
+        - Dispute
       summary: Withdraw dispute
       description: Withdraw dispute.
       operationId: deleteDisputeByToken
@@ -1821,7 +1821,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     patch:
       tags:
-        - Disputes
+        - Dispute
       summary: Update dispute
       description: Update dispute. Can only be modified if status is `NEW`.
       operationId: updateDisputeByToken
@@ -1882,7 +1882,7 @@ paths:
   /disputes/{dispute_token}/evidences:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: List dispute evidences
       description: List evidence metadata for a dispute.
       operationId: getDisputeEvidences
@@ -1921,7 +1921,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     post:
       tags:
-        - Disputes
+        - Dispute
       summary: Initiate dispute evidence upload
       description: |
         Use this endpoint to upload evidences for the dispute. It will return a URL to upload your documents to. The URL will expire in 30 minutes.
@@ -1959,7 +1959,7 @@ paths:
   /disputes/{dispute_token}/evidences/{evidence_token}:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: Get dispute evidence
       description: Get a dispute's evidence metadata.
       operationId: getDisputeEvidenceByToken
@@ -1983,7 +1983,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags:
-        - Disputes
+        - Dispute
       summary: Withdraw dispute evidence
       description: Soft delete evidence for a dispute. Evidence will not be reviewed or submitted by Lithic after it is withdrawn.
       operationId: deleteDisputeEvidenceByToken
@@ -3221,7 +3221,7 @@ paths:
   /financial_accounts/{financial_account_token}/financial_transactions:
     get:
       tags:
-        - Financial Transaction
+        - Financial Account
       summary: List financial transactions
       description: List the financial transactions for a given financial account.
       operationId: getFinancialTransactions
@@ -3290,7 +3290,7 @@ paths:
   /financial_accounts/{financial_account_token}/financial_transactions/{financial_transaction_token}:
     get:
       tags:
-        - Financial Transaction
+        - Financial Account
       summary: Get financial transaction
       description: Get the financial transaction for the provided token.
       operationId: getFinancialTransactionByToken
@@ -3318,7 +3318,7 @@ paths:
   /simulate/authorize:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate authorization
       description: >
         Simulates an authorization request from the payment network as if
@@ -3450,7 +3450,7 @@ paths:
   /simulate/authorization_advice:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate authorization advice
       description: >
         Simulates an authorization advice request from the payment network as if
@@ -3515,7 +3515,7 @@ paths:
   /simulate/clearing:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate clearing transaction
       description: |
         Clears an existing authorization. After this event, the transaction is no longer pending.
@@ -3576,7 +3576,7 @@ paths:
   /simulate/credit_authorization_advice:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate credit authorization advice
       description: >
         Simulates a credit authorization advice message from the payment network.
@@ -3662,7 +3662,7 @@ paths:
   /simulate/return:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate return
       description: |
         Returns (aka refunds) an amount back to a card. Returns are cleared immediately and do not spend time in a `PENDING` state.
@@ -3731,7 +3731,7 @@ paths:
   /simulate/return_reversal:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate return reversal
       description: >
         Voids a settled credit transaction – i.e., a transaction with a negative
@@ -3781,7 +3781,7 @@ paths:
   /simulate/void:
     post:
       tags:
-        - Card Transaction
+        - Transaction
       summary: Simulate void transaction
       description: >
         Voids an existing, uncleared (aka pending) authorization.
@@ -3874,7 +3874,7 @@ paths:
   /transfer:
     post:
       tags:
-        - Financial Transaction
+        - Financial Account
       summary: Transfer funds within Lithic
       description: Transfer funds between two financial accounts
       operationId: postTransfer
@@ -3930,10 +3930,10 @@ paths:
   /transactions:
     get:
       tags:
-        - Card Transaction
-      summary: List transactions
+        - Transaction
+      summary: List card transactions
       description: |
-        List transactions.
+        List card transactions.
       operationId: getTransactions
       parameters:
         - in: query
@@ -4054,10 +4054,10 @@ paths:
   /transactions/{transaction_token}:
     get:
       tags:
-        - Card Transaction
-      summary: Get transaction
+        - Transaction
+      summary: Get card transaction
       description: |
-        Get specific transaction.
+        Get specific card transaction.
       operationId: getTransactionByToken
       parameters:
         - $ref: '#/components/parameters/transactionToken'
