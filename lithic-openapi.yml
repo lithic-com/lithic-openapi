@@ -222,12 +222,7 @@ paths:
         This endpoint can only be used on accounts that are part of the program the calling API key manages.
       operationId: postAccountHolders
       parameters:
-        - name: Idempotency-Token
-          in: header
-          schema:
-            type: string
-            default: ''
-            nullable: true
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -461,6 +456,7 @@ paths:
       operationId: postAccountHolderDocuments
       parameters:
         - $ref: '#/components/parameters/accountHolderTokenPath'
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -583,6 +579,7 @@ paths:
       operationId: postAccountHolderResubmit
       parameters:
         - $ref: '#/components/parameters/accountHolderTokenPath'
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -657,6 +654,8 @@ paths:
 
         After a webhook has been created, this endpoint can be used to rotate a webhooks HMAC token or modify the registered URL. Only a single webhook is allowed per program. Since HMAC verification is available, the IP addresses from which KYC/KYB webhooks are sent are subject to change.
       operationId: postWebhookAccountHolder
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -748,6 +747,8 @@ paths:
 
         In Sandbox, users can self-enroll and disenroll in ASA. In production, onboarding requires manual approval and setup.
       operationId: postAuthStream
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -949,6 +950,8 @@ paths:
         after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret)
         request to retrieve the new secret key.
       operationId: rotateAuthStreamSecret
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '204':
           description: We have successfully rotated the secret key.
@@ -1090,6 +1093,8 @@ paths:
         Create a new virtual or physical card. Parameters `pin`,
         `shipping_address`, and `product_id` only apply to physical cards.
       operationId: postCards
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -1408,6 +1413,7 @@ paths:
       operationId: postCardProvision
       parameters:
         - $ref: '#/components/parameters/cardTokenDigitalWallet'
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         description: Update request.
         required: true
@@ -1477,6 +1483,7 @@ paths:
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -1605,6 +1612,8 @@ paths:
         Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
         after a successful request to this endpoint.
       operationId: rotateTokenizationDecisioningSecret
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '200':
           description: OK
@@ -1625,7 +1634,7 @@ paths:
   /disputes:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: List disputes
       description: List disputes.
       operationId: getDisputes
@@ -1690,10 +1699,12 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     post:
       tags:
-        - Disputes
+        - Dispute
       summary: Initiate dispute
       description: Initiate a dispute.
       operationId: postDisputes
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -1764,7 +1775,7 @@ paths:
   /disputes/{dispute_token}:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: Get dispute
       description: Get dispute.
       operationId: getDisputeByToken
@@ -1787,7 +1798,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags:
-        - Disputes
+        - Dispute
       summary: Withdraw dispute
       description: Withdraw dispute.
       operationId: deleteDisputeByToken
@@ -1810,7 +1821,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     patch:
       tags:
-        - Disputes
+        - Dispute
       summary: Update dispute
       description: Update dispute. Can only be modified if status is `NEW`.
       operationId: updateDisputeByToken
@@ -1871,7 +1882,7 @@ paths:
   /disputes/{dispute_token}/evidences:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: List dispute evidences
       description: List evidence metadata for a dispute.
       operationId: getDisputeEvidences
@@ -1910,7 +1921,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     post:
       tags:
-        - Disputes
+        - Dispute
       summary: Initiate dispute evidence upload
       description: |
         Use this endpoint to upload evidences for the dispute. It will return a URL to upload your documents to. The URL will expire in 30 minutes.
@@ -1919,6 +1930,7 @@ paths:
       operationId: postEvidenceDocument
       parameters:
         - $ref: '#/components/parameters/disputeToken'
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: false
         content:
@@ -1947,7 +1959,7 @@ paths:
   /disputes/{dispute_token}/evidences/{evidence_token}:
     get:
       tags:
-        - Disputes
+        - Dispute
       summary: Get dispute evidence
       description: Get a dispute's evidence metadata.
       operationId: getDisputeEvidenceByToken
@@ -1971,7 +1983,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags:
-        - Disputes
+        - Dispute
       summary: Withdraw dispute evidence
       description: Soft delete evidence for a dispute. Evidence will not be reviewed or submitted by Lithic after it is withdrawn.
       operationId: deleteDisputeEvidenceByToken
@@ -2192,6 +2204,8 @@ paths:
       summary: Create event subscription
       description: Create a new event subscription.
       operationId: createEventSubscription
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2376,6 +2390,7 @@ paths:
       description: Resend all failed messages since a given time.
       operationId: recoverEventSubscription
       parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
         - in: path
           name: event_subscription_token
           schema:
@@ -2411,6 +2426,7 @@ paths:
         Messages that were previously sent to the endpoint are not resent.
       operationId: replayMissingEventSubscription
       parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
         - in: path
           name: event_subscription_token
           schema:
@@ -2477,6 +2493,7 @@ paths:
         The previous secret will be valid for the next 24 hours.
       operationId: rotateEventSubscriptionSecret
       parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
         - in: path
           name: event_subscription_token
           schema:
@@ -2588,6 +2605,7 @@ paths:
       description: Resend an event to an event subscription.
       operationId: resendEvent
       parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
         - in: path
           name: event_token
           schema:
@@ -2623,6 +2641,8 @@ paths:
       summary: Create external bank account
       description: Creates an external bank account within a program or Lithic account.
       operationId: createExternalBankAccount
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2816,6 +2836,7 @@ paths:
       description: Verify the external bank account by providing the micro deposit amounts.
       operationId: verifyExternalBankAccountByMicroDeposits
       parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
         - required: true
           schema:
             title: External Bank Account Token
@@ -2852,6 +2873,8 @@ paths:
       summary: Create payment
       description: Initiates a payment between a financial account and an external bank account.
       operationId: createPayment
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2972,6 +2995,8 @@ paths:
       summary: Release payment
       description: Simulates a release of a Payment.
       operationId: simulatePaymentsRelease
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3196,7 +3221,7 @@ paths:
   /financial_accounts/{financial_account_token}/financial_transactions:
     get:
       tags:
-        - Financial Transaction
+        - Financial Account
       summary: List financial transactions
       description: List the financial transactions for a given financial account.
       operationId: getFinancialTransactions
@@ -3265,7 +3290,7 @@ paths:
   /financial_accounts/{financial_account_token}/financial_transactions/{financial_transaction_token}:
     get:
       tags:
-        - Financial Transaction
+        - Financial Account
       summary: Get financial transaction
       description: Get the financial transaction for the provided token.
       operationId: getFinancialTransactionByToken
@@ -3303,6 +3328,8 @@ paths:
         configured for ASA, a daily transaction limit of $5000 USD is applied by default.
         This limit can be modified via the [update account](https://docs.lithic.com/reference/patchaccountbytoken) endpoint.
       operationId: postSimulateAuthorize
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3430,6 +3457,8 @@ paths:
         it came from a merchant acquirer. An authorization advice request changes the
         amount of the transaction.
       operationId: postSimulateAuthorizationAdvice
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3493,6 +3522,8 @@ paths:
 
         If no `amount` is supplied to this endpoint, the amount of the transaction will be captured. Any transaction that has any amount completed at all do not have access to this behavior.
       operationId: postSimulateClearing
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3552,6 +3583,8 @@ paths:
 
         This message indicates that a credit authorization was approved on your behalf by the network.
       operationId: postSimulateCreditAuthorizationAdvice
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3634,6 +3667,8 @@ paths:
       description: |
         Returns (aka refunds) an amount back to a card. Returns are cleared immediately and do not spend time in a `PENDING` state.
       operationId: postSimulateReturn
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3703,6 +3738,8 @@ paths:
         amount and `SETTLED` status. These can be credit authorizations that have
         already cleared or financial credit authorizations.
       operationId: postSimulateReturnReversal
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3751,6 +3788,8 @@ paths:
         If amount is not sent the full amount will be voided. Cannot be used on partially completed transactions, but can be used on partially voided transactions.
         _Note that simulating an authorization expiry on credit authorizations or credit authorization advice is not currently supported but will be added soon._
       operationId: postSimulateVoid
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3835,10 +3874,12 @@ paths:
   /transfer:
     post:
       tags:
-        - Financial Transaction
+        - Financial Account
       summary: Transfer funds within Lithic
       description: Transfer funds between two financial accounts
       operationId: postTransfer
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -3890,9 +3931,9 @@ paths:
     get:
       tags:
         - Transaction
-      summary: List transactions
+      summary: List card transactions
       description: |
-        List transactions.
+        List card transactions.
       operationId: getTransactions
       parameters:
         - in: query
@@ -4014,9 +4055,9 @@ paths:
     get:
       tags:
         - Transaction
-      summary: Get transaction
+      summary: Get card transaction
       description: |
-        Get specific transaction.
+        Get specific card transaction.
       operationId: getTransactionByToken
       parameters:
         - $ref: '#/components/parameters/transactionToken'
@@ -4539,6 +4580,8 @@ paths:
       summary: Create authorization rule
       description: Creates an authorization rule (Auth Rule) and applies it at the program, account, or card level.
       operationId: postAuthRules
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -4719,6 +4762,7 @@ paths:
       operationId: postAuthRuleByTokenApply
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -4843,6 +4887,8 @@ paths:
         - Responder Endpoints
         - 3DS
       summary: Enroll a responder endpoint
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         required: true
         content:
@@ -5062,12 +5108,13 @@ components:
         fundingSourceTokenExample:
           value: 73ca53a1-bf91-502b-97d9-f64788f8b2ab
           summary: A sample funding source token
-    idempotencyToken:
+    idempotencyKey:
       in: header
-      name: Idempotency-Token
+      name: Idempotency-Key
       schema:
         type: string
-      description: Idempoency key for the request.
+        maxLength: 255
+      description: Idempotency key for the POST request.
     transactionToken:
       in: path
       name: transaction_token
@@ -7444,7 +7491,9 @@ components:
         doing_business_as:
           title: Doing Business As
           type: string
-
+        user_defined_id:
+          title: User Defined ID
+          type: string
     BankAccountsApiResponse:
       title: BankAccountsApiResponse
       required:
@@ -7500,6 +7549,9 @@ components:
           description: 'Date of Birth of the Individual that owns the external bank account'
         doing_business_as:
           title: Doing Business As
+          type: string
+        user_defined_id:
+          title: User Defined ID
           type: string
     ExternalBankAccountAddress:
       title: Address
@@ -7620,6 +7672,9 @@ components:
         doing_business_as:
           title: Doing Business As
           type: string
+        user_defined_id:
+          title: User Defined ID
+          type: string
     UpdateBankAccountApiRequest:
       title: UpdateBankAccountApiRequest
       type: object
@@ -7653,6 +7708,9 @@ components:
           description: 'Date of Birth of the Individual that owns the external bank account'
         doing_business_as:
           title: Doing Business As
+          type: string
+        user_defined_id:
+          title: User Defined ID
           type: string
     MicroDepositVerificationDetails:
       title: MicroDepositVerificationDetails
