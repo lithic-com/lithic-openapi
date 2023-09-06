@@ -4296,7 +4296,7 @@ paths:
                     enum:
                       - APP_BASED
                       - BROWSER
-                      - THREE_RI_REQUESTER_INITIATED
+                      - THREE_DS_REQUESTOR_INITIATED
                     type: string
                   created:
                     description: >
