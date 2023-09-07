@@ -3854,110 +3854,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /simulate/tokenizations:
-    post:
-      tags:
-        - Tokenization
-      summary: Simulate a card's tokenization
-      description: |
-        This endpoint is used to simulate a card's tokenization in the Digital Wallet and merchant tokenization ecosystem.
-      operationId: postSimulateTokenizations
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - pan
-                - cvv
-                - expiration_date
-                - tokenization_source
-              properties:
-                pan:
-                  type: string
-                  description: The sixteen digit card number.
-                  minLength: 16
-                  maxLength: 16
-                  example: '4111111289144142'
-                cvv:
-                  type: string
-                  minLength: 3
-                  maxLength: 3
-                  description: The three digit cvv for the card.
-                  example: '776'
-                expiration_date:
-                  type: string
-                  minLength: 5
-                  maxLength: 5
-                  description: The expiration date of the card in 'MM/YY' format.
-                tokenization_source:
-                  type: string
-                  description: The source of the tokenization request.
-                  enum:
-                    - 'APPLE_PAY'
-                    - 'GOOGLE'
-                    - 'SAMSUNG_PAY'
-                account_score:
-                  type: integer
-                  default: 5
-                  description: The account score (1-5) that represents how the Digital Wallet's view on how reputable an end user's account is.
-                device_score:
-                  type: integer
-                  default: 5
-                  description: The device score (1-5) that represents how the Digital Wallet's view on how reputable an end user's device is.
-                wallet_recommended_decision:
-                  type: string
-                  default: 'APPROVED'
-                  enum:
-                    - 'APPROVED'
-                    - 'DECLINED'
-                    - 'REQUIRE_ADDITIONAL_AUTHENTICATION'
-                  description: The decision that the Digital Wallet's recommend
-            examples:
-              simulateTokenizations:
-                summary: Simulates a card's tokenization
-                value:
-                  pan: '4111111289144142'
-                  cvv: '776'
-                  expiration_date: '08/29'
-                  tokenization_source: 'APPLE_PAY'
-                  account_score: 5
-                  device_score: 5
-                  wallet_recommended_decision: 'APPROVED'
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Tokenization'
-              example:
-                token: '3e9a10da-11be-4a62-a510-d43548bfcec1'
-                token_requestor_name: 'APPLE_PAY'
-                account_token: '61c3acef-3c2c-4d61-9352-941397b92ca3'
-                card_token: '16a410c9-7f5c-43e9-8108-bb8a72c063f7'
-                token_unique_reference: 'de25183f-6121-4ce5-8f2e-16b7fb07f252'
-                status: 'APPROVED'
-                created_at: '2023-08-28T15:57:14.578051'
-                updated_at: '2023-08-28T15:57:14.578051'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
   /status:
     get:
       tags:
@@ -4400,7 +4296,7 @@ paths:
                     enum:
                       - APP_BASED
                       - BROWSER
-                      - THREE_DS_REQUESTOR_INITIATED
+                      - THREE_RI_REQUESTER_INITIATED
                     type: string
                   created:
                     description: >
@@ -7966,56 +7862,6 @@ components:
               title: User Defined Id
               type: string
               maxLength: 512
-    Tokenization:
-      type: object
-      required:
-        - token
-        - token_requestor_name
-        - account_token
-        - card_token
-        - token_unique_reference
-        - status
-        - created_at
-        - updated_at
-      properties:
-        token:
-          type: string
-          format: uuid
-          description: |
-            A fixed-width 23-digit numeric identifier for the Transaction that may be set if the transaction originated from the Mastercard network. This number may be used for dispute tracking.
-        token_requestor_name:
-          type: string
-          enum:
-            - APPLE_PAY
-            - GOOGLE
-            - SAMSUNG_PAY
-          description: The entity that is requested the tokenization. Represents a Digital Wallet.
-        account_token:
-          type: string
-          format: uuid
-          description: The account token associated with the card being tokenized.
-        card_token:
-          type: string
-          format: uuid
-          description: The card token associated with the card being tokenized.
-        token_unique_reference:
-          type: string
-          description: The network's unique reference for the tokenization.
-        status:
-          type: string
-          enum:
-            - APPROVED
-            - DECLINED
-            - REQUIRE_ADDITIONAL_AUTHENTICATION
-          description: The status of the tokenization request
-        created_at:
-          type: string
-          format: date-time
-          description: Date and time when the tokenization first occurred. UTC time zone.
-        updated_at:
-          type: string
-          format: date-time
-          description: Latest date and time when the tokenization was updated. UTC time zone.
 
   securitySchemes:
     ApiKeyAuth:
