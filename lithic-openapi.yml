@@ -3018,6 +3018,36 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /simulate/payments/return:
+    post:
+      tags:
+        - Payment
+      summary: Return payment
+      description: Simulates a return of a Payment.
+      operationId: simulatePaymentsReturn
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulateReturnRequest'
+      responses:
+        '202':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulateReturnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /event_subscriptions/{event_subscription_token}/attempts:
     get:
       tags:
@@ -7839,8 +7869,40 @@ components:
           title: Payment Token
           type: string
           format: uuid
+    SimulateReturnRequest:
+      title: SimulateReturnRequest
+      required:
+        - payment_token
+      type: object
+      properties:
+        payment_token:
+          title: Payment Token
+          type: string
+          format: uuid
+        return_reason_code:
+          title: Payment Token
+          type: string
+          default: R01
     SimulateReleaseResponse:
       title: SimulateReleaseResponse
+      type: object
+      properties:
+        debugging_request_id:
+          title: Debugging Request Id
+          type: string
+          format: uuid
+        result:
+          title: Result
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+        transaction_event_token:
+          title: Transaction Event Token
+          type: string
+          format: uuid
+    SimulateReturnResponse:
+      title: SimulateReturnResponse
       type: object
       properties:
         debugging_request_id:
