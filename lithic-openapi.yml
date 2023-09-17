@@ -8189,6 +8189,17 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
+  card_transaction.updated:
+    post:
+      description: Occurs when a card transaction happens.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
   digital_wallet.tokenization_approval_request:
     post:
       description: Occurs when a tokenization approval request is made.
