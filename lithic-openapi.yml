@@ -8376,84 +8376,84 @@ webhooks:
         content:
           application/json:
             schema:
-            type: object
-            properties:
-              account_token:
-                description: Account token
-                type: string
-                example: 00000000-0000-0000-0000-000000000002
-              card_token:
-                description: Card token
-                type: string
-                example: 00000000-0000-0000-0000-000000000001
-              created:
-                description: Created date
-                type: string
-                format: date-time
-                example: '2020-01-01T00:00:00Z'
-              event_type:
-                description: The name of this event
-                type: string
-                enum:
-                  - digital_wallet.tokenization_result
-                example: digital_wallet.tokenization_result
-              tokenization_result_details:
-                additionalProperties: false
-                description: The result of the tokenization request.
-                properties:
-                  customer_decision:
-                    description: The customer's tokenization decision if applicable.
-                    type: string
-                    enum: *tokenizationDecision
-                  issuer_decision:
-                    description: Lithic's tokenization decision.
-                    type: string
-                    enum: *issuerDecision
-                  token_activated_date_time:
-                    description: An RFC 3339 timestamp indicating when the tokenization succeeded.
-                    type: string
-                    format: date-time
-                    example: '2020-01-01T00:00:00Z'
-                  tokenization_decline_reasons:
-                    description: A list of reasons the tokenization failed.
-                    items:
+              type: object
+              properties:
+                account_token:
+                  description: Account token
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000002
+                card_token:
+                  description: Card token
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000001
+                created:
+                  description: Created date
+                  type: string
+                  format: date-time
+                  example: '2020-01-01T00:00:00Z'
+                event_type:
+                  description: The name of this event
+                  type: string
+                  enum:
+                    - digital_wallet.tokenization_result
+                  example: digital_wallet.tokenization_result
+                tokenization_result_details:
+                  additionalProperties: false
+                  description: The result of the tokenization request.
+                  properties:
+                    customer_decision:
+                      description: The customer's tokenization decision if applicable.
                       type: string
-                      enum:
+                      enum: *tokenizationDecision
+                    issuer_decision:
+                      description: Lithic's tokenization decision.
+                      type: string
+                      enum: *issuerDecision
+                    token_activated_date_time:
+                      description: An RFC 3339 timestamp indicating when the tokenization succeeded.
+                      type: string
+                      format: date-time
+                      example: '2020-01-01T00:00:00Z'
+                    tokenization_decline_reasons:
+                      description: A list of reasons the tokenization failed.
+                      items:
+                        type: string
+                        enum:
+                          - ACCOUNT_SCORE_1
+                          - DEVICE_SCORE_1
+                          - ALL_WALLET_DECLINE_REASONS_PRESENT
+                          - WALLET_RECOMMENDED_DECISION_RED
+                          - CVC_MISMATCH
+                          - CARD_EXPIRY_MONTH_MISMATCH
+                          - CARD_EXPIRY_YEAR_MISMATCH
+                          - CARD_INVALID_STATE
+                          - CUSTOMER_RED_PATH
+                          - INVALID_CUSTOMER_RESPONSE
+                          - NETWORK_FAILURE
+                      type: array
+                      example:
                         - ACCOUNT_SCORE_1
                         - DEVICE_SCORE_1
-                        - ALL_WALLET_DECLINE_REASONS_PRESENT
-                        - WALLET_RECOMMENDED_DECISION_RED
-                        - CVC_MISMATCH
-                        - CARD_EXPIRY_MONTH_MISMATCH
-                        - CARD_EXPIRY_YEAR_MISMATCH
-                        - CARD_INVALID_STATE
-                        - CUSTOMER_RED_PATH
-                        - INVALID_CUSTOMER_RESPONSE
-                        - NETWORK_FAILURE
-                    type: array
-                    example:
-                      - ACCOUNT_SCORE_1
-                      - DEVICE_SCORE_1
-                  wallet_decision:
-                    description: The wallet's recommended decision.
-                    type: string
-                    enum: *tokenizationDecision
-                    example: APPROVED
-                required:
-                  - issuer_decision
-                  - tokenization_decline_reasons
-                type: object
-              tokenization_token:
-                type: string
-                description: Tokenization token
-                example: 00000000-0000-0000-0000-000000000003
-            required:
-              - event_type
-              - created
-              - account_token
-              - card_token
-              - tokenization_token
-              - tokenization_result_details
+                    wallet_decision:
+                      description: The wallet's recommended decision.
+                      type: string
+                      enum: *tokenizationDecision
+                      example: APPROVED
+                  required:
+                    - issuer_decision
+                    - tokenization_decline_reasons
+                  type: object
+                tokenization_token:
+                  type: string
+                  description: Tokenization token
+                  example: 00000000-0000-0000-0000-000000000003
+              required:
+                - event_type
+                - created
+                - account_token
+                - card_token
+                - tokenization_token
+                - tokenization_result_details
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
