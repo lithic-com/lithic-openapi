@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: Lithic Developer API
   description: >
@@ -1189,7 +1189,7 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                 shipping_method:
                   type: string
-                  enum:
+                  enum: &shippingMethodTypes
                     - STANDARD
                     - STANDARD_WITH_TRACKING
                     - PRIORITY
@@ -1425,7 +1425,7 @@ paths:
                 digital_wallet:
                   type: string
                   description: Name of digital wallet provider.
-                  enum:
+                  enum: &digitalWallet
                     - APPLE_PAY
                     - GOOGLE_PAY
                     - SAMSUNG_PAY
@@ -2231,6 +2231,8 @@ paths:
                       - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
                       - dispute.updated
+                      - dispute_evidence.upload_failed
+                      - three_ds_authentication.created
                       - payment_transaction.created
                       - payment_transaction.updated
                       - transfer_transaction.created
@@ -2508,6 +2510,43 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /simulate/event_subscriptions/{event_subscription_token}/send_example:
+    post:
+      tags:
+        - Event
+      summary: Send event type example message
+      description: Send an example message for event.
+      operationId: sendEventSubscriptionExample
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
+        - in: path
+          name: event_subscription_token
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_type:
+                  type: string
+                  enum: *eventTypes
+                  description: Event type to send example message for.
+      responses:
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
   /events:
@@ -8065,7 +8104,7 @@ components:
           description: The network's unique reference for the tokenization.
         status:
           type: string
-          enum:
+          enum: &tokenizationDecision
             - APPROVED
             - DECLINED
             - REQUIRE_ADDITIONAL_AUTHENTICATION
@@ -8084,6 +8123,1091 @@ components:
       type: apiKey
       in: header
       name: 'Authorization'
+
+webhooks:
+  card.created:
+    post:
+      description: Occurs when a new card is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - card_token: 00000000-0000-0000-0000-000000000001
+                  event_type: card.created
+              properties:
+                card_token:
+                  type: string
+                  format: uuid
+                  description: The token of the card that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  type: string
+                  enum:
+                    - card.created
+                  description: The type of event that occurred.
+                  example: card.created
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  card.shipped:
+    post:
+      description: Occurs when a card is shipped.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - card_token: 00000000-0000-0000-0000-000000000001
+                  event_type: card.shipped
+                  shipping_method: USPS without tracking envelope
+                  tracking_number: 1Z9999999999999999
+              properties:
+                card_token:
+                  type: string
+                  format: uuid
+                  description: The token of the card that was shipped.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  type: string
+                  enum:
+                    - card.shipped
+                  description: The type of event that occurred.
+                  example: card.shipped
+                shipping_method:
+                  type: string
+                  enum:
+                    - USPS without tracking envelope
+                    - USPS without tracking envelope non-machine
+                    - USPS without tracking flat
+                    - USPS with tracking
+                    - USPS priority
+                    - FedEx overnight
+                    - FedEx 2 days
+                    - FedEx express
+                    - Ex-US standard without tracking
+                    - Ex-US standard with tracking
+                    - Ex-US expedited with tracking
+                  description: The specific shipping method used to ship the card.
+                  example: USPS without tracking envelope
+                tracking_number:
+                  type: string
+                  description: The tracking number of the shipment.
+                  example: 1Z9999999999999999
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  card_transaction.updated:
+    post:
+      description: Occurs when a card transaction happens.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - acquirer_fee: 0
+                  acquirer_reference_number: null
+                  amount: 1800
+                  authorization_amount: 1800
+                  authorization_code: '071471'
+                  card_token: 'aac502f9-aecc-458a-954e-4bcf6edb6123'
+                  cardholder_authentication:
+                    3ds_version: null
+                    acquirer_exemption: 'NONE'
+                    liability_shift: 'NONE'
+                    verification_attempted: 'NONE'
+                    verification_result: 'NOT_ATTEMPTED'
+                  created: '2023-08-03T18:42:30Z'
+                  event_type: 'card_transaction.updated'
+                  events:
+                    - amount: 1800
+                      created: '2023-08-03T18:42:30Z'
+                      result: 'APPROVED'
+                      token: 'bbbf1e86-322d-11ee-9779-00505685a123'
+                      type: 'AUTHORIZATION'
+                  merchant:
+                    acceptor_id: '452322000053360'
+                    city: 'gosq.com'
+                    country: 'USA'
+                    descriptor: 'SQ *SOMA EATS'
+                    mcc: '5812'
+                    state: 'CA'
+                  merchant_amount: 1800
+                  merchant_authorization_amount: 1800
+                  merchant_currency: 'USD'
+                  network: 'MASTERCARD'
+                  result: 'APPROVED'
+                  settled_amount: 0
+                  status: 'PENDING'
+                  token: 'c30c2182-1e69-4e0d-b40f-eec0d2a19123'
+              allOf:
+                - $ref: '#/components/schemas/Transaction'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum:
+                        - card_transaction.updated
+                      description: The type of event that occurred.
+                      example: card_transaction.updated
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  digital_wallet.tokenization_approval_request:
+    post:
+      description: Occurs when a tokenization approval request is made.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - event_type: digital_wallet.tokenization_approval_request
+                  created: '2023-09-18T12:34:56Z'
+                  tokenization_source: PUSH_PROVISION
+                  tokenization_token: 'tok_1234567890abcdef'
+                  card_token: '00000000-0000-0000-0000-000000000001'
+                  account_token: '00000000-0000-0000-0000-000000000002'
+                  issuer_decision: APPROVED
+                  digital_wallet_token_metadata:
+                    status: 'Pending'
+                    token_requestor_id: '12345678901'
+                    token_requestor_name: APPLE_PAY
+                    payment_app_instance_id: 'app_instance_123456789012345678901234567890'
+                    payment_account_info:
+                      payment_account_reference: 'ref_1234567890123456789012'
+                      pan_unique_reference: 'pan_unique_ref_1234567890123456789012345678'
+                      token_unique_reference: 'token_unique_ref_1234567890123456789012345678'
+                      account_holder_data:
+                        phone_number: '+123456789012'
+                  wallet_decisioning_info:
+                    account_score: '100'
+                    device_score: '100'
+                    recommendation_reasons:
+                      - 'Reason1'
+                    recommended_decision: 'Decision1'
+                  device:
+                    imei: '123456789012345'
+                    location: '37.3860517,-122.0838511'
+                    ip_address: '1.1.1.1'
+                  customer_tokenization_decision:
+                    outcome: APPROVED
+                    response_code: '123456'
+                    latency: '100'
+                    responder_url: 'https://example.com'
+              properties:
+                event_type:
+                  description: The name of this event
+                  type: string
+                  enum:
+                    - digital_wallet.tokenization_approval_request
+                  example: digital_wallet.tokenization_approval_request
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  type: string
+                  format: date-time
+                tokenization_source:
+                  description: The source of the tokenization.
+                  type: string
+                  enum:
+                    - PUSH_PROVISION
+                    - MANUAL_PROVISION
+                    - ACCOUNT_ON_FILE
+                  example: PUSH_PROVISION
+                tokenization_token:
+                  description: Unique identifier for the digital wallet token attempt
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000001
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000002
+                issuer_decision:
+                  description: Whether Lithic decisioned on the token, and if so, what the decision was. APPROVED/VERIFICATION_REQUIRED/DENIED.
+                  type: string
+                  enum: &issuerDecision
+                    - APPROVED
+                    - DENIED
+                    - VERIFICATION_REQUIRED
+                  example: APPROVED
+                digital_wallet_token_metadata:
+                  description: Contains the metadata for the digital wallet being tokenized
+                  type: object
+                  properties:
+                    status:
+                      description: The current status of the digital wallet token. Pending or declined.
+                      type: string
+                    token_requestor_id:
+                      description: The party that requested the digitization
+                      type: string
+                      minLength: 11
+                      maxLength: 11
+                    token_requestor_name:
+                      description: Human-readable name of the wallet that the token_requestor_id maps to.
+                      type: string
+                      enum: *digitalWallet
+                      example: APPLE_PAY
+                    payment_app_instance_id:
+                      description: The identifier of the Payment App instance within a device that will be provisioned with a token
+                      type: string
+                      maxLength: 48
+                    payment_account_info:
+                      description: Contains the information of the account responsible for the payment.
+                      type: object
+                      properties:
+                        payment_account_reference:
+                          description: The unique account reference assigned to the PAN
+                          type: string
+                          maxLength: 29
+                        pan_unique_reference:
+                          description: Reference to the PAN that is unique per Wallet Provider
+                          type: string
+                          maxLength: 64
+                        token_unique_reference:
+                          description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
+                          type: string
+                          maxLength: 64
+                        account_holder_data:
+                          description: Additional information that can be used to identify the account holder, such as name, address, etc
+                          type: object
+                          properties:
+                            phone_number:
+                              description: The phone number, may contain country code along with phone number when countryDialInCode is not present
+                              type: string
+                              maxLength: 20
+                      required:
+                        - account_holder_data
+                  required:
+                    - status
+                    - payment_account_info
+                wallet_decisioning_info:
+                  description: Contains information about the decision recommended by the Wallet Provider
+                  type: object
+                  properties:
+                    account_score:
+                      description: Score given to the account by the Wallet Provider
+                      type: string
+                      maxLength: 64
+                      example: 100
+                    device_score:
+                      description: Score given to the device by the Wallet Provider
+                      type: string
+                      maxLength: 64
+                      example: 100
+                    recommendation_reasons:
+                      description: Reasons provided to the Wallet Provider on how the recommended decision was reached
+                      type: array
+                      items:
+                        type: string
+                    recommended_decision:
+                      description: The decision recommended by the Wallet Provider
+                      type: string
+                      maxLength: 64
+                device:
+                  description: Contains information about the target device to be provisioned
+                  type: object
+                  properties:
+                    imei:
+                      description: The IMEI number of the device being provisioned
+                      type: string
+                      maxLength: 15
+                      example: 123456789012345
+                    location:
+                      description: Latitude and longitude where the device the consumer is attempting to authorize is located
+                      type: string
+                      maxLength: 64
+                      example: 37.3860517,-122.0838511
+                    ip_address:
+                      description: The IP of the device initiating the request
+                      type: string
+                      maxLength: 64
+                      example: '1.1.1.1'
+                customer_tokenization_decision:
+                  description: Contains information about the customer's tokenization decision if they are enrolled
+                  type: object
+                  properties:
+                    outcome:
+                      description: The outcome of the customer's decision
+                      type: string
+                      enum:
+                        - APPROVED
+                        - DECLINED
+                        - ERROR
+                        - INVALID_RESPONSE
+                        - REQUIRE_ADDITIONAL_AUTHENTICATION
+                        - TIMEOUT
+                      example: APPROVED
+                    response_code:
+                      description: The response code that the customer provided
+                      type: string
+                      example: 123456
+                    latency:
+                      description: Time in ms it took for the customer's URL to respond
+                      type: string
+                      example: 100
+                    responder_url:
+                      description: The customer's subscribed URL
+                      type: string
+                      example: https://example.com
+                  required:
+                    - outcome
+                    - responder_url
+              required:
+                - event_type
+                - created
+                - tokenization_token
+                - card_token
+                - account_token
+                - issuer_decision
+                - digital_wallet_token_metadata
+                - wallet_decisioning_info
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  digital_wallet.tokenization_result:
+    post:
+      description: Occurs when a tokenization request succeeded or failed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - account_token: '00000000-0000-0000-0000-000000000002'
+                  card_token: '00000000-0000-0000-0000-000000000001'
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: 'digital_wallet.tokenization_result'
+                  tokenization_result_details:
+                    issuer_decision: 'APPROVED'
+                    tokenization_decline_reasons:
+                      - ACCOUNT_SCORE_1
+                      - DEVICE_SCORE_1
+                    wallet_decision: 'APPROVED'
+                  tokenization_token: '00000000-0000-0000-0000-000000000003'
+              properties:
+                account_token:
+                  description: Account token
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000002
+                card_token:
+                  description: Card token
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000001
+                created:
+                  description: Created date
+                  type: string
+                  format: date-time
+                  example: '2020-01-01T00:00:00Z'
+                event_type:
+                  description: The name of this event
+                  type: string
+                  enum:
+                    - digital_wallet.tokenization_result
+                  example: digital_wallet.tokenization_result
+                tokenization_result_details:
+                  additionalProperties: false
+                  description: The result of the tokenization request.
+                  properties:
+                    customer_decision:
+                      description: The customer's tokenization decision if applicable.
+                      type: string
+                      enum: *tokenizationDecision
+                    issuer_decision:
+                      description: Lithic's tokenization decision.
+                      type: string
+                      enum: *issuerDecision
+                    token_activated_date_time:
+                      description: An RFC 3339 timestamp indicating when the tokenization succeeded.
+                      type: string
+                      format: date-time
+                      example: '2020-01-01T00:00:00Z'
+                    tokenization_decline_reasons:
+                      description: A list of reasons the tokenization failed.
+                      items:
+                        type: string
+                        enum:
+                          - ACCOUNT_SCORE_1
+                          - DEVICE_SCORE_1
+                          - ALL_WALLET_DECLINE_REASONS_PRESENT
+                          - WALLET_RECOMMENDED_DECISION_RED
+                          - CVC_MISMATCH
+                          - CARD_EXPIRY_MONTH_MISMATCH
+                          - CARD_EXPIRY_YEAR_MISMATCH
+                          - CARD_INVALID_STATE
+                          - CUSTOMER_RED_PATH
+                          - INVALID_CUSTOMER_RESPONSE
+                          - NETWORK_FAILURE
+                      type: array
+                      example:
+                        - ACCOUNT_SCORE_1
+                        - DEVICE_SCORE_1
+                    wallet_decision:
+                      description: The wallet's recommended decision.
+                      type: string
+                      enum: *tokenizationDecision
+                      example: APPROVED
+                  required:
+                    - issuer_decision
+                    - tokenization_decline_reasons
+                  type: object
+                tokenization_token:
+                  type: string
+                  description: Tokenization token
+                  example: 00000000-0000-0000-0000-000000000003
+              required:
+                - event_type
+                - created
+                - account_token
+                - card_token
+                - tokenization_token
+                - tokenization_result_details
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  digital_wallet.tokenization_two_factor_authentication_code:
+    post:
+      description: Occurs when a tokenization request 2FA auth code is delivered.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Self Serve 2FA Code Schema
+              type: object
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  activation_method:
+                    type: TEXT_TO_CARDHOLDER_NUMBER
+                    value: 5555555555
+                  authentication_code: 123456
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: digital_wallet.tokenization_two_factor_authentication_code
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000002
+                activation_method:
+                  description: ''
+                  properties:
+                    type:
+                      description: >-
+                        The communication method that the user has selected to use to receive the 2FA Authentication Code.
+
+                        Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
+                      type: string
+                      enum:
+                        - EMAIL_TO_CARDHOLDER_ADDRESS
+                        - TEXT_TO_CARDHOLDER_NUMBER
+                      example: TEXT_TO_CARDHOLDER_NUMBER
+                    value:
+                      description: >-
+                        The location where the user wants to receive the 2FA Authentication Code. 
+
+                        The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
+                      type: string
+                      example: 5555555555
+                  required:
+                    - type
+                    - value
+                  type: object
+                authentication_code:
+                  description: 2FA Authentication Code to provide to the user tokenizing a card.
+                  type: string
+                  example: 123456
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000001
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  title: Created
+                  type: string
+                  format: date-time
+                  example: '2020-01-01T00:00:00Z'
+                event_type:
+                  description: The name of this event
+                  type: string
+                  enum:
+                    - digital_wallet.tokenization_two_factor_authentication_code
+                  example: digital_wallet.tokenization_two_factor_authentication_code
+                tokenization_token:
+                  description: Unique identifier for the tokenization
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000003
+              required:
+                - event_type
+                - created
+                - tokenization_token
+                - card_token
+                - account_token
+                - authentication_code
+                - activation_method
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  dispute.updated:
+    post:
+      description: Occurs when a dispute is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - event_type: dispute.updated
+                  amount: 200
+                  arbitration_date: null
+                  created: '2023-07-19T18:39:34.768Z'
+                  customer_filed_date: '2023-07-20T09:00:00Z'
+                  customer_note: "I didn't receive the goods."
+                  network_claim_ids: ['CLAIM-001']
+                  network_filed_date: '2023-07-21T11:00:00Z'
+                  network_reason_code: '4808'
+                  prearbitration_date: null
+                  primary_claim_id: 'CLAIM-001'
+                  reason: GOODS_SERVICES_NOT_RECEIVED
+                  representment_date: null
+                  resolution_amount: null
+                  resolution_date: null
+                  resolution_note: null
+                  resolution_reason: null
+                  status: SUBMITTED
+                  token: b24230fa-181e-4b31-9a5c-276747e619a0
+                  transaction_token: 12345624-aa69-4cbc-a946-30d90181b621
+              allOf:
+                - $ref: '#/components/schemas/Dispute'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum:
+                        - dispute.updated
+                      description: The type of event that occurred.
+                      example: dispute.updated
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  dispute_evidence.upload_failed:
+    post:
+      description: Occurs when a dispute evidence upload fails.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - created: '2023-07-19T18:39:34.768Z'
+                  dispute_token: 'f7a74167-d6d5-4f7d-8501-36df11ba371b'
+                  token: '48b8e42c-a645-44f6-8604-20c3127e9008'
+                  upload_status: REJECTED
+                  event_type: dispute_evidence.upload_failed
+              allOf:
+                - $ref: '#/components/schemas/DisputeEvidence'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum:
+                        - dispute_evidence.upload_failed
+                      description: The type of event that occurred.
+                      example: dispute_evidence.upload_failed
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  payment_transaction.created:
+    post:
+      description: Occurs when a payment transaction is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - category: ACH
+                  created: '2023-09-14T12:52:44Z'
+                  currency: USD
+                  descriptor: custom description
+                  direction: DEBIT
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACH_ORIGINATION_PENDING
+                  event_type: payment_transaction.created
+                  external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                  financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                  method: ACH_NEXT_DAY
+                  method_attributes:
+                    retries: 0
+                    return_reason_code: null
+                    sec_code: CCD
+                  pending_amount: 4103
+                  result: APPROVED
+                  settled_amount: 0
+                  source: CUSTOMER
+                  status: PENDING
+                  token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  updated: '2023-09-14T12:52:44Z'
+                  user_defined_id: null
+              allOf:
+                - $ref: '#/components/schemas/PaymentResponse'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum:
+                        - payment_transaction.created
+                      description: The type of event that occurred.
+                      example: payment_transaction.created
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  payment_transaction.updated:
+    post:
+      description: Occurs when a payment transaction is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - category: ACH
+                  created: '2023-09-14T12:52:44Z'
+                  currency: USD
+                  descriptor: custom description
+                  direction: DEBIT
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACH_ORIGINATION_PENDING
+                    - amount: 4103
+                      created: '2023-09-14T12:52:46Z'
+                      result: APPROVED
+                      token: 95719c03-7eb8-560b-9843-39da92df5231
+                      type: ACH_ORIGINATION_PROCESSED
+                    - amount: 4103
+                      created: '2023-09-14T12:52:47Z'
+                      result: APPROVED
+                      token: 87fea0af-931f-5e80-a9cf-a243aa71b89d
+                      type: ACH_ORIGINATION_RELEASED
+                  event_type: payment_transaction.updated
+                  external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                  financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                  method: ACH_NEXT_DAY
+                  method_attributes:
+                    retries: 0
+                    return_reason_code: null
+                    sec_code: CCD
+                  pending_amount: 0
+                  result: APPROVED
+                  settled_amount: 4103
+                  source: CUSTOMER
+                  status: SETTLED
+                  token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  updated: '2023-09-14T12:52:47Z'
+                  user_defined_id: null
+              allOf:
+                - $ref: '#/components/schemas/PaymentResponse'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum:
+                        - payment_transaction.updated
+                      description: The type of event that occurred.
+                      example: payment_transaction.updated
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  three_ds_authentication.created:
+    post:
+      description: Occurs when a 3DS authentication is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - account_type: null
+                  additional_data:
+                    network_decision: NOT_LOW_RISK
+                    network_risk_score: 550
+                  app: null
+                  authentication_request_type: RECURRING_TRANSACTION
+                  authentication_result: SUCCESS
+                  browser:
+                    accept_headers: 'application/json,text/javascript,*/*;q=0.01'
+                    ip: 192.168.1.2
+                    java_enabled: false
+                    javascript_enabled: null
+                    language: en-US
+                    time_zone: '240'
+                    user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
+                  card_expiry_check: MATCH
+                  card_token: 00000000-0000-0000-0000-000000000000
+                  cardholder:
+                    address_match: true
+                    billing_address:
+                      address1: 123 MAIN ST
+                      address2: null
+                      address3: null
+                      city: SPRINGFIELD
+                      country: USA
+                      postal_code: 62701
+                      state: null
+                    email: null
+                    name: John Doe
+                    phone_number_home: null
+                    phone_number_mobile: null
+                    phone_number_work: null
+                    shipping_address:
+                      address1: 123 MAIN ST
+                      address2: null
+                      address3: null
+                      city: SPRINGFIELD
+                      country: USA
+                      postal_code: 62701
+                      state: null
+                  channel: BROWSER
+                  created: '2023-08-17T19:05:01Z'
+                  decision_made_by: LITHIC_RULES
+                  event_type: three_ds_authentication.created
+                  merchant:
+                    country: USA
+                    id: '784959'
+                    mcc: '5968'
+                    name: Amazon
+                    risk_indicator:
+                      delivery_email_address: null
+                      delivery_time_frame: null
+                      gift_card_amount: null
+                      gift_card_count: null
+                      gift_card_currency: null
+                      order_availability: null
+                      pre_order_available_date: null
+                      reorder_items: null
+                      shipping_method: null
+                  three_ri_request_type: null
+                  token: 00000000-0000-0000-0000-000000000001
+                  transaction:
+                    amount: 0
+                    currency: USD
+                    currency_exponent: 2
+                    date_time: '2023-08-17T19:04:58Z'
+                    type: GOODS_SERVICE_PURCHASE
+              definitions:
+                address:
+                  properties:
+                    address1:
+                      description: First line of the street address provided by the cardholder.
+                      type:
+                        - string
+                        - null
+                      example: 123 Main St
+                    address2:
+                      description: Second line of the street address provided by the cardholder.
+                      type:
+                        - string
+                        - null
+                      example: Apt 1
+                    address3:
+                      description: Third line of the street address provided by the cardholder.
+                      type:
+                        - string
+                        - null
+                      example: null
+                    city:
+                      description: City of the address provided by the cardholder.
+                      type:
+                        - string
+                        - null
+                      example: San Francisco
+                    country:
+                      description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+                      maxLength: 3
+                      minLength: 3
+                      type:
+                        - string
+                        - null
+                      example: USA
+                    postal_code:
+                      description: Postal code (e.g., ZIP code) of the address provided by the cardholder
+                      type:
+                        - string
+                        - null
+                      example: 94105
+                  type: object
+              description: Occurs when Lithic responds to a 3DS authentication request from card network
+              properties:
+                account_type:
+                  description: Type of account/card that is being used for the transaction. Maps to EMV 3DS field acctType.
+                  enum:
+                    - NOT_APPLICABLE
+                    - CREDIT
+                    - DEBIT
+                    - null
+                  type:
+                    - string
+                    - null
+                  example: CREDIT
+                additional_data:
+                  description: ''
+                  properties:
+                    network_decision:
+                      description: (Mastercard only) Indicates whether the network would have considered the authentication request to be low risk or not.
+                      enum:
+                        - LOW_RISK
+                        - NOT_LOW_RISK
+                        - null
+                      type:
+                        - string
+                        - null
+                      example: LOW_RISK
+                    network_risk_score:
+                      description: (Mastercard only) Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values - Integer between 0-950, in increments of 50.
+                      type:
+                        - number
+                        - null
+                      example: 0
+                  required: []
+                  title: AdditionalData
+                  type: object
+                app:
+                  description: Object containing data about the app used in the e-commerce transaction. Present if the channel is 'APP_BASED'.
+                  properties:
+                    device_info:
+                      description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded.
+                      type:
+                        - string
+                        - null
+                      example: eyJkZXZpY2VfaWQiOiJkZXZpY2VfaWQifQ==
+                    ip:
+                      anyOf:
+                        - format: ipv4
+                          type: string
+                        - format: ipv6
+                          type: string
+                        - type: null
+                      description: External IP address used by the app generating the 3DS authentication request.
+                      example: '1.1.1.1'
+                  required: []
+                  type:
+                    - object
+                    - null
+                authentication_request_type:
+                  description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field threeDSRequestorAuthenticationInd.
+                  enum:
+                    - PAYMENT_TRANSACTION
+                    - RECURRING_TRANSACTION
+                    - INSTALLMENT_TRANSACTION
+                    - ADD_CARD
+                    - MAINTAIN_CARD
+                    - EMV_TOKEN_CARDHOLDER_VERIFICATION
+                    - BILLING_AGREEMENT
+                    - SPLIT_SHIPMENT
+                    - DELAYED_SHIPMENT
+                    - SPLIT_PAYMENT
+                    - null
+                  type:
+                    - string
+                    - null
+                  example: PAYMENT_TRANSACTION
+                authentication_result:
+                  description: Indicates the outcome of the 3DS authentication process.
+                  enum:
+                    - SUCCESS
+                    - DECLINE
+                    - null
+                  type:
+                    - string
+                    - null
+                  example: SUCCESS
+                browser:
+                  description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
+                  properties:
+                    accept_header:
+                      description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
+                      type:
+                        - string
+                        - null
+                      example: text/html,application/xhtml+xml
+                    ip:
+                      anyOf:
+                        - format: ipv4
+                          type: string
+                        - format: ipv6
+                          type: string
+                        - type: null
+                      description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field browserIP.
+                      example: '1.1.1.1'
+                    java_enabled:
+                      description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field browserJavaEnabled.
+                      type:
+                        - boolean
+                        - null
+                      example: true
+                    javascript_enabled:
+                      description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
+                      type:
+                        - boolean
+                        - null
+                      example: true
+                    language:
+                      description: Language of the cardholder’s browser as defined in IETF BCP47. Maps to EMV 3DS field browserLanguage.
+                      type:
+                        - string
+                        - null
+                      example: en-US
+                    time_zone:
+                      description: Time zone of the cardholder’s browser offset in minutes between UTC and the cardholder browser’s local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field browserTz.
+                      type:
+                        - string
+                        - null
+                      example: -240
+                    user_agent:
+                      description: Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
+                      type:
+                        - string
+                        - null
+                      example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36
+                  required: []
+                  title: Browser
+                  type:
+                    - object
+                    - null
+                card_expiry_check:
+                  description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic’s record of the card’s expiration date.
+                  enum:
+                    - MATCH
+                    - MISMATCH
+                    - NOT_PRESENT
+                  type: string
+                card_token:
+                  description: Globally unique identifier for the card on which the 3DS authentication has occurred. Permitted values - 36-digit version 4 UUID (including hyphens).
+                  format: uuid
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000001
+                cardholder:
+                  description: Object containing data about the cardholder provided during the transaction.
+                  properties:
+                    address_match:
+                      description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field addrMatch.
+                      type:
+                        - boolean
+                        - null
+                      example: true
+                    billing_address:
+                      description: Object containing data on the billing address provided during the transaction.
+                      type: object
+                    email:
+                      description: Email address provided by the cardholder during the transaction.
+                      type:
+                        - string
+                        - null
+                      example: 'customer@me.com'
+                event_type:
+                  description: The name of this event
+                  type: string
+                  enum:
+                    - three_ds_authentication.created
+                  example: three_ds_authentication.created
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  transfer_transaction.created:
+    post:
+      description: Occurs when a transfer transaction is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - category: TRANSFER
+                  created: '1973-04-04T23:39:00+00:00'
+                  descriptor: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.'
+                  events: []
+                  event_type: transfer_transaction.created
+                  from_balance:
+                    - available_amount: 8704
+                      created: '2005-07-19T20:21:02+00:00'
+                      currency: USD
+                      last_transaction_event_token: 2bd71066-f0b2-42b3-8b07-d3befc00a2ed
+                      last_transaction_token: 943244f7-4543-421d-89f7-7542bb768fae
+                      pending_amount: 1971
+                      token: 9c9aa32f-16af-4c62-a68e-2b211b5bb864
+                      total_amount: 5775
+                      type: ISSUING
+                      updated: '1978-08-14T22:11:40+00:00'
+                    - available_amount: 9174
+                      created: '1982-08-16T10:44:55+00:00'
+                      currency: USD
+                      last_transaction_event_token: e8d05954-f0ef-41c0-aa7d-20809ebe4aa5
+                      last_transaction_token: 0ee85f3c-707a-4e34-be59-86504d7cd320
+                      pending_amount: 2045
+                      token: 8f672659-644e-472a-a891-66ac53296a10
+                      total_amount: 5797
+                      type: ISSUING
+                      updated: '1983-01-10T01:39:14+00:00'
+                    - available_amount: 114
+                      created: '1993-04-26T18:03:19+00:00'
+                      currency: USD
+                      last_transaction_event_token: 4cd6cf0a-6b3a-4327-9a62-2aa9f3236a13
+                      last_transaction_token: 2ed37ff4-5105-4a65-b044-48ad381ab2b0
+                      pending_amount: 178
+                      token: 3f10a2ca-014d-4db9-9390-8d2436894cfa
+                      total_amount: 4718
+                      type: ISSUING
+                      updated: '2014-12-18T02:35:38+00:00'
+                    - available_amount: 4974
+                      created: '2017-08-06T10:07:57+00:00'
+                      currency: USD
+                      last_transaction_event_token: d7aa18b1-d4d2-45db-8d41-7b2c9de5c283
+                      last_transaction_token: 3ef927f5-bb8a-4094-b68d-0ea36c9c0bd4
+                      pending_amount: 9103
+                      token: 8659443a-2c63-4699-a6bd-e00b697c50ef
+                      total_amount: 7260
+                      type: RESERVE
+                      updated: '1993-01-10T19:19:20+00:00'
+                    - available_amount: 5259
+                      created: '1999-07-25T06:21:59+00:00'
+                      currency: USD
+                      last_transaction_event_token: 9bdc60ce-1206-4fad-819c-5b5eb793c223
+                      last_transaction_token: afdff06a-1b7c-4840-986b-0452b2dbc7dc
+                      pending_amount: 7006
+                      token: 8efadd92-f897-4202-bf82-c2ec35b464d3
+                      total_amount: 342
+                      type: RESERVE
+                      updated: '1991-08-12T03:02:29+00:00'
+                  pending_amount: 6937
+                  settled_amount: 4691
+                  to_balance:
+                    - available_amount: 1733
+                      created: '2014-03-19T06:15:34+00:00'
+                      currency: USD
+                      last_transaction_event_token: a2f77055-ca65-4596-9869-aa6fd1ff5261
+                      last_transaction_token: 20a83814-4ed0-4963-97f6-2aeb99063c7d
+                      pending_amount: 7677
+                      token: 4d1065d3-2240-4c4e-ab5f-ab69405fc7aa
+                      total_amount: 2776
+              allOf:
+                - $ref: '#/components/schemas/Transfer'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum:
+                        - transfer_transaction.created
+                      description: The type of event that occurred.
+                      example: transfer_transaction.created
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
 
 # Apply the API key globally to all operations
 security:
