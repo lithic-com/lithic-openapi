@@ -4890,10 +4890,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthRule'
+                $ref: '#/components/schemas/AuthRule'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5000,10 +4997,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthRule'
+                $ref: '#/components/schemas/AuthRule'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5089,10 +5083,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthRule'
+                $ref: '#/components/schemas/AuthRule'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
