@@ -4066,12 +4066,12 @@ paths:
               properties:
                 from:
                   type: string
+                  format: uuid
                   description: Globally unique identifier for the financial account that will send the funds.
-                  $ref: '#/components/schemas/FinancialAccount'
                 to:
                   type: string
+                  format: uuid
                   description: Globally unique identifier for the financial account that will receive the funds.
-                  $ref: '#/components/schemas/FinancialAccount'
                 amount:
                   type: integer
                   description: Amount to be transferred in the currency’s smallest unit (e.g., cents for USD). This should always be a positive value.
