@@ -2165,6 +2165,9 @@ paths:
                   items:
                     type: string
                     enum: &eventTypes
+                      - account_holder.created
+                      - account_holder.updated
+                      - account_holder.verification
                       - card.created
                       - card.shipped
                       - card_transaction.updated
