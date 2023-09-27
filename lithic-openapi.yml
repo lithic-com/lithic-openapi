@@ -640,65 +640,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
-  /webhooks/account_holders:
-    post:
-      tags:
-        - Account Holder
-      summary: Create webhook for KYC/KYB events
-      description: |
-        Create a webhook to receive KYC or KYB evaluation events.
-
-        There are two types of account holder webhooks:
-          - `verification`: Webhook sent when the status of a KYC or KYB evaluation changes from `PENDING_DOCUMENT` (KYC) or `PENDING` (KYB) to `ACCEPTED` or `REJECTED`.
-          - `document_upload_front`/`document_upload_back`: Webhook sent when a document upload fails.
-
-        After a webhook has been created, this endpoint can be used to rotate a webhooks HMAC token or modify the registered URL. Only a single webhook is allowed per program. Since HMAC verification is available, the IP addresses from which KYC/KYB webhooks are sent are subject to change.
-      operationId: postWebhookAccountHolder
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  description: URL to receive webhook requests. Must be a valid HTTPS address.
-              required:
-                - url
-            examples:
-              createAccountHolderWebhooks:
-                summary: Create a webhook for KYC/KYB events
-                value:
-                  url: 'https://mywebhookurl.com/incoming'
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      hmac_token:
-                        type: string
-                        format: uuid
-                        description: >
-                          Shared secret which can optionally be used to validate the authenticity of
-                          incoming identity webhooks.
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
   /auth_stream:
     get:
       tags:
@@ -2224,6 +2165,9 @@ paths:
                   items:
                     type: string
                     enum: &eventTypes
+                      - account_holder.created
+                      - account_holder.updated
+                      - account_holder.verification
                       - card.created
                       - card.shipped
                       - card_transaction.updated
@@ -4710,7 +4654,7 @@ paths:
       description: >
         Simulates a 3DS authentication request from the payment network as if
         it came from an ACS. If you're configured for 3DS Customer Decisioning,
-        simulating authentications requires your customer decisioning endpoint to be set 
+        simulating authentications requires your customer decisioning endpoint to be set
         up properly (respond with a valid JSON).
       operationId: postSimulateAuthentication
       parameters:
@@ -6807,6 +6751,9 @@ components:
           enum: *eventTypes
           description: |
             Event types:
+            * `account_holder.created` - Notification that a new account holder has been created and was not rejected.
+            * `account_holder.updated` - Notification that an account holder was updated.
+            * `account_holder.verification` - Notification than an account holder's identity verification is complete.
             * `card.created` - Notification that a card has been created.
             * `card.shipped` - Physical card shipment notification. See https://docs.lithic.com/docs/cards#physical-card-shipped-webhook.
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
@@ -8230,6 +8177,176 @@ components:
       name: 'Authorization'
 
 webhooks:
+  account_holder.created:
+    post:
+      description: Occurs when a new account_holder is created and is either ACCEPTED or PENDING_REVIEW.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000001
+                  created: 2023-09-26 16:41:40.530938
+                  event_type: account_holder.created
+                  status: ACCEPTED
+                  status_reasons: []
+                  token: 00000000-0000-0000-0000-000000000001
+              properties:
+                account_token:
+                  type: string
+                  format: uuid
+                  description: The token of the account that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                token:
+                  type: string
+                  format: uuid
+                  description: The token of the account_holder that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  description: The name of the event
+                  type: string
+                  enum:
+                    - account_holder.created
+                  example: account_holder.created
+                created:
+                  description: When the account_holder was created
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  description: The status of the account_holder that was created.
+                  enum:
+                    - ACCEPTED
+                    - PENDING_REVIEW
+                  example: ACCEPTED
+                status_reasons:
+                  type: array
+                  items:
+                    type: string
+                    description: If status is not ACCEPTED, status_reasons provides the reasons an account_holder is PENDING_REVIEW.
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  account_holder.updated:
+    post:
+      description: Occurs when a new account_holder is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - token: 00000000-0000-0000-0000-000000000001
+                  created: 2023-09-26 16:41:40.530938
+                  event_type: account_holder.updated
+                  email: john@lithic.com
+                  phone_number: 15555555555
+                  business_account_token: null
+                  external_id: null
+                  first_name: John
+                  last_name: Appleseed
+              properties:
+                token:
+                  type: string
+                  format: uuid
+                  description: The token of the account_holder that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  description: The name of the event
+                  type: string
+                  enum:
+                    - account_holder.updated
+                  example: account_holder.updated
+                created:
+                  description: When the account_holder updated event was created
+                  type: string
+                  format: date-time
+                business_account_token:
+                  type: string
+                  format: uuid
+                  description: If applicable, represents the business account token associated with the account_holder.
+                  example: 00000000-0000-0000-0000-000000000001
+                external_id:
+                  type: string
+                  format: uuid
+                  description: If applicable, represents the external_id associated with the account_holder.
+                  example: 00000000-0000-0000-0000-000000000001
+                email:
+                  type: string
+                  description: If updated, the newly updated email associated with the account_holder otherwise the existing email is provided.
+                  example: johnny@lithic.com
+                phone_number:
+                  type: string
+                  description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
+                  example: 15555555555
+                first_name:
+                  type: string
+                  description: If applicable, represents the account_holder's first name.
+                  example: Johnny
+                last_name:
+                  type: string
+                  description: If applicable, represents the account_holder's last name.
+                  example: Appleseed
+                legal_business_name:
+                  type: string
+                  description: If applicable, represents the account_holder's business name.
+                  example: Lithic
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  account_holder.verification:
+    post:
+      description: Occurs when an asynchronous account_holder's verification is completed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000001
+                  created: 2023-09-26 16:41:40.530938
+                  event_type: account_holder.verification
+                  status: ACCEPTED
+                  status_reasons: []
+                  token: 00000000-0000-0000-0000-000000000001
+              properties:
+                account_token:
+                  type: string
+                  format: uuid
+                  description: The token of the account being verified.
+                  example: 00000000-0000-0000-0000-000000000001
+                token:
+                  type: string
+                  format: uuid
+                  description: The token of the account_holder being verified.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  description: The name of the event
+                  type: string
+                  enum:
+                    - account_holder.verification
+                  example: account_holder.verification
+                created:
+                  description: When the account_holder verification status was updated
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  description: The status of the account_holder that was created
+                  enum:
+                    - ACCEPTED
+                    - REJECTED
+                    - PENDING_REVIEW
+                  example: ACCEPTED
+                status_reasons:
+                  type: array
+                  items:
+                    type: string
+                    description: If status is not ACCEPTED, status_reasons provides the reasons an account_holder was REJECTED or is PENDING_REVIEW.
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
   card.created:
     post:
       description: Occurs when a new card is created.
@@ -8713,7 +8830,7 @@ webhooks:
                       example: TEXT_TO_CARDHOLDER_NUMBER
                     value:
                       description: >-
-                        The location where the user wants to receive the 2FA Authentication Code. 
+                        The location where the user wants to receive the 2FA Authentication Code.
 
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
                       type: string
