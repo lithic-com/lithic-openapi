@@ -640,65 +640,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
-  /webhooks/account_holders:
-    post:
-      tags:
-        - Account Holder
-      summary: Create webhook for KYC/KYB events
-      description: |
-        Create a webhook to receive KYC or KYB evaluation events.
-
-        There are two types of account holder webhooks:
-          - `verification`: Webhook sent when the status of a KYC or KYB evaluation changes from `PENDING_DOCUMENT` (KYC) or `PENDING` (KYB) to `ACCEPTED` or `REJECTED`.
-          - `document_upload_front`/`document_upload_back`: Webhook sent when a document upload fails.
-
-        After a webhook has been created, this endpoint can be used to rotate a webhooks HMAC token or modify the registered URL. Only a single webhook is allowed per program. Since HMAC verification is available, the IP addresses from which KYC/KYB webhooks are sent are subject to change.
-      operationId: postWebhookAccountHolder
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  description: URL to receive webhook requests. Must be a valid HTTPS address.
-              required:
-                - url
-            examples:
-              createAccountHolderWebhooks:
-                summary: Create a webhook for KYC/KYB events
-                value:
-                  url: 'https://mywebhookurl.com/incoming'
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      hmac_token:
-                        type: string
-                        format: uuid
-                        description: >
-                          Shared secret which can optionally be used to validate the authenticity of
-                          incoming identity webhooks.
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
   /auth_stream:
     get:
       tags:
@@ -2224,6 +2165,9 @@ paths:
                   items:
                     type: string
                     enum: &eventTypes
+                      - account_holder.created
+                      - account_holder.updated
+                      - account_holder.verification
                       - card.created
                       - card.shipped
                       - card_transaction.updated
@@ -4710,7 +4654,7 @@ paths:
       description: >
         Simulates a 3DS authentication request from the payment network as if
         it came from an ACS. If you're configured for 3DS Customer Decisioning,
-        simulating authentications requires your customer decisioning endpoint to be set 
+        simulating authentications requires your customer decisioning endpoint to be set
         up properly (respond with a valid JSON).
       operationId: postSimulateAuthentication
       parameters:
@@ -5767,6 +5711,131 @@ components:
           type: string
           format: uuid
           description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
+        created:
+          type: string
+          format: date-time
+          description: Timestamp of when the account holder was created.
+        external_id:
+          type: string
+          format: string
+          description: Customer-provided token that indicates a relationship with an object outside of the Lithic ecosystem.
+        exemption_type:
+          type: string
+          enum:
+            - AUTHORIZED_USER
+            - PREPAID_CARD_USER
+          description: The type of KYC exemption for a KYC-Exempt Account Holder.
+        user_type:
+          type: string
+          enum:
+            - BUSINESS
+            - INDIVIDUAL
+          description: |
+            The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "beneficial_owner_entities",
+            "nature_of_business", and "website_url" attributes will be present.
+        verification_application:
+          description: Information about the most recent identity verification attempt
+          $ref: '#/components/schemas/AccountHolderVerificationApplication'
+        # Individual
+        individual:
+          description: Only present when user_type == "INDIVIDUAL". Information about the individual for which the account is being opened and KYC is being run.
+          $ref: '#/components/schemas/AccountHolderIndividualResponse'
+        # Business
+        business_entity:
+          description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
+          $ref: '#/components/schemas/BusinessEntity'
+        beneficial_owner_entities:
+          type: array
+          description: |
+            Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/BusinessEntity'
+        beneficial_owner_individuals:
+          type: array
+          description: |
+            Only present when user_type == "BUSINESS". List of all individuals with >25% ownership in the company.
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/AccountHolderIndividualResponse'
+        control_person:
+          description: |
+            Only present when user_type == "BUSINESS".
+            An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer,
+            Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access
+            to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
+          $ref: '#/components/schemas/AccountHolderIndividualResponse'
+        nature_of_business:
+          type: string
+          format: string
+          description: Only present when user_type == "BUSINESS". User-submitted description of the business.
+        website_url:
+          type: string
+          format: string
+          description: Only present when user_type == "BUSINESS". Business's primary website.
+        # Deprecated + Redundant
+        email:
+          type: string
+          description: |
+            <
+              Deprecated.
+              Use control_person.email when user_type == "BUSINESS".
+              Use individual.phone_number when user_type == "INDIVIDUAL".
+            >
+            Primary email of Account Holder.
+          example: '+12124007676'
+        phone_number:
+          type: string
+          description: |
+            <
+              Deprecated.
+              Use control_person.phone_number when user_type == "BUSINESS".
+              Use individual.phone_number when user_type == "INDIVIDUAL".
+            >
+            Primary phone of Account Holder, entered in E.164 format.
+          example: '+12124007676'
+        status:
+          type: string
+          enum:
+            - ACCEPTED
+            - REJECTED
+            - PENDING_RESUBMIT
+            - PENDING_DOCUMENT
+          description: |
+            <Deprecated. Use verification_application.status instead>
+            KYC and KYB evaluation states.
+            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+        status_reasons:
+          type: array
+          description: <Deprecated. Use verification_application.status_reasons> Reason for the evaluation status.
+          items:
+            type: string
+            enum:
+              - ADDRESS_VERIFICATION_FAILURE
+              - AGE_THRESHOLD_FAILURE
+              - COMPLETE_VERIFICATION_FAILURE
+              - DOB_VERIFICATION_FAILURE
+              - ID_VERIFICATION_FAILURE
+              - MAX_DOCUMENT_ATTEMPTS
+              - MAX_RESUBMISSION_ATTEMPTS
+              - NAME_VERIFICATION_FAILURE
+              - OTHER_VERIFICATION_FAILURE
+              - RISK_THRESHOLD_FAILURE
+              - WATCHLIST_ALERT_FAILURE
+
+    AccountHolderVerificationApplication:
+      type: object
+      description: Represents the status of an identity verification application for an account holder
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: Timestamp of when the application was created.
+        updated:
+          type: string
+          format: date-time
+          description: Timestamp of when the application was last updated.
         status:
           type: string
           enum:
@@ -5776,7 +5845,6 @@ components:
             - PENDING_DOCUMENT
           description: |
             KYC and KYB evaluation states.
-
             Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
         status_reasons:
           type: array
@@ -5795,6 +5863,34 @@ components:
               - OTHER_VERIFICATION_FAILURE
               - RISK_THRESHOLD_FAILURE
               - WATCHLIST_ALERT_FAILURE
+
+    AccountHolderIndividualResponse:
+      type: object
+      description: Information about an individual associated with an account holder. A subset of the information provided via KYC. For example, we do not return the government id.
+      properties:
+        address:
+          description: Individual's current address
+          $ref: '#/components/schemas/Address'
+        dob:
+          type: string
+          description: Individual's date of birth, as an RFC 3339 date.
+          example: '1991-03-08 08:00:00'
+        email:
+          type: string
+          description: Individual's email address.
+          example: 'tom@middle-earth.com'
+        first_name:
+          type: string
+          description: Individual's first name, as it appears on government-issued identity documents.
+          example: Tom
+        last_name:
+          type: string
+          description: Individual's last name, as it appears on government-issued identity documents.
+          example: Bombadil
+        phone_number:
+          type: string
+          description: Individual's phone number, entered in E.164 format.
+          example: '+12124007676'
 
     AggregateBalance:
       type: object
@@ -5909,10 +6005,11 @@ components:
           type: string
           nullable: true
           description: |
-            3-D Secure Protocol version. Possible values:
+            3-D Secure Protocol version. Possible enum values:
             * `1`: 3-D Secure Protocol version 1.x applied to the transaction.
             * `2`: 3-D Secure Protocol version 2.x applied to the transaction.
             * `null`: 3-D Secure was not used for the transaction
+          example: '2'
         acquirer_exemption:
           type: string
           enum:
@@ -5925,7 +6022,7 @@ components:
             - 'STRONG_CUSTOMER_AUTHENTICATION_DELEGATION'
             - 'TRANSACTION_RISK_ANALYSIS'
           description: |
-            Exemption applied by the ACS to authenticate the transaction without requesting a challenge. Possible values:
+            Exemption applied by the ACS to authenticate the transaction without requesting a challenge. Possible enum values:
             * `AUTHENTICATION_OUTAGE_EXCEPTION`: Authentication Outage Exception exemption.
             * `LOW_VALUE`: Low Value Payment exemption.
             * `MERCHANT_INITIATED_TRANSACTION`: Merchant Initiated Transaction (3RI).
@@ -5936,6 +6033,37 @@ components:
             * `TRANSACTION_RISK_ANALYSIS`: Acquirer Low-Fraud and Transaction Risk Analysis exemption.
 
             Maps to the 3-D Secure `transChallengeExemption` field.
+          example: 'NONE'
+        authentication_result:
+          type: string
+          enum:
+            - 'SUCCESS'
+            - 'DECLINE'
+            - 'ATTEMPTS'
+            - 'NONE'
+          description: |
+            Outcome of the 3DS authentication process. Possible enum values:
+            * `SUCCESS`: 3DS authentication was successful and the transaction is considered authenticated.
+            * `DECLINE`: 3DS authentication was attempted but was unsuccessful — i.e., the issuer declined to authenticate the cardholder; note that Lithic populates this value on a best-effort basis based on common data across the 3DS authentication and ASA data elements.
+            * `ATTEMPTS`: 3DS authentication was attempted but full authentication did not occur. A proof of attempted authenticated is provided by the merchant.
+            * `NONE`: 3DS authentication was not performed on the transaction.
+          example: 'SUCCESS'
+        decision_made_by:
+          type: string
+          enum:
+            - 'NETWORK'
+            - 'LITHIC_DEFAULT'
+            - 'LITHIC_RULES'
+            - 'CUSTOMER_ENDPOINT'
+            - 'UNKNOWN'
+          description: |
+            Indicator for which party made the 3DS authentication decision. Possible enum values:
+            * `NETWORK`: A networks tand-in service decided on the outcome; for token authentications (as indicated in the `liability_shift` attribute), this is the default value
+            * `LITHIC_DEFAULT`: A default decision was made by Lithic, without running a rules-based authentication; this value will be set on card programs that do not participate in one of our two 3DS product tiers
+            * `LITHIC_RULES`: A rules-based authentication was conducted by Lithic and Lithic decided on the outcome
+            * `CUSTOMER_ENDPOINT`: Lithic customer decided on the outcome based on a real-time request sent to a configured endpoint
+            * `UNKNOWN`: Data on which party decided is unavailable
+            example: `LITHIC_RULES`
         liability_shift:
           type: string
           enum:
@@ -5944,7 +6072,7 @@ components:
             - 'NONE'
             - 'TOKEN_AUTHENTICATED'
           description: |
-            Indicates whether chargeback liability shift applies to the transaction. Possible values:
+            Indicates whether chargeback liability shift applies to the transaction. Possible enum values:
             * `3DS_AUTHENTICATED`: The transaction was fully authenticated through a 3-D Secure flow, chargeback liability shift applies.
             * `ACQUIRER_EXEMPTION`: The acquirer utilised an exemption to bypass Strong Customer Authentication (`transStatus = N`, or `transStatus = I`). Liability remains with the acquirer and in this case the `acquirer_exemption` field is expected to be not `NONE`.
             * `NONE`: Chargeback liability shift has not shifted to the issuer, i.e. the merchant is liable.
@@ -5964,6 +6092,7 @@ components:
             * `NONE`: No cardholder verification was attempted by the Access Control Server (e.g. frictionless 3-D Secure flow, no 3-D Secure, or stand-in Risk Based Analysis).
             * `OTHER`: Other method was used by the ACS to verify the cardholder (e.g. Mastercard Identity Check Express, recurring transactions, etc.)
             * `OTP`: One-time password verification was attempted by the ACS.
+          example: 'NONE'
         verification_result:
           type: string
           enum:
@@ -5989,10 +6118,19 @@ components:
             * `D`: Challenge Required; decoupled authentication confirmed
             * `I`: Informational only
             * `S`: Challenge using Secure Payment Confirmation (SPC)
+          example: 'FRICTIONLESS'
+        three_ds_authentication_token:
+          type: string
+          format: uuid
+          description: Unique identifier you can use to match a given 3DS authentication and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
+          example: a6e372d0-b40a-43eb-b0d1-4e1aebef5875
       required:
         - 3ds_version
         - acquirer_exemption
+        - authentication_result
+        - decision_made_by
         - liability_shift
+        - three_ds_authentication_token
         - verification_attempted
         - verification_result
 
@@ -6807,6 +6945,9 @@ components:
           enum: *eventTypes
           description: |
             Event types:
+            * `account_holder.created` - Notification that a new account holder has been created and was not rejected.
+            * `account_holder.updated` - Notification that an account holder was updated.
+            * `account_holder.verification` - Notification than an account holder's identity verification is complete.
             * `card.created` - Notification that a card has been created.
             * `card.shipped` - Physical card shipment notification. See https://docs.lithic.com/docs/cards#physical-card-shipped-webhook.
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
@@ -6912,12 +7053,12 @@ components:
         amount:
           type: integer
           description: Amount of the transaction event (in cents), including any acquirer fees.
-          example: 2795
+          example: 1500
         created:
           type: string
           format: date-time
           description: RFC 3339 date and time this event entered the system. UTC time zone.
-          example: '2018-05-29 21:16:05'
+          example: '2023-09-26T21:14:28.637Z'
         result:
           type: string
           enum: &eventResultTypes
@@ -6965,10 +7106,12 @@ components:
             * `UNAUTHORIZED_MERCHANT` - Merchant locked card attempted at different merchant.
             * `UNKNOWN_HOST_TIMEOUT` - Network error, re-attempt the transaction.
             * `USER_TRANSACTION_LIMIT` - User-set spend limit exceeded.
+          example: 'APPROVED'
         token:
           type: string
           format: uuid
           description: Globally unique identifier.
+          example: 0c2adae9-f535-4505-8c35-421dad9bd0b6
         type:
           type: string
           enum:
@@ -7245,7 +7388,7 @@ components:
         acceptor_id:
           type: string
           description: Unique identifier to identify the payment card acceptor.
-          example: '72600003'
+          example: '333301802529120'
         city:
           type: string
           description: City of card acceptor.
@@ -7549,6 +7692,7 @@ components:
     Transaction:
       type: object
       required:
+        - acquirer_fee
         - acquirer_reference_number
         - amount
         - authorization_amount
@@ -7572,18 +7716,22 @@ components:
           maxLength: 23
           nullable: true
           description: |
-            A fixed-width 23-digit numeric identifier for the Transaction that may be set if the transaction originated from the Mastercard network. This number may be used for dispute tracking.
+            Unique identifier assigned to a transaction by the acquirer that can be used in dispute and chargeback filing.
+          example: '12345678987654321234567'
         amount:
           type: integer
           description: Authorization amount of the transaction (in cents), including any acquirer fees. This may change over time, and will represent the settled amount once the transaction is settled.
+          example: 1500
         authorization_amount:
           type: integer
           description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
+          example: 1500
         authorization_code:
           type: string
           minLength: 6
           maxLength: 6
           description: A fixed-width 6-digit numeric identifier that can be used to identify a transaction with networks.
+          example: '123456'
         card_token:
           type: string
           format: uuid
@@ -7594,6 +7742,7 @@ components:
           type: string
           format: date-time
           description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-09-26T21:14:28.637Z'
         events:
           type: array
           items:
@@ -7604,9 +7753,11 @@ components:
         merchant_amount:
           type: integer
           description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+          example: 1500
         merchant_authorization_amount:
           type: integer
           description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+          example: 1500
         merchant_currency:
           type: string
           description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
@@ -7623,15 +7774,17 @@ components:
             - VISA
             - UNKNOWN
             - null
+          example: 'MASTERCARD'
         result:
           type: string
           enum: *eventResultTypes
           description: >
             `APPROVED` or decline reason. See Event result types
+          example: 'APPROVED'
         settled_amount:
           type: integer
           description: Amount of the transaction that has been settled (in cents), including any acquirer fees. This may change over time.
-          example: 100
+          example: 1500
         status:
           type: string
           enum:
@@ -7648,6 +7801,7 @@ components:
             * `PENDING` - Authorization is pending completion from the merchant.
             * `SETTLED` - The transaction is complete.
             * `VOIDED` - The merchant has voided the previously pending authorization.
+          example: 'SETTLED'
         token:
           type: string
           format: uuid
@@ -8230,6 +8384,176 @@ components:
       name: 'Authorization'
 
 webhooks:
+  account_holder.created:
+    post:
+      description: Occurs when a new account_holder is created and is either ACCEPTED or PENDING_REVIEW.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000001
+                  created: 2023-09-26 16:41:40.530938
+                  event_type: account_holder.created
+                  status: ACCEPTED
+                  status_reasons: []
+                  token: 00000000-0000-0000-0000-000000000001
+              properties:
+                account_token:
+                  type: string
+                  format: uuid
+                  description: The token of the account that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                token:
+                  type: string
+                  format: uuid
+                  description: The token of the account_holder that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  description: The name of the event
+                  type: string
+                  enum:
+                    - account_holder.created
+                  example: account_holder.created
+                created:
+                  description: When the account_holder was created
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  description: The status of the account_holder that was created.
+                  enum:
+                    - ACCEPTED
+                    - PENDING_REVIEW
+                  example: ACCEPTED
+                status_reasons:
+                  type: array
+                  items:
+                    type: string
+                    description: If status is not ACCEPTED, status_reasons provides the reasons an account_holder is PENDING_REVIEW.
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  account_holder.updated:
+    post:
+      description: Occurs when a new account_holder is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - token: 00000000-0000-0000-0000-000000000001
+                  created: 2023-09-26 16:41:40.530938
+                  event_type: account_holder.updated
+                  email: john@lithic.com
+                  phone_number: 15555555555
+                  business_account_token: null
+                  external_id: null
+                  first_name: John
+                  last_name: Appleseed
+              properties:
+                token:
+                  type: string
+                  format: uuid
+                  description: The token of the account_holder that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  description: The name of the event
+                  type: string
+                  enum:
+                    - account_holder.updated
+                  example: account_holder.updated
+                created:
+                  description: When the account_holder updated event was created
+                  type: string
+                  format: date-time
+                business_account_token:
+                  type: string
+                  format: uuid
+                  description: If applicable, represents the business account token associated with the account_holder.
+                  example: 00000000-0000-0000-0000-000000000001
+                external_id:
+                  type: string
+                  format: uuid
+                  description: If applicable, represents the external_id associated with the account_holder.
+                  example: 00000000-0000-0000-0000-000000000001
+                email:
+                  type: string
+                  description: If updated, the newly updated email associated with the account_holder otherwise the existing email is provided.
+                  example: johnny@lithic.com
+                phone_number:
+                  type: string
+                  description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
+                  example: 15555555555
+                first_name:
+                  type: string
+                  description: If applicable, represents the account_holder's first name.
+                  example: Johnny
+                last_name:
+                  type: string
+                  description: If applicable, represents the account_holder's last name.
+                  example: Appleseed
+                legal_business_name:
+                  type: string
+                  description: If applicable, represents the account_holder's business name.
+                  example: Lithic
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  account_holder.verification:
+    post:
+      description: Occurs when an asynchronous account_holder's verification is completed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000001
+                  created: 2023-09-26 16:41:40.530938
+                  event_type: account_holder.verification
+                  status: ACCEPTED
+                  status_reasons: []
+                  token: 00000000-0000-0000-0000-000000000001
+              properties:
+                account_token:
+                  type: string
+                  format: uuid
+                  description: The token of the account being verified.
+                  example: 00000000-0000-0000-0000-000000000001
+                token:
+                  type: string
+                  format: uuid
+                  description: The token of the account_holder being verified.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  description: The name of the event
+                  type: string
+                  enum:
+                    - account_holder.verification
+                  example: account_holder.verification
+                created:
+                  description: When the account_holder verification status was updated
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  description: The status of the account_holder that was created
+                  enum:
+                    - ACCEPTED
+                    - REJECTED
+                    - PENDING_REVIEW
+                  example: ACCEPTED
+                status_reasons:
+                  type: array
+                  items:
+                    type: string
+                    description: If status is not ACCEPTED, status_reasons provides the reasons an account_holder was REJECTED or is PENDING_REVIEW.
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
   card.created:
     post:
       description: Occurs when a new card is created.
@@ -8713,7 +9037,7 @@ webhooks:
                       example: TEXT_TO_CARDHOLDER_NUMBER
                     value:
                       description: >-
-                        The location where the user wants to receive the 2FA Authentication Code. 
+                        The location where the user wants to receive the 2FA Authentication Code.
 
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
                       type: string
