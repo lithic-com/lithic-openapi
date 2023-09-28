@@ -6063,7 +6063,7 @@ components:
             * `LITHIC_RULES`: A rules-based authentication was conducted by Lithic and Lithic decided on the outcome
             * `CUSTOMER_ENDPOINT`: Lithic customer decided on the outcome based on a real-time request sent to a configured endpoint
             * `UNKNOWN`: Data on which party decided is unavailable
-            example: `LITHIC_RULES`
+          example: 'LITHIC_RULES'
         liability_shift:
           type: string
           enum:
@@ -7710,6 +7710,10 @@ components:
         - status
         - token
       properties:
+        acquirer_fee:
+          type: integer
+          description: Fee assessed by the merchant and paid for by the cardholder in the smallest unit of the currency. Will be zero if no fee is assessed. Rebates may be transmitted as a negative value to indicate credited fees.
+          example: 0
         acquirer_reference_number:
           type: string
           minLength: 23
@@ -7736,6 +7740,7 @@ components:
           type: string
           format: uuid
           description: Token for the card used in this transaction.
+          example: '19c22c47-7a75-43ee-9891-595419830f7e'
         cardholder_authentication:
           $ref: '#/components/schemas/CardholderAuthentication'
         created:
@@ -7761,6 +7766,7 @@ components:
         merchant_currency:
           type: string
           description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
+          example: 'USD'
         network:
           type: string
           description: >
