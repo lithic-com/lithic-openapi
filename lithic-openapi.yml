@@ -8389,6 +8389,7 @@ components:
       in: header
       name: 'Authorization'
 
+# This block is used to sync with Svix so customer can simulate event types in prod sandbox
 webhooks:
   account_holder.created:
     post:
@@ -8400,7 +8401,7 @@ webhooks:
               type: object
               examples:
                 - account_token: 00000000-0000-0000-0000-000000000001
-                  created: 2023-09-26 16:41:40.530938
+                  created: 2023-09-26 16:41:40.530911
                   event_type: account_holder.created
                   status: ACCEPTED
                   status_reasons: []
