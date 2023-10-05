@@ -6671,9 +6671,6 @@ components:
             - INACTIVE
           type: string
           description: Indicates whether the Auth Rule is ACTIVE or INACTIVE
-      required:
-        - token
-        - state
 
     AuthRuleRequest:
       type: object
@@ -6692,7 +6689,6 @@ components:
           example: ['5811', '5812']
         allowed_countries:
           type: array
-
           items:
             type: string
           description: >
