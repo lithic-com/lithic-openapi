@@ -27,7 +27,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
@@ -41,24 +42,17 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AccountConfiguration'
-                  page:
-                    type: integer
-                    description: Page number.
-                  total_entries:
-                    type: integer
-                    description: Total number of entries.
-                  total_pages:
-                    type: integer
-                    description: Total number of pages.
+                  has_more:
+                    type: boolean
+                    description: Whether there are more accounts to be retrieved.
                 required:
                   - data
-                  - page
-                  - total_entries
-                  - total_pages
+                  - has_more
               examples:
                 getAccounts:
                   summary: List accounts
                   value:
+                    has_more: false
                     data:
                       - token: 'b68b7424-aa69-4cbc-a946-30d90181b621'
                         state: ACTIVE
@@ -66,9 +60,6 @@ paths:
                           daily: 1000
                           monthly: 4000
                           lifetime: 10000
-                    page: 1
-                    total_entries: 1
-                    total_pages: 1
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -985,7 +976,8 @@ paths:
             Returns cards with the specified state.
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
@@ -999,23 +991,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Card'
-                  page:
-                    type: integer
-                    description: Page number.
-                    example: 1
-                  total_entries:
-                    type: integer
-                    description: Total number of entries.
-                    example: 1
-                  total_pages:
-                    type: integer
-                    description: Total number of pages.
-                    example: 1
+                  has_more:
+                    type: boolean
+                    description: More data exists.
                 required:
                   - data
-                  - page
-                  - total_entries
-                  - total_pages
+                  - has_more
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4078,7 +4059,8 @@ paths:
           description: Filters for transactions using transaction result field. Can filter by `APPROVED`, and `DECLINED`.
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
@@ -4092,21 +4074,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Transaction'
-                  page:
-                    type: integer
-                    description: Page of the result.
-                  total_entries:
-                    type: integer
-                    description: Number of matched rows.
-                  total_pages:
-                    type: integer
-                    description: Total pages of result.
+                  has_more:
+                    type: boolean
+                    description: Indicates whether there are more transactions to be retrieved.
                 required:
                   - data
-                  - page
-                  - total_entries
-                  - total_pages
+                  - has_more
               example:
+                has_more: false
                 data:
                   - amount: -7666
                     cardholder_authentication:
@@ -4159,9 +4134,6 @@ paths:
                     settled_amount: -7666
                     status: SETTLED
                     token: 9b4c99b1-2e90-4e24-b54b-90dc8af4695b
-                page: 1
-                total_entries: 1
-                total_pages: 1
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4853,7 +4825,8 @@ paths:
         Return all of the Auth Rules under the program.
       operationId: getAuthRules
       parameters:
-        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
@@ -4867,18 +4840,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AuthRule'
-                  total_entries:
-                    type: string
-                    description: Total number of entries.
-                    example: '1'
-                  total_pages:
-                    type: integer
-                    description: Total number of pages
-                    example: 1
-                  page:
-                    type: integer
-                    description: Page number.
-                    example: 1
+                  has_more:
+                    type: boolean
+                    description: Indicates whether there are more Auth Rules to be retrieved.
+                required:
+                  - data
+                  - has_more
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5368,13 +5335,6 @@ components:
       schema:
         type: string
         format: date-time
-    page:
-      in: query
-      name: page
-      description: Page (for pagination).
-      schema:
-        type: integer
-        default: 1
     pageSize:
       in: query
       name: page_size
@@ -7949,7 +7909,7 @@ components:
           items:
             $ref: '#/components/schemas/BankAccountApiResponse'
         has_more:
-          title: Has More
+          title: More data exists
           type: boolean
     PlaidCreateBankAccountApiRequest:
       title: PlaidCreateBankAccountApiRequest
