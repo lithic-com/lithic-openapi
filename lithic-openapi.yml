@@ -8363,7 +8363,7 @@ webhooks:
               type: object
               examples:
                 - account_token: 00000000-0000-0000-0000-000000000001
-                  created: 2023-09-26 16:41:40.530911
+                  created: '2023-09-26 16:41:40.530989'
                   event_type: account_holder.created
                   status: ACCEPTED
                   status_reasons: []
@@ -8414,7 +8414,7 @@ webhooks:
               type: object
               examples:
                 - token: 00000000-0000-0000-0000-000000000001
-                  created: 2023-09-26 16:41:40.530938
+                  created: '2023-09-26 16:41:40.530938'
                   event_type: account_holder.updated
                   email: john@lithic.com
                   phone_number: 15555555555
@@ -8481,7 +8481,7 @@ webhooks:
               type: object
               examples:
                 - account_token: 00000000-0000-0000-0000-000000000001
-                  created: 2023-09-26 16:41:40.530938
+                  created: '2023-09-26 16:41:40.530938'
                   event_type: account_holder.verification
                   status: ACCEPTED
                   status_reasons: []
