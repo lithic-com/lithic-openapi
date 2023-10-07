@@ -9304,35 +9304,42 @@ webhooks:
                   properties:
                     address1:
                       description: First line of the street address provided by the cardholder.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: 123 Main St
-                      nullable: true
                     address2:
                       description: Second line of the street address provided by the cardholder.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: Apt 1
-                      nullable: true
                     address3:
                       description: Third line of the street address provided by the cardholder.
-                      type: string
-                      nullable: true
+                      type:
+                        - string
+                        - null
+                      example: null
                     city:
                       description: City of the address provided by the cardholder.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: San Francisco
-                      nullable: true
                     country:
                       description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
                       maxLength: 3
                       minLength: 3
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: USA
-                      nullable: true
                     postal_code:
                       description: Postal code (e.g., ZIP code) of the address provided by the cardholder
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: 94105
-                      nullable: true
                   type: object
               description: Occurs when Lithic responds to a 3DS authentication request from card network
               properties:
@@ -9343,9 +9350,10 @@ webhooks:
                     - CREDIT
                     - DEBIT
                     - null
-                  type: string
+                  type:
+                    - string
+                    - null
                   example: CREDIT
-                  nullable: true
                 additional_data:
                   description: ''
                   properties:
@@ -9355,14 +9363,16 @@ webhooks:
                         - LOW_RISK
                         - NOT_LOW_RISK
                         - null
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: LOW_RISK
-                      nullable: true
                     network_risk_score:
                       description: (Mastercard only) Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values - Integer between 0-950, in increments of 50.
-                      type: number
+                      type:
+                        - number
+                        - null
                       example: 0
-                      nullable: true
                   required: []
                   title: AdditionalData
                   type: object
@@ -9371,21 +9381,23 @@ webhooks:
                   properties:
                     device_info:
                       description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: eyJkZXZpY2VfaWQiOiJkZXZpY2VfaWQifQ==
-                      nullable: true
                     ip:
                       anyOf:
                         - format: ipv4
                           type: string
                         - format: ipv6
                           type: string
+                        - type: null
                       description: External IP address used by the app generating the 3DS authentication request.
                       example: '1.1.1.1'
-                      nullable: true
                   required: []
-                  type: object
-                  nullable: true
+                  type:
+                    - object
+                    - null
                 authentication_request_type:
                   description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field threeDSRequestorAuthenticationInd.
                   enum:
@@ -9400,63 +9412,73 @@ webhooks:
                     - DELAYED_SHIPMENT
                     - SPLIT_PAYMENT
                     - null
-                  type: string
+                  type:
+                    - string
+                    - null
                   example: PAYMENT_TRANSACTION
-                  nullable: true
                 authentication_result:
                   description: Indicates the outcome of the 3DS authentication process.
                   enum:
                     - SUCCESS
                     - DECLINE
-                  type: string
+                    - null
+                  type:
+                    - string
+                    - null
                   example: SUCCESS
-                  nullable: true
                 browser:
                   description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
                   properties:
                     accept_header:
                       description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: text/html,application/xhtml+xml
-                      nullable: true
                     ip:
                       anyOf:
                         - format: ipv4
                           type: string
                         - format: ipv6
                           type: string
+                        - type: null
                       description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field browserIP.
                       example: '1.1.1.1'
-                      nullable: true
                     java_enabled:
                       description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field browserJavaEnabled.
-                      type: boolean
+                      type:
+                        - boolean
+                        - null
                       example: true
-                      nullable: true
                     javascript_enabled:
                       description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
-                      type: boolean
+                      type:
+                        - boolean
+                        - null
                       example: true
-                      nullable: true
                     language:
                       description: Language of the cardholder’s browser as defined in IETF BCP47. Maps to EMV 3DS field browserLanguage.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: en-US
-                      nullable: true
                     time_zone:
                       description: Time zone of the cardholder’s browser offset in minutes between UTC and the cardholder browser’s local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field browserTz.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: -240
-                      nullable: true
                     user_agent:
                       description: Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
-                      type: string
-                      nullable: true
+                      type:
+                        - string
+                        - null
                       example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36
                   required: []
                   title: Browser
-                  type: object
-                  nullable: true
+                  type:
+                    - object
+                    - null
                 card_expiry_check:
                   description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic’s record of the card’s expiration date.
                   enum:
@@ -9474,17 +9496,19 @@ webhooks:
                   properties:
                     address_match:
                       description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field addrMatch.
-                      type: boolean
+                      type:
+                        - boolean
+                        - null
                       example: true
-                      nullable: true
                     billing_address:
                       description: Object containing data on the billing address provided during the transaction.
                       type: object
                     email:
                       description: Email address provided by the cardholder during the transaction.
-                      type: string
+                      type:
+                        - string
+                        - null
                       example: 'customer@me.com'
-                      nullable: true
                 event_type:
                   description: The name of this event
                   type: string
