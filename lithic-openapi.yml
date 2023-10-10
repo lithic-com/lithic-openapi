@@ -5073,6 +5073,113 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /settlement:
+    get:
+      tags:
+        - Settlement Report
+      summary: Get settlement summary
+      description: Get the settlement report for a specified report date.
+      operationId: getSummary
+      parameters:
+        - in: path
+          required: true
+          name: report_date
+          schema:
+            type: string
+            format: YYYY-MM-DD
+          description: Date of the settlement report to retrieve.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SettlementReport'
+                required:
+                  - data
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /settlement/details:
+    get:
+      tags:
+        - Settlement Report
+      summary: List settlement details
+      description: List details.
+      operationId: getSettlementDetails
+      parameters:
+        - in: path
+          required: true
+          name: report_date
+          schema:
+            type: string
+            format: YYYY-MM-DD
+          description: Date of the settlement report to retrieve.
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SettlementDetails'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+              example:
+                data:
+                  - token: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+                    institution: '00001'
+                    account_token: '6c25d6a4-4ff3-46f0-8f9b-f2cbb7e20e09'
+                    event_tokens:
+                      - '8fce9192-41ff-4a7a-8359-bd33b3e0a7c9'
+                    transaction_token: '0e98152b-3753-4a17-bfe2-c6f575c83b85'
+                    card_token: '047298ea-5789-46e4-95fa-154aeeab6af3'
+                    card_program_token: '62135b36-324f-443a-a630-bab38fe86868'
+                    currency: 'USD'
+                    network: 'MASTERCARD'
+                    transactions_gross_amount: 1900
+                    interchange_gross_amount: -7
+                    disputes_gross_amount: 0
+                    other_fees_gross_amount: 0
+                    other_fees_details: {}
+                    created: '2023-06-17T13:00:29.979106'
+                    updated: '2023-06-17T13:00:29.979106'
+                    settlement_date: '2023-06-16'
+                    report_date: '2023-06-16'
+                page_size: 1
+                has_more: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /responder_endpoints:
     post:
       tags:
@@ -6095,6 +6202,46 @@ components:
         - three_ds_authentication_token
         - verification_attempted
         - verification_result
+
+    settlementSummaryDetails:
+      type: object
+      nullable: true
+      properties:
+        network:
+          type: string
+          nullable: false
+          enum:
+            - 'MASTERCARD'
+            - 'VISA'
+            - 'INTERLINK'
+            - 'MAESTRO'
+            - 'UNKNOWN'
+          description: Card network where the transaction took place
+          example: 'MASTERCARD'
+        institution:
+          type: string
+          description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
+          example: '00001'
+        settled_net_amount:
+          type: integer
+          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+          example: 1893
+        transactions_gross_amount:
+          type: integer
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          example: 1900
+        interchange_gross_amount:
+          type: integer
+          description: The total amount of interchange.
+          example: -7
+        disputes_gross_amount:
+          type: integer
+          description: The total gross amount of disputes settlements.
+          example: 0
+        other_fees_gross_amount:
+          type: integer
+          description: Total amount of gross other fees outside of interchange.
+          example: 0
 
     Dispute:
       type: object
@@ -7774,6 +7921,126 @@ components:
           type: string
           format: uuid
           description: Globally unique identifier.
+    SettlementReport:
+      type: object
+      required:
+        - currency
+        - settled_net_amount
+        - transactions_gross_amount
+        - interchange_gross_amount
+        - disputes_gross_amount
+        - other_fees_gross_amount
+        - details
+        - created
+        - updated
+        - report_date
+      properties:
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: false
+          description: |
+            Three-digit alphabetic ISO 4217 code.
+          example: '840'
+        settled_net_amount:
+          type: integer
+          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+          example: 1893
+        transactions_gross_amount:
+          type: integer
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          example: 1900
+        interchange_gross_amount:
+          type: integer
+          description: The total amount of interchange.
+          example: -7
+        disputes_gross_amount:
+          type: integer
+          description: The total gross amount of disputes settlements.
+          example: 0
+        other_fees_gross_amount:
+          type: integer
+          description: Total amount of gross other fees outside of interchange.
+          example: 0
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/settlementSummaryDetails'
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        updated:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        report_date:
+          type: string
+          description: Date of when the report was first generated.
+          example: '2023-06-01'
+    SettlementDetails:
+      type: array
+      required:
+        - currency
+        - settled_net_amount
+        - transactions_gross_amount
+        - interchange_gross_amount
+        - disputes_gross_amount
+        - other_fees_gross_amount
+        - details
+        - created
+        - updated
+        - report_date
+      properties:
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: false
+          description: |
+            Three-digit alphabetic ISO 4217 code.
+          example: '840'
+        settled_net_amount:
+          type: integer
+          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+          example: 1893
+        transactions_gross_amount:
+          type: integer
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          example: 1900
+        interchange_gross_amount:
+          type: integer
+          description: The total amount of interchange.
+          example: -7
+        disputes_gross_amount:
+          type: integer
+          description: The total gross amount of disputes settlements.
+          example: 0
+        other_fees_gross_amount:
+          type: integer
+          description: Total amount of gross other fees outside of interchange.
+          example: 0
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/settlementSummaryDetails'
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        updated:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        report_date:
+          type: string
+          description: Date of when the report was first generated.
+          example: '2023-06-01'
     AccountState:
       title: AccountState
       enum: &externalBankAccountStates
@@ -9304,42 +9571,35 @@ webhooks:
                   properties:
                     address1:
                       description: First line of the street address provided by the cardholder.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: 123 Main St
+                      nullable: true
                     address2:
                       description: Second line of the street address provided by the cardholder.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: Apt 1
+                      nullable: true
                     address3:
                       description: Third line of the street address provided by the cardholder.
-                      type:
-                        - string
-                        - null
-                      example: null
+                      type: string
+                      nullable: true
                     city:
                       description: City of the address provided by the cardholder.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: San Francisco
+                      nullable: true
                     country:
                       description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
                       maxLength: 3
                       minLength: 3
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: USA
+                      nullable: true
                     postal_code:
                       description: Postal code (e.g., ZIP code) of the address provided by the cardholder
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: 94105
+                      nullable: true
                   type: object
               description: Occurs when Lithic responds to a 3DS authentication request from card network
               properties:
@@ -9350,10 +9610,9 @@ webhooks:
                     - CREDIT
                     - DEBIT
                     - null
-                  type:
-                    - string
-                    - null
+                  type: string
                   example: CREDIT
+                  nullable: true
                 additional_data:
                   description: ''
                   properties:
@@ -9363,16 +9622,14 @@ webhooks:
                         - LOW_RISK
                         - NOT_LOW_RISK
                         - null
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: LOW_RISK
+                      nullable: true
                     network_risk_score:
                       description: (Mastercard only) Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values - Integer between 0-950, in increments of 50.
-                      type:
-                        - number
-                        - null
+                      type: number
                       example: 0
+                      nullable: true
                   required: []
                   title: AdditionalData
                   type: object
@@ -9381,23 +9638,21 @@ webhooks:
                   properties:
                     device_info:
                       description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: eyJkZXZpY2VfaWQiOiJkZXZpY2VfaWQifQ==
+                      nullable: true
                     ip:
                       anyOf:
                         - format: ipv4
                           type: string
                         - format: ipv6
                           type: string
-                        - type: null
                       description: External IP address used by the app generating the 3DS authentication request.
                       example: '1.1.1.1'
+                      nullable: true
                   required: []
-                  type:
-                    - object
-                    - null
+                  type: object
+                  nullable: true
                 authentication_request_type:
                   description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field threeDSRequestorAuthenticationInd.
                   enum:
@@ -9412,73 +9667,63 @@ webhooks:
                     - DELAYED_SHIPMENT
                     - SPLIT_PAYMENT
                     - null
-                  type:
-                    - string
-                    - null
+                  type: string
                   example: PAYMENT_TRANSACTION
+                  nullable: true
                 authentication_result:
                   description: Indicates the outcome of the 3DS authentication process.
                   enum:
                     - SUCCESS
                     - DECLINE
-                    - null
-                  type:
-                    - string
-                    - null
+                  type: string
                   example: SUCCESS
+                  nullable: true
                 browser:
                   description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
                   properties:
                     accept_header:
                       description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: text/html,application/xhtml+xml
+                      nullable: true
                     ip:
                       anyOf:
                         - format: ipv4
                           type: string
                         - format: ipv6
                           type: string
-                        - type: null
                       description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field browserIP.
                       example: '1.1.1.1'
+                      nullable: true
                     java_enabled:
                       description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field browserJavaEnabled.
-                      type:
-                        - boolean
-                        - null
+                      type: boolean
                       example: true
+                      nullable: true
                     javascript_enabled:
                       description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
-                      type:
-                        - boolean
-                        - null
+                      type: boolean
                       example: true
+                      nullable: true
                     language:
                       description: Language of the cardholder’s browser as defined in IETF BCP47. Maps to EMV 3DS field browserLanguage.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: en-US
+                      nullable: true
                     time_zone:
                       description: Time zone of the cardholder’s browser offset in minutes between UTC and the cardholder browser’s local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field browserTz.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: -240
+                      nullable: true
                     user_agent:
                       description: Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
-                      type:
-                        - string
-                        - null
+                      type: string
+                      nullable: true
                       example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36
                   required: []
                   title: Browser
-                  type:
-                    - object
-                    - null
+                  type: object
+                  nullable: true
                 card_expiry_check:
                   description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic’s record of the card’s expiration date.
                   enum:
@@ -9496,19 +9741,17 @@ webhooks:
                   properties:
                     address_match:
                       description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field addrMatch.
-                      type:
-                        - boolean
-                        - null
+                      type: boolean
                       example: true
+                      nullable: true
                     billing_address:
                       description: Object containing data on the billing address provided during the transaction.
                       type: object
                     email:
                       description: Email address provided by the cardholder during the transaction.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: 'customer@me.com'
+                      nullable: true
                 event_type:
                   description: The name of this event
                   type: string
