@@ -5126,12 +5126,9 @@ paths:
           name: report_date
           schema:
             type: string
-            format: YYYY-MM-DD
+            format: date
+          example: '2023-09-01'
           description: Date of the settlement report to retrieve.
-          examples:
-            reportDateExample:
-              value: 2023-09-01
-              summary: A sample report date
         - $ref: '#/components/parameters/pageSize'
         - $ref: '#/components/parameters/startingAfter'
         - $ref: '#/components/parameters/endingBefore'
