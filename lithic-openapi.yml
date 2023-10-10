@@ -5073,7 +5073,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /settlement/summary/{report_date}:
+  /report/settlement/summary/{report_date}:
     get:
       tags:
         - Settlement Report
@@ -5088,7 +5088,7 @@ paths:
             type: string
             format: YYYY-MM-DD
           examples:
-            cardTokenExample:
+            reportDateExample:
               value: 2023-09-01
               summary: A sample report date
           description: Date of the settlement report to retrieve.
@@ -5131,6 +5131,10 @@ paths:
             type: string
             format: YYYY-MM-DD
           description: Date of the settlement report to retrieve.
+          examples:
+            reportDateExample:
+              value: 2023-09-01
+              summary: A sample report date
         - $ref: '#/components/parameters/pageSize'
         - $ref: '#/components/parameters/startingAfter'
         - $ref: '#/components/parameters/endingBefore'
