@@ -5087,7 +5087,7 @@ paths:
           schema:
             type: string
             format: date
-          example: 2023-09-01
+          example: '2023-09-01'
           description: Date of the settlement report to retrieve.
       responses:
         '200':
