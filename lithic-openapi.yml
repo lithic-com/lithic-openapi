@@ -15,6 +15,25 @@ servers:
     description: Lithic production API server
   - url: https://sandbox.lithic.com/v1
     description: Sandbox environment that provides key functionality mirroring production
+tags:
+  - name: 3DS
+  - name: Account
+  - name: Account Holder
+  - name: Auth Stream Access (ASA)
+  - name: Authorization Rules
+  - name: Balance
+  - name: Card
+  - name: Card Product
+  - name: Dispute
+  - name: Event
+  - name: External Bank Account
+  - name: Financial Account
+  - name: Payment
+  - name: Responder Endpoints
+  - name: Statement
+  - name: Status
+  - name: Tokenization
+  - name: Transaction
 paths:
   /accounts:
     get:
@@ -196,6 +215,59 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /accounts/{account_token}/credit_configuration:
+    get:
+      tags:
+        - Account
+      summary: Get an Account's credit configuration
+      description: Get an Account's credit configuration
+      operationId: getAccountCreditConfiguration
+      parameters:
+        - $ref: '#/components/parameters/accountToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessAccount'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags:
+        - Account
+      summary: Update a Business Accounts credit configuration
+      description: Update a Business Accounts credit configuration
+      operationId: patchAccountCreditConfiguration
+      parameters:
+        - $ref: '#/components/parameters/accountToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreditConfigurationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessAccount'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/TooManyRequests'
   /account_holders:
@@ -843,6 +915,37 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /card_product/credit_detail:
+    get:
+      tags:
+        - Card Product
+      summary: Get the Credit Detail for the card product
+      description: Get the Credit Detail for the card product
+      operationId: getCreditDetail
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credit_limit:
+                    type: integer
+                    description: The total credit limit of the program
+                  credit_extended:
+                    type: integer
+                    description: The amount of credit extended within the program
+                required:
+                  - credit_limit
+                  - credit_extended
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -2953,7 +3056,36 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
+  /payments/{payment_token}/retry:
+    post:
+      tags:
+        - Payment
+      summary: Retry payment
+      description: Retry an origination which has been returned.
+      operationId: retryPayment
+      parameters:
+        - required: true
+          schema:
+            title: Payment Token
+            type: string
+            format: uuid
+          name: payment_token
+          in: path
+      responses:
+        '202':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPaymentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /simulate/payments/release:
     post:
       tags:
@@ -3300,6 +3432,114 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FinancialTransaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/statements:
+    get:
+      tags:
+        - Statement
+      summary: List statements
+      description: List the statements for a given financial account.
+      operationId: getStatements
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/beginDate'
+        - $ref: '#/components/parameters/endDate'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Statement'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/statements/{statement_token}:
+    get:
+      tags:
+        - Statement
+      summary: Get statement by token
+      description: Get a specific statement for a given financial account.
+      operationId: getStatement
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/statementToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statement'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/statements/{statement_token}/line_items:
+    get:
+      tags:
+        - Statement
+      summary: List line items for a statement
+      description: List the line items for a given statement within a given financial account.
+      operationId: getStatementLineItems
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/statementToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StatementLineItem'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5395,6 +5635,17 @@ components:
         financialAccountTokenExample:
           value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
           summary: A sample financial account token
+    statementToken:
+      in: path
+      name: statement_token
+      required: true
+      description: Globally unique identifier for statements.
+      schema:
+        type: string
+      examples:
+        statementTokenExample:
+          value: 2UJf2y1JT6nsvDRH4rgSlfWs6sw
+          summary: A sample statement token
     financialTransactionToken:
       in: path
       name: financial_transaction_token
@@ -5439,17 +5690,31 @@ components:
         transactionTokenExample:
           value: 84bc53a1-bf91-502b-97d9-f75888f8b2ab
           summary: A sample transaction token
+    beginDate:
+      in: query
+      name: begin
+      description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+      schema:
+        type: string
+        format: date
     beginTime:
       in: query
       name: begin
-      description: Date string in RFC 3339 format. Only entries created after the specified date will be included. UTC time zone.
+      description: Date string in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
       schema:
         type: string
         format: date-time
+    endDate:
+      in: query
+      name: end
+      description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+      schema:
+        type: string
+        format: date
     endTime:
       in: query
       name: end
-      description: Date string in RFC 3339 format. Only entries created before the specified date will be included. UTC time zone.
+      description: Date string in RFC 3339 format. Only entries created before the specified time will be included. UTC time zone.
       schema:
         type: string
         format: date-time
@@ -5511,6 +5776,13 @@ components:
         | Rate limited, too many requests per second | User has exceeded their per second rate limit |
         | Rate limited, reached daily limit | User has exceeded their daily rate limit |
         | Rate limited, too many keys tried | One IP has queried too many different API keys |
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: |
+        Client is not authorized to call the endpoint
       content:
         application/json:
           schema:
@@ -5971,6 +6243,55 @@ components:
           type: string
           description: Individual's phone number, entered in E.164 format.
           example: '+12124007676'
+
+    AccountCreditConfigurationRequest:
+      type: object
+      properties:
+        billing_period:
+          type: integer
+          description: Number of days within the billing period
+        credit_limit:
+          type: integer
+          description: Credit limit extended to the Business Account
+        external_bank_account_token:
+          type: string
+          format: uuid
+          description: The external bank account token to use for auto-collections
+        payment_period:
+          type: integer
+          description: Number of days after the billing period ends that a payment is required
+
+    AccountHolderCollectionsConfiguration:
+      type: object
+      required:
+        - billing_period
+        - payment_period
+      properties:
+        billing_period:
+          type: integer
+          description: Number of days within the billing period
+        external_bank_account_token:
+          type: string
+          format: uuid
+          description: The external bank account token to use for auto-collections
+        payment_period:
+          type: integer
+          description: Number of days after the billing period ends that a payment is required
+
+    BusinessAccount:
+      type: object
+      required:
+        - token
+      properties:
+        collections_configuration:
+          $ref: '#/components/schemas/AccountHolderCollectionsConfiguration'
+        credit_limit:
+          type: integer
+          description: Credit limit extended to the Account
+        token:
+          type: string
+          format: uuid
+          description: Account token
 
     AggregateBalance:
       type: object
@@ -7300,6 +7621,56 @@ components:
           format: date-time
           description: Date and time for when the financial account was last updated.
 
+    FinancialEventType:
+      type: string
+      enum:
+        - ACH_INSUFFICIENT_FUNDS
+        - ACH_ORIGINATION_PENDING
+        - ACH_ORIGINATION_RELEASED
+        - ACH_RECEIPT_PENDING
+        - ACH_RECEIPT_RELEASED
+        - ACH_RETURN
+        - AUTHORIZATION
+        - AUTHORIZATION_ADVICE
+        - AUTHORIZATION_EXPIRY
+        - AUTHORIZATION_REVERSAL
+        - BALANCE_INQUIRY
+        - CLEARING
+        - CORRECTION_DEBIT
+        - CORRECTION_CREDIT
+        - CREDIT_AUTHORIZATION
+        - CREDIT_AUTHORIZATION_ADVICE
+        - FINANCIAL_AUTHORIZATION
+        - FINANCIAL_CREDIT_AUTHORIZATION
+        - RETURN
+        - RETURN_REVERSAL
+        - TRANSFER
+        - TRANSFER_INSUFFICIENT_FUNDS
+      description: |
+        Event types:
+        * `ACH_INSUFFICIENT_FUNDS` - Attempted ACH origination declined due to insufficient balance.
+        * `ACH_ORIGINATION_PENDING` - ACH origination pending release from an ACH hold.
+        * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+        * `ACH_RECEIPT_PENDING` - ACH receipt pending release from an ACH holder.
+        * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+        * `ACH_RETURN` - ACH origination returned by the Receiving Depository Financial Institution.
+        * `AUTHORIZATION` - Authorize a card transaction.
+        * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
+        * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
+        * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
+        * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
+        * `CLEARING` - Card Transaction is settled.
+        * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
+        * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
+        * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
+        * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
+        * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
+        * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
+        * `RETURN` - A card refund has been processed on the transaction.
+        * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
+        * `TRANSFER` - Successful internal transfer of funds between financial accounts.
+        * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internl transfer of funds due to insufficient balance of the sender.
+
     FinancialEvent:
       type: object
       properties:
@@ -7321,55 +7692,7 @@ components:
           format: uuid
           description: Globally unique identifier.
         type:
-          type: string
-          enum:
-            - ACH_INSUFFICIENT_FUNDS
-            - ACH_ORIGINATION_PENDING
-            - ACH_ORIGINATION_RELEASED
-            - ACH_RECEIPT_PENDING
-            - ACH_RECEIPT_RELEASED
-            - ACH_RETURN
-            - AUTHORIZATION
-            - AUTHORIZATION_ADVICE
-            - AUTHORIZATION_EXPIRY
-            - AUTHORIZATION_REVERSAL
-            - BALANCE_INQUIRY
-            - CLEARING
-            - CORRECTION_DEBIT
-            - CORRECTION_CREDIT
-            - CREDIT_AUTHORIZATION
-            - CREDIT_AUTHORIZATION_ADVICE
-            - FINANCIAL_AUTHORIZATION
-            - FINANCIAL_CREDIT_AUTHORIZATION
-            - RETURN
-            - RETURN_REVERSAL
-            - TRANSFER
-            - TRANSFER_INSUFFICIENT_FUNDS
-          description: |
-            Event types:
-            * `ACH_INSUFFICIENT_FUNDS` - Attempted ACH origination declined due to insufficient balance.
-            * `ACH_ORIGINATION_PENDING` - ACH origination pending release from an ACH hold.
-            * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
-            * `ACH_RECEIPT_PENDING` - ACH receipt pending release from an ACH holder.
-            * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-            * `ACH_RETURN` - ACH origination returned by the Receiving Depository Financial Institution.
-            * `AUTHORIZATION` - Authorize a card transaction.
-            * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
-            * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
-            * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
-            * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
-            * `CLEARING` - Card Transaction is settled.
-            * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
-            * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
-            * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
-            * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
-            * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
-            * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
-            * `RETURN` - A card refund has been processed on the transaction.
-            * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
-            * `TRANSFER` - Successful internal transfer of funds between financial accounts.
-            * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internl transfer of funds due to insufficient balance of the sender.
-
+          $ref: '#/components/schemas/FinancialEventType'
     FinancialTransaction:
       type: object
       required:
@@ -8518,6 +8841,12 @@ components:
         - sec_code
       type: object
       properties:
+        retries:
+          title: Retries
+          type: integer
+        return_reason_code:
+          title: Return Reason Code
+          type: string
         sec_code:
           title: SEC Code
           type: string
@@ -8622,6 +8951,175 @@ components:
           type: string
           format: date-time
           description: Latest date and time when the tokenization was updated. UTC time zone.
+    Statement:
+      title: StatementResponse
+      type: object
+      required:
+        - ach_period_total
+        - ach_ytd_total
+        - adjustments_period_total
+        - adjustments_ytd_total
+        - amount_due
+        - available_credit
+        - created
+        - credit_limit
+        - days_in_billing_cycle
+        - ending_balance
+        - financial_account_token
+        - payment_due_date
+        - purchases_period_total
+        - purchases_ytd_total
+        - starting_balance
+        - statement_end_date
+        - statement_start_date
+        - token
+        - updated
+      properties:
+        ach_period_total:
+          title: ACH Period Total
+          type: integer
+          description: 'Total payments during this billing period.'
+        ach_ytd_total:
+          title: ACH YTD Total
+          type: integer
+          description: 'Year-to-date settled payment total'
+        adjustments_period_total:
+          title: Adjustments Period Total
+          type: integer
+          description: 'Total adjustments during this billing period.'
+        adjustments_ytd_total:
+          title: Adjustments YTD Total
+          type: integer
+          description: 'Year-to-date settled adjustments total'
+        amount_due:
+          title: Amount Due
+          type: integer
+          description: 'Payment due at the end of the billing period. Negative amount indicates something is owed. If the amount owed is positive (e.g., there was a net credit), then payment should be returned to the cardholder via ACH.'
+        available_credit:
+          title: Available Credit
+          type: integer
+          description: 'Amount of credit available to spend'
+        created:
+          title: Created Time
+          type: string
+          format: date-time
+          description: 'Timestamp of when the statement was created'
+        credit_limit:
+          title: Credit Limit
+          type: integer
+          description: 'For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender.'
+        days_in_billing_cycle:
+          title: Days in Billing Cycle
+          type: integer
+          description: 'Number of days in the billing cycle'
+        ending_balance:
+          title: Ending Balance
+          type: integer
+          description: 'Balance at the end of the billing period. For charge cards, this should be the same at the statement amount due.'
+        financial_account_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a financial account'
+        payment_due_date:
+          title: Payment Due Date
+          type: string
+          format: date
+          description: 'Date when the payment is due'
+        purchases_period_total:
+          title: Purchases Period Total
+          type: integer
+          description: 'Total settled card transactions during this billing period, determined by liability date.'
+        purchases_ytd_total:
+          title: Purchases YTD Total
+          type: integer
+          description: 'Year-to-date settled card transaction total'
+        starting_balance:
+          title: Starting Balance
+          type: integer
+          description: 'Balance at the start of the billing period'
+        statement_end_date:
+          title: Statement End Date
+          type: string
+          format: date
+          description: 'Date when the billing period ended'
+        statement_start_date:
+          title: Statement Start Date
+          type: string
+          format: date
+          description: 'Date when the billing period began'
+        token:
+          title: Statement Token
+          type: string
+          description: 'Globally unique identifier for a statement'
+        updated:
+          title: Updated Time
+          type: string
+          format: date-time
+          description: 'Timestamp of when the statement was updated'
+    StatementLineItem:
+      title: StatementLineItemResponse
+      type: object
+      required:
+        - amount
+        - category
+        - created
+        - currency
+        - event_type
+        - financial_account_token
+        - financial_transaction_token
+        - settled_date
+        - token
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        card_token:
+          title: Card Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a card'
+        category:
+          title: Category of Transaction
+          type: string
+          enum:
+            - CARD
+            - ACH
+            - TRANSFER
+        created:
+          title: Created
+          type: string
+          format: date-time
+          description: 'Timestamp of when the line item was generated'
+        currency:
+          title: Currency
+          type: string
+          description: '3-digit alphabetic ISO 4217 code for the settling currency of the transaction'
+        descriptor:
+          title: Descriptor
+          type: string
+        event_type:
+          $ref: '#/components/schemas/FinancialEventType'
+        financial_account_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a financial account'
+        financial_transaction_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a financial transaction'
+        settled_date:
+          title: Settled Date
+          type: string
+          format: date
+          description: 'Date that the transaction settled'
+        token:
+          title: Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a Statement Line Item'
 
   securitySchemes:
     ApiKeyAuth:
