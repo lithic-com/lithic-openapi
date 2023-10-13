@@ -1295,6 +1295,54 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+
+  /cards/aggregate_balances:
+    get:
+      tags:
+        - Card
+      summary: List Card Aggregate Balances
+      description: Get the aggregated card balance across all end-user accounts.
+      operationId: getCardAggregateBalances
+      parameters:
+        - in: query
+          name: business_account_token
+          schema:
+            type: string
+          description: Business to retrieve aggregate balances for.
+        - in: query
+          name: account_token
+          schema:
+            type: string
+          description: Cardholder to retrieve aggregate balances for.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardAggregateBalance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /cards/{card_token}:
     get:
       tags:
@@ -1416,6 +1464,153 @@ paths:
                 state: OPEN
                 token: 'f5f905f5-8a8e-49bf-a9b4-c0adaa401456'
                 type: VIRTUAL
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /cards/{card_token}/balances:
+    get:
+      tags:
+        - Card
+      summary: Get card balances
+      description: Get the balances for a given card.
+      operationId: getCardBalance
+      parameters:
+        - in: query
+          name: balance_date
+          schema:
+            type: string
+            format: date-time
+          description: UTC date of the balance to retrieve. Defaults to latest available balance
+        - in: query
+          name: last_transaction_event_token
+          schema:
+            type: string
+            format: uuid
+          description: |
+            Balance after a given financial event occured.
+            For example, passing the event_token of a $5 CARD_CLEARING financial event will return a balance decreased by $5
+        - $ref: '#/components/parameters/cardToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Balance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /cards/{card_token}/financial_transactions:
+    get:
+      tags:
+        - Card
+      summary: List card financial transactions
+      description: List the financial transactions for a given card.
+      operationId: getCardFinancialTransactions
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum:
+              - CARD
+              - TRANSFER
+          description: Financial Transaction category to be returned.
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - DECLINED
+              - EXPIRED
+              - PENDING
+              - RETURNED
+              - SETTLED
+              - VOIDED
+          description: Financial Transaction status to be returned.
+        - in: query
+          name: result
+          schema:
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+          description: Financial Transaction result to be returned.
+        - $ref: '#/components/parameters/cardToken'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FinancialTransaction'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /cards/{card_token}/financial_transactions/{financial_transaction_token}:
+    get:
+      tags:
+        - Card
+      summary: Get card financial transaction
+      description: Get the card financial transaction for the provided token.
+      operationId: getFinancialTransactionByToken
+      parameters:
+        - $ref: '#/components/parameters/cardToken'
+        - $ref: '#/components/parameters/financialTransactionToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialTransaction'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3371,6 +3566,7 @@ paths:
               - DECLINED
               - EXPIRED
               - PENDING
+              - RETURNED
               - SETTLED
               - VOIDED
           description: Financial Transaction status to be returned.
@@ -6344,6 +6540,53 @@ components:
           type: string
           format: uuid
           description: Globally unique identifier for the financial account that had its balance updated most recently
+
+    CardAggregateBalance:
+      type: object
+      description: Card Aggregate Balance across all end-user accounts
+      required:
+        - currency
+        - available_amount
+        - pending_amount
+        - total_amount
+        - created
+        - updated
+        - last_transaction_token
+        - last_transaction_event_token
+        - last_card_token
+      properties:
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the balance.
+        available_amount:
+          type: integer
+          description: Funds available for spend in the currency's smallest unit (e.g., cents for USD)
+        pending_amount:
+          type: integer
+          description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD)
+        total_amount:
+          type: integer
+          description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD)
+        created:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was first created.
+        updated:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was last updated.
+        last_transaction_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last transaction that impacted this balance
+        last_transaction_event_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last transaction event that impacted this balance
+        last_card_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the card that had its balance updated most recently
 
     Balance:
       type: object
