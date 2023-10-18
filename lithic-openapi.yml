@@ -15,6 +15,25 @@ servers:
     description: Lithic production API server
   - url: https://sandbox.lithic.com/v1
     description: Sandbox environment that provides key functionality mirroring production
+tags:
+  - name: 3DS
+  - name: Account
+  - name: Account Holder
+  - name: Auth Stream Access (ASA)
+  - name: Authorization Rules
+  - name: Balance
+  - name: Card
+  - name: Card Product
+  - name: Dispute
+  - name: Event
+  - name: External Bank Account
+  - name: Financial Account
+  - name: Payment
+  - name: Responder Endpoints
+  - name: Statement
+  - name: Status
+  - name: Tokenization
+  - name: Transaction
 paths:
   /accounts:
     get:
@@ -196,6 +215,59 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /accounts/{account_token}/credit_configuration:
+    get:
+      tags:
+        - Account
+      summary: Get an Account's credit configuration
+      description: Get an Account's credit configuration
+      operationId: getAccountCreditConfiguration
+      parameters:
+        - $ref: '#/components/parameters/accountToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessAccount'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags:
+        - Account
+      summary: Update a Business Accounts credit configuration
+      description: Update a Business Accounts credit configuration
+      operationId: patchAccountCreditConfiguration
+      parameters:
+        - $ref: '#/components/parameters/accountToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreditConfigurationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessAccount'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/TooManyRequests'
   /account_holders:
@@ -846,6 +918,37 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /card_product/credit_detail:
+    get:
+      tags:
+        - Card Product
+      summary: Get the Credit Detail for the card product
+      description: Get the Credit Detail for the card product
+      operationId: getCreditDetail
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credit_limit:
+                    type: integer
+                    description: The total credit limit of the program
+                  credit_extended:
+                    type: integer
+                    description: The amount of credit extended within the program
+                required:
+                  - credit_limit
+                  - credit_extended
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth_stream/secret:
     get:
       tags:
@@ -1192,6 +1295,54 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+
+  /cards/aggregate_balances:
+    get:
+      tags:
+        - Card
+      summary: List Card Aggregate Balances
+      description: Get the aggregated card balance across all end-user accounts.
+      operationId: getCardAggregateBalances
+      parameters:
+        - in: query
+          name: business_account_token
+          schema:
+            type: string
+          description: Business to retrieve aggregate balances for.
+        - in: query
+          name: account_token
+          schema:
+            type: string
+          description: Cardholder to retrieve aggregate balances for.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardAggregateBalance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /cards/{card_token}:
     get:
       tags:
@@ -1313,6 +1464,153 @@ paths:
                 state: OPEN
                 token: 'f5f905f5-8a8e-49bf-a9b4-c0adaa401456'
                 type: VIRTUAL
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /cards/{card_token}/balances:
+    get:
+      tags:
+        - Card
+      summary: Get card balances
+      description: Get the balances for a given card.
+      operationId: getCardBalance
+      parameters:
+        - in: query
+          name: balance_date
+          schema:
+            type: string
+            format: date-time
+          description: UTC date of the balance to retrieve. Defaults to latest available balance
+        - in: query
+          name: last_transaction_event_token
+          schema:
+            type: string
+            format: uuid
+          description: |
+            Balance after a given financial event occured.
+            For example, passing the event_token of a $5 CARD_CLEARING financial event will return a balance decreased by $5
+        - $ref: '#/components/parameters/cardToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Balance'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /cards/{card_token}/financial_transactions:
+    get:
+      tags:
+        - Card
+      summary: List card financial transactions
+      description: List the financial transactions for a given card.
+      operationId: getCardFinancialTransactions
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum:
+              - CARD
+              - TRANSFER
+          description: Financial Transaction category to be returned.
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - DECLINED
+              - EXPIRED
+              - PENDING
+              - RETURNED
+              - SETTLED
+              - VOIDED
+          description: Financial Transaction status to be returned.
+        - in: query
+          name: result
+          schema:
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+          description: Financial Transaction result to be returned.
+        - $ref: '#/components/parameters/cardToken'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FinancialTransaction'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /cards/{card_token}/financial_transactions/{financial_transaction_token}:
+    get:
+      tags:
+        - Card
+      summary: Get card financial transaction
+      description: Get the card financial transaction for the provided token.
+      operationId: getFinancialTransactionByToken
+      parameters:
+        - $ref: '#/components/parameters/cardToken'
+        - $ref: '#/components/parameters/financialTransactionToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialTransaction'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2953,7 +3251,36 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
+  /payments/{payment_token}/retry:
+    post:
+      tags:
+        - Payment
+      summary: Retry payment
+      description: Retry an origination which has been returned.
+      operationId: retryPayment
+      parameters:
+        - required: true
+          schema:
+            title: Payment Token
+            type: string
+            format: uuid
+          name: payment_token
+          in: path
+      responses:
+        '202':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPaymentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /simulate/payments/release:
     post:
       tags:
@@ -3239,6 +3566,7 @@ paths:
               - DECLINED
               - EXPIRED
               - PENDING
+              - RETURNED
               - SETTLED
               - VOIDED
           description: Financial Transaction status to be returned.
@@ -3300,6 +3628,114 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FinancialTransaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/statements:
+    get:
+      tags:
+        - Statement
+      summary: List statements
+      description: List the statements for a given financial account.
+      operationId: getStatements
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/beginDate'
+        - $ref: '#/components/parameters/endDate'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Statement'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/statements/{statement_token}:
+    get:
+      tags:
+        - Statement
+      summary: Get statement by token
+      description: Get a specific statement for a given financial account.
+      operationId: getStatement
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/statementToken'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statement'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /financial_accounts/{financial_account_token}/statements/{statement_token}/line_items:
+    get:
+      tags:
+        - Statement
+      summary: List line items for a statement
+      description: List the line items for a given statement within a given financial account.
+      operationId: getStatementLineItems
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/statementToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StatementLineItem'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4201,6 +4637,7 @@ paths:
                     nullable: true
                   additional_data:
                     type: object
+                    nullable: true
                     description: >
                       Object containing additional data about the 3DS request that is beyond the EMV 3DS standard spec
                       (e.g., specific fields that only certain card networks send but are not required across all 3DS requests).
@@ -4525,6 +4962,13 @@ paths:
                       - name
                       - risk_indicator
                     type: object
+                  message_category:
+                    description: >
+                      Either PAYMENT_AUTHENTICATION or NON_PAYMENT_AUTHENTICATION.  For NON_PAYMENT_AUTHENTICATION, additional_data and transaction fields are not populated.
+                    enum:
+                      - PAYMENT_AUTHENTICATION
+                      - NON_PAYMENT_AUTHENTICATION
+                    type: string
                   three_ri_request_type:
                     description: >
                       Type of 3DS Requestor Initiated (3RI) request i.e., a 3DS
@@ -4557,6 +5001,8 @@ paths:
                     format: uuid
                     type: string
                   transaction:
+                    type: object
+                    nullable: true
                     description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
                     properties:
                       amount:
@@ -4608,8 +5054,7 @@ paths:
                   - card_expiry_check
                   - cardholder
                   - merchant
-                  - transaction
-                  - additional_data
+                  - message_category
                   - account_type
                   - authentication_result
         '400':
@@ -5073,6 +5518,115 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /reports/settlement/summary/{report_date}:
+    get:
+      tags:
+        - Settlement Report
+      summary: Get settlement summary
+      description: Get the settlement report for a specified report date.
+      operationId: getSummary
+      parameters:
+        - in: path
+          required: true
+          name: report_date
+          schema:
+            type: string
+            format: date
+          example: '2023-09-01'
+          description: Date of the settlement report to retrieve.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SettlementReport'
+                required:
+                  - data
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /reports/settlement/details/{report_date}:
+    get:
+      tags:
+        - Settlement Report
+      summary: List settlement details
+      description: List details.
+      operationId: getSettlementDetails
+      parameters:
+        - in: path
+          required: true
+          name: report_date
+          schema:
+            type: string
+            format: date
+          example: '2023-09-01'
+          description: Date of the settlement report to retrieve.
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SettlementDetail'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+              example:
+                data:
+                  - token: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+                    institution: '00001'
+                    account_token: '6c25d6a4-4ff3-46f0-8f9b-f2cbb7e20e09'
+                    event_tokens:
+                      - '8fce9192-41ff-4a7a-8359-bd33b3e0a7c9'
+                    transaction_token: '0e98152b-3753-4a17-bfe2-c6f575c83b85'
+                    card_token: '047298ea-5789-46e4-95fa-154aeeab6af3'
+                    card_program_token: '62135b36-324f-443a-a630-bab38fe86868'
+                    currency: 'USD'
+                    network: 'MASTERCARD'
+                    transactions_gross_amount: 1900
+                    interchange_gross_amount: -7
+                    disputes_gross_amount: 0
+                    other_fees_gross_amount: 0
+                    other_fees_details: {}
+                    created: '2023-06-17T13:00:29.979106'
+                    updated: '2023-06-17T13:00:29.979106'
+                    settlement_date: '2023-06-16'
+                    report_date: '2023-06-16'
+                page_size: 1
+                has_more: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /responder_endpoints:
     post:
       tags:
@@ -5277,6 +5831,17 @@ components:
         financialAccountTokenExample:
           value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
           summary: A sample financial account token
+    statementToken:
+      in: path
+      name: statement_token
+      required: true
+      description: Globally unique identifier for statements.
+      schema:
+        type: string
+      examples:
+        statementTokenExample:
+          value: 2UJf2y1JT6nsvDRH4rgSlfWs6sw
+          summary: A sample statement token
     financialTransactionToken:
       in: path
       name: financial_transaction_token
@@ -5321,17 +5886,31 @@ components:
         transactionTokenExample:
           value: 84bc53a1-bf91-502b-97d9-f75888f8b2ab
           summary: A sample transaction token
+    beginDate:
+      in: query
+      name: begin
+      description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+      schema:
+        type: string
+        format: date
     beginTime:
       in: query
       name: begin
-      description: Date string in RFC 3339 format. Only entries created after the specified date will be included. UTC time zone.
+      description: Date string in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
       schema:
         type: string
         format: date-time
+    endDate:
+      in: query
+      name: end
+      description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+      schema:
+        type: string
+        format: date
     endTime:
       in: query
       name: end
-      description: Date string in RFC 3339 format. Only entries created before the specified date will be included. UTC time zone.
+      description: Date string in RFC 3339 format. Only entries created before the specified time will be included. UTC time zone.
       schema:
         type: string
         format: date-time
@@ -5393,6 +5972,13 @@ components:
         | Rate limited, too many requests per second | User has exceeded their per second rate limit |
         | Rate limited, reached daily limit | User has exceeded their daily rate limit |
         | Rate limited, too many keys tried | One IP has queried too many different API keys |
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: |
+        Client is not authorized to call the endpoint
       content:
         application/json:
           schema:
@@ -5854,6 +6440,55 @@ components:
           description: Individual's phone number, entered in E.164 format.
           example: '+12124007676'
 
+    AccountCreditConfigurationRequest:
+      type: object
+      properties:
+        billing_period:
+          type: integer
+          description: Number of days within the billing period
+        credit_limit:
+          type: integer
+          description: Credit limit extended to the Business Account
+        external_bank_account_token:
+          type: string
+          format: uuid
+          description: The external bank account token to use for auto-collections
+        payment_period:
+          type: integer
+          description: Number of days after the billing period ends that a payment is required
+
+    AccountHolderCollectionsConfiguration:
+      type: object
+      required:
+        - billing_period
+        - payment_period
+      properties:
+        billing_period:
+          type: integer
+          description: Number of days within the billing period
+        external_bank_account_token:
+          type: string
+          format: uuid
+          description: The external bank account token to use for auto-collections
+        payment_period:
+          type: integer
+          description: Number of days after the billing period ends that a payment is required
+
+    BusinessAccount:
+      type: object
+      required:
+        - token
+      properties:
+        collections_configuration:
+          $ref: '#/components/schemas/AccountHolderCollectionsConfiguration'
+        credit_limit:
+          type: integer
+          description: Credit limit extended to the Account
+        token:
+          type: string
+          format: uuid
+          description: Account token
+
     AggregateBalance:
       type: object
       description: Aggregate Balance across all end-user accounts
@@ -5905,6 +6540,53 @@ components:
           type: string
           format: uuid
           description: Globally unique identifier for the financial account that had its balance updated most recently
+
+    CardAggregateBalance:
+      type: object
+      description: Card Aggregate Balance across all end-user accounts
+      required:
+        - currency
+        - available_amount
+        - pending_amount
+        - total_amount
+        - created
+        - updated
+        - last_transaction_token
+        - last_transaction_event_token
+        - last_card_token
+      properties:
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the balance.
+        available_amount:
+          type: integer
+          description: Funds available for spend in the currency's smallest unit (e.g., cents for USD)
+        pending_amount:
+          type: integer
+          description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD)
+        total_amount:
+          type: integer
+          description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD)
+        created:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was first created.
+        updated:
+          type: string
+          format: date-time
+          description: Date and time for when the balance was last updated.
+        last_transaction_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last transaction that impacted this balance
+        last_transaction_event_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the last transaction event that impacted this balance
+        last_card_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the card that had its balance updated most recently
 
     Balance:
       type: object
@@ -6095,6 +6777,46 @@ components:
         - three_ds_authentication_token
         - verification_attempted
         - verification_result
+
+    settlementSummaryDetails:
+      type: object
+      nullable: true
+      properties:
+        network:
+          type: string
+          nullable: false
+          enum:
+            - 'MASTERCARD'
+            - 'VISA'
+            - 'INTERLINK'
+            - 'MAESTRO'
+            - 'UNKNOWN'
+          description: Card network where the transaction took place
+          example: 'MASTERCARD'
+        institution:
+          type: string
+          description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
+          example: '00001'
+        settled_net_amount:
+          type: integer
+          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+          example: 1893
+        transactions_gross_amount:
+          type: integer
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          example: 1900
+        interchange_gross_amount:
+          type: integer
+          description: The total amount of interchange.
+          example: -7
+        disputes_gross_amount:
+          type: integer
+          description: The total gross amount of disputes settlements.
+          example: 0
+        other_fees_gross_amount:
+          type: integer
+          description: Total amount of gross other fees outside of interchange.
+          example: 0
 
     Dispute:
       type: object
@@ -7142,6 +7864,56 @@ components:
           format: date-time
           description: Date and time for when the financial account was last updated.
 
+    FinancialEventType:
+      type: string
+      enum:
+        - ACH_INSUFFICIENT_FUNDS
+        - ACH_ORIGINATION_PENDING
+        - ACH_ORIGINATION_RELEASED
+        - ACH_RECEIPT_PENDING
+        - ACH_RECEIPT_RELEASED
+        - ACH_RETURN
+        - AUTHORIZATION
+        - AUTHORIZATION_ADVICE
+        - AUTHORIZATION_EXPIRY
+        - AUTHORIZATION_REVERSAL
+        - BALANCE_INQUIRY
+        - CLEARING
+        - CORRECTION_DEBIT
+        - CORRECTION_CREDIT
+        - CREDIT_AUTHORIZATION
+        - CREDIT_AUTHORIZATION_ADVICE
+        - FINANCIAL_AUTHORIZATION
+        - FINANCIAL_CREDIT_AUTHORIZATION
+        - RETURN
+        - RETURN_REVERSAL
+        - TRANSFER
+        - TRANSFER_INSUFFICIENT_FUNDS
+      description: |
+        Event types:
+        * `ACH_INSUFFICIENT_FUNDS` - Attempted ACH origination declined due to insufficient balance.
+        * `ACH_ORIGINATION_PENDING` - ACH origination pending release from an ACH hold.
+        * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+        * `ACH_RECEIPT_PENDING` - ACH receipt pending release from an ACH holder.
+        * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+        * `ACH_RETURN` - ACH origination returned by the Receiving Depository Financial Institution.
+        * `AUTHORIZATION` - Authorize a card transaction.
+        * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
+        * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
+        * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
+        * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
+        * `CLEARING` - Card Transaction is settled.
+        * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
+        * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
+        * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
+        * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
+        * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
+        * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
+        * `RETURN` - A card refund has been processed on the transaction.
+        * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
+        * `TRANSFER` - Successful internal transfer of funds between financial accounts.
+        * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internl transfer of funds due to insufficient balance of the sender.
+
     FinancialEvent:
       type: object
       properties:
@@ -7163,55 +7935,7 @@ components:
           format: uuid
           description: Globally unique identifier.
         type:
-          type: string
-          enum:
-            - ACH_INSUFFICIENT_FUNDS
-            - ACH_ORIGINATION_PENDING
-            - ACH_ORIGINATION_RELEASED
-            - ACH_RECEIPT_PENDING
-            - ACH_RECEIPT_RELEASED
-            - ACH_RETURN
-            - AUTHORIZATION
-            - AUTHORIZATION_ADVICE
-            - AUTHORIZATION_EXPIRY
-            - AUTHORIZATION_REVERSAL
-            - BALANCE_INQUIRY
-            - CLEARING
-            - CORRECTION_DEBIT
-            - CORRECTION_CREDIT
-            - CREDIT_AUTHORIZATION
-            - CREDIT_AUTHORIZATION_ADVICE
-            - FINANCIAL_AUTHORIZATION
-            - FINANCIAL_CREDIT_AUTHORIZATION
-            - RETURN
-            - RETURN_REVERSAL
-            - TRANSFER
-            - TRANSFER_INSUFFICIENT_FUNDS
-          description: |
-            Event types:
-            * `ACH_INSUFFICIENT_FUNDS` - Attempted ACH origination declined due to insufficient balance.
-            * `ACH_ORIGINATION_PENDING` - ACH origination pending release from an ACH hold.
-            * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
-            * `ACH_RECEIPT_PENDING` - ACH receipt pending release from an ACH holder.
-            * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-            * `ACH_RETURN` - ACH origination returned by the Receiving Depository Financial Institution.
-            * `AUTHORIZATION` - Authorize a card transaction.
-            * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
-            * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
-            * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
-            * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
-            * `CLEARING` - Card Transaction is settled.
-            * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
-            * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
-            * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
-            * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
-            * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
-            * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
-            * `RETURN` - A card refund has been processed on the transaction.
-            * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
-            * `TRANSFER` - Successful internal transfer of funds between financial accounts.
-            * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internl transfer of funds due to insufficient balance of the sender.
-
+          $ref: '#/components/schemas/FinancialEventType'
     FinancialTransaction:
       type: object
       required:
@@ -7774,6 +8498,179 @@ components:
           type: string
           format: uuid
           description: Globally unique identifier.
+    SettlementReport:
+      type: object
+      required:
+        - currency
+        - settled_net_amount
+        - transactions_gross_amount
+        - interchange_gross_amount
+        - disputes_gross_amount
+        - other_fees_gross_amount
+        - details
+        - created
+        - updated
+        - report_date
+      properties:
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: false
+          description: |
+            Three-digit alphabetic ISO 4217 code.
+          example: '840'
+        settled_net_amount:
+          type: integer
+          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+          example: 1893
+        transactions_gross_amount:
+          type: integer
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          example: 1900
+        interchange_gross_amount:
+          type: integer
+          description: The total amount of interchange.
+          example: -7
+        disputes_gross_amount:
+          type: integer
+          description: The total gross amount of disputes settlements.
+          example: 0
+        other_fees_gross_amount:
+          type: integer
+          description: Total amount of gross other fees outside of interchange.
+          example: 0
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/settlementSummaryDetails'
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        updated:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        report_date:
+          type: string
+          description: Date of when the report was first generated.
+          example: '2023-06-01'
+    SettlementDetail:
+      type: object
+      required:
+        - token
+        - institution
+        - account_token
+        - event_tokens
+        - transaction_token
+        - card_token
+        - card_program_token
+        - currency
+        - network
+        - transactions_gross_amount
+        - interchange_gross_amount
+        - disputes_gross_amount
+        - other_fees_gross_amount
+        - other_fees_details
+        - created
+        - updated
+        - settlement_date
+        - report_date
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier denoting the Settlement Detail.
+          format: uuid
+          example: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+        institution:
+          type: string
+          description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
+          example: '00001'
+        account_token:
+          type: string
+          description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
+          format: uuid
+          example: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+        event_tokens:
+          type: array
+          description: Globally unique identifiers denoting the Events associated with this settlement.
+          example: ['e34a817f-119d-4976-9fb3-8b020b8bbec3']
+        transaction_token:
+          type: string
+          description: Globally unique identifier denoting the associated Transaction object.
+          format: uuid
+          example: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+        card_token:
+          type: string
+          description: Globally unique identifier denoting the card that the associated Transaction occurred on.
+          format: uuid
+          example: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+        card_program_token:
+          type: string
+          description: Globally unique identifier denoting the card program that the associated Transaction occurred on.
+          format: uuid
+          example: 'e34a817f-119d-4976-9fb3-8b020b8bbec3'
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: false
+          description: Three-digit alphabetic ISO 4217 code.
+          example: '840'
+        network:
+          type: string
+          nullable: false
+          enum:
+            - 'MASTERCARD'
+            - 'VISA'
+            - 'INTERLINK'
+            - 'MAESTRO'
+            - 'UNKNOWN'
+          description: Card network where the transaction took place.
+          example: 'MASTERCARD'
+        transactions_gross_amount:
+          type: integer
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          example: 1900
+        interchange_gross_amount:
+          type: integer
+          description: The total amount of interchange.
+          example: -7
+        disputes_gross_amount:
+          type: integer
+          description: The total gross amount of disputes settlements.
+          example: 0
+        other_fees_gross_amount:
+          type: integer
+          description: Total amount of gross other fees outside of interchange.
+          example: 0
+        other_fees_details:
+          type: object
+          description: The total gross amount of other fees by type.
+          properties:
+            title: ISA
+            type: integer
+        created:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        updated:
+          type: string
+          format: date-time
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-06-01T00:00:00'
+        settlement_date:
+          type: string
+          description: Date of when money movement is triggered for the transaction.
+          example: '2023-06-01'
+        report_date:
+          type: string
+          description: Date of when the report was first generated.
+          example: '2023-06-01'
     AccountState:
       title: AccountState
       enum: &externalBankAccountStates
@@ -8240,6 +9137,12 @@ components:
         - sec_code
       type: object
       properties:
+        retries:
+          title: Retries
+          type: integer
+        return_reason_code:
+          title: Return Reason Code
+          type: string
         sec_code:
           title: SEC Code
           type: string
@@ -8344,6 +9247,175 @@ components:
           type: string
           format: date-time
           description: Latest date and time when the tokenization was updated. UTC time zone.
+    Statement:
+      title: StatementResponse
+      type: object
+      required:
+        - ach_period_total
+        - ach_ytd_total
+        - adjustments_period_total
+        - adjustments_ytd_total
+        - amount_due
+        - available_credit
+        - created
+        - credit_limit
+        - days_in_billing_cycle
+        - ending_balance
+        - financial_account_token
+        - payment_due_date
+        - purchases_period_total
+        - purchases_ytd_total
+        - starting_balance
+        - statement_end_date
+        - statement_start_date
+        - token
+        - updated
+      properties:
+        ach_period_total:
+          title: ACH Period Total
+          type: integer
+          description: 'Total payments during this billing period.'
+        ach_ytd_total:
+          title: ACH YTD Total
+          type: integer
+          description: 'Year-to-date settled payment total'
+        adjustments_period_total:
+          title: Adjustments Period Total
+          type: integer
+          description: 'Total adjustments during this billing period.'
+        adjustments_ytd_total:
+          title: Adjustments YTD Total
+          type: integer
+          description: 'Year-to-date settled adjustments total'
+        amount_due:
+          title: Amount Due
+          type: integer
+          description: 'Payment due at the end of the billing period. Negative amount indicates something is owed. If the amount owed is positive (e.g., there was a net credit), then payment should be returned to the cardholder via ACH.'
+        available_credit:
+          title: Available Credit
+          type: integer
+          description: 'Amount of credit available to spend'
+        created:
+          title: Created Time
+          type: string
+          format: date-time
+          description: 'Timestamp of when the statement was created'
+        credit_limit:
+          title: Credit Limit
+          type: integer
+          description: 'For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender.'
+        days_in_billing_cycle:
+          title: Days in Billing Cycle
+          type: integer
+          description: 'Number of days in the billing cycle'
+        ending_balance:
+          title: Ending Balance
+          type: integer
+          description: 'Balance at the end of the billing period. For charge cards, this should be the same at the statement amount due.'
+        financial_account_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a financial account'
+        payment_due_date:
+          title: Payment Due Date
+          type: string
+          format: date
+          description: 'Date when the payment is due'
+        purchases_period_total:
+          title: Purchases Period Total
+          type: integer
+          description: 'Total settled card transactions during this billing period, determined by liability date.'
+        purchases_ytd_total:
+          title: Purchases YTD Total
+          type: integer
+          description: 'Year-to-date settled card transaction total'
+        starting_balance:
+          title: Starting Balance
+          type: integer
+          description: 'Balance at the start of the billing period'
+        statement_end_date:
+          title: Statement End Date
+          type: string
+          format: date
+          description: 'Date when the billing period ended'
+        statement_start_date:
+          title: Statement Start Date
+          type: string
+          format: date
+          description: 'Date when the billing period began'
+        token:
+          title: Statement Token
+          type: string
+          description: 'Globally unique identifier for a statement'
+        updated:
+          title: Updated Time
+          type: string
+          format: date-time
+          description: 'Timestamp of when the statement was updated'
+    StatementLineItem:
+      title: StatementLineItemResponse
+      type: object
+      required:
+        - amount
+        - category
+        - created
+        - currency
+        - event_type
+        - financial_account_token
+        - financial_transaction_token
+        - settled_date
+        - token
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        card_token:
+          title: Card Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a card'
+        category:
+          title: Category of Transaction
+          type: string
+          enum:
+            - CARD
+            - ACH
+            - TRANSFER
+        created:
+          title: Created
+          type: string
+          format: date-time
+          description: 'Timestamp of when the line item was generated'
+        currency:
+          title: Currency
+          type: string
+          description: '3-digit alphabetic ISO 4217 code for the settling currency of the transaction'
+        descriptor:
+          title: Descriptor
+          type: string
+        event_type:
+          $ref: '#/components/schemas/FinancialEventType'
+        financial_account_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a financial account'
+        financial_transaction_token:
+          title: Financial Account Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a financial transaction'
+        settled_date:
+          title: Settled Date
+          type: string
+          format: date
+          description: 'Date that the transaction settled'
+        token:
+          title: Token
+          type: string
+          format: uuid
+          description: 'Globally unique identifier for a Statement Line Item'
 
   securitySchemes:
     ApiKeyAuth:
@@ -9304,42 +10376,35 @@ webhooks:
                   properties:
                     address1:
                       description: First line of the street address provided by the cardholder.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: 123 Main St
+                      nullable: true
                     address2:
                       description: Second line of the street address provided by the cardholder.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: Apt 1
+                      nullable: true
                     address3:
                       description: Third line of the street address provided by the cardholder.
-                      type:
-                        - string
-                        - null
-                      example: null
+                      type: string
+                      nullable: true
                     city:
                       description: City of the address provided by the cardholder.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: San Francisco
+                      nullable: true
                     country:
                       description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
                       maxLength: 3
                       minLength: 3
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: USA
+                      nullable: true
                     postal_code:
                       description: Postal code (e.g., ZIP code) of the address provided by the cardholder
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: 94105
+                      nullable: true
                   type: object
               description: Occurs when Lithic responds to a 3DS authentication request from card network
               properties:
@@ -9350,10 +10415,9 @@ webhooks:
                     - CREDIT
                     - DEBIT
                     - null
-                  type:
-                    - string
-                    - null
+                  type: string
                   example: CREDIT
+                  nullable: true
                 additional_data:
                   description: ''
                   properties:
@@ -9363,16 +10427,14 @@ webhooks:
                         - LOW_RISK
                         - NOT_LOW_RISK
                         - null
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: LOW_RISK
+                      nullable: true
                     network_risk_score:
                       description: (Mastercard only) Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values - Integer between 0-950, in increments of 50.
-                      type:
-                        - number
-                        - null
+                      type: number
                       example: 0
+                      nullable: true
                   required: []
                   title: AdditionalData
                   type: object
@@ -9381,23 +10443,21 @@ webhooks:
                   properties:
                     device_info:
                       description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: eyJkZXZpY2VfaWQiOiJkZXZpY2VfaWQifQ==
+                      nullable: true
                     ip:
                       anyOf:
                         - format: ipv4
                           type: string
                         - format: ipv6
                           type: string
-                        - type: null
                       description: External IP address used by the app generating the 3DS authentication request.
                       example: '1.1.1.1'
+                      nullable: true
                   required: []
-                  type:
-                    - object
-                    - null
+                  type: object
+                  nullable: true
                 authentication_request_type:
                   description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field threeDSRequestorAuthenticationInd.
                   enum:
@@ -9412,73 +10472,63 @@ webhooks:
                     - DELAYED_SHIPMENT
                     - SPLIT_PAYMENT
                     - null
-                  type:
-                    - string
-                    - null
+                  type: string
                   example: PAYMENT_TRANSACTION
+                  nullable: true
                 authentication_result:
                   description: Indicates the outcome of the 3DS authentication process.
                   enum:
                     - SUCCESS
                     - DECLINE
-                    - null
-                  type:
-                    - string
-                    - null
+                  type: string
                   example: SUCCESS
+                  nullable: true
                 browser:
                   description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
                   properties:
                     accept_header:
                       description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: text/html,application/xhtml+xml
+                      nullable: true
                     ip:
                       anyOf:
                         - format: ipv4
                           type: string
                         - format: ipv6
                           type: string
-                        - type: null
                       description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field browserIP.
                       example: '1.1.1.1'
+                      nullable: true
                     java_enabled:
                       description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field browserJavaEnabled.
-                      type:
-                        - boolean
-                        - null
+                      type: boolean
                       example: true
+                      nullable: true
                     javascript_enabled:
                       description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
-                      type:
-                        - boolean
-                        - null
+                      type: boolean
                       example: true
+                      nullable: true
                     language:
                       description: Language of the cardholder’s browser as defined in IETF BCP47. Maps to EMV 3DS field browserLanguage.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: en-US
+                      nullable: true
                     time_zone:
                       description: Time zone of the cardholder’s browser offset in minutes between UTC and the cardholder browser’s local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field browserTz.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: -240
+                      nullable: true
                     user_agent:
                       description: Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
-                      type:
-                        - string
-                        - null
+                      type: string
+                      nullable: true
                       example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36
                   required: []
                   title: Browser
-                  type:
-                    - object
-                    - null
+                  type: object
+                  nullable: true
                 card_expiry_check:
                   description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic’s record of the card’s expiration date.
                   enum:
@@ -9496,19 +10546,17 @@ webhooks:
                   properties:
                     address_match:
                       description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field addrMatch.
-                      type:
-                        - boolean
-                        - null
+                      type: boolean
                       example: true
+                      nullable: true
                     billing_address:
                       description: Object containing data on the billing address provided during the transaction.
                       type: object
                     email:
                       description: Email address provided by the cardholder during the transaction.
-                      type:
-                        - string
-                        - null
+                      type: string
                       example: 'customer@me.com'
+                      nullable: true
                 event_type:
                   description: The name of this event
                   type: string
