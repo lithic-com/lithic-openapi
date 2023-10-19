@@ -8704,75 +8704,20 @@ components:
     BankAccountApiResponse:
       title: BankAccountApiResponse
       required:
-        - country
-        - created
-        - currency
-        - last_four
-        - owner
-        - owner_type
-        - routing_number
-        - state
         - token
         - type
         - verification_method
+        - owner_type
+        - owner
+        - state
         - verification_state
+        - routing_number
+        - last_four
+        - currency
+        - country
+        - created
       type: object
       properties:
-        account_token:
-          title: Account Token
-          type: string
-          format: uuid
-          description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
-        address:
-          $ref: '#/components/schemas/ExternalBankAccountAddress'
-        company_id:
-          title: Company Id
-          type: string
-          description: 'Optional field that helps identify bank accounts in receipts'
-        country:
-          title: Country
-          type: string
-          description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
-        created:
-          title: Created
-          type: string
-          format: date-time
-          description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
-        currency:
-          title: Currency
-          type: string
-          description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
-        dob:
-          title: Date of Birth
-          type: string
-          format: date
-          description: 'Date of Birth of the Individual that owns the external bank account'
-        doing_business_as:
-          title: Doing Business As
-          type: string
-        last_four:
-          title: Last Four
-          type: string
-          description: 'The last 4 digits of the bank account. Derived by Lithic from the account number passed'
-        name:
-          title: Name
-          type: string
-          description: 'The nickname given to this record of External Bank Account'
-        owner:
-          title: Owner
-          type: string
-          description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
-        owner_type:
-          title: Owner Type
-          type: string
-          enum: *externalBankAccountOwnerTypes
-        routing_number:
-          title: Routing Number
-          type: string
-        state:
-          title: State
-          type: string
-          enum: *externalBankAccountStates
         token:
           title: Token
           type: string
@@ -8782,21 +8727,72 @@ components:
           title: Type
           type: string
           enum: *externalBankAccountTypes
-        user_defined_id:
-          title: User Defined ID
-          type: string
-        verification_failed_reason:
-          title: Verification Failed Reason
-          type: string
-          description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
         verification_method:
           title: Verification Method
           type: string
           enum: *externalBankAccountVerificationMethods
+        owner_type:
+          title: Owner Type
+          type: string
+          enum: *externalBankAccountOwnerTypes
+        owner:
+          title: Owner
+          type: string
+          description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+        state:
+          title: State
+          type: string
+          enum: *externalBankAccountStates
         verification_state:
           title: Verification State
           type: string
           enum: *externalBankAccountVerificationStates
+        routing_number:
+          title: Routing Number
+          type: string
+        last_four:
+          title: Last Four
+          type: string
+          description: 'The last 4 digits of the bank account. Derived by Lithic from the account number passed'
+        name:
+          title: Name
+          type: string
+          description: 'The nickname given to this record of External Bank Account'
+        currency:
+          title: Currency
+          type: string
+          description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+        country:
+          title: Country
+          type: string
+          description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+        account_token:
+          title: Account Token
+          type: string
+          format: uuid
+          description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+        created:
+          title: Created
+          type: string
+          format: date-time
+          description: 'An ISO 8601 string representing when this funding source was added to the Lithic account. '
+        company_id:
+          title: Company Id
+          type: string
+          description: 'Optional field that helps identify bank accounts in receipts'
+        address:
+          $ref: '#/components/schemas/ExternalBankAccountAddress'
+        dob:
+          title: Date of Birth
+          type: string
+          format: date
+          description: 'Date of Birth of the Individual that owns the external bank account'
+        doing_business_as:
+          title: Doing Business As
+          type: string
+        user_defined_id:
+          title: User Defined ID
+          type: string
     BankAccountsApiResponse:
       title: BankAccountsApiResponse
       required:
