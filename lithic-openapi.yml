@@ -1600,7 +1600,7 @@ paths:
         - Card
       summary: Get card financial transaction
       description: Get the card financial transaction for the provided token.
-      operationId: getFinancialTransactionByToken
+      operationId: getCardFinancialTransactionByToken
       parameters:
         - $ref: '#/components/parameters/cardToken'
         - $ref: '#/components/parameters/financialTransactionToken'
@@ -5648,7 +5648,8 @@ paths:
                   description: The URL for the responder endpoint (must be http(s)).
                 type:
                   type: string
-                  enum:
+                  enum: &responderEndpointTypes
+                    - AUTH_STREAM_ACCESS
                     - TOKENIZATION_DECISIONING
                     - THREE_DS_DECISIONING
                   description: The type of the endpoint.
@@ -5672,9 +5673,7 @@ paths:
           name: type
           schema:
             type: string
-            enum:
-              - TOKENIZATION_DECISIONING
-              - THREE_DS_DECISIONING
+            enum: *responderEndpointTypes
           required: true
           description: The type of the endpoint.
       responses:
@@ -5690,9 +5689,7 @@ paths:
           name: type
           schema:
             type: string
-            enum:
-              - TOKENIZATION_DECISIONING
-              - THREE_DS_DECISIONING
+            enum: *responderEndpointTypes
           required: true
           description: The type of the endpoint.
       responses:
