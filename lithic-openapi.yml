@@ -24,8 +24,6 @@ tags:
   - name: Balance
   - name: Card
   - name: Card Product
-  - name: Card Program
-  - name: Digital Card Art
   - name: Dispute
   - name: Event
   - name: External Bank Account
@@ -1051,71 +1049,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /card_programs:
-    get:
-      tags:
-        - Card Program
-      summary: List card programs
-      description: List card programs.
-      operationId: getCardPrograms
-      parameters:
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/CardProgram'
-                  has_more:
-                    type: boolean
-                    description: More data exists.
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /card_programs/{card_program_token}:
-    get:
-      tags:
-        - Card Program
-      summary: Get card program
-      description: Get card program.
-      operationId: getCardProgram
-      parameters:
-        - $ref: '#/components/parameters/cardProgramTokenPath'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CardProgram'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
+
   /cards:
     get:
       tags:
@@ -1853,45 +1787,6 @@ paths:
                 type: VIRTUAL
               schema:
                 $ref: '#/components/schemas/Card'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /digital_card_art:
-    get:
-      tags:
-        - Digital Card Art
-      summary: List digital card art
-      description: List digital card art.
-      operationId: getDigitalCardArt
-      parameters:
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DigitalCardArt'
-                  has_more:
-                    type: boolean
-                    description: More data exists.
-                required:
-                  - data
-                  - has_more
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5875,18 +5770,6 @@ components:
           value: 73ca53a1-ae89-491a-97d9-f64788f8b2ab
           summary: A sample card token
       description: The unique token of the card to add to the device's digital wallet.
-    cardProgramTokenPath:
-      in: path
-      name: card_program_token
-      required: true
-      description: Globally unique identifier for the card program.
-      schema:
-        type: string
-        format: uuid
-      examples:
-        cardProgramTokenExample:
-          value: 65db64b2-ae89-491a-97d9-f64788f8b2ab
-          summary: A sample card program token
     disputeToken:
       in: path
       name: dispute_token
@@ -7682,56 +7565,7 @@ components:
           format: uuid
           description: Specifies the digital card art to be displayed in the user’s digital wallet after tokenization. This artwork must be approved by Mastercard and configured by Lithic to use. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
           example: '00000000-0000-0000-1000-000000000000'
-    CardProgram:
-      type: object
-      properties:
-        created:
-          type: string
-          format: date-time
-          description: Timestamp of when the card program was created.
-        token:
-          type: string
-          format: uuid
-          description: Globally unique identifier.
-        pan_range_start:
-          type: string
-          description: The first digits of the card number that this card program starts with.
-          example: '52304803'
-        pan_range_end:
-          type: string
-          description: The first digits of the card number that this card program ends with.
-          example: '52304803'
-        name:
-          type: string
-          description: The name of the card program.
-          example: 'My Prepaid Program'
-    DigitalCardArt:
-      type: object
-      properties:
-        token:
-          type: string
-          format: uuid
-          description: Globally unique identifier for the card art.
-        card_program_token:
-          type: string
-          format: uuid
-          description: Globally unique identifier for the card program.
-        is_enabled:
-          type: boolean
-          description: Whether the card art is enabled.
-        created:
-          type: string
-          format: date-time
-          description: Timestamp of when card art was created.
-        network:
-          type: string
-          enum:
-            - 'MASTERCARD'
-            - 'VISA'
-          description: Card network.
-        description:
-          type: string
-          description: Description of the card art.
+
     EmbedRequest:
       type: object
       properties:
