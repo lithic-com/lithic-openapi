@@ -7684,6 +7684,12 @@ components:
           example: '00000000-0000-0000-1000-000000000000'
     CardProgram:
       type: object
+      required:
+        - created
+        - token
+        - pan_range_start
+        - pan_range_end
+        - name
       properties:
         created:
           type: string
@@ -7707,6 +7713,13 @@ components:
           example: 'My Prepaid Program'
     DigitalCardArt:
       type: object
+      required:
+        - token
+        - card_program_token
+        - is_enabled
+        - created
+        - network
+        - description
       properties:
         token:
           type: string
