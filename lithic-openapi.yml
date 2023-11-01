@@ -7684,6 +7684,12 @@ components:
           example: '00000000-0000-0000-1000-000000000000'
     CardProgram:
       type: object
+      required:
+        - created
+        - token
+        - pan_range_start
+        - pan_range_end
+        - name
       properties:
         created:
           type: string
@@ -7707,6 +7713,13 @@ components:
           example: 'My Prepaid Program'
     DigitalCardArt:
       type: object
+      required:
+        - token
+        - card_program_token
+        - is_enabled
+        - created
+        - network
+        - description
       properties:
         token:
           type: string
@@ -8877,6 +8890,7 @@ components:
         - state
         - token
         - type
+        - verification_attempts
         - verification_method
         - verification_state
       type: object
@@ -8948,6 +8962,10 @@ components:
         user_defined_id:
           title: User Defined ID
           type: string
+        verification_attempts:
+          title: Verification Attempts
+          type: integer
+          description: 'The number of attempts at verification'
         verification_failed_reason:
           title: Verification Failed Reason
           type: string
@@ -10353,6 +10371,214 @@ webhooks:
                         - dispute_evidence.upload_failed
                       description: The type of event that occurred.
                       example: dispute_evidence.upload_failed
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  external_bank_account.created:
+    post:
+      description: Occurs when an external bank account is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - country
+                - created
+                - currency
+                - owner
+                - owner_type
+                - routing_number
+                - state
+                - token
+                - type
+                - verification_attempts
+                - verification_method
+                - verification_state
+              type: object
+              properties:
+                account_token:
+                  title: Account Token
+                  type: string
+                  format: uuid
+                  description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+                address:
+                  $ref: '#/components/schemas/ExternalBankAccountAddress'
+                company_id:
+                  title: Company Id
+                  type: string
+                  description: 'Optional field that helps identify bank accounts in receipts'
+                country:
+                  title: Country
+                  type: string
+                  description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+                created:
+                  title: Created
+                  type: string
+                  format: date-time
+                  description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
+                currency:
+                  title: Currency
+                  type: string
+                  description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+                dob:
+                  title: Date of Birth
+                  type: string
+                  format: date
+                  description: 'Date of Birth of the Individual that owns the external bank account'
+                doing_business_as:
+                  title: Doing Business As
+                  type: string
+                name:
+                  title: Name
+                  type: string
+                  description: 'The nickname given to this record of External Bank Account'
+                owner:
+                  title: Owner
+                  type: string
+                  description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+                owner_type:
+                  title: Owner Type
+                  type: string
+                  enum: *externalBankAccountOwnerTypes
+                routing_number:
+                  title: Routing Number
+                  type: string
+                state:
+                  title: State
+                  type: string
+                  enum: *externalBankAccountStates
+                token:
+                  title: Token
+                  type: string
+                  format: uuid
+                  description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+                type:
+                  title: Type
+                  type: string
+                  enum: *externalBankAccountTypes
+                user_defined_id:
+                  title: User Defined ID
+                  type: string
+                verification_attempts:
+                  title: Verification Attempts
+                  type: integer
+                  description: 'The number of attempts at verification'
+                verification_failed_reason:
+                  title: Verification Failed Reason
+                  type: string
+                  description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
+                verification_method:
+                  title: Verification Method
+                  type: string
+                  enum: *externalBankAccountVerificationMethods
+                verification_state:
+                  title: Verification State
+                  type: string
+                  enum: *externalBankAccountVerificationStates
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  external_bank_account.updated:
+    post:
+      description: Occurs when an external bank account is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - country
+                - created
+                - currency
+                - owner
+                - owner_type
+                - routing_number
+                - state
+                - token
+                - type
+                - verification_attempts
+                - verification_method
+                - verification_state
+              type: object
+              properties:
+                account_token:
+                  title: Account Token
+                  type: string
+                  format: uuid
+                  description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+                address:
+                  $ref: '#/components/schemas/ExternalBankAccountAddress'
+                company_id:
+                  title: Company Id
+                  type: string
+                  description: 'Optional field that helps identify bank accounts in receipts'
+                country:
+                  title: Country
+                  type: string
+                  description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+                created:
+                  title: Created
+                  type: string
+                  format: date-time
+                  description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
+                currency:
+                  title: Currency
+                  type: string
+                  description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+                dob:
+                  title: Date of Birth
+                  type: string
+                  format: date
+                  description: 'Date of Birth of the Individual that owns the external bank account'
+                doing_business_as:
+                  title: Doing Business As
+                  type: string
+                name:
+                  title: Name
+                  type: string
+                  description: 'The nickname given to this record of External Bank Account'
+                owner:
+                  title: Owner
+                  type: string
+                  description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+                owner_type:
+                  title: Owner Type
+                  type: string
+                  enum: *externalBankAccountOwnerTypes
+                routing_number:
+                  title: Routing Number
+                  type: string
+                state:
+                  title: State
+                  type: string
+                  enum: *externalBankAccountStates
+                token:
+                  title: Token
+                  type: string
+                  format: uuid
+                  description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+                type:
+                  title: Type
+                  type: string
+                  enum: *externalBankAccountTypes
+                user_defined_id:
+                  title: User Defined ID
+                  type: string
+                verification_attempts:
+                  title: Verification Attempts
+                  type: integer
+                  description: 'The number of attempts at verification'
+                verification_failed_reason:
+                  title: Verification Failed Reason
+                  type: string
+                  description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
+                verification_method:
+                  title: Verification Method
+                  type: string
+                  enum: *externalBankAccountVerificationMethods
+                verification_state:
+                  title: Verification State
+                  type: string
+                  enum: *externalBankAccountVerificationStates
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
