@@ -24,8 +24,6 @@ tags:
   - name: Balance
   - name: Card
   - name: Card Product
-  - name: Card Program
-  - name: Digital Card Art
   - name: Dispute
   - name: Event
   - name: External Bank Account
@@ -1695,7 +1693,7 @@ paths:
   /card_programs:
     get:
       tags:
-        - Card Program
+        - Card
       summary: List card programs
       description: List card programs.
       operationId: getCardPrograms
@@ -1734,7 +1732,7 @@ paths:
   /card_programs/{card_program_token}:
     get:
       tags:
-        - Card Program
+        - Card
       summary: Get card program
       description: Get card program.
       operationId: getCardProgram
@@ -4406,7 +4404,7 @@ paths:
   /tokenization_decisioning/secret:
     get:
       tags:
-        - Card
+        - Tokenization
       summary: Retrieve the Tokenization Decisioning HMAC secret key
       description: >
         Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
@@ -4432,7 +4430,7 @@ paths:
   /tokenization_decisioning/secret/rotate:
     post:
       tags:
-        - Card
+        - Tokenization
       summary: Rotate the Tokenization Decisioning HMAC secret key
       description: >
         Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
@@ -4459,7 +4457,7 @@ paths:
   /digital_card_art:
     get:
       tags:
-        - Digital Card Art
+        - Tokenization
       summary: List digital card art
       description: List digital card art.
       operationId: getDigitalCardArt
