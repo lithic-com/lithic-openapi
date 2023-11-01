@@ -1051,71 +1051,6 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /card_programs:
-    get:
-      tags:
-        - Card Program
-      summary: List card programs
-      description: List card programs.
-      operationId: getCardPrograms
-      parameters:
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/CardProgram'
-                  has_more:
-                    type: boolean
-                    description: More data exists.
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /card_programs/{card_program_token}:
-    get:
-      tags:
-        - Card Program
-      summary: Get card program
-      description: Get card program.
-      operationId: getCardProgram
-      parameters:
-        - $ref: '#/components/parameters/cardProgramTokenPath'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CardProgram'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
   /cards:
     get:
       tags:
@@ -1757,6 +1692,71 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /card_programs:
+    get:
+      tags:
+        - Card Program
+      summary: List card programs
+      description: List card programs.
+      operationId: getCardPrograms
+      parameters:
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardProgram'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /card_programs/{card_program_token}:
+    get:
+      tags:
+        - Card Program
+      summary: Get card program
+      description: Get card program.
+      operationId: getCardProgram
+      parameters:
+        - $ref: '#/components/parameters/cardProgramTokenPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardProgram'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /cards/{card_token}/reissue:
     post:
       tags:
@@ -1861,98 +1861,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /digital_card_art:
-    get:
-      tags:
-        - Digital Card Art
-      summary: List digital card art
-      description: List digital card art.
-      operationId: getDigitalCardArt
-      parameters:
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DigitalCardArt'
-                  has_more:
-                    type: boolean
-                    description: More data exists.
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /tokenization_decisioning/secret:
-    get:
-      tags:
-        - Card
-      summary: Retrieve the Tokenization Decisioning HMAC secret key
-      description: >
-        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
-        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
-        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
-      operationId: getTokenizationDecisioningSecret
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /tokenization_decisioning/secret/rotate:
-    post:
-      tags:
-        - Card
-      summary: Rotate the Tokenization Decisioning HMAC secret key
-      description: >
-        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
-        after a successful request to this endpoint.
-      operationId: rotateTokenizationDecisioningSecret
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The new Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -4495,6 +4403,99 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /tokenization_decisioning/secret:
+    get:
+      tags:
+        - Card
+      summary: Retrieve the Tokenization Decisioning HMAC secret key
+      description: >
+        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
+        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
+        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
+      operationId: getTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /tokenization_decisioning/secret/rotate:
+    post:
+      tags:
+        - Card
+      summary: Rotate the Tokenization Decisioning HMAC secret key
+      description: >
+        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
+        after a successful request to this endpoint.
+      operationId: rotateTokenizationDecisioningSecret
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The new Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /digital_card_art:
+    get:
+      tags:
+        - Digital Card Art
+      summary: List digital card art
+      description: List digital card art.
+      operationId: getDigitalCardArt
+      parameters:
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DigitalCardArt'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /status:
     get:
       tags:
@@ -7684,6 +7685,12 @@ components:
           example: '00000000-0000-0000-1000-000000000000'
     CardProgram:
       type: object
+      required:
+        - created
+        - token
+        - pan_range_start
+        - pan_range_end
+        - name
       properties:
         created:
           type: string
@@ -7707,6 +7714,13 @@ components:
           example: 'My Prepaid Program'
     DigitalCardArt:
       type: object
+      required:
+        - token
+        - card_program_token
+        - is_enabled
+        - created
+        - network
+        - description
       properties:
         token:
           type: string
@@ -8877,6 +8891,7 @@ components:
         - state
         - token
         - type
+        - verification_attempts
         - verification_method
         - verification_state
       type: object
@@ -8948,6 +8963,10 @@ components:
         user_defined_id:
           title: User Defined ID
           type: string
+        verification_attempts:
+          title: Verification Attempts
+          type: integer
+          description: 'The number of attempts at verification'
         verification_failed_reason:
           title: Verification Failed Reason
           type: string
@@ -10353,6 +10372,214 @@ webhooks:
                         - dispute_evidence.upload_failed
                       description: The type of event that occurred.
                       example: dispute_evidence.upload_failed
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  external_bank_account.created:
+    post:
+      description: Occurs when an external bank account is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - country
+                - created
+                - currency
+                - owner
+                - owner_type
+                - routing_number
+                - state
+                - token
+                - type
+                - verification_attempts
+                - verification_method
+                - verification_state
+              type: object
+              properties:
+                account_token:
+                  title: Account Token
+                  type: string
+                  format: uuid
+                  description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+                address:
+                  $ref: '#/components/schemas/ExternalBankAccountAddress'
+                company_id:
+                  title: Company Id
+                  type: string
+                  description: 'Optional field that helps identify bank accounts in receipts'
+                country:
+                  title: Country
+                  type: string
+                  description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+                created:
+                  title: Created
+                  type: string
+                  format: date-time
+                  description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
+                currency:
+                  title: Currency
+                  type: string
+                  description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+                dob:
+                  title: Date of Birth
+                  type: string
+                  format: date
+                  description: 'Date of Birth of the Individual that owns the external bank account'
+                doing_business_as:
+                  title: Doing Business As
+                  type: string
+                name:
+                  title: Name
+                  type: string
+                  description: 'The nickname given to this record of External Bank Account'
+                owner:
+                  title: Owner
+                  type: string
+                  description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+                owner_type:
+                  title: Owner Type
+                  type: string
+                  enum: *externalBankAccountOwnerTypes
+                routing_number:
+                  title: Routing Number
+                  type: string
+                state:
+                  title: State
+                  type: string
+                  enum: *externalBankAccountStates
+                token:
+                  title: Token
+                  type: string
+                  format: uuid
+                  description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+                type:
+                  title: Type
+                  type: string
+                  enum: *externalBankAccountTypes
+                user_defined_id:
+                  title: User Defined ID
+                  type: string
+                verification_attempts:
+                  title: Verification Attempts
+                  type: integer
+                  description: 'The number of attempts at verification'
+                verification_failed_reason:
+                  title: Verification Failed Reason
+                  type: string
+                  description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
+                verification_method:
+                  title: Verification Method
+                  type: string
+                  enum: *externalBankAccountVerificationMethods
+                verification_state:
+                  title: Verification State
+                  type: string
+                  enum: *externalBankAccountVerificationStates
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  external_bank_account.updated:
+    post:
+      description: Occurs when an external bank account is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - country
+                - created
+                - currency
+                - owner
+                - owner_type
+                - routing_number
+                - state
+                - token
+                - type
+                - verification_attempts
+                - verification_method
+                - verification_state
+              type: object
+              properties:
+                account_token:
+                  title: Account Token
+                  type: string
+                  format: uuid
+                  description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+                address:
+                  $ref: '#/components/schemas/ExternalBankAccountAddress'
+                company_id:
+                  title: Company Id
+                  type: string
+                  description: 'Optional field that helps identify bank accounts in receipts'
+                country:
+                  title: Country
+                  type: string
+                  description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+                created:
+                  title: Created
+                  type: string
+                  format: date-time
+                  description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
+                currency:
+                  title: Currency
+                  type: string
+                  description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+                dob:
+                  title: Date of Birth
+                  type: string
+                  format: date
+                  description: 'Date of Birth of the Individual that owns the external bank account'
+                doing_business_as:
+                  title: Doing Business As
+                  type: string
+                name:
+                  title: Name
+                  type: string
+                  description: 'The nickname given to this record of External Bank Account'
+                owner:
+                  title: Owner
+                  type: string
+                  description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+                owner_type:
+                  title: Owner Type
+                  type: string
+                  enum: *externalBankAccountOwnerTypes
+                routing_number:
+                  title: Routing Number
+                  type: string
+                state:
+                  title: State
+                  type: string
+                  enum: *externalBankAccountStates
+                token:
+                  title: Token
+                  type: string
+                  format: uuid
+                  description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+                type:
+                  title: Type
+                  type: string
+                  enum: *externalBankAccountTypes
+                user_defined_id:
+                  title: User Defined ID
+                  type: string
+                verification_attempts:
+                  title: Verification Attempts
+                  type: integer
+                  description: 'The number of attempts at verification'
+                verification_failed_reason:
+                  title: Verification Failed Reason
+                  type: string
+                  description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
+                verification_method:
+                  title: Verification Method
+                  type: string
+                  enum: *externalBankAccountVerificationMethods
+                verification_state:
+                  title: Verification State
+                  type: string
+                  enum: *externalBankAccountVerificationStates
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
