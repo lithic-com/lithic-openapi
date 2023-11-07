@@ -8773,8 +8773,6 @@ components:
           type: array
           description: Globally unique identifiers denoting the Events associated with this settlement.
           example: ['e34a817f-119d-4976-9fb3-8b020b8bbec3']
-          items:
-            type: string
         transaction_token:
           type: string
           description: Globally unique identifier denoting the associated Transaction object.
@@ -8828,9 +8826,8 @@ components:
           type: object
           description: The total gross amount of other fees by type.
           properties:
-            ISA:
-              title: ISA
-              type: integer
+            title: ISA
+            type: integer
         created:
           type: string
           format: date-time
@@ -9337,12 +9334,6 @@ components:
             - PPD
             - CCD
             - WEB
-        company_id:
-          title: Company ID
-          type: string
-        receipt_routing_number:
-          title: Company ID
-          type: string
     PostPaymentResponse:
       title: PostPaymentResponse
       allOf:
