@@ -4917,7 +4917,6 @@ paths:
                               - SAME_DAY_SHIPPING
                               - OVERNIGHT_SHIPPING
                               - TWO_DAY_OR_MORE_SHIPPING
-                              - null
                             type: string
                             nullable: true
                           gift_card_amount:
@@ -4963,7 +4962,6 @@ paths:
                             enum:
                               - FIRST_TIME_ORDERED
                               - REORDERED
-                              - null
                             type: string
                             nullable: true
                           shipping_method:
@@ -4983,7 +4981,6 @@ paths:
                               - OTHER
                               - PICK_UP_AND_GO_DELIVERY
                               - LOCKER_DELIVERY
-                              - null
                             type: string
                             nullable: true
                         type: object
@@ -8567,8 +8564,8 @@ components:
             - MASTERCARD
             - VISA
             - UNKNOWN
-            - null
           example: 'MASTERCARD'
+          nullable: true
         result:
           type: string
           enum: *eventResultTypes
@@ -10742,7 +10739,6 @@ webhooks:
                     - NOT_APPLICABLE
                     - CREDIT
                     - DEBIT
-                    - null
                   type: string
                   example: CREDIT
                   nullable: true
@@ -10754,7 +10750,6 @@ webhooks:
                       enum:
                         - LOW_RISK
                         - NOT_LOW_RISK
-                        - null
                       type: string
                       example: 'LOW_RISK'
                       nullable: true
@@ -10799,7 +10794,6 @@ webhooks:
                     - SPLIT_SHIPMENT
                     - DELAYED_SHIPMENT
                     - SPLIT_PAYMENT
-                    - null
                   type: string
                   example: PAYMENT_TRANSACTION
                   nullable: true
