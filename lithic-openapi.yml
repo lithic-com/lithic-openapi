@@ -7758,6 +7758,9 @@ components:
         is_enabled:
           type: boolean
           description: Whether the card art is enabled.
+        is_card_program_default:
+          type: boolean
+          description: Whether the card art is the default card art to be added upon tokenization.
         created:
           type: string
           format: date-time
