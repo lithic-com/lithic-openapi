@@ -290,108 +290,6 @@ paths:
         required: true
         content:
           application/json:
-            examples:
-              kybRequest:
-                summary: Create an account holder with KYB workflow
-                value:
-                  workflow: 'KYB_BASIC'
-                  business_entity:
-                    legal_business_name: 'Busy Business, Inc.'
-                    dba_name: 'Example Business Solutions'
-                    entity_type: 'Corporation'
-                    incorporation_date: '2010-06-28'
-                    incorporation_state: 'DE'
-                    incorporation_country: 'US'
-                    address:
-                      address1: '123 Old Forest Way'
-                      city: 'Omaha'
-                      country: 'USA'
-                      postal_code: '61022'
-                      state: 'NE'
-                    phone_numbers: ['+12124007676']
-                    government_id: '12-3456789'
-                  beneficial_owner_entities:
-                    - legal_business_name: 'Majority Holdings LLC'
-                      dba_name: 'MHoldings'
-                      entity_type: 'LLC'
-                      incorporation_date: '2015-09-17'
-                      incorporation_state: 'NV'
-                      incorporation_country: 'US'
-                      government_id: '98-7654321'
-                      phone_numbers: ['+12124007676']
-                      address:
-                        address1: '300 Normal Forest Way'
-                        city: 'Portland'
-                        country: 'USA'
-                        postal_code: '90210'
-                        state: 'OR'
-                  beneficial_owner_individuals:
-                    - first_name: 'Timmy'
-                      last_name: 'Turner'
-                      address:
-                        address1: '300 Normal Forest Way'
-                        city: 'Portland'
-                        country: 'USA'
-                        postal_code: '90210'
-                        state: 'OR'
-                      dob: '1991-03-08T08:00:00Z'
-                      email: 'tim@left-earth.com'
-                      government_id: '211-23-1412'
-                      phone_number: '+12024007611'
-                  control_person:
-                    first_name: 'Tom'
-                    last_name: 'Timothy'
-                    title: 'CEO'
-                    birthdate: '1980-04-12'
-                    nationality: 'US'
-                    address:
-                      address1: '451 New Forest Way'
-                      city: 'Springfield'
-                      country: 'USA'
-                      postal_code: '68022'
-                      state: 'IL'
-                    dob: '1991-03-08T08:00:00Z'
-                    email: 'tom@middle-pluto.com'
-                    government_id: '111-23-1412'
-                    phone_number: '+12024008176'
-                  kyb_passed_timestamp: '2022-03-08T08:00:00Z'
-                  nature_of_business: 'Software company selling solutions to the restaurant industry'
-                  tos_timestamp: '2022-03-08T08:00:00Z'
-                  website_url: 'https://www.mybusiness.com'
-              kycRequest:
-                summary: Create an account holder with KYC workflow
-                value:
-                  workflow: 'KYC_ADVANCED'
-                  individual:
-                    address:
-                      address1: '123 Old Forest Way'
-                      city: 'Omaha'
-                      country: 'USA'
-                      postal_code: '68022'
-                      state: 'NE'
-                    dob: '1991-03-08 08:00:00'
-                    email: 'tom@middle-earth.com'
-                    first_name: 'Tom'
-                    government_id: '111-23-1412'
-                    last_name: 'Bombadil'
-                    phone_number: '+12124007676'
-                  tos_timestamp: '2022-03-08 08:00:00'
-              kycExemptRequest:
-                summary: Create an account holder with KYC Exempt workflow
-                value:
-                  workflow: 'KYC_EXEMPT'
-                  kyc_exemption_type: 'AUTHORIZED_USER'
-                  first_name: 'Tom'
-                  last_name: 'Bombadil'
-                  email: 'tom@middle-earth.com'
-                  phone_number: '+12124007676'
-                  address:
-                    address1: '123 Old Forest Way'
-                    city: 'Omaha'
-                    country: 'USA'
-                    postal_code: '68022'
-                    state: 'NE'
-                  business_account_token: 'e87db14a-4abf-4901-adad-5d5c9f46aff2'
             schema:
               oneOf:
                 - $ref: '#/components/schemas/Kyb'
@@ -7758,9 +7656,6 @@ components:
         is_enabled:
           type: boolean
           description: Whether the card art is enabled.
-        is_card_program_default:
-          type: boolean
-          description: Whether the card art is the default card art to be added upon tokenization.
         created:
           type: string
           format: date-time
