@@ -24,8 +24,6 @@ tags:
   - name: Balance
   - name: Card
   - name: Card Product
-  - name: Card Program
-  - name: Digital Card Art
   - name: Dispute
   - name: Event
   - name: External Bank Account
@@ -292,88 +290,6 @@ paths:
         required: true
         content:
           application/json:
-            examples:
-              kybRequest:
-                summary: Create an account holder with KYB workflow
-                value:
-                  business_entity:
-                    address:
-                      address1: '123 Old Forest Way'
-                      city: 'Omaha'
-                      country: 'USA'
-                      postal_code: '61022'
-                      state: 'NE'
-                    phone_numbers: ['+12124007676']
-                    government_id: '114-123-1513'
-                    legal_business_name: 'Busy Business, Inc.'
-
-                  control_person:
-                    address:
-                      address1: '451 New Forest Way'
-                      city: 'Springfield'
-                      country: 'USA'
-                      postal_code: '68022'
-                      state: 'IL'
-                    dob: '1991-03-08 08:00:00'
-                    email: 'tom@middle-pluto.com'
-                    first_name: 'Tom'
-                    government_id: '111-23-1412'
-                    last_name: 'Timothy'
-                    phone_number: '+12024008176'
-
-                  beneficial_owner_individuals:
-                    - address:
-                        address1: '300 Normal Forest Way'
-                        city: 'Portland'
-                        country: 'USA'
-                        postal_code: '90210'
-                        state: 'OR'
-                      dob: '1991-03-08 08:00:00'
-                      email: 'tim@left-earth.com'
-                      first_name: 'Timmy'
-                      government_id: '211-23-1412'
-                      last_name: 'Turner'
-                      phone_number: '+12024007611'
-                  nature_of_business: 'Software company selling solutions to the restaurant industry'
-                  tos_timestamp: '2022-03-08 08:00:00'
-                  website_url: 'www.mybusiness.com'
-                  workflow: 'KYB_BASIC'
-
-              kycRequest:
-                summary: Create an account holder with KYC workflow
-                value:
-                  individual:
-                    address:
-                      address1: 123 Old Forest Way
-                      city: Omaha
-                      country: USA
-                      postal_code: '68022'
-                      state: NE
-                    dob: '1991-03-08 08:00:00'
-                    email: tom@middle-earth.com
-                    first_name: Tom
-                    government_id: 111-23-1412
-                    last_name: Bombadil
-                    phone_number: '+12124007676'
-                  tos_timestamp: '2022-03-08 08:00:00'
-                  workflow: KYC_ADVANCED
-
-              kycExemptRequest:
-                summary: Create an account holder with KYC Exempt workflow
-                value:
-                  workflow: KYC_EXEMPT
-                  kyc_exemption_type: AUTHORIZED_USER
-                  first_name: Tom
-                  last_name: Bombadil
-                  email: tom@middle-earth.com
-                  phone_number: '+12124007676'
-                  address:
-                    address1: 123 Old Forest Way
-                    city: Omaha
-                    country: USA
-                    postal_code: '68022'
-                    state: NE
-                  business_account_token: 'e87db14a-4abf-4901-adad-5d5c9f46aff2'
             schema:
               oneOf:
                 - $ref: '#/components/schemas/Kyb'
@@ -649,9 +565,6 @@ paths:
         required: true
         content:
           application/json:
-            examples:
-              resubmitKycRequest:
-                summary: Resubmit account holder information
             schema:
               type: object
               properties:
@@ -689,7 +602,7 @@ paths:
                 maxSubmissions:
                   summary: KYC rejected for too many resubmissions
                   value:
-                    account_token: ''
+                    account_token: 'b68b7424-aa69-4cbc-a946-30d90181b621'
                     status: REJECTED
                     status_reasons:
                       - MAX_RESUBMISSION_ATTEMPTS
@@ -758,9 +671,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              enrollAsaExample:
-                summary: Enroll in ASA
             schema:
               type: object
               properties:
@@ -1051,71 +961,6 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /card_programs:
-    get:
-      tags:
-        - Card Program
-      summary: List card programs
-      description: List card programs.
-      operationId: getCardPrograms
-      parameters:
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/CardProgram'
-                  has_more:
-                    type: boolean
-                    description: More data exists.
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /card_programs/{card_program_token}:
-    get:
-      tags:
-        - Card Program
-      summary: Get card program
-      description: Get card program.
-      operationId: getCardProgram
-      parameters:
-        - $ref: '#/components/parameters/cardProgramTokenPath'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CardProgram'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
   /cards:
     get:
       tags:
@@ -1340,7 +1185,7 @@ paths:
                   account_name: Sandbox
                   created: '2020-07-08T17:57:36Z'
                   last_four: '5263'
-                  nickname: ''
+                  nickname: 'checking account'
                   state: ENABLED
                   token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
                   type: DEPOSITORY_CHECKING
@@ -1517,7 +1362,7 @@ paths:
                   account_name: Sandbox
                   created: '2020-07-08 17:57:36'
                   last_four: '5263'
-                  nickname: ''
+                  nickname: 'checking account'
                   state: ENABLED
                   token: 'b0f0d91a-3697-46d8-85f3-20f0a585cbea'
                   type: DEPOSITORY_CHECKING
@@ -1757,6 +1602,71 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /card_programs:
+    get:
+      tags:
+        - Card
+      summary: List card programs
+      description: List card programs.
+      operationId: getCardPrograms
+      parameters:
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardProgram'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /card_programs/{card_program_token}:
+    get:
+      tags:
+        - Card
+      summary: Get card program
+      description: Get card program.
+      operationId: getCardProgram
+      parameters:
+        - $ref: '#/components/parameters/cardProgramTokenPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardProgram'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /cards/{card_token}/reissue:
     post:
       tags:
@@ -1818,7 +1728,7 @@ paths:
                     address2: Unit 5A
                     city: NEW YORK
                     state: NY
-                    zipcode: '10001'
+                    postal_code: '10001'
                     country: USA
                   shipping_method: STANDARD
                   product_id: '100'
@@ -1838,7 +1748,7 @@ paths:
                   account_name: Sandbox
                   created: '2020-07-08 17:57:36'
                   last_four: '5263'
-                  nickname: ''
+                  nickname: 'checking account'
                   state: ENABLED
                   token: 'b0f0d91a-3697-46d8-85f3-20f0a585cbea'
                   type: DEPOSITORY_CHECKING
@@ -1861,98 +1771,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /digital_card_art:
-    get:
-      tags:
-        - Digital Card Art
-      summary: List digital card art
-      description: List digital card art.
-      operationId: getDigitalCardArt
-      parameters:
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DigitalCardArt'
-                  has_more:
-                    type: boolean
-                    description: More data exists.
-                required:
-                  - data
-                  - has_more
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /tokenization_decisioning/secret:
-    get:
-      tags:
-        - Card
-      summary: Retrieve the Tokenization Decisioning HMAC secret key
-      description: >
-        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
-        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
-        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
-      operationId: getTokenizationDecisioningSecret
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /tokenization_decisioning/secret/rotate:
-    post:
-      tags:
-        - Card
-      summary: Rotate the Tokenization Decisioning HMAC secret key
-      description: >
-        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
-        after a successful request to this endpoint.
-      operationId: rotateTokenizationDecisioningSecret
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
-                    description: The new Tokenization Decisioning HMAC secret
-                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -2080,7 +1898,7 @@ paths:
                 value:
                   amount: 10000
                   customer_filed_date: '2021-06-28T22:53:15Z'
-                  reason: FRAUDULENT
+                  reason: FRAUD_CARD_PRESENT
                   transaction_token: 12345624-aa69-4cbc-a946-30d90181b621
       responses:
         '201':
@@ -2499,7 +2317,6 @@ paths:
                 data:
                   - description: A subscription for all events
                     token: ep_1srOrx2ZWZBpBUvZwXKQmoEYga1
-                    event_types: null
                     url: https://example.com/webhook
                     disabled: false
                 has_more: false
@@ -2580,6 +2397,7 @@ paths:
                 description: A subscription for all events
                 token: ep_1srOrx2ZWZBpBUvZwXKQmoEYga1
                 url: https://example.com/webhook
+                disabled: false
               schema:
                 $ref: '#/components/schemas/EventSubscription'
         '400':
@@ -2612,6 +2430,7 @@ paths:
                 description: A subscription for all events
                 token: ep_1srOrx2ZWZBpBUvZwXKQmoEYga1
                 url: https://example.com/webhook
+                disabled: false
               schema:
                 $ref: '#/components/schemas/EventSubscription'
         '400':
@@ -2670,6 +2489,7 @@ paths:
                 description: A subscription for all events
                 token: ep_1srOrx2ZWZBpBUvZwXKQmoEYga1
                 url: https://example.com/webhook
+                disabled: false
               schema:
                 $ref: '#/components/schemas/EventSubscription'
         '400':
@@ -4084,7 +3904,7 @@ paths:
               simulateClear:
                 summary: Simulate settling a transaction
                 value:
-                  amount: '0'
+                  amount: 0
                   token: 'fabd829d-7f7b-4432-a8f2-07ea4889aaac'
       responses:
         '201':
@@ -4495,6 +4315,99 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /tokenization_decisioning/secret:
+    get:
+      tags:
+        - Tokenization
+      summary: Retrieve the Tokenization Decisioning HMAC secret key
+      description: >
+        Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you.
+        The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic.
+        See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
+      operationId: getTokenizationDecisioningSecret
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /tokenization_decisioning/secret/rotate:
+    post:
+      tags:
+        - Tokenization
+      summary: Rotate the Tokenization Decisioning HMAC secret key
+      description: >
+        Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours
+        after a successful request to this endpoint.
+      operationId: rotateTokenizationDecisioningSecret
+      parameters:
+        - $ref: '#/components/parameters/idempotencyKey'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    description: The new Tokenization Decisioning HMAC secret
+                    example: whsec_1NDsYinMGr951KuDEaj78VtWzlyPaOnwUVagFiWIPJs=
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /digital_card_art:
+    get:
+      tags:
+        - Tokenization
+      summary: List digital card art
+      description: List digital card art.
+      operationId: getDigitalCardArt
+      parameters:
+        - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DigitalCardArt'
+                  has_more:
+                    type: boolean
+                    description: More data exists.
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /status:
     get:
       tags:
@@ -4625,12 +4538,24 @@ paths:
                 has_more: false
                 data:
                   - amount: -7666
+                    acquirer_fee: 0
+                    acquirer_reference_number: '12345678987654321234567'
+                    authorization_code: '123412'
+                    merchant_authorization_amount: -7666
+                    merchant_amount: -7666
+                    network: MASTERCARD
+                    merchant_currency: USD
+                    authorization_amount: -7666
                     cardholder_authentication:
                       verification_attempted: 'NONE'
                       verification_result: 'NOT_ATTEMPTED'
                       liability_shift: 'NONE'
                       3ds_version: null
                       acquirer_exemption: 'NONE'
+                      authentication_result: 'SUCCESS'
+                      decision_made_by: 'NETWORK'
+                      three_ds_authentication_token: '7e6fa7d5-ec2e-42ef-8c90-e80d0dfe9405'
+                    card_token: 'df942c4e-9130-4ab5-b067-778a2c55b357'
                     card:
                       created: '2020-07-15T17:48:48Z'
                       cvv: '574'
@@ -4939,9 +4864,11 @@ paths:
                   decision_made_by:
                     description: Entity that made the authentication decision.
                     enum:
-                      - LITHIC_DEFAULT
-                      - LITHIC_RULES
-                      - CUSTOMER_ENDPOINT
+                      - 'NETWORK'
+                      - 'LITHIC_DEFAULT'
+                      - 'LITHIC_RULES'
+                      - 'CUSTOMER_ENDPOINT'
+                      - 'UNKNOWN'
                     type: string
                     nullable: true
                   merchant:
@@ -4990,7 +4917,6 @@ paths:
                               - SAME_DAY_SHIPPING
                               - OVERNIGHT_SHIPPING
                               - TWO_DAY_OR_MORE_SHIPPING
-                              - null
                             type: string
                             nullable: true
                           gift_card_amount:
@@ -5036,7 +4962,6 @@ paths:
                             enum:
                               - FIRST_TIME_ORDERED
                               - REORDERED
-                              - null
                             type: string
                             nullable: true
                           shipping_method:
@@ -5056,7 +4981,6 @@ paths:
                               - OTHER
                               - PICK_UP_AND_GO_DELIVERY
                               - LOCKER_DELIVERY
-                              - null
                             type: string
                             nullable: true
                         type: object
@@ -5249,15 +5173,15 @@ paths:
               simulateAuthentication:
                 summary: Simulate an authentication
                 value:
-                  - pan: '4111111289144142'
-                  - merchant:
-                      country: 'USA'
-                      id: 'OODKZAPJVN4YS7O'
-                      mcc: '5812'
-                      name: 'COFFEE SHOP'
-                  - transaction:
-                      amount: 100
-                      currency: USD
+                  pan: '4111111289144142'
+                  merchant:
+                    country: 'USA'
+                    id: 'OODKZAPJVN4YS7O'
+                    mcc: '5812'
+                    name: 'COFFEE SHOP'
+                  transaction:
+                    amount: 100
+                    currency: USD
       responses:
         '201':
           description: OK
@@ -5759,7 +5683,7 @@ paths:
                     - THREE_DS_DECISIONING
                   description: The type of the endpoint.
       responses:
-        200:
+        '200':
           description: Endpoint enrolled successfully
           content:
             application/json:
@@ -5782,7 +5706,7 @@ paths:
           required: true
           description: The type of the endpoint.
       responses:
-        200:
+        '200':
           description: Endpoint disenrolled successfully
           content: {}
     get:
@@ -5798,7 +5722,7 @@ paths:
           required: true
           description: The type of the endpoint.
       responses:
-        200:
+        '200':
           description: Responder endpoint status
           content:
             application/json:
@@ -6244,7 +6168,7 @@ components:
             postal_code:
               type: string
               description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
-              example: 98109
+              example: '98109'
             country:
               type: string
               description: Country name. Only USA is currently supported.
@@ -6265,7 +6189,7 @@ components:
             phone_number:
               type: string
               description: Phone number of the individual.
-              example: +12124007676
+              example: '+12124007676'
             email:
               type: string
               description: Email address.
@@ -6355,7 +6279,7 @@ components:
           - image_type: back
             status: UPLOADED
             status_reasons: []
-            upload_url: null
+            upload_url: 'https://lithic-document-verification-uploads.com'
         token: 12345678-3630-4cd0-bbec-1a0fa5c7e149
 
     AccountHolder:
@@ -7684,6 +7608,12 @@ components:
           example: '00000000-0000-0000-1000-000000000000'
     CardProgram:
       type: object
+      required:
+        - created
+        - token
+        - pan_range_start
+        - pan_range_end
+        - name
       properties:
         created:
           type: string
@@ -7707,6 +7637,13 @@ components:
           example: 'My Prepaid Program'
     DigitalCardArt:
       type: object
+      required:
+        - token
+        - card_program_token
+        - is_enabled
+        - created
+        - network
+        - description
       properties:
         token:
           type: string
@@ -7864,7 +7801,6 @@ components:
       required:
         - description
         - disabled
-        - event_types
         - url
         - token
       properties:
@@ -8628,8 +8564,8 @@ components:
             - MASTERCARD
             - VISA
             - UNKNOWN
-            - null
           example: 'MASTERCARD'
+          nullable: true
         result:
           type: string
           enum: *eventResultTypes
@@ -8761,6 +8697,8 @@ components:
           type: array
           description: Globally unique identifiers denoting the Events associated with this settlement.
           example: ['e34a817f-119d-4976-9fb3-8b020b8bbec3']
+          items:
+            type: string
         transaction_token:
           type: string
           description: Globally unique identifier denoting the associated Transaction object.
@@ -8814,8 +8752,9 @@ components:
           type: object
           description: The total gross amount of other fees by type.
           properties:
-            title: ISA
-            type: integer
+            ISA:
+              title: ISA
+              type: integer
         created:
           type: string
           format: date-time
@@ -8877,6 +8816,7 @@ components:
         - state
         - token
         - type
+        - verification_attempts
         - verification_method
         - verification_state
       type: object
@@ -8948,6 +8888,10 @@ components:
         user_defined_id:
           title: User Defined ID
           type: string
+        verification_attempts:
+          title: Verification Attempts
+          type: integer
+          description: 'The number of attempts at verification'
         verification_failed_reason:
           title: Verification Failed Reason
           type: string
@@ -9317,6 +9261,12 @@ components:
             - PPD
             - CCD
             - WEB
+        company_id:
+          title: Company ID
+          type: string
+        receipt_routing_number:
+          title: Company ID
+          type: string
     PostPaymentResponse:
       title: PostPaymentResponse
       allOf:
@@ -9694,7 +9644,7 @@ webhooks:
                 phone_number:
                   type: string
                   description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
-                  example: 15555555555
+                  example: '15555555555'
                 first_name:
                   type: string
                   description: If applicable, represents the account_holder's first name.
@@ -10030,12 +9980,12 @@ webhooks:
                       description: Score given to the account by the Wallet Provider
                       type: string
                       maxLength: 64
-                      example: 100
+                      example: '100'
                     device_score:
                       description: Score given to the device by the Wallet Provider
                       type: string
                       maxLength: 64
-                      example: 100
+                      example: '100'
                     recommendation_reasons:
                       description: Reasons provided to the Wallet Provider on how the recommended decision was reached
                       type: array
@@ -10053,7 +10003,7 @@ webhooks:
                       description: The IMEI number of the device being provisioned
                       type: string
                       maxLength: 15
-                      example: 123456789012345
+                      example: '123456789012345'
                     location:
                       description: Latitude and longitude where the device the consumer is attempting to authorize is located
                       type: string
@@ -10082,11 +10032,11 @@ webhooks:
                     response_code:
                       description: The response code that the customer provided
                       type: string
-                      example: 123456
+                      example: '123456'
                     latency:
                       description: Time in ms it took for the customer's URL to respond
                       type: string
-                      example: 100
+                      example: '100'
                     responder_url:
                       description: The customer's subscribed URL
                       type: string
@@ -10249,7 +10199,7 @@ webhooks:
 
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
                       type: string
-                      example: 5555555555
+                      example: '5555555555'
                   required:
                     - type
                     - value
@@ -10257,7 +10207,7 @@ webhooks:
                 authentication_code:
                   description: 2FA Authentication Code to provide to the user tokenizing a card.
                   type: string
-                  example: 123456
+                  example: '123456'
                 card_token:
                   description: Unique identifier for the card being tokenized
                   type: string
@@ -10353,6 +10303,214 @@ webhooks:
                         - dispute_evidence.upload_failed
                       description: The type of event that occurred.
                       example: dispute_evidence.upload_failed
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  external_bank_account.created:
+    post:
+      description: Occurs when an external bank account is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - country
+                - created
+                - currency
+                - owner
+                - owner_type
+                - routing_number
+                - state
+                - token
+                - type
+                - verification_attempts
+                - verification_method
+                - verification_state
+              type: object
+              properties:
+                account_token:
+                  title: Account Token
+                  type: string
+                  format: uuid
+                  description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+                address:
+                  $ref: '#/components/schemas/ExternalBankAccountAddress'
+                company_id:
+                  title: Company Id
+                  type: string
+                  description: 'Optional field that helps identify bank accounts in receipts'
+                country:
+                  title: Country
+                  type: string
+                  description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+                created:
+                  title: Created
+                  type: string
+                  format: date-time
+                  description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
+                currency:
+                  title: Currency
+                  type: string
+                  description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+                dob:
+                  title: Date of Birth
+                  type: string
+                  format: date
+                  description: 'Date of Birth of the Individual that owns the external bank account'
+                doing_business_as:
+                  title: Doing Business As
+                  type: string
+                name:
+                  title: Name
+                  type: string
+                  description: 'The nickname given to this record of External Bank Account'
+                owner:
+                  title: Owner
+                  type: string
+                  description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+                owner_type:
+                  title: Owner Type
+                  type: string
+                  enum: *externalBankAccountOwnerTypes
+                routing_number:
+                  title: Routing Number
+                  type: string
+                state:
+                  title: State
+                  type: string
+                  enum: *externalBankAccountStates
+                token:
+                  title: Token
+                  type: string
+                  format: uuid
+                  description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+                type:
+                  title: Type
+                  type: string
+                  enum: *externalBankAccountTypes
+                user_defined_id:
+                  title: User Defined ID
+                  type: string
+                verification_attempts:
+                  title: Verification Attempts
+                  type: integer
+                  description: 'The number of attempts at verification'
+                verification_failed_reason:
+                  title: Verification Failed Reason
+                  type: string
+                  description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
+                verification_method:
+                  title: Verification Method
+                  type: string
+                  enum: *externalBankAccountVerificationMethods
+                verification_state:
+                  title: Verification State
+                  type: string
+                  enum: *externalBankAccountVerificationStates
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  external_bank_account.updated:
+    post:
+      description: Occurs when an external bank account is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - country
+                - created
+                - currency
+                - owner
+                - owner_type
+                - routing_number
+                - state
+                - token
+                - type
+                - verification_attempts
+                - verification_method
+                - verification_state
+              type: object
+              properties:
+                account_token:
+                  title: Account Token
+                  type: string
+                  format: uuid
+                  description: 'Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null'
+                address:
+                  $ref: '#/components/schemas/ExternalBankAccountAddress'
+                company_id:
+                  title: Company Id
+                  type: string
+                  description: 'Optional field that helps identify bank accounts in receipts'
+                country:
+                  title: Country
+                  type: string
+                  description: 'The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA'
+                created:
+                  title: Created
+                  type: string
+                  format: date-time
+                  description: 'An ISO 8601 string representing when this funding source was added to the Lithic account.'
+                currency:
+                  title: Currency
+                  type: string
+                  description: 'currency of the external account 3-digit alphabetic ISO 4217 code'
+                dob:
+                  title: Date of Birth
+                  type: string
+                  format: date
+                  description: 'Date of Birth of the Individual that owns the external bank account'
+                doing_business_as:
+                  title: Doing Business As
+                  type: string
+                name:
+                  title: Name
+                  type: string
+                  description: 'The nickname given to this record of External Bank Account'
+                owner:
+                  title: Owner
+                  type: string
+                  description: 'Legal Name of the business or individual who owns the external account. This will appear in statements'
+                owner_type:
+                  title: Owner Type
+                  type: string
+                  enum: *externalBankAccountOwnerTypes
+                routing_number:
+                  title: Routing Number
+                  type: string
+                state:
+                  title: State
+                  type: string
+                  enum: *externalBankAccountStates
+                token:
+                  title: Token
+                  type: string
+                  format: uuid
+                  description: 'A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association'
+                type:
+                  title: Type
+                  type: string
+                  enum: *externalBankAccountTypes
+                user_defined_id:
+                  title: User Defined ID
+                  type: string
+                verification_attempts:
+                  title: Verification Attempts
+                  type: integer
+                  description: 'The number of attempts at verification'
+                verification_failed_reason:
+                  title: Verification Failed Reason
+                  type: string
+                  description: 'Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network'
+                verification_method:
+                  title: Verification Method
+                  type: string
+                  enum: *externalBankAccountVerificationMethods
+                verification_state:
+                  title: Verification State
+                  type: string
+                  enum: *externalBankAccountVerificationStates
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
@@ -10570,7 +10728,7 @@ webhooks:
                     postal_code:
                       description: Postal code (e.g., ZIP code) of the address provided by the cardholder
                       type: string
-                      example: 94105
+                      example: '94105'
                       nullable: true
                   type: object
               description: Occurs when Lithic responds to a 3DS authentication request from card network
@@ -10581,7 +10739,6 @@ webhooks:
                     - NOT_APPLICABLE
                     - CREDIT
                     - DEBIT
-                    - null
                   type: string
                   example: CREDIT
                   nullable: true
@@ -10593,9 +10750,8 @@ webhooks:
                       enum:
                         - LOW_RISK
                         - NOT_LOW_RISK
-                        - null
                       type: string
-                      example: LOW_RISK
+                      example: 'LOW_RISK'
                       nullable: true
                     network_risk_score:
                       description: (Mastercard only) Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values - Integer between 0-950, in increments of 50.
@@ -10638,7 +10794,6 @@ webhooks:
                     - SPLIT_SHIPMENT
                     - DELAYED_SHIPMENT
                     - SPLIT_PAYMENT
-                    - null
                   type: string
                   example: PAYMENT_TRANSACTION
                   nullable: true
@@ -10685,7 +10840,7 @@ webhooks:
                     time_zone:
                       description: Time zone of the cardholder’s browser offset in minutes between UTC and the cardholder browser’s local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field browserTz.
                       type: string
-                      example: -240
+                      example: '-240'
                       nullable: true
                     user_agent:
                       description: Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
