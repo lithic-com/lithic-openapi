@@ -9942,6 +9942,32 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
+  card.renewed:
+    post:
+      description: Occurs when a new card is renewed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              examples:
+                - card_token: 00000000-0000-0000-0000-000000000001
+                  event_type: card.renewed
+              properties:
+                card_token:
+                  type: string
+                  format: uuid
+                  description: The token of the card that was renewed.
+                  example: 00000000-0000-0000-0000-000000000001
+                event_type:
+                  type: string
+                  enum:
+                    - card.renewed
+                  description: The type of event that occurred.
+                  example: card.renewed
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
   card.shipped:
     post:
       description: Occurs when a card is shipped.
