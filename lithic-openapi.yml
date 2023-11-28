@@ -9936,7 +9936,7 @@ webhooks:
           description: Return a 200 status to indicate that the data was received successfully
   card.renewed:
     post:
-      description: Occurs when a new card is renewed.
+      description: Occurs when a card is renewed.
       requestBody:
         content:
           application/json:
