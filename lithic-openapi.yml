@@ -270,30 +270,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /accounts/{account_token}/spend_limits:
-    get:
-      tags:
-        - Account
-      summary: Get an Account's available spend against its spend limits.
-      description: Get an Account's available spend against its spend limits. For example if the account has a daily spend limit of $1000 and has spent $500 today, the available spend would be $500.
-      operationId: getAccountSpendLimits
-      parameters:
-        - $ref: '#/components/parameters/accountToken'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountSpendLimits'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Forbidden'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
   /account_holders:
     post:
       tags:
@@ -1560,30 +1536,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-  /cards/{card_token}/spend_limits:
-    get:
-      tags:
-        - Card
-      summary: Get a Card's available spend against its spend limits.
-      description: Get an Card's available spend against its spend limits. For example if the card has a daily spend limit of $1000 and has spent $500 today, the available spend would be $500.
-      operationId: getCardSpendLimits
-      parameters:
-        - $ref: '#/components/parameters/cardToken'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CardSpendLimits'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
   /cards/{card_token}/financial_transactions:
@@ -6678,56 +6630,6 @@ components:
           format: uuid
           description: Account token
 
-    CardSpendLimits:
-      type: object
-      properties:
-        required:
-          - available_spend_limit
-        available_spend_limit:
-          type: object
-          properties:
-            daily:
-              type: integer
-              description: The available spend against the daily limit of the card
-              example: 100000
-            weekly:
-              type: integer
-              description: The available spend against the weekly limit of the card
-              example: 100000
-            monthly:
-              type: integer
-              description: The available spend against the monthly limit of the card
-              example: 200000
-            yearly:
-              type: integer
-              description: The available spend against the yearly limit of the card
-              example: 200000
-            lifetime:
-              type: integer
-              description: The available spend against the lifetime limit of the card
-              example: 300000
-
-    AccountSpendLimits:
-      type: object
-      properties:
-        required:
-          - available_spend_limit
-        available_spend_limit:
-          type: object
-          properties:
-            daily:
-              type: integer
-              description: The available spend against the daily limit of the account
-              example: 100000
-            monthly:
-              type: integer
-              description: The available spend against the monthly limit of the account
-              example: 200000
-            lifetime:
-              type: integer
-              description: The available spend against the lifetime limit of the account
-              example: 300000
-
     AggregateBalance:
       type: object
       description: Aggregate Balance across all end-user accounts
@@ -9942,32 +9844,6 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
-  card.renewed:
-    post:
-      description: Occurs when a new card is renewed.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              examples:
-                - card_token: 00000000-0000-0000-0000-000000000001
-                  event_type: card.renewed
-              properties:
-                card_token:
-                  type: string
-                  format: uuid
-                  description: The token of the card that was renewed.
-                  example: 00000000-0000-0000-0000-000000000001
-                event_type:
-                  type: string
-                  enum:
-                    - card.renewed
-                  description: The type of event that occurred.
-                  example: card.renewed
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
   card.shipped:
     post:
       description: Occurs when a card is shipped.
@@ -10850,14 +10726,6 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
-  statements.created:
-    post:
-      description: Occurs when a statement has been created
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Statement'
   three_ds_authentication.created:
     post:
       description: Occurs when a 3DS authentication is created.
