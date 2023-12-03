@@ -222,7 +222,7 @@ paths:
     get:
       tags:
         - Account
-      summary: Get account's credit configuration
+      summary: Get an Account's credit configuration
       description: Get an Account's credit configuration
       operationId: getAccountCreditConfiguration
       parameters:
@@ -243,7 +243,7 @@ paths:
     patch:
       tags:
         - Account
-      summary: Update business account's credit configuration
+      summary: Update a Business Accounts credit configuration
       description: Update a Business Accounts credit configuration
       operationId: patchAccountCreditConfiguration
       parameters:
@@ -274,7 +274,7 @@ paths:
     get:
       tags:
         - Account
-      summary: Get account's available spend limits
+      summary: Get an Account's available spend limits.
       description: Get an Account's available spend limits, which is based on the spend limit configured on the Account and the amount already spent over the spend limit's duration. For example, if the Account has a daily spend limit of $1000 configured, and has spent $600 in the last 24 hours, the available spend limit returned would be $400.
       operationId: getAccountSpendLimits
       parameters:
@@ -455,7 +455,7 @@ paths:
     get:
       tags:
         - Account Holder
-      summary: Get an individual or business account holder
+      summary: Get an Individual or Business Account Holder
       description: Get an Individual or Business Account Holder and/or their KYC or KYB evaluation status.
       operationId: getAccountHolder
       parameters:
@@ -915,7 +915,7 @@ paths:
     get:
       tags:
         - Balance
-      summary: List aggregate balances
+      summary: List Aggregate Balances
       description: Get the aggregated balance across all end-user accounts by financial account type
       operationId: getAggregateBalances
       parameters:
@@ -960,7 +960,7 @@ paths:
     get:
       tags:
         - Card Product
-      summary: Get credit detail for the card product
+      summary: Get the Credit Detail for the card product
       description: Get the Credit Detail for the card product
       operationId: getCreditDetail
       responses:
@@ -1037,7 +1037,7 @@ paths:
     get:
       tags:
         - Balance
-      summary: List balances
+      summary: List Balances
       description: Get the balances for a program or a given end-user account
       operationId: getBalances
       parameters:
@@ -1337,7 +1337,7 @@ paths:
     get:
       tags:
         - Card
-      summary: List card aggregate balances
+      summary: List Card Aggregate Balances
       description: Get the aggregated card balance across all end-user accounts.
       operationId: getCardAggregateBalances
       parameters:
@@ -1566,7 +1566,7 @@ paths:
     get:
       tags:
         - Card
-      summary: Get card's available spend limit
+      summary: Get a Card's available spend limit..
       description: Get a Card's available spend limit, which is based on the spend limit configured on the Card and the amount already spent over the spend limit's duration. For example, if the Card has a monthly spend limit of $1000 configured, and has spent $600 in the last month, the available spend limit returned would be $400.
       operationId: getCardSpendLimits
       parameters:
@@ -4788,7 +4788,7 @@ paths:
     get:
       tags:
         - 3DS
-      summary: Get 3DS authentication
+      summary: Get 3DS Authentication
       description: Get 3DS Authentication by token
       operationId: getThreeDsAuthenticationByToken
       parameters:
