@@ -30,6 +30,7 @@ tags:
   - name: Financial Account
   - name: Payment
   - name: Responder Endpoints
+  - name: Settlement Report
   - name: Statement
   - name: Status
   - name: Tokenization
@@ -9906,6 +9907,14 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
+  balance.updated:
+    post:
+      description: Financial Account Balance Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Balance'
   card.created:
     post:
       description: Occurs when a new card is created.
