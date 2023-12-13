@@ -6859,9 +6859,9 @@ components:
         - last_transaction_event_token
         - last_transaction_token
         - pending_amount
-        - token
+        - financial_account_token
         - total_amount
-        - type
+        - financial_account_type
         - updated
       properties:
         available_amount:
@@ -6885,7 +6885,7 @@ components:
         pending_amount:
           type: integer
           description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD).
-        token:
+        financial_account_token:
           type: string
           format: uuid
           description: Globally unique identifier for the financial account that holds this balance.
@@ -6893,7 +6893,7 @@ components:
         total_amount:
           type: integer
           description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD).
-        type:
+        financial_account_type:
           type: string
           description: Type of financial account.
           enum: *financialAccountTypes
