@@ -30,6 +30,7 @@ tags:
   - name: Financial Account
   - name: Payment
   - name: Responder Endpoints
+  - name: Settlement Report
   - name: Statement
   - name: Status
   - name: Tokenization
@@ -4558,7 +4559,38 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-
+  /digital_card_art/{digital_card_art_token}:
+    get:
+      tags:
+        - Tokenization
+      summary: Get digital card art by token
+      description: Get digital card art by token.
+      operationId: getDigitalCardArtByToken
+      parameters:
+        - in: path
+          name: digital_card_art_token
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Specifies the digital card art to be displayed in the user’s digital wallet after tokenization. This artwork must be approved by Mastercard and configured by Lithic to use. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DigitalCardArt'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /status:
     get:
       tags:
@@ -9906,6 +9938,14 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
+  balance.updated:
+    post:
+      description: Financial Account Balance Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Balance'
   card.created:
     post:
       description: Occurs when a new card is created.
