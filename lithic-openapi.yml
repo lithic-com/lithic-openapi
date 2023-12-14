@@ -30,7 +30,6 @@ tags:
   - name: Financial Account
   - name: Payment
   - name: Responder Endpoints
-  - name: Settlement Report
   - name: Statement
   - name: Status
   - name: Tokenization
@@ -4559,38 +4558,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /digital_card_art/{digital_card_art_token}:
-    get:
-      tags:
-        - Tokenization
-      summary: Get digital card art by token
-      description: Get digital card art by token.
-      operationId: getDigitalCardArtByToken
-      parameters:
-        - in: path
-          name: digital_card_art_token
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Specifies the digital card art to be displayed in the user’s digital wallet after tokenization. This artwork must be approved by Mastercard and configured by Lithic to use. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DigitalCardArt'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
+
   /status:
     get:
       tags:
@@ -6859,9 +6827,9 @@ components:
         - last_transaction_event_token
         - last_transaction_token
         - pending_amount
-        - financial_account_token
+        - token
         - total_amount
-        - financial_account_type
+        - type
         - updated
       properties:
         available_amount:
@@ -6885,7 +6853,7 @@ components:
         pending_amount:
           type: integer
           description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD).
-        financial_account_token:
+        token:
           type: string
           format: uuid
           description: Globally unique identifier for the financial account that holds this balance.
@@ -6893,7 +6861,7 @@ components:
         total_amount:
           type: integer
           description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD).
-        financial_account_type:
+        type:
           type: string
           description: Type of financial account.
           enum: *financialAccountTypes
@@ -9938,14 +9906,6 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
-  balance.updated:
-    post:
-      description: Financial Account Balance Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Balance'
   card.created:
     post:
       description: Occurs when a new card is created.
