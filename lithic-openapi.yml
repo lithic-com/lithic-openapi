@@ -4598,7 +4598,6 @@ paths:
                     events:
                       - amount: 7666
                         created: '2020-07-15T19:17:22Z'
-                        detailed_results: []
                         result: APPROVED
                         token: 6a885bcb-89f6-4fcb-a0ce-7f0233ae20a0
                         type: RETURN
@@ -7889,7 +7888,6 @@ components:
       required:
         - amount
         - created
-        - detailed_results
         - result
         - token
         - type
@@ -7903,58 +7901,6 @@ components:
           format: date-time
           description: RFC 3339 date and time this event entered the system. UTC time zone.
           example: '2023-09-26T21:14:28.637Z'
-        detailed_results:
-          type: array
-          items:
-            type: string
-            enum:
-              - ACCOUNT_DAILY_SPEND_LIMIT_EXCEEDED
-              - ACCOUNT_INACTIVE
-              - ACCOUNT_LIFETIME_SPEND_LIMIT_EXCEEDED
-              - ACCOUNT_MONTHLY_SPEND_LIMIT_EXCEEDED
-              - ACCOUNT_UNDER_REVIEW
-              - ADDRESS_INCORRECT
-              - APPROVED
-              - AUTH_RULE_ALLOWED_COUNTRY
-              - AUTH_RULE_ALLOWED_MCC
-              - AUTH_RULE_BLOCKED_COUNTRY
-              - AUTH_RULE_BLOCKED_MCC
-              - CARD_CLOSED
-              - CARD_CRYPTOGRAM_VALIDATION_FAILURE
-              - CARD_EXPIRED
-              - CARD_EXPIRY_DATE_INCORRECT
-              - CARD_INVALID
-              - CARD_PAUSED
-              - CARD_PIN_INCORRECT
-              - CARD_RESTRICTED
-              - CARD_SECURITY_CODE_INCORRECT
-              - CARD_SPEND_LIMIT_EXCEEDED
-              - CONTACT_CARD_ISSUER
-              - CUSTOM_ASA_RESULT
-              - CUSTOMER_ASA_TIMEOUT
-              - DECLINED
-              - DO_NOT_HONOR
-              - FORMAT_ERROR
-              - INSUFFICIENT_FUNDING_SOURCE_BALANCE
-              - INSUFFICIENT_FUNDS
-              - LITHIC_SYSTEM_ERROR
-              - LITHIC_SYSTEM_RATE_LIMIT
-              - MALFORMED_ASA_RESPONSE
-              - MERCHANT_INVALID
-              - MERCHANT_LOCKED_CARD_ATTEMPTED_ELSEWHERE
-              - MERCHANT_NOT_PERMITTED
-              - OVER_REVERSAL_ATTEMPTED
-              - PROGRAM_CARD_SPEND_LIMIT_EXCEEDED
-              - PROGRAM_SUSPENDED
-              - PROGRAM_USAGE_RESTRICTION
-              - REVERSAL_UNMATCHED
-              - SECURITY_VIOLATION
-              - SINGLE_USE_CARD_REATTEMPTED
-              - TRANSACTION_INVALID
-              - TRANSACTION_NOT_PERMITTED_TO_ACQUIRER_OR_TERMINAL
-              - TRANSACTION_NOT_PERMITTED_TO_ISSUER_OR_CARDHOLDER
-              - TRANSACTION_PREVIOUSLY_COMPLETED
-              - UNAUTHORIZED_MERCHANT
         result:
           type: string
           enum: &eventResultTypes
