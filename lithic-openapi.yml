@@ -4475,10 +4475,11 @@ paths:
                 memo:
                   type: string
                   description: Optional descriptor for the transfer.
-                transaction_token:
+                token:
                   type: string
                   format: uuid
-                  description: Customer-provided transaction_token that will serve as an idempotency token.
+                  description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
+
       responses:
         '200':
           description: OK
@@ -9370,6 +9371,7 @@ components:
           title: Token
           type: string
           format: uuid
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
         user_defined_id:
           title: User Defined Id
           type: string
