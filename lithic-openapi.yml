@@ -1582,6 +1582,12 @@ paths:
                     with.
                   example: '1'
                   type: string
+                replacement_for:
+                  description: Only applicable to cards of type `PHYSICAL`. Globally
+                    unique identifier for the card that this physical card will replace.
+                  example: 00000000-0000-0000-1000-000000000000
+                  format: uuid
+                  type: string
                 shipping_address:
                   $ref: '#/components/schemas/ShippingAddress'
                 shipping_method:
