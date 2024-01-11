@@ -11023,6 +11023,10 @@ webhooks:
               examples:
                 - card_token: 00000000-0000-0000-0000-000000000001
                   event_type: card.renewed
+                  exp_month: '01'
+                  exp_year: '2030'
+                  previous_exp_month: '01'
+                  previous_exp_year: '2024'
               properties:
                 card_token:
                   description: The token of the card that was renewed.
@@ -11034,6 +11038,22 @@ webhooks:
                   enum:
                     - card.renewed
                   example: card.renewed
+                  type: string
+                exp_month:
+                  description: The new expiration month of the card.
+                  example: '01'
+                  type: string
+                exp_year:
+                  description: The new expiration year of the card.
+                  example: '2030'
+                  type: string
+                previous_exp_month:
+                  description: The previous expiration month of the card.
+                  example: '01'
+                  type: string
+                previous_exp_year:
+                  description: The previous expiration year of the card.
+                  example: '2024'
                   type: string
               type: object
       responses:
