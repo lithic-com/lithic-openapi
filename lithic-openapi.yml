@@ -6391,7 +6391,7 @@ paths:
         - Transaction
   /transfer:
     post:
-      description: ransfer funds between two financial accounts or between a financial
+      description: Transfer funds between two financial accounts or between a financial
         account and card
       operationId: postTransfer
       parameters:
