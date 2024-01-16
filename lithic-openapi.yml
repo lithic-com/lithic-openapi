@@ -232,11 +232,11 @@ paths:
                     data:
                       - token: b68b7424-aa69-4cbc-a946-30d90181b621
                         account_token: 6b67b340-ed11-4463-a33d-0d7f7fdcd28c
-                        business_account_token: test@lithic.com
+                        business_account_token: 00000000-0000-0000-0000-000000000000
                         external_id: '5555555555'
-                        created: ACCEPTED
-                        user_type: []
-                        exemption_type: ''
+                        created: '2024-01-11T19:50:36.105448'
+                        user_type: INDIVIDUAL
+                        exemption_type: 'AUTHORIZED_USER'
                         verification_application:
                           created: '2024-01-11T19:58:24.821848'
                           updated: '2024-01-11T19:58:24.821848'
@@ -259,15 +259,15 @@ paths:
                         status: 'ACCEPTED'
                       - token: fa68ed76-9d02-4d45-8a3f-782f3b6a8b3f
                         account_token: 732f7328-a2d7-4281-a264-e8cb5af8d392
-                        business_account_token: ''
+                        business_account_token: 00000000-0000-0000-0000-000000000000
                         external_id: '851030f1-9b7b-4939-8ac9-161bd972d26f'
                         created: '2024-01-11T19:50:36.105449'
                         user_type: BUSINESS
-                        exemption_type: ''
+                        exemption_type: 'AUTHORIZED_USER'
                         verification_application:
                           created: '2024-01-11T19:50:36.105449'
                           updated: '2024-01-11T19:50:36.105449'
-                          status: 'PENDING_REVIEW'
+                          status: 'PENDING_DOCUMENT'
                           status_reasons: []
                         business_entity:
                           address:
@@ -277,8 +277,9 @@ paths:
                             postal_code: '10004'
                             country: US
                           dba_business_name: Busy Business, Inc.
+                          government_id: 98-7654321
                           legal_business_name: Busy Business, Inc.
-                          parent_company: ''
+                          parent_company: 'Example company'
                           phone_numbers:
                             - '5555555555'
                         control_person:
@@ -301,12 +302,25 @@ paths:
                               postal_code: '10004'
                               country: US
                             dba_business_name: Busy Business, Inc.
+                            government_id: 98-7654321
                             legal_business_name: Busy Business, Inc.
-                            parent_company: ''
+                            parent_company: 'Example company'
                             phone_numbers:
                               - '5555555555'
+                    has_more: false
               schema:
-                $ref: '#/components/schemas/AccountHolder'
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/AccountHolder'
+                    type: array
+                  has_more:
+                    description: Whether there are more accounts to be retrieved.
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+                type: object
           description: OK
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -7177,6 +7191,7 @@ components:
           format: string
           type: string
       type: object
+      required: [token]
     AccountHolderCollectionsConfiguration:
       properties:
         billing_period:
