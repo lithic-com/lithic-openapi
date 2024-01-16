@@ -305,20 +305,8 @@ paths:
                             parent_company: ''
                             phone_numbers:
                               - '5555555555'
-                    has_more: false
               schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AccountHolder'
-                    type: array
-                  has_more:
-                    description: Whether there are more accounts to be retrieved.
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-                type: object
+                $ref: '#/components/schemas/AccountHolder'
           description: OK
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -7189,7 +7177,6 @@ components:
           format: string
           type: string
       type: object
-      required: [token]
     AccountHolderCollectionsConfiguration:
       properties:
         billing_period:
