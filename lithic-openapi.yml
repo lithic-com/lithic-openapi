@@ -37,6 +37,7 @@ tags:
   - name: Status
   - name: Tokenization
   - name: Transaction
+  - name: Events
 paths:
   /account_holders:
     post:
@@ -10894,6 +10895,9 @@ components:
 webhooks:
   account_holder.created:
     post:
+      tags:
+        - Events
+      summary: Account Holder Created Event
       description: Occurs when a new account_holder is created and is either ACCEPTED
         or PENDING_REVIEW.
       requestBody:
