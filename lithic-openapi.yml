@@ -9422,6 +9422,10 @@ components:
             - KYB_BASIC
             - KYB_BYO
           type: string
+        external_id:
+          description: A user provided id that can be used to link an account holder
+            with an external system
+          type: string
       required:
         - beneficial_owner_entities
         - beneficial_owner_individuals
@@ -9471,6 +9475,10 @@ components:
             - KYC_BASIC
             - KYC_BYO
           type: string
+        external_id:
+          description: A user provided id that can be used to link an account holder
+            with an external system
+          type: string
       required:
         - individual
         - tos_timestamp
@@ -9512,6 +9520,10 @@ components:
           description: Specifies the workflow type. This must be 'KYC_EXEMPT'
           enum:
             - KYC_EXEMPT
+          type: string
+        external_id:
+          description: A user provided id that can be used to link an account holder
+            with an external system
           type: string
       required:
         - email
