@@ -192,7 +192,61 @@ paths:
                       - NAME_VERIFICATION_FAILURE
                     token: 12345678-aa69-4cbc-a946-30d90181b621
               schema:
-                $ref: '#/components/schemas/AccountHolder'
+                properties:
+                  account_token:
+                    description: Globally unique identifier for the account.
+                    format: uuid
+                    type: string
+                  created:
+                    description: Timestamp of when the account holder was created.
+                    format: date-time
+                    type: string
+                  external_id:
+                    description: Customer-provided token that indicates a relationship with
+                      an object outside of the Lithic ecosystem.
+                    format: string
+                    type: string
+                  status:
+                    description: 'KYC and KYB evaluation states.
+
+                      Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for
+                      the `ADVANCED` workflow.
+
+                      '
+                    enum:
+                      - ACCEPTED
+                      - PENDING_DOCUMENT
+                      - PENDING_RESUBMIT
+                      - REJECTED
+                    type: string
+                  status_reasons:
+                    description: Reason
+                      for the evaluation status.
+                    items:
+                      enum:
+                        - ADDRESS_VERIFICATION_FAILURE
+                        - AGE_THRESHOLD_FAILURE
+                        - COMPLETE_VERIFICATION_FAILURE
+                        - DOB_VERIFICATION_FAILURE
+                        - ID_VERIFICATION_FAILURE
+                        - MAX_DOCUMENT_ATTEMPTS
+                        - MAX_RESUBMISSION_ATTEMPTS
+                        - NAME_VERIFICATION_FAILURE
+                        - OTHER_VERIFICATION_FAILURE
+                        - RISK_THRESHOLD_FAILURE
+                        - WATCHLIST_ALERT_FAILURE
+                      type: string
+                    type: array
+                  token:
+                    description: Globally unique identifier for the account holder.
+                    format: uuid
+                    type: string
+                required:
+                  - account_token
+                  - status
+                  - status_reasons
+                  - token
+                type: object
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
