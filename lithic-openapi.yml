@@ -28,6 +28,7 @@ tags:
   - name: Card Product
   - name: Dispute
   - name: Event
+  - name: Event Types
   - name: External Bank Account
   - name: Financial Account
   - name: Payment
@@ -37,7 +38,6 @@ tags:
   - name: Status
   - name: Tokenization
   - name: Transaction
-  - name: Events
 paths:
   /account_holders:
     post:
@@ -10908,7 +10908,7 @@ webhooks:
   account_holder.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: account_holder.created
       description: Occurs when a new account_holder is created and is either ACCEPTED
         or PENDING_REVIEW.
@@ -10965,7 +10965,7 @@ webhooks:
   account_holder.updated:
     post:
       tags:
-        - Events
+        - Event Types
       summary: account_holder.updated
       description: Occurs when a new account_holder is updated.
       requestBody:
@@ -11044,7 +11044,7 @@ webhooks:
   account_holder.verification:
     post:
       tags:
-        - Events
+        - Event Types
       summary: account_holder.verification
       description: Occurs when an asynchronous account_holder's verification is completed.
       requestBody:
@@ -11101,7 +11101,7 @@ webhooks:
   balance.updated:
     post:
       tags:
-        - Events
+        - Event Types
       summary: balance.updated
       description: Financial Account Balance Update
       requestBody:
@@ -11133,7 +11133,7 @@ webhooks:
   card.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: card.created
       description: Occurs when a new card is created.
       requestBody:
@@ -11172,7 +11172,7 @@ webhooks:
   card.renewed:
     post:
       tags:
-        - Events
+        - Event Types
       summary: card.renewed
       description: Occurs when a card is renewed.
       requestBody:
@@ -11222,7 +11222,7 @@ webhooks:
   card.shipped:
     post:
       tags:
-        - Events
+        - Event Types
       summary: card.shipped
       description: Occurs when a card is shipped.
       requestBody:
@@ -11274,7 +11274,7 @@ webhooks:
   card_transaction.updated:
     post:
       tags:
-        - Events
+        - Event Types
       summary: card_transaction.updated
       description: Occurs when a card transaction happens.
       requestBody:
@@ -11334,7 +11334,7 @@ webhooks:
   digital_wallet.tokenization_approval_request:
     post:
       tags:
-        - Events
+        - Event Types
       summary: digital_wallet.tokenization_approval_request
       description: Occurs when a tokenization approval request is made.
       requestBody:
@@ -11571,7 +11571,7 @@ webhooks:
   digital_wallet.tokenization_result:
     post:
       tags:
-        - Events
+        - Event Types
       summary: digital_wallet.tokenization_result
       description: Occurs when a tokenization request succeeded or failed.
       requestBody:
@@ -11676,7 +11676,7 @@ webhooks:
   digital_wallet.tokenization_two_factor_authentication_code:
     post:
       tags:
-        - Events
+        - Event Types
       summary: digital_wallet.tokenization_two_factor_authentication_code
       description: Occurs when a tokenization request 2FA auth code is delivered.
       requestBody:
@@ -11768,7 +11768,7 @@ webhooks:
   dispute.updated:
     post:
       tags:
-        - Events
+        - Event Types
       summary: dispute.updated
       description: Occurs when a dispute is updated.
       requestBody:
@@ -11814,7 +11814,7 @@ webhooks:
   dispute_evidence.upload_failed:
     post:
       tags:
-        - Events
+        - Event Types
       summary: dispute_evidence.upload_failed
       description: Occurs when a dispute evidence upload fails.
       requestBody:
@@ -11844,7 +11844,7 @@ webhooks:
   external_bank_account.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: external_bank_account.created
       description: Occurs when an external bank account is created.
       requestBody:
@@ -11966,7 +11966,7 @@ webhooks:
   external_bank_account.updated:
     post:
       tags:
-        - Events
+        - Event Types
       summary: external_bank_account.updated
       description: Occurs when an external bank account is updated.
       requestBody:
@@ -12088,7 +12088,7 @@ webhooks:
   payment_transaction.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: payment_transaction.created
       description: Occurs when a payment transaction is created.
       requestBody:
@@ -12142,7 +12142,7 @@ webhooks:
   payment_transaction.updated:
     post:
       tags:
-        - Events
+        - Event Types
       summary: payment_transaction.updated
       description: Occurs when a payment transaction is updated.
       requestBody:
@@ -12205,7 +12205,7 @@ webhooks:
   statements.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: statements.created
       description: Occurs when a statement has been created
       requestBody:
@@ -12216,7 +12216,7 @@ webhooks:
   three_ds_authentication.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: three_ds_authentication.created
       description: Occurs when a 3DS authentication is created.
       requestBody:
@@ -12531,7 +12531,7 @@ webhooks:
   transfer_transaction.created:
     post:
       tags:
-        - Events
+        - Event Types
       summary: transfer_transaction.created
       description: Occurs when a transfer transaction is created.
       requestBody:
