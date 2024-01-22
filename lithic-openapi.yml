@@ -4546,8 +4546,10 @@ paths:
                       - 8fce9192-41ff-4a7a-8359-bd33b3e0a7c9
                     institution: '00001'
                     interchange_gross_amount: -7
+                    interchange_fee_extended_precision: -70000
                     network: MASTERCARD
                     other_fees_details: {}
+                    type: CLEARING
                     other_fees_gross_amount: 0
                     report_date: '2023-06-16'
                     settlement_date: '2023-06-16'
@@ -9874,6 +9876,10 @@ components:
           description: The total amount of interchange.
           example: -7
           type: integer
+        interchange_fee_extended_precision:
+          description: The total amount of interchange in six-digit extended precision.
+          example: -70000
+          type: integer
         network:
           description: Card network where the transaction took place.
           enum:
@@ -9920,6 +9926,20 @@ components:
             interchange, fees, and disputes).
           example: 1900
           type: integer
+        type:
+          description: The type of settlement record.
+          enum:
+            - CLEARING
+            - FINANCIAL
+            - NON-FINANCIAL
+            - ADJUSTMENT
+            - CHARGEBACK
+            - REPRESENTMENT
+            - PREARBITRATION
+            - ARBITRATION
+            - FEE
+          example: CLEARING
+          type: string
         updated:
           description: Date and time when the transaction first occurred. UTC time
             zone.
@@ -9936,6 +9956,7 @@ components:
         - event_tokens
         - institution
         - interchange_gross_amount
+        - interchange_fee_extended_precision
         - network
         - other_fees_details
         - other_fees_gross_amount
@@ -9944,6 +9965,7 @@ components:
         - token
         - transaction_token
         - transactions_gross_amount
+        - type
         - updated
       type: object
     SettlementReport:
@@ -9955,9 +9977,7 @@ components:
           format: date-time
           type: string
         currency:
-          description: 'Three-digit alphabetic ISO 4217 code.
-
-            '
+          description: 'Three-digit alphabetic ISO 4217 code.'
           example: '840'
           maxLength: 3
           minLength: 3
