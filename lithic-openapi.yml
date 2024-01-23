@@ -28,7 +28,6 @@ tags:
   - name: Card Product
   - name: Dispute
   - name: Event
-  - name: Event Types
   - name: External Bank Account
   - name: Financial Account
   - name: Payment
@@ -38,6 +37,7 @@ tags:
   - name: Status
   - name: Tokenization
   - name: Transaction
+  - name: Events
 paths:
   /account_holders:
     post:
@@ -49,8 +49,9 @@ paths:
         cases, the response may indicate the workflow is under review or further action
         will be needed to complete the account creation process.
 
-        This endpoint can only be used on accounts that are part of the program that the
+        This endpoint can only be used on accounts that are part of the program the
         calling API key manages.
+
         "
       operationId: postAccountHolders
       parameters:
@@ -191,61 +192,7 @@ paths:
                       - NAME_VERIFICATION_FAILURE
                     token: 12345678-aa69-4cbc-a946-30d90181b621
               schema:
-                properties:
-                  account_token:
-                    description: Globally unique identifier for the account.
-                    format: uuid
-                    type: string
-                  created:
-                    description: Timestamp of when the account holder was created.
-                    format: date-time
-                    type: string
-                  external_id:
-                    description: Customer-provided token that indicates a relationship with
-                      an object outside of the Lithic ecosystem.
-                    format: string
-                    type: string
-                  status:
-                    description: 'KYC and KYB evaluation states.
-
-                      Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for
-                      the `ADVANCED` workflow.
-
-                      '
-                    enum:
-                      - ACCEPTED
-                      - PENDING_DOCUMENT
-                      - PENDING_RESUBMIT
-                      - REJECTED
-                    type: string
-                  status_reasons:
-                    description: Reason
-                      for the evaluation status.
-                    items:
-                      enum:
-                        - ADDRESS_VERIFICATION_FAILURE
-                        - AGE_THRESHOLD_FAILURE
-                        - COMPLETE_VERIFICATION_FAILURE
-                        - DOB_VERIFICATION_FAILURE
-                        - ID_VERIFICATION_FAILURE
-                        - MAX_DOCUMENT_ATTEMPTS
-                        - MAX_RESUBMISSION_ATTEMPTS
-                        - NAME_VERIFICATION_FAILURE
-                        - OTHER_VERIFICATION_FAILURE
-                        - RISK_THRESHOLD_FAILURE
-                        - WATCHLIST_ALERT_FAILURE
-                      type: string
-                    type: array
-                  token:
-                    description: Globally unique identifier for the account holder.
-                    format: uuid
-                    type: string
-                required:
-                  - account_token
-                  - status
-                  - status_reasons
-                  - token
-                type: object
+                $ref: '#/components/schemas/AccountHolder'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4546,10 +4493,8 @@ paths:
                       - 8fce9192-41ff-4a7a-8359-bd33b3e0a7c9
                     institution: '00001'
                     interchange_gross_amount: -7
-                    interchange_fee_extended_precision: -70000
                     network: MASTERCARD
                     other_fees_details: {}
-                    type: CLEARING
                     other_fees_gross_amount: 0
                     report_date: '2023-06-16'
                     settlement_date: '2023-06-16'
@@ -9477,10 +9422,6 @@ components:
             - KYB_BASIC
             - KYB_BYO
           type: string
-        external_id:
-          description: A user provided id that can be used to link an account holder
-            with an external system
-          type: string
       required:
         - beneficial_owner_entities
         - beneficial_owner_individuals
@@ -9530,10 +9471,6 @@ components:
             - KYC_BASIC
             - KYC_BYO
           type: string
-        external_id:
-          description: A user provided id that can be used to link an account holder
-            with an external system
-          type: string
       required:
         - individual
         - tos_timestamp
@@ -9575,10 +9512,6 @@ components:
           description: Specifies the workflow type. This must be 'KYC_EXEMPT'
           enum:
             - KYC_EXEMPT
-          type: string
-        external_id:
-          description: A user provided id that can be used to link an account holder
-            with an external system
           type: string
       required:
         - email
@@ -9876,10 +9809,6 @@ components:
           description: The total amount of interchange.
           example: -7
           type: integer
-        interchange_fee_extended_precision:
-          description: The total amount of interchange in six-digit extended precision.
-          example: -70000
-          type: integer
         network:
           description: Card network where the transaction took place.
           enum:
@@ -9926,20 +9855,6 @@ components:
             interchange, fees, and disputes).
           example: 1900
           type: integer
-        type:
-          description: The type of settlement record.
-          enum:
-            - CLEARING
-            - FINANCIAL
-            - NON-FINANCIAL
-            - ADJUSTMENT
-            - CHARGEBACK
-            - REPRESENTMENT
-            - PREARBITRATION
-            - ARBITRATION
-            - FEE
-          example: CLEARING
-          type: string
         updated:
           description: Date and time when the transaction first occurred. UTC time
             zone.
@@ -9956,7 +9871,6 @@ components:
         - event_tokens
         - institution
         - interchange_gross_amount
-        - interchange_fee_extended_precision
         - network
         - other_fees_details
         - other_fees_gross_amount
@@ -9965,7 +9879,6 @@ components:
         - token
         - transaction_token
         - transactions_gross_amount
-        - type
         - updated
       type: object
     SettlementReport:
@@ -9977,7 +9890,9 @@ components:
           format: date-time
           type: string
         currency:
-          description: 'Three-digit alphabetic ISO 4217 code.'
+          description: 'Three-digit alphabetic ISO 4217 code.
+
+            '
           example: '840'
           maxLength: 3
           minLength: 3
@@ -10981,7 +10896,7 @@ webhooks:
   account_holder.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: account_holder.created
       description: Occurs when a new account_holder is created and is either ACCEPTED
         or PENDING_REVIEW.
@@ -11038,7 +10953,7 @@ webhooks:
   account_holder.updated:
     post:
       tags:
-        - Event Types
+        - Events
       summary: account_holder.updated
       description: Occurs when a new account_holder is updated.
       requestBody:
@@ -11117,7 +11032,7 @@ webhooks:
   account_holder.verification:
     post:
       tags:
-        - Event Types
+        - Events
       summary: account_holder.verification
       description: Occurs when an asynchronous account_holder's verification is completed.
       requestBody:
@@ -11174,7 +11089,7 @@ webhooks:
   balance.updated:
     post:
       tags:
-        - Event Types
+        - Events
       summary: balance.updated
       description: Financial Account Balance Update
       requestBody:
@@ -11206,7 +11121,7 @@ webhooks:
   card.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: card.created
       description: Occurs when a new card is created.
       requestBody:
@@ -11245,7 +11160,7 @@ webhooks:
   card.renewed:
     post:
       tags:
-        - Event Types
+        - Events
       summary: card.renewed
       description: Occurs when a card is renewed.
       requestBody:
@@ -11295,7 +11210,7 @@ webhooks:
   card.shipped:
     post:
       tags:
-        - Event Types
+        - Events
       summary: card.shipped
       description: Occurs when a card is shipped.
       requestBody:
@@ -11347,7 +11262,7 @@ webhooks:
   card_transaction.updated:
     post:
       tags:
-        - Event Types
+        - Events
       summary: card_transaction.updated
       description: Occurs when a card transaction happens.
       requestBody:
@@ -11407,7 +11322,7 @@ webhooks:
   digital_wallet.tokenization_approval_request:
     post:
       tags:
-        - Event Types
+        - Events
       summary: digital_wallet.tokenization_approval_request
       description: Occurs when a tokenization approval request is made.
       requestBody:
@@ -11644,7 +11559,7 @@ webhooks:
   digital_wallet.tokenization_result:
     post:
       tags:
-        - Event Types
+        - Events
       summary: digital_wallet.tokenization_result
       description: Occurs when a tokenization request succeeded or failed.
       requestBody:
@@ -11749,7 +11664,7 @@ webhooks:
   digital_wallet.tokenization_two_factor_authentication_code:
     post:
       tags:
-        - Event Types
+        - Events
       summary: digital_wallet.tokenization_two_factor_authentication_code
       description: Occurs when a tokenization request 2FA auth code is delivered.
       requestBody:
@@ -11841,7 +11756,7 @@ webhooks:
   dispute.updated:
     post:
       tags:
-        - Event Types
+        - Events
       summary: dispute.updated
       description: Occurs when a dispute is updated.
       requestBody:
@@ -11887,7 +11802,7 @@ webhooks:
   dispute_evidence.upload_failed:
     post:
       tags:
-        - Event Types
+        - Events
       summary: dispute_evidence.upload_failed
       description: Occurs when a dispute evidence upload fails.
       requestBody:
@@ -11917,7 +11832,7 @@ webhooks:
   external_bank_account.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: external_bank_account.created
       description: Occurs when an external bank account is created.
       requestBody:
@@ -12039,7 +11954,7 @@ webhooks:
   external_bank_account.updated:
     post:
       tags:
-        - Event Types
+        - Events
       summary: external_bank_account.updated
       description: Occurs when an external bank account is updated.
       requestBody:
@@ -12161,7 +12076,7 @@ webhooks:
   payment_transaction.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: payment_transaction.created
       description: Occurs when a payment transaction is created.
       requestBody:
@@ -12215,7 +12130,7 @@ webhooks:
   payment_transaction.updated:
     post:
       tags:
-        - Event Types
+        - Events
       summary: payment_transaction.updated
       description: Occurs when a payment transaction is updated.
       requestBody:
@@ -12278,7 +12193,7 @@ webhooks:
   statements.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: statements.created
       description: Occurs when a statement has been created
       requestBody:
@@ -12289,7 +12204,7 @@ webhooks:
   three_ds_authentication.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: three_ds_authentication.created
       description: Occurs when a 3DS authentication is created.
       requestBody:
@@ -12604,7 +12519,7 @@ webhooks:
   transfer_transaction.created:
     post:
       tags:
-        - Event Types
+        - Events
       summary: transfer_transaction.created
       description: Occurs when a transfer transaction is created.
       requestBody:
