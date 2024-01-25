@@ -1962,50 +1962,6 @@ paths:
       summary: List card aggregate balances
       tags:
         - Card
-  /cards/search_by_pan:
-    post:
-      description: 'Get card configuration such as spend limit and state. Customers
-        must be PCI compliant to use this endpoint. Please contact [support@lithic.com](mailto:support@lithic.com) for questions.
-
-        *Note: this is a `POST` endpoint because it is more secure to send sensitive data in a request body than in a URL.*
-        '
-      operationId: searchCardByPan
-      requestBody:
-        content:
-          application/json:
-            examples:
-              searchCardByPan:
-                summary: Search for card for by PAN.
-                value:
-                  pan: '4111111289144142'
-            schema:
-              properties:
-                pan:
-                  description: 'The PAN for the card being retrieved.'
-                  example: '4111111289144142'
-                  type: string
-              required:
-                - pan
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Card'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Search for card by PAN
-      tags:
-        - Card
   /cards/{card_token}:
     get:
       description: Get card configuration such as spend limit and state.
