@@ -1870,6 +1870,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '776'
                 exp_month: '06'
@@ -2123,6 +2125,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2476,6 +2480,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2611,6 +2617,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -7943,6 +7951,11 @@ components:
       type: object
     Card:
       properties:
+        account_token:
+          description: Globally unique identifier for the account to which the card belongs.
+          example: f3f4918c-dee9-464d-a819-4aa42901d624
+          format: uuid
+          type: string
         auth_rule_tokens:
           description: 'List of identifiers for the Auth Rule(s) that are applied
             on the card.
@@ -7953,6 +7966,11 @@ components:
           items:
             type: string
           type: array
+        card_program_token:
+          description: Globally unique identifier for the card program on which the card exists.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          format: uuid
+          type: string
         created:
           description: An RFC 3339 timestamp for when the card was created. UTC time
             zone.
@@ -8107,6 +8125,8 @@ components:
             - VIRTUAL
           type: string
       required:
+        - account_token
+        - card_program_token
         - created
         - funding
         - last_four
