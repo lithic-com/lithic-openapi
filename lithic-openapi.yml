@@ -4741,7 +4741,6 @@ paths:
           description: Endpoint enrolled successfully
       summary: Enroll a responder endpoint
       tags:
-        - 3DS
         - Responder Endpoints
   /simulate/authorization_advice:
     post:
