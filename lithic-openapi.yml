@@ -53,8 +53,6 @@ paths:
         calling API key manages.
         "
       operationId: postAccountHolders
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -563,7 +561,6 @@ paths:
       operationId: postAccountHolderDocuments
       parameters:
         - $ref: '#/components/parameters/accountHolderTokenPath'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -670,7 +667,6 @@ paths:
       operationId: postAccountHolderResubmit
       parameters:
         - $ref: '#/components/parameters/accountHolderTokenPath'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1101,8 +1097,6 @@ paths:
       description: Creates an authorization rule (Auth Rule) and applies it at the
         program, account, or card level.
       operationId: postAuthRules
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1340,7 +1334,6 @@ paths:
       operationId: postAuthRuleByTokenApply
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1439,8 +1432,6 @@ paths:
 
         '
       operationId: rotateAuthStreamSecret
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '204':
           description: We have successfully rotated the secret key.
@@ -1669,8 +1660,6 @@ paths:
 
         '
       operationId: postCards
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1881,6 +1870,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '776'
                 exp_month: '06'
@@ -2134,6 +2125,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2335,7 +2328,6 @@ paths:
       operationId: postCardProvision
       parameters:
         - $ref: '#/components/parameters/cardTokenDigitalWallet'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2417,7 +2409,6 @@ paths:
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2489,6 +2480,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2537,7 +2530,6 @@ paths:
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2625,6 +2617,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2832,8 +2826,6 @@ paths:
     post:
       description: Initiate a dispute.
       operationId: postDisputes
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3063,7 +3055,6 @@ paths:
       operationId: postEvidenceDocument
       parameters:
         - $ref: '#/components/parameters/disputeToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3307,8 +3298,6 @@ paths:
     post:
       description: Create a new event subscription.
       operationId: createEventSubscription
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3568,7 +3557,6 @@ paths:
             type: string
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3610,7 +3598,6 @@ paths:
             type: string
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '202':
           description: OK
@@ -3676,7 +3663,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '204':
           description: OK
@@ -3841,7 +3827,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3937,8 +3922,6 @@ paths:
     post:
       description: Creates an external bank account within a program or Lithic account.
       operationId: createExternalBankAccount
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4070,7 +4053,6 @@ paths:
             format: uuid
             title: External Bank Account Token
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4473,8 +4455,6 @@ paths:
       description: Initiates a payment between a financial account and an external
         bank account.
       operationId: createPayment
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4711,8 +4691,6 @@ paths:
         - Responder Endpoints
     post:
       operationId: postResponderEndpoints
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4741,7 +4719,6 @@ paths:
           description: Endpoint enrolled successfully
       summary: Enroll a responder endpoint
       tags:
-        - 3DS
         - Responder Endpoints
   /simulate/authorization_advice:
     post:
@@ -4751,8 +4728,6 @@ paths:
 
         '
       operationId: postSimulateAuthorizationAdvice
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4824,8 +4799,6 @@ paths:
 
         "
       operationId: postSimulateAuthorize
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4989,8 +4962,6 @@ paths:
 
         '
       operationId: postSimulateClearing
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5060,8 +5031,6 @@ paths:
 
         '
       operationId: postSimulateCreditAuthorizationAdvice
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5156,7 +5125,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5187,8 +5155,6 @@ paths:
     post:
       description: Simulates a release of a Payment.
       operationId: simulatePaymentsRelease
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5216,8 +5182,6 @@ paths:
     post:
       description: Simulates a return of a Payment.
       operationId: simulatePaymentsReturn
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5248,8 +5212,6 @@ paths:
 
         '
       operationId: postSimulateReturn
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5319,8 +5281,6 @@ paths:
         \ with a negative amount and `SETTLED` status. These can be credit authorizations\
         \ that have already cleared or financial credit authorizations.\n"
       operationId: postSimulateReturnReversal
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5371,8 +5331,6 @@ paths:
 
         "
       operationId: postSimulateTokenizations
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5482,8 +5440,6 @@ paths:
 
         '
       operationId: postSimulateVoid
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5587,8 +5543,6 @@ paths:
 
         "
       operationId: postSimulateAuthentication
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -6324,8 +6278,6 @@ paths:
 
         '
       operationId: rotateTokenizationDecisioningSecret
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '200':
           content:
@@ -6508,8 +6460,6 @@ paths:
       description: Transfer funds between two financial accounts or between a financial
         account and card
       operationId: postTransfer
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -6760,17 +6710,6 @@ components:
       required: true
       schema:
         format: uuid
-        type: string
-    idempotencyKey:
-      description:
-        'Idempotency key for the POST request. See [Idempotency Requests](https://docs.lithic.com/docs/idempotent-requests)
-        for details on behavior such as cache duration.
-
-        '
-      in: header
-      name: Idempotency-Key
-      schema:
-        maxLength: 255
         type: string
     pageSize:
       description: Page size (for pagination).
@@ -8012,6 +7951,11 @@ components:
       type: object
     Card:
       properties:
+        account_token:
+          description: Globally unique identifier for the account to which the card belongs.
+          example: f3f4918c-dee9-464d-a819-4aa42901d624
+          format: uuid
+          type: string
         auth_rule_tokens:
           description: 'List of identifiers for the Auth Rule(s) that are applied
             on the card.
@@ -8022,6 +7966,11 @@ components:
           items:
             type: string
           type: array
+        card_program_token:
+          description: Globally unique identifier for the card program on which the card exists.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          format: uuid
+          type: string
         created:
           description: An RFC 3339 timestamp for when the card was created. UTC time
             zone.
@@ -8176,6 +8125,8 @@ components:
             - VIRTUAL
           type: string
       required:
+        - account_token
+        - card_program_token
         - created
         - funding
         - last_four
