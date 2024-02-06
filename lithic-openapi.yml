@@ -4083,9 +4083,15 @@ paths:
         and account number.
       operationId: getFinancialAccounts
       parameters:
-        - description: List financial accounts for a given account_token
+        - description: List financial accounts for a given account_token or business_account_token
           in: query
           name: account_token
+          schema:
+            format: uuid
+            type: string
+        - description: List financial accounts for a given business_account_token
+          in: query
+          name: business_account_token
           schema:
             format: uuid
             type: string
@@ -4093,7 +4099,10 @@ paths:
           in: query
           name: type
           schema:
-            enum: *id001
+            enum: &id001
+              - ISSUING
+              - RESERVE
+              - OPERATING
             type: string
       responses:
         '200':
@@ -4126,13 +4135,78 @@ paths:
       summary: List financial accounts
       tags:
         - Financial Account
+  /financial_accounts/{financial_account_token}:
+    get:
+      description: Get a financial account
+      operationId: getFinancialAccountByToken
+      parameters:
+        - in: path
+          name: financial_account_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialAccount'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get financial account
+      tags:
+        - Financial Account
+    patch:
+      description: Update a financial account
+      operationId: updateFinancialAccountByToken
+      parameters:
+        - in: path
+          name: financial_account_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFinancialAccountRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialAccount'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Update financial account
+      tags:
+        - Financial Account
   /financial_accounts/{financial_account_token}/balances:
     get:
       description: Get the balances for a given financial account.
       operationId: getBalance
       parameters:
-        - description: UTC date of the balance to retrieve. Defaults to latest available
-            balance
+        - description: UTC date of the balance to retrieve. Defaults to latest available balance
           in: query
           name: balance_date
           schema:
@@ -9059,6 +9133,9 @@ components:
           description: Date and time for when the financial account was last updated.
           format: date-time
           type: string
+        nickname:
+          description: User-defined nickname for the financial account.
+          type: string
       required:
         - created
         - token
@@ -10917,6 +10994,14 @@ components:
           title: User Defined ID
           type: string
       title: UpdateBankAccountApiRequest
+      type: object
+    UpdateFinancialAccountRequest:
+      properties:
+        nickname:
+          maxLength: 256
+          type: string
+          title: Nickname
+      title: UpdateFinancialAccountRequest
       type: object
     VerificationMethod:
       enum: *id011
