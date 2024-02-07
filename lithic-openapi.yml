@@ -4083,15 +4083,9 @@ paths:
         and account number.
       operationId: getFinancialAccounts
       parameters:
-        - description: List financial accounts for a given account_token or business_account_token
+        - description: List financial accounts for a given account_token
           in: query
           name: account_token
-          schema:
-            format: uuid
-            type: string
-        - description: List financial accounts for a given business_account_token
-          in: query
-          name: business_account_token
           schema:
             format: uuid
             type: string
@@ -4099,10 +4093,7 @@ paths:
           in: query
           name: type
           schema:
-            enum: &id001
-              - ISSUING
-              - RESERVE
-              - OPERATING
+            enum: *id001
             type: string
       responses:
         '200':
@@ -4135,78 +4126,13 @@ paths:
       summary: List financial accounts
       tags:
         - Financial Account
-  /financial_accounts/{financial_account_token}:
-    get:
-      description: Get a financial account
-      operationId: getFinancialAccountByToken
-      parameters:
-        - in: path
-          name: financial_account_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FinancialAccount'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Get financial account
-      tags:
-        - Financial Account
-    patch:
-      description: Update a financial account
-      operationId: updateFinancialAccountByToken
-      parameters:
-        - in: path
-          name: financial_account_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateFinancialAccountRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FinancialAccount'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Update financial account
-      tags:
-        - Financial Account
   /financial_accounts/{financial_account_token}/balances:
     get:
       description: Get the balances for a given financial account.
       operationId: getBalance
       parameters:
-        - description: UTC date of the balance to retrieve. Defaults to latest available balance
+        - description: UTC date of the balance to retrieve. Defaults to latest available
+            balance
           in: query
           name: balance_date
           schema:
@@ -8106,13 +8032,6 @@ components:
           minLength: 16
           type: string
           x-lithic-tag: Enterprise
-        product_id:
-          description: Only applicable to cards of type `PHYSICAL`. This must
-            be configured with Lithic before use. Specifies the configuration
-            (i.e., physical card art) that the card should be manufactured
-            with.
-          example: '1'
-          type: string
         spend_limit:
           description: Amount (in cents) to limit approved authorizations. Transaction
             requests above the spend limit will be declined.
@@ -9139,9 +9058,6 @@ components:
         updated:
           description: Date and time for when the financial account was last updated.
           format: date-time
-          type: string
-        nickname:
-          description: User-defined nickname for the financial account.
           type: string
       required:
         - created
@@ -11002,14 +10918,6 @@ components:
           type: string
       title: UpdateBankAccountApiRequest
       type: object
-    UpdateFinancialAccountRequest:
-      properties:
-        nickname:
-          maxLength: 256
-          type: string
-          title: Nickname
-      title: UpdateFinancialAccountRequest
-      type: object
     VerificationMethod:
       enum: *id011
       title: VerificationMethod
@@ -11269,33 +11177,27 @@ webhooks:
           application/json:
             schema:
               examples:
-                data:
-                  - type: ISSUING
-                    token: 1e338050-295e-477b-884a-4f87d7d4b648
-                    currency: USD
-                    available_amount: 10000
-                    pending_amount: 0
-                    total_amount: 10000
-                    created: '2023-09-14T12:52:44Z'
-                    updated: '2023-09-14T12:52:44Z'
-                    last_transaction_token: 1e338050-295e-477b-884a-4f87d7d4b648
-                    last_transaction_event_token: 10265fe1-7058-451a-bfdf-db6f0ece177c
-                event_type: balance.updated
-              properties:
-                data:
-                  items:
-                    $ref: '#/components/schemas/Balance'
-                  type: array
-                event_type:
-                  description: The type of event that occurred.
-                  enum:
-                    - balance.updated
-                  example: balance.updated
-                  type: string
-              required:
-                - data
-                - event_type
-              type: object
+                payload:
+                  data:
+                    - type: ISSUING
+                      token: 1e338050-295e-477b-884a-4f87d7d4b648
+                      currency: USD
+                      available_amount: 10000
+                      pending_amount: 0
+                      total_amount: 10000
+                      created: '2023-09-14T12:52:44Z'
+                      updated: '2023-09-14T12:52:44Z'
+                      last_transaction_token: 1e338050-295e-477b-884a-4f87d7d4b648
+                      last_transaction_event_token: 10265fe1-7058-451a-bfdf-db6f0ece177c
+              allOf:
+                - type: object
+                  properties:
+                    payload:
+                      - $ref: '#/components/schemas/Balance'
+                    created_at:
+                      type: string
+                      description: Date and time when the event was emitted. UTC time zone.
+                      example: '1973-04-04T23:39:00+00:00'
   card.created:
     post:
       tags:
@@ -12262,43 +12164,44 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/PaymentResponse'
                 - type: object
                   properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - payment_transaction.created
-                      example: payment_transaction.created
+                    payload:
+                      - $ref: '#/components/schemas/PaymentResponse'
+                    created_at:
                       type: string
+                      description: Date and time when the event was emitted. UTC time zone.
+                      example: '1973-04-04T23:39:00+00:00'
               examples:
-                category: ACH
-                created: '2023-09-14T12:52:44Z'
-                currency: USD
-                descriptor: custom description
-                direction: DEBIT
-                event_type: payment_transaction.created
-                events:
-                  - amount: 4103
-                    created: '2023-09-14T12:52:44Z'
-                    result: APPROVED
-                    token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                    type: ACH_ORIGINATION_PENDING
-                external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
-                financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
-                method: ACH_NEXT_DAY
-                method_attributes:
-                  retries: 0
-                  return_reason_code: null
-                  sec_code: CCD
-                pending_amount: 4103
-                result: APPROVED
-                settled_amount: 0
-                source: CUSTOMER
-                status: PENDING
-                token: 147595d7-45f4-4c91-a950-3436d16847e5
-                updated: '2023-09-14T12:52:44Z'
-                user_defined_id: null
+                payload:
+                  category: ACH
+                  created: '2023-09-14T12:52:44Z'
+                  currency: USD
+                  descriptor: custom description
+                  direction: DEBIT
+                  event_type: payment_transaction.created
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACH_ORIGINATION_PENDING
+                  external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                  financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                  method: ACH_NEXT_DAY
+                  method_attributes:
+                    retries: 0
+                    return_reason_code: null
+                    sec_code: CCD
+                  pending_amount: 4103
+                  result: APPROVED
+                  settled_amount: 0
+                  source: CUSTOMER
+                  status: PENDING
+                  token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  updated: '2023-09-14T12:52:44Z'
+                  user_defined_id: null
+                  created_at: '2023-09-14T12:52:44Z'
 
       responses:
         '200':
@@ -12315,53 +12218,54 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/PaymentResponse'
                 - type: object
                   properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - payment_transaction.updated
-                      example: payment_transaction.updated
+                    payload:
+                      - $ref: '#/components/schemas/PaymentResponse'
+                    created_at:
                       type: string
+                      description: Date and time when the event was emitted. UTC time zone.
+                      example: '1973-04-04T23:39:00+00:00'
               examples:
-                category: ACH
-                created: '2023-09-14T12:52:44Z'
-                currency: USD
-                descriptor: custom description
-                direction: DEBIT
-                event_type: payment_transaction.updated
-                events:
-                  - amount: 4103
-                    created: '2023-09-14T12:52:44Z'
-                    result: APPROVED
-                    token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                    type: ACH_ORIGINATION_PENDING
-                  - amount: 4103
-                    created: '2023-09-14T12:52:46Z'
-                    result: APPROVED
-                    token: 95719c03-7eb8-560b-9843-39da92df5231
-                    type: ACH_ORIGINATION_PROCESSED
-                  - amount: 4103
-                    created: '2023-09-14T12:52:47Z'
-                    result: APPROVED
-                    token: 87fea0af-931f-5e80-a9cf-a243aa71b89d
-                    type: ACH_ORIGINATION_RELEASED
-                external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
-                financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
-                method: ACH_NEXT_DAY
-                method_attributes:
-                  retries: 0
-                  return_reason_code: null
-                  sec_code: CCD
-                pending_amount: 0
-                result: APPROVED
-                settled_amount: 4103
-                source: CUSTOMER
-                status: SETTLED
-                token: 147595d7-45f4-4c91-a950-3436d16847e5
-                updated: '2023-09-14T12:52:47Z'
-                user_defined_id: null
+                payload:
+                  category: ACH
+                  created: '2023-09-14T12:52:44Z'
+                  currency: USD
+                  descriptor: custom description
+                  direction: DEBIT
+                  event_type: payment_transaction.updated
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACH_ORIGINATION_PENDING
+                    - amount: 4103
+                      created: '2023-09-14T12:52:46Z'
+                      result: APPROVED
+                      token: 95719c03-7eb8-560b-9843-39da92df5231
+                      type: ACH_ORIGINATION_PROCESSED
+                    - amount: 4103
+                      created: '2023-09-14T12:52:47Z'
+                      result: APPROVED
+                      token: 87fea0af-931f-5e80-a9cf-a243aa71b89d
+                      type: ACH_ORIGINATION_RELEASED
+                  external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                  financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                  method: ACH_NEXT_DAY
+                  method_attributes:
+                    retries: 0
+                    return_reason_code: null
+                    sec_code: CCD
+                  pending_amount: 0
+                  result: APPROVED
+                  settled_amount: 4103
+                  source: CUSTOMER
+                  status: SETTLED
+                  token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  updated: '2023-09-14T12:52:47Z'
+                  user_defined_id: null
+                created_at: '2023-09-14T12:52:47Z'
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received
@@ -12703,33 +12607,33 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/Transfer'
                 - type: object
                   properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - transfer_transaction.created
-                      example: transfer_transaction.created
+                    payload:
+                      - $ref: '#/components/schemas/Transfer'
+                    created_at:
                       type: string
+                      description: Date and time when the event was emitted. UTC time zone.
+                      example: '1973-04-04T23:39:00+00:00'
               examples:
-                event_type: transfer_transaction.created
-                category: TRANSFER
-                created: '1973-04-04T23:39:00+00:00'
-                updated: '1973-04-04T23:39:00+00:00'
-                currency: USD
-                status: SETTLED
-                result: APPROVED
-                token: bee304c3-d93d-42a0-88f4-68dde3251393
-                descriptor: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.'
-                events:
-                  - amount: 4103
-                    created: '2023-09-14T12:52:44Z'
-                    result: APPROVED
-                    token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                    type: TRANSFER
-                pending_amount: 0
-                settled_amount: 4103
+                payload:
+                  category: TRANSFER
+                  created: '1973-04-04T23:39:00+00:00'
+                  updated: '1973-04-04T23:39:00+00:00'
+                  currency: USD
+                  status: SETTLED
+                  result: APPROVED
+                  token: bee304c3-d93d-42a0-88f4-68dde3251393
+                  descriptor: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.'
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: TRANSFER
+                  pending_amount: 0
+                  settled_amount: 4103
+              created_at: '1973-04-04T23:39:00+00:00'
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received
