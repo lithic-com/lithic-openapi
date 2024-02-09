@@ -53,8 +53,6 @@ paths:
         calling API key manages.
         "
       operationId: postAccountHolders
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -563,7 +561,6 @@ paths:
       operationId: postAccountHolderDocuments
       parameters:
         - $ref: '#/components/parameters/accountHolderTokenPath'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -670,7 +667,6 @@ paths:
       operationId: postAccountHolderResubmit
       parameters:
         - $ref: '#/components/parameters/accountHolderTokenPath'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1101,8 +1097,6 @@ paths:
       description: Creates an authorization rule (Auth Rule) and applies it at the
         program, account, or card level.
       operationId: postAuthRules
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1340,7 +1334,6 @@ paths:
       operationId: postAuthRuleByTokenApply
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1439,8 +1432,6 @@ paths:
 
         '
       operationId: rotateAuthStreamSecret
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '204':
           description: We have successfully rotated the secret key.
@@ -1669,8 +1660,6 @@ paths:
 
         '
       operationId: postCards
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -1881,6 +1870,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '776'
                 exp_month: '06'
@@ -2134,6 +2125,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2335,7 +2328,6 @@ paths:
       operationId: postCardProvision
       parameters:
         - $ref: '#/components/parameters/cardTokenDigitalWallet'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2417,7 +2409,6 @@ paths:
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2489,6 +2480,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2537,7 +2530,6 @@ paths:
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -2625,6 +2617,8 @@ paths:
           content:
             application/json:
               example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2832,8 +2826,6 @@ paths:
     post:
       description: Initiate a dispute.
       operationId: postDisputes
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3063,7 +3055,6 @@ paths:
       operationId: postEvidenceDocument
       parameters:
         - $ref: '#/components/parameters/disputeToken'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3307,8 +3298,6 @@ paths:
     post:
       description: Create a new event subscription.
       operationId: createEventSubscription
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3568,7 +3557,6 @@ paths:
             type: string
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3610,7 +3598,6 @@ paths:
             type: string
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '202':
           description: OK
@@ -3676,7 +3663,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '204':
           description: OK
@@ -3841,7 +3827,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -3937,8 +3922,6 @@ paths:
     post:
       description: Creates an external bank account within a program or Lithic account.
       operationId: createExternalBankAccount
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4070,7 +4053,6 @@ paths:
             format: uuid
             title: External Bank Account Token
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4101,9 +4083,15 @@ paths:
         and account number.
       operationId: getFinancialAccounts
       parameters:
-        - description: List financial accounts for a given account_token
+        - description: List financial accounts for a given account_token or business_account_token
           in: query
           name: account_token
+          schema:
+            format: uuid
+            type: string
+        - description: List financial accounts for a given business_account_token
+          in: query
+          name: business_account_token
           schema:
             format: uuid
             type: string
@@ -4111,7 +4099,10 @@ paths:
           in: query
           name: type
           schema:
-            enum: *id001
+            enum: &id001
+              - ISSUING
+              - RESERVE
+              - OPERATING
             type: string
       responses:
         '200':
@@ -4144,13 +4135,78 @@ paths:
       summary: List financial accounts
       tags:
         - Financial Account
+  /financial_accounts/{financial_account_token}:
+    get:
+      description: Get a financial account
+      operationId: getFinancialAccountByToken
+      parameters:
+        - in: path
+          name: financial_account_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialAccount'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get financial account
+      tags:
+        - Financial Account
+    patch:
+      description: Update a financial account
+      operationId: updateFinancialAccountByToken
+      parameters:
+        - in: path
+          name: financial_account_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFinancialAccountRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialAccount'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Update financial account
+      tags:
+        - Financial Account
   /financial_accounts/{financial_account_token}/balances:
     get:
       description: Get the balances for a given financial account.
       operationId: getBalance
       parameters:
-        - description: UTC date of the balance to retrieve. Defaults to latest available
-            balance
+        - description: UTC date of the balance to retrieve. Defaults to latest available balance
           in: query
           name: balance_date
           schema:
@@ -4473,8 +4529,6 @@ paths:
       description: Initiates a payment between a financial account and an external
         bank account.
       operationId: createPayment
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4711,8 +4765,6 @@ paths:
         - Responder Endpoints
     post:
       operationId: postResponderEndpoints
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4741,7 +4793,6 @@ paths:
           description: Endpoint enrolled successfully
       summary: Enroll a responder endpoint
       tags:
-        - 3DS
         - Responder Endpoints
   /simulate/authorization_advice:
     post:
@@ -4751,8 +4802,6 @@ paths:
 
         '
       operationId: postSimulateAuthorizationAdvice
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4824,8 +4873,6 @@ paths:
 
         "
       operationId: postSimulateAuthorize
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -4989,8 +5036,6 @@ paths:
 
         '
       operationId: postSimulateClearing
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5060,8 +5105,6 @@ paths:
 
         '
       operationId: postSimulateCreditAuthorizationAdvice
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5156,7 +5199,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5187,8 +5229,6 @@ paths:
     post:
       description: Simulates a release of a Payment.
       operationId: simulatePaymentsRelease
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5216,8 +5256,6 @@ paths:
     post:
       description: Simulates a return of a Payment.
       operationId: simulatePaymentsReturn
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5248,8 +5286,6 @@ paths:
 
         '
       operationId: postSimulateReturn
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5319,8 +5355,6 @@ paths:
         \ with a negative amount and `SETTLED` status. These can be credit authorizations\
         \ that have already cleared or financial credit authorizations.\n"
       operationId: postSimulateReturnReversal
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5371,8 +5405,6 @@ paths:
 
         "
       operationId: postSimulateTokenizations
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5482,8 +5514,6 @@ paths:
 
         '
       operationId: postSimulateVoid
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5587,8 +5617,6 @@ paths:
 
         "
       operationId: postSimulateAuthentication
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -5718,7 +5746,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
+                properties: &three_ds_authentication_object
                   account_type:
                     description: 'Type of account/card that is being used for the
                       transaction. Maps to EMV 3DS field acctType.
@@ -6324,8 +6352,6 @@ paths:
 
         '
       operationId: rotateTokenizationDecisioningSecret
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       responses:
         '200':
           content:
@@ -6508,8 +6534,6 @@ paths:
       description: Transfer funds between two financial accounts or between a financial
         account and card
       operationId: postTransfer
-      parameters:
-        - $ref: '#/components/parameters/idempotencyKey'
       requestBody:
         content:
           application/json:
@@ -6760,17 +6784,6 @@ components:
       required: true
       schema:
         format: uuid
-        type: string
-    idempotencyKey:
-      description:
-        'Idempotency key for the POST request. See [Idempotency Requests](https://docs.lithic.com/docs/idempotent-requests)
-        for details on behavior such as cache duration.
-
-        '
-      in: header
-      name: Idempotency-Key
-      schema:
-        maxLength: 255
         type: string
     pageSize:
       description: Page size (for pagination).
@@ -8012,6 +8025,11 @@ components:
       type: object
     Card:
       properties:
+        account_token:
+          description: Globally unique identifier for the account to which the card belongs.
+          example: f3f4918c-dee9-464d-a819-4aa42901d624
+          format: uuid
+          type: string
         auth_rule_tokens:
           description: 'List of identifiers for the Auth Rule(s) that are applied
             on the card.
@@ -8022,6 +8040,11 @@ components:
           items:
             type: string
           type: array
+        card_program_token:
+          description: Globally unique identifier for the card program on which the card exists.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          format: uuid
+          type: string
         created:
           description: An RFC 3339 timestamp for when the card was created. UTC time
             zone.
@@ -8083,6 +8106,13 @@ components:
           minLength: 16
           type: string
           x-lithic-tag: Enterprise
+        product_id:
+          description: Only applicable to cards of type `PHYSICAL`. This must
+            be configured with Lithic before use. Specifies the configuration
+            (i.e., physical card art) that the card should be manufactured
+            with.
+          example: '1'
+          type: string
         spend_limit:
           description: Amount (in cents) to limit approved authorizations. Transaction
             requests above the spend limit will be declined.
@@ -8176,6 +8206,8 @@ components:
             - VIRTUAL
           type: string
       required:
+        - account_token
+        - card_program_token
         - created
         - funding
         - last_four
@@ -9107,6 +9139,9 @@ components:
         updated:
           description: Date and time for when the financial account was last updated.
           format: date-time
+          type: string
+        nickname:
+          description: User-defined nickname for the financial account.
           type: string
       required:
         - created
@@ -10967,6 +11002,14 @@ components:
           type: string
       title: UpdateBankAccountApiRequest
       type: object
+    UpdateFinancialAccountRequest:
+      properties:
+        nickname:
+          maxLength: 256
+          type: string
+          title: Nickname
+      title: UpdateFinancialAccountRequest
+      type: object
     VerificationMethod:
       enum: *id011
       title: VerificationMethod
@@ -11226,27 +11269,33 @@ webhooks:
           application/json:
             schema:
               examples:
-                payload:
-                  data:
-                    - type: ISSUING
-                      token: 1e338050-295e-477b-884a-4f87d7d4b648
-                      currency: USD
-                      available_amount: 10000
-                      pending_amount: 0
-                      total_amount: 10000
-                      created: '2023-09-14T12:52:44Z'
-                      updated: '2023-09-14T12:52:44Z'
-                      last_transaction_token: 1e338050-295e-477b-884a-4f87d7d4b648
-                      last_transaction_event_token: 10265fe1-7058-451a-bfdf-db6f0ece177c
-              allOf:
-                - type: object
-                  properties:
-                    payload:
-                      - $ref: '#/components/schemas/Balance'
-                    created_at:
-                      type: string
-                      description: Date and time when the event was emitted. UTC time zone.
-                      example: '1973-04-04T23:39:00+00:00'
+                data:
+                  - type: ISSUING
+                    token: 1e338050-295e-477b-884a-4f87d7d4b648
+                    currency: USD
+                    available_amount: 10000
+                    pending_amount: 0
+                    total_amount: 10000
+                    created: '2023-09-14T12:52:44Z'
+                    updated: '2023-09-14T12:52:44Z'
+                    last_transaction_token: 1e338050-295e-477b-884a-4f87d7d4b648
+                    last_transaction_event_token: 10265fe1-7058-451a-bfdf-db6f0ece177c
+                event_type: balance.updated
+              properties:
+                data:
+                  items:
+                    $ref: '#/components/schemas/Balance'
+                  type: array
+                event_type:
+                  description: The type of event that occurred.
+                  enum:
+                    - balance.updated
+                  example: balance.updated
+                  type: string
+              required:
+                - data
+                - event_type
+              type: object
   card.created:
     post:
       tags:
@@ -12213,44 +12262,43 @@ webhooks:
           application/json:
             schema:
               allOf:
+                - $ref: '#/components/schemas/PaymentResponse'
                 - type: object
                   properties:
-                    payload:
-                      - $ref: '#/components/schemas/PaymentResponse'
-                    created_at:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - payment_transaction.created
+                      example: payment_transaction.created
                       type: string
-                      description: Date and time when the event was emitted. UTC time zone.
-                      example: '1973-04-04T23:39:00+00:00'
               examples:
-                payload:
-                  category: ACH
-                  created: '2023-09-14T12:52:44Z'
-                  currency: USD
-                  descriptor: custom description
-                  direction: DEBIT
-                  event_type: payment_transaction.created
-                  events:
-                    - amount: 4103
-                      created: '2023-09-14T12:52:44Z'
-                      result: APPROVED
-                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                      type: ACH_ORIGINATION_PENDING
-                  external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
-                  financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
-                  method: ACH_NEXT_DAY
-                  method_attributes:
-                    retries: 0
-                    return_reason_code: null
-                    sec_code: CCD
-                  pending_amount: 4103
-                  result: APPROVED
-                  settled_amount: 0
-                  source: CUSTOMER
-                  status: PENDING
-                  token: 147595d7-45f4-4c91-a950-3436d16847e5
-                  updated: '2023-09-14T12:52:44Z'
-                  user_defined_id: null
-                  created_at: '2023-09-14T12:52:44Z'
+                category: ACH
+                created: '2023-09-14T12:52:44Z'
+                currency: USD
+                descriptor: custom description
+                direction: DEBIT
+                event_type: payment_transaction.created
+                events:
+                  - amount: 4103
+                    created: '2023-09-14T12:52:44Z'
+                    result: APPROVED
+                    token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                    type: ACH_ORIGINATION_PENDING
+                external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                method: ACH_NEXT_DAY
+                method_attributes:
+                  retries: 0
+                  return_reason_code: null
+                  sec_code: CCD
+                pending_amount: 4103
+                result: APPROVED
+                settled_amount: 0
+                source: CUSTOMER
+                status: PENDING
+                token: 147595d7-45f4-4c91-a950-3436d16847e5
+                updated: '2023-09-14T12:52:44Z'
+                user_defined_id: null
 
       responses:
         '200':
@@ -12267,54 +12315,53 @@ webhooks:
           application/json:
             schema:
               allOf:
+                - $ref: '#/components/schemas/PaymentResponse'
                 - type: object
                   properties:
-                    payload:
-                      - $ref: '#/components/schemas/PaymentResponse'
-                    created_at:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - payment_transaction.updated
+                      example: payment_transaction.updated
                       type: string
-                      description: Date and time when the event was emitted. UTC time zone.
-                      example: '1973-04-04T23:39:00+00:00'
               examples:
-                payload:
-                  category: ACH
-                  created: '2023-09-14T12:52:44Z'
-                  currency: USD
-                  descriptor: custom description
-                  direction: DEBIT
-                  event_type: payment_transaction.updated
-                  events:
-                    - amount: 4103
-                      created: '2023-09-14T12:52:44Z'
-                      result: APPROVED
-                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                      type: ACH_ORIGINATION_PENDING
-                    - amount: 4103
-                      created: '2023-09-14T12:52:46Z'
-                      result: APPROVED
-                      token: 95719c03-7eb8-560b-9843-39da92df5231
-                      type: ACH_ORIGINATION_PROCESSED
-                    - amount: 4103
-                      created: '2023-09-14T12:52:47Z'
-                      result: APPROVED
-                      token: 87fea0af-931f-5e80-a9cf-a243aa71b89d
-                      type: ACH_ORIGINATION_RELEASED
-                  external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
-                  financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
-                  method: ACH_NEXT_DAY
-                  method_attributes:
-                    retries: 0
-                    return_reason_code: null
-                    sec_code: CCD
-                  pending_amount: 0
-                  result: APPROVED
-                  settled_amount: 4103
-                  source: CUSTOMER
-                  status: SETTLED
-                  token: 147595d7-45f4-4c91-a950-3436d16847e5
-                  updated: '2023-09-14T12:52:47Z'
-                  user_defined_id: null
-                created_at: '2023-09-14T12:52:47Z'
+                category: ACH
+                created: '2023-09-14T12:52:44Z'
+                currency: USD
+                descriptor: custom description
+                direction: DEBIT
+                event_type: payment_transaction.updated
+                events:
+                  - amount: 4103
+                    created: '2023-09-14T12:52:44Z'
+                    result: APPROVED
+                    token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                    type: ACH_ORIGINATION_PENDING
+                  - amount: 4103
+                    created: '2023-09-14T12:52:46Z'
+                    result: APPROVED
+                    token: 95719c03-7eb8-560b-9843-39da92df5231
+                    type: ACH_ORIGINATION_PROCESSED
+                  - amount: 4103
+                    created: '2023-09-14T12:52:47Z'
+                    result: APPROVED
+                    token: 87fea0af-931f-5e80-a9cf-a243aa71b89d
+                    type: ACH_ORIGINATION_RELEASED
+                external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                method: ACH_NEXT_DAY
+                method_attributes:
+                  retries: 0
+                  return_reason_code: null
+                  sec_code: CCD
+                pending_amount: 0
+                result: APPROVED
+                settled_amount: 4103
+                source: CUSTOMER
+                status: SETTLED
+                token: 147595d7-45f4-4c91-a950-3436d16847e5
+                updated: '2023-09-14T12:52:47Z'
+                user_defined_id: null
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received
@@ -12452,188 +12499,7 @@ webhooks:
                     date_time: '2023-08-17T19:04:58Z'
                     type: GOODS_SERVICE_PURCHASE
               properties:
-                account_type:
-                  description: Type of account/card that is being used for the transaction.
-                    Maps to EMV 3DS field acctType.
-                  enum:
-                    - CREDIT
-                    - DEBIT
-                    - NOT_APPLICABLE
-                  example: CREDIT
-                  nullable: true
-                  type: string
-                additional_data:
-                  description: ''
-                  properties:
-                    network_decision:
-                      description: (Mastercard only) Indicates whether the network
-                        would have considered the authentication request to be low
-                        risk or not.
-                      enum:
-                        - LOW_RISK
-                        - NOT_LOW_RISK
-                      example: LOW_RISK
-                      nullable: true
-                      type: string
-                    network_risk_score:
-                      description: (Mastercard only) Assessment by the network of
-                        the authentication risk level, with a higher value indicating
-                        a higher amount of risk. Permitted values - Integer between
-                        0-950, in increments of 50.
-                      example: 0
-                      nullable: true
-                      type: number
-                  required: []
-                  title: AdditionalData
-                  type: object
-                app:
-                  description: Object containing data about the app used in the e-commerce
-                    transaction. Present if the channel is 'APP_BASED'.
-                  nullable: true
-                  properties:
-                    device_info:
-                      description: Device information gathered from the cardholder's
-                        device - JSON name/value pairs that is Base64url encoded.
-                      example: eyJkZXZpY2VfaWQiOiJkZXZpY2VfaWQifQ==
-                      nullable: true
-                      type: string
-                    ip:
-                      anyOf:
-                        - format: ipv4
-                          type: string
-                        - format: ipv6
-                          type: string
-                      description: External IP address used by the app generating
-                        the 3DS authentication request.
-                      example: 1.1.1.1
-                      nullable: true
-                  required: []
-                  type: object
-                authentication_request_type:
-                  description: Type of authentication request - i.e., the type of
-                    transaction or interaction is causing the merchant to request
-                    an authentication. Maps to EMV 3DS field threeDSRequestorAuthenticationInd.
-                  enum:
-                    - ADD_CARD
-                    - BILLING_AGREEMENT
-                    - DELAYED_SHIPMENT
-                    - EMV_TOKEN_CARDHOLDER_VERIFICATION
-                    - INSTALLMENT_TRANSACTION
-                    - MAINTAIN_CARD
-                    - PAYMENT_TRANSACTION
-                    - RECURRING_TRANSACTION
-                    - SPLIT_PAYMENT
-                    - SPLIT_SHIPMENT
-                  example: PAYMENT_TRANSACTION
-                  nullable: true
-                  type: string
-                authentication_result:
-                  description: Indicates the outcome of the 3DS authentication process.
-                  enum:
-                    - DECLINE
-                    - SUCCESS
-                  example: SUCCESS
-                  nullable: true
-                  type: string
-                browser:
-                  description: Object containing data about the browser used in the
-                    e-commerce transaction. Present if the channel is 'BROWSER'.
-                  nullable: true
-                  properties:
-                    accept_header:
-                      description: Content of the HTTP accept headers as sent from
-                        the cardholder's browser to the 3DS requestor (e.g., merchant
-                        or digital wallet).
-                      example: text/html,application/xhtml+xml
-                      nullable: true
-                      type: string
-                    ip:
-                      anyOf:
-                        - format: ipv4
-                          type: string
-                        - format: ipv6
-                          type: string
-                      description: IP address of the browser as returned by the HTTP
-                        headers to the 3DS requestor (e.g., merchant or digital wallet).
-                        Maps to EMV 3DS field browserIP.
-                      example: 1.1.1.1
-                      nullable: true
-                    java_enabled:
-                      description: Indicates whether the cardholder's browser has
-                        the ability to execute Java. Maps to EMV 3DS field browserJavaEnabled.
-                      example: true
-                      nullable: true
-                      type: boolean
-                    javascript_enabled:
-                      description: Indicates whether the cardholder's browser has
-                        the ability to execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
-                      example: true
-                      nullable: true
-                      type: boolean
-                    language:
-                      description: "Language of the cardholder\u2019s browser as defined\
-                        \ in IETF BCP47. Maps to EMV 3DS field browserLanguage."
-                      example: en-US
-                      nullable: true
-                      type: string
-                    time_zone:
-                      description: "Time zone of the cardholder\u2019s browser offset\
-                        \ in minutes between UTC and the cardholder browser\u2019\
-                        s local time. The offset is positive if the local time is\
-                        \ behind UTC and negative if it is ahead. Maps to EMV 3DS\
-                        \ field browserTz."
-                      example: '-240'
-                      nullable: true
-                      type: string
-                    user_agent:
-                      description: Content of the HTTP user-agent header. Maps to
-                        EMV 3DS field browserUserAgent.
-                      example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36
-                        (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36
-                      nullable: true
-                      type: string
-                  required: []
-                  title: Browser
-                  type: object
-                card_expiry_check:
-                  description: "Indicates whether the expiration date provided by\
-                    \ the cardholder during checkout matches Lithic\u2019s record\
-                    \ of the card\u2019s expiration date."
-                  enum:
-                    - MATCH
-                    - MISMATCH
-                    - NOT_PRESENT
-                  type: string
-                card_token:
-                  description: Globally unique identifier for the card on which the
-                    3DS authentication has occurred. Permitted values - 36-digit version
-                    4 UUID (including hyphens).
-                  example: 00000000-0000-0000-0000-000000000001
-                  format: uuid
-                  type: string
-                cardholder:
-                  description: Object containing data about the cardholder provided
-                    during the transaction.
-                  properties:
-                    address_match:
-                      description: Indicates whether the shipping address and billing
-                        address provided by the cardholder are the same. This value
-                        - and assessment of whether the addresses match - is provided
-                        directly in the 3DS request and is not determined by Lithic.
-                        Maps to EMV 3DS field addrMatch.
-                      example: true
-                      nullable: true
-                      type: boolean
-                    billing_address:
-                      description: Object containing data on the billing address provided
-                        during the transaction.
-                      type: object
-                    email:
-                      description: Email address provided by the cardholder during
-                        the transaction.
-                      example: customer@me.com
-                      nullable: true
-                      type: string
+                <<: *three_ds_authentication_object
                 event_type:
                   description: The name of this event
                   enum:
@@ -12656,33 +12522,33 @@ webhooks:
           application/json:
             schema:
               allOf:
+                - $ref: '#/components/schemas/Transfer'
                 - type: object
                   properties:
-                    payload:
-                      - $ref: '#/components/schemas/Transfer'
-                    created_at:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - transfer_transaction.created
+                      example: transfer_transaction.created
                       type: string
-                      description: Date and time when the event was emitted. UTC time zone.
-                      example: '1973-04-04T23:39:00+00:00'
               examples:
-                payload:
-                  category: TRANSFER
-                  created: '1973-04-04T23:39:00+00:00'
-                  updated: '1973-04-04T23:39:00+00:00'
-                  currency: USD
-                  status: SETTLED
-                  result: APPROVED
-                  token: bee304c3-d93d-42a0-88f4-68dde3251393
-                  descriptor: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.'
-                  events:
-                    - amount: 4103
-                      created: '2023-09-14T12:52:44Z'
-                      result: APPROVED
-                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                      type: TRANSFER
-                  pending_amount: 0
-                  settled_amount: 4103
-              created_at: '1973-04-04T23:39:00+00:00'
+                event_type: transfer_transaction.created
+                category: TRANSFER
+                created: '1973-04-04T23:39:00+00:00'
+                updated: '1973-04-04T23:39:00+00:00'
+                currency: USD
+                status: SETTLED
+                result: APPROVED
+                token: bee304c3-d93d-42a0-88f4-68dde3251393
+                descriptor: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.'
+                events:
+                  - amount: 4103
+                    created: '2023-09-14T12:52:44Z'
+                    result: APPROVED
+                    token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                    type: TRANSFER
+                pending_amount: 0
+                settled_amount: 4103
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received
