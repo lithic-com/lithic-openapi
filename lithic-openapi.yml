@@ -4062,6 +4062,36 @@ paths:
       summary: Verify external bank account via micro deposit amounts
       tags:
         - External Bank Account
+  /external_bank_accounts/{external_bank_account_token}/retry_micro_deposits:
+    post:
+      description: Retry external bank account micro deposit verification.
+      operationId: retryMicroDeposit
+      parameters:
+        - in: path
+          name: external_bank_account_token
+          required: true
+          schema:
+            format: uuid
+            title: External Bank Account Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountApiResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retry external bank account via micro deposit
+      tags:
+        - External Bank Account
   /financial_accounts:
     get:
       description: Retrieve information on your financial accounts including routing
@@ -7356,12 +7386,14 @@ components:
             - MANUAL
             - MICRO_DEPOSIT
             - PLAID
+            - PRENOTE
           title: Verification Method
           type: string
         verification_state:
           enum: &id012
             - ENABLED
             - FAILED_VERIFICATION
+            - INSUFFICIENT_FUNDS
             - PENDING
           title: Verification State
           type: string
