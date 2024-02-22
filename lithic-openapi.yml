@@ -5523,22 +5523,13 @@ paths:
           content:
             application/json:
               example:
-                token: 3e9a10da-11be-4a62-a510-d43548bfcec1
-                token_requestor_name: APPLE_PAY
                 account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
                 card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
-                token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
-                status: ACTIVE
-                events:
-                  - token: a690b617-d3d4-4976-82f6-901f817ad98a
-                    type: TOKENIZATION_UPDATED
-                    result: TOKEN_ACTIVATED
-                    created_at: '2023-09-13T16:01:13.643241'
-                  - token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
-                    type: TOKENIZATION_AUTHORIZATION
-                    result: APPROVED
-                    created_at: '2023-09-13T16:01:13.643241'
                 created_at: '2023-08-28T15:57:14.578051'
+                status: APPROVED
+                token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                token_requestor_name: APPLE_PAY
+                token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -5919,130 +5910,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Rotate the Tokenization Decisioning HMAC secret key
-      tags:
-        - Tokenization
-  /tokenizations:
-    get:
-      description: List card tokenizations
-      operationId: getTokenizations
-      parameters:
-        - description: 'Filters for tokenizations associated with a specific account.'
-          in: query
-          name: account_token
-          schema:
-            format: uuid
-            type: string
-        - description: 'Filters for tokenizations associated with a specific card.'
-          in: query
-          name: card_token
-          schema:
-            format: uuid
-            type: string
-        - description: Filter for tokenizations created after this date.
-          in: query
-          name: begin
-          schema:
-            format: date
-            type: string
-        - description: Filter for tokenizations created before this date.
-          in: query
-          name: end
-          schema:
-            format: date
-            type: string
-        - $ref: '#/components/parameters/pageSize'
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/endingBefore'
-      responses:
-        '200':
-          content:
-            application/json:
-              example:
-                data:
-                  - token: 3e9a10da-11be-4a62-a510-d43548bfcec1
-                    token_requestor_name: APPLE_PAY
-                    account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
-                    card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
-                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                    status: ACTIVE
-                    events:
-                      - token: a690b617-d3d4-4976-82f6-901f817ad98a
-                        type: TOKENIZATION_UPDATED
-                        result: TOKEN_ACTIVATED
-                        created_at: '2023-09-13T16:01:13.643241'
-                      - token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
-                        type: TOKENIZATION_AUTHORIZATION
-                        result: APPROVED
-                        created_at: '2023-09-13T16:01:13.643241'
-                    created_at: '2023-08-28T15:57:14.578051'
-                    updated_at: '2023-08-28T15:57:14.578051'
-                has_more: false
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/Tokenization'
-                    type: array
-                  has_more:
-                    type: boolean
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Get a card's tokenizations
-      tags:
-        - Tokenization
-  /tokenizations/{tokenization_token}:
-    get:
-      description: Get tokenization
-      operationId: getTokenization
-      parameters:
-        - description: Tokenization token
-          in: path
-          required: true
-          name: tokenization_token
-          schema:
-            format: uuid
-            type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              example:
-                token: 3e9a10da-11be-4a62-a510-d43548bfcec1
-                token_requestor_name: APPLE_PAY
-                account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
-                card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
-                token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                status: ACTIVE
-                events:
-                  - token: a690b617-d3d4-4976-82f6-901f817ad98a
-                    type: TOKENIZATION_UPDATED
-                    result: TOKEN_ACTIVATED
-                    created_at: '2023-09-13T16:01:13.643241'
-                  - token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
-                    type: TOKENIZATION_AUTHORIZATION
-                    result: APPROVED
-                    created_at: '2023-09-13T16:01:13.643241'
-                created_at: '2023-08-28T15:57:14.578051'
-                updated_at: '2023-08-28T15:57:14.578051'
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/Tokenization'
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Get a single card tokenization
       tags:
         - Tokenization
   /transactions:
@@ -10635,24 +10502,6 @@ components:
       type: object
     Tokenization:
       properties:
-        token:
-          description: Globally unique identifier for a Tokenization
-          format: uuid
-          type: string
-        token_requestor_name:
-          description: The entity that is requested the tokenization. Represents a
-            Digital Wallet.
-          enum:
-            - APPLE_PAY
-            - ANDROID_PAY
-            - SAMSUNG_PAY
-            - AMAZON_ONE
-            - MICROSOFT_PAY
-            - VISA_CHECKOUT
-            - FITBIT_PAY
-            - GARMIN_PAY
-            - UNKNOWN
-          type: string
         account_token:
           description: The account token associated with the card being tokenized.
           format: uuid
@@ -10661,29 +10510,36 @@ components:
           description: The card token associated with the card being tokenized.
           format: uuid
           type: string
-        token_unique_reference:
-          description: The network's unique reference for the tokenization.
-          type: string
-        status:
-          description: The status of the tokenization request
-          enum:
-            - ACTIVE
-            - DEACTIVATED
-            - INACTIVE
-            - PAUSED
-            - PENDING_ACTIVATION
-            - PENDING_2FA
-            - UNKNOWN
-          type: string
-        events:
-          description: A list of events related to the tokenization.
-          items:
-            $ref: '#/components/schemas/TokenizationEvent'
-          type: array
         created_at:
           description: Date and time when the tokenization first occurred. UTC time
             zone.
           format: date-time
+          type: string
+        status:
+          description: The status of the tokenization request
+          enum: &id014
+            - APPROVED
+            - DECLINED
+            - REQUIRE_ADDITIONAL_AUTHENTICATION
+          type: string
+        token:
+          description: 'A fixed-width 23-digit numeric identifier for the Transaction
+            that may be set if the transaction originated from the Mastercard network.
+            This number may be used for dispute tracking.
+
+            '
+          format: uuid
+          type: string
+        token_requestor_name:
+          description: The entity that is requested the tokenization. Represents a
+            Digital Wallet.
+          enum:
+            - APPLE_PAY
+            - GOOGLE
+            - SAMSUNG_PAY
+          type: string
+        token_unique_reference:
+          description: The network's unique reference for the tokenization.
           type: string
         updated_at:
           description: Latest date and time when the tokenization was updated. UTC
@@ -10700,41 +10556,6 @@ components:
         - token_unique_reference
         - updated_at
       type: object
-    TokenizationEvent:
-      properties:
-        token:
-          description: Globally unique identifier for a Tokenization Event
-          format: uuid
-          type: string
-        type:
-          description: Enum representing the type of tokenization event that occurred
-          enum:
-            - TOKENIZATION_DECISIONING
-            - TOKENIZATION_AUTHORIZATION
-            - TOKENIZATION_ELIGIBILITY_CHECK
-            - TOKENIZATION_2FA
-            - TOKENIZATION_UPDATED
-          type: string
-        result:
-          description: Enum representing the result of the tokenization event
-          enum:
-            - APPROVED
-            - DECLINED
-            - REQUIRE_ADDITIONAL_AUTHENTICATION
-            - NOTIFICATION_DELIVERED
-            - TOKEN_ACTIVATED
-            - TOKEN_SUSPENDED
-            - TOKEN_DEACTIVATED
-            - TOKEN_INACTIVE
-            - TOKEN_STATE_UNKNOWN
-            - TOKEN_CREATED
-            - TOKEN_UPDATED
-          type: string
-        created_at:
-          description: Date and time when the tokenization event first occurred. UTC time
-            zone.
-          format: date-time
-          type: string
     Transaction:
       properties:
         acquirer_fee:
@@ -11996,9 +11817,11 @@ webhooks:
                   properties:
                     customer_decision:
                       description: The customer's tokenization decision if applicable.
+                      enum: *id014
                       type: string
                     issuer_decision:
                       description: Lithic's tokenization decision.
+                      enum: *id015
                       type: string
                     token_activated_date_time:
                       description: An RFC 3339 timestamp indicating when the tokenization
@@ -12028,6 +11851,7 @@ webhooks:
                       type: array
                     wallet_decision:
                       description: The wallet's recommended decision.
+                      enum: *id014
                       example: APPROVED
                       type: string
                   required:
