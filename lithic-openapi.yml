@@ -12456,6 +12456,9 @@ webhooks:
                 doing_business_as:
                   title: Doing Business As
                   type: string
+                event_type:
+                  title: Event Type
+                  type: string
                 name:
                   description: The nickname given to this record of External Bank
                     Account
@@ -12514,6 +12517,7 @@ webhooks:
                 - country
                 - created
                 - currency
+                - event_type
                 - owner
                 - owner_type
                 - routing_number
@@ -12578,6 +12582,9 @@ webhooks:
                 doing_business_as:
                   title: Doing Business As
                   type: string
+                event_type:
+                  title: Event Type
+                  type: string
                 name:
                   description: The nickname given to this record of External Bank
                     Account
@@ -12636,6 +12643,7 @@ webhooks:
                 - country
                 - created
                 - currency
+                - event_type
                 - owner
                 - owner_type
                 - routing_number
@@ -12774,7 +12782,17 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Statement'
+              allOf:
+                - $ref: '#/components/schemas/Statement'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received
+            successfully
       summary: statements.created
       tags:
         - Event Types
