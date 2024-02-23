@@ -4701,7 +4701,7 @@ paths:
                     institution: '00001'
                     interchange_fee_extended_precision: -70000
                     interchange_gross_amount: -7
-                    network: VISA
+                    network: MASTERCARD
                     other_fees_details: {}
                     other_fees_gross_amount: 0
                     report_date: '2023-06-16'
@@ -6101,9 +6101,6 @@ paths:
                     amount: -7666
                     authorization_amount: -7666
                     authorization_code: '123412'
-                    avs:
-                      address: 123 Main St
-                      zipcode: '10234'
                     card:
                       created: '2020-07-15T17:48:48Z'
                       cvv: '574'
@@ -6129,13 +6126,13 @@ paths:
                     card_token: df942c4e-9130-4ab5-b067-778a2c55b357
                     cardholder_authentication:
                       3ds_version: null
-                      acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+                      acquirer_exemption: NONE
                       authentication_result: SUCCESS
                       decision_made_by: NETWORK
-                      liability_shift: 3DS_AUTHENTICATED
-                      three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
-                      verification_attempted: OTHER
-                      verification_result: SUCCESS
+                      liability_shift: NONE
+                      three_ds_authentication_token: 7e6fa7d5-ec2e-42ef-8c90-e80d0dfe9405
+                      verification_attempted: NONE
+                      verification_result: NOT_ATTEMPTED
                     created: '2020-07-15T19:17:22Z'
                     events:
                       - amount: 7666
@@ -6158,28 +6155,11 @@ paths:
                     merchant_amount: -7666
                     merchant_authorization_amount: -7666
                     merchant_currency: USD
-                    network: VISA
-                    network_risk_score: 0
-                    pos:
-                      entry_mode:
-                        card: NOT_PRESENT
-                        cardholder: PREAUTHORIZED
-                        pan: CONTACTLESS
-                        pin_entered: true
-                      terminal:
-                        attended: true
-                        card_retention_capable: true
-                        on_premise: true
-                        operator: ADMINISTRATIVE
-                        partial_approval_capable: true
-                        pin_capability: UNSPECIFIED
-                        type: ECR
+                    network: MASTERCARD
                     result: APPROVED
                     settled_amount: -7666
                     status: SETTLED
                     token: 9b4c99b1-2e90-4e24-b54b-90dc8af4695b
-                    token_info:
-                      wallet_type: APPLE_PAY
                 has_more: false
               schema:
                 properties:
@@ -10802,15 +10782,6 @@ components:
           maxLength: 6
           minLength: 6
           type: string
-        avs:
-          properties:
-            address:
-              description: Cardholder address
-              type: string
-            zipcode:
-              description: Cardholder ZIP code
-              type: string
-          type: object
         card_token:
           description: Token for the card used in this transaction.
           example: 19c22c47-7a75-43ee-9891-595419830f7e
@@ -10863,161 +10834,21 @@ components:
           example: MASTERCARD
           nullable: true
           type: string
-        network_risk_score:
-          description: 'Network-provided score assessing risk level associated with
-            a given authorization. Scores are on a range of 0-999, with 0 representing
-            the lowest risk and 999 representing the highest risk. For Visa transactions,
-            where the raw score has a range of 0-99, Lithic will normalize the score
-            by multiplying the raw score by 10x.
-
-
-            A score may not be available for all authorizations, and where it is not,
-            this field will be set to null.
-
-            '
-          type: number
-        pos:
-          properties:
-            entry_mode:
-              properties:
-                card:
-                  description: Card status
-                  enum:
-                    - NOT_PRESENT
-                    - PREAUTHORIZED
-                    - PRESENT
-                    - UNKNOWN
-                  type: string
-                cardholder:
-                  description: Cardholder Presence status
-                  enum:
-                    - DEFERRED_BILLING
-                    - ELECTRONIC_ORDER
-                    - INSTALLMENT
-                    - MAIL_ORDER
-                    - NOT_PRESENT
-                    - PREAUTHORIZED
-                    - PRESENT
-                    - REOCCURRING
-                    - TELEPHONE_ORDER
-                    - UNKNOWN
-                  type: string
-                pan:
-                  description: Method of entry for the PAN
-                  enum:
-                    - AUTO_ENTRY
-                    - BAR_CODE
-                    - CONTACTLESS
-                    - CREDENTIAL_ON_FILE
-                    - ECOMMERCE
-                    - ERROR_KEYED
-                    - ERROR_MAGNETIC_STRIPE
-                    - ICC
-                    - KEY_ENTERED
-                    - MAGNETIC_STRIPE
-                    - MANUAL
-                    - OCR
-                    - SECURE_CARDLESS
-                    - UNKNOWN
-                    - UNSPECIFIED
-                  type: string
-                pin_entered:
-                  description: True if the PIN was entered
-                  type: boolean
-              required:
-                - card
-                - cardholder
-                - pan
-                - pin_entered
-              type: object
-            terminal:
-              properties:
-                attended:
-                  description: True if a clerk is present at the sale.
-                  type: boolean
-                card_retention_capable:
-                  description: 'True if the terminal is capable of partial approval.
-                    Partial approval is when part of a transaction is approved and
-                    another payment must be used for the remainder. Example scenario:
-                    A $40 transaction is attempted on a prepaid card with a $25 balance.
-                    If partial approval is enabled, $25 can be authorized, at which
-                    point the POS will prompt the user for an additional payment of
-                    $15.
-
-                    '
-                  type: boolean
-                on_premise:
-                  description: True if the sale was made at the place of business
-                    (vs. mobile).
-                  type: boolean
-                operator:
-                  description: The person that is designed to swipe the card
-                  enum:
-                    - ADMINISTRATIVE
-                    - CARDHOLDER
-                    - CARD_ACCEPTOR
-                    - UNKNOWN
-                  type: string
-                pin_capability:
-                  description: Status of whether the POS is able to accept PINs
-                  enum:
-                    - CAPABLE
-                    - INOPERATIVE
-                    - NOT_CAPABLE
-                    - UNSPECIFIED
-                  type: string
-                type:
-                  description: POS Type
-                  enum:
-                    - ADMINISTRATIVE
-                    - ATM
-                    - AUTHORIZATION
-                    - COUPON_MACHINE
-                    - DIAL_TERMINAL
-                    - ECOMMERCE
-                    - ECR
-                    - FUEL_MACHINE
-                    - HOME_TERMINAL
-                    - MICR
-                    - OFF_PREMISE
-                    - PAYMENT
-                    - PDA
-                    - PHONE
-                    - POINT
-                    - POS_TERMINAL
-                    - PUBLIC_UTILITY
-                    - SELF_SERVICE
-                    - TELEVISION
-                    - TELLER
-                    - TRAVELERS_CHECK_MACHINE
-                    - UNKNOWN
-                    - VENDING
-                    - VOICE
-                  type: string
-              required:
-                - attended
-                - card_retention_capable
-                - on_premise
-                - operator
-                - pin_capability
-                - type
-              type: object
-          required:
-            - entry_mode
-            - terminal
-          type: object
         result:
           description: '`APPROVED` or decline reason. See Event result types
 
             '
           enum: &id010
+            - ACCOUNT_STATE_TRANSACTION
             - APPROVED
             - BANK_CONNECTION_ERROR
             - BANK_NOT_VERIFIED
             - CARD_CLOSED
             - CARD_PAUSED
-            - DECLINED
             - FRAUD_ADVICE
+            - GLOBAL_MONTHLY_LIMIT
+            - GLOBAL_TRANSACTION_LIMIT
+            - GLOBAL_WEEKLY_LIMIT
             - INACTIVE_ACCOUNT
             - INCORRECT_PIN
             - INSUFFICIENT_FUNDS
@@ -11051,6 +10882,7 @@ components:
 
             '
           enum:
+            - BOUNCED
             - DECLINED
             - EXPIRED
             - PENDING
@@ -11062,26 +10894,12 @@ components:
           description: Globally unique identifier.
           format: uuid
           type: string
-        token_info:
-          properties:
-            wallet_type:
-              description: Source of the token
-              enum:
-                - APPLE_PAY
-                - GOOGLE_PAY
-                - MASTERPASS
-                - MERCHANT
-                - OTHER
-                - SAMSUNG_PAY
-              type: string
-          type: object
       required:
         - acquirer_fee
         - acquirer_reference_number
         - amount
         - authorization_amount
         - authorization_code
-        - avs
         - card_token
         - created
         - events
@@ -11090,13 +10908,10 @@ components:
         - merchant_authorization_amount
         - merchant_currency
         - network
-        - network_risk_score
-        - pos
         - result
         - settled_amount
         - status
         - token
-        - token_info
       type: object
     TransactionEvent:
       description: A single card transaction may include multiple events that affect
@@ -11184,6 +10999,13 @@ components:
             * `CARD_PAUSED` - Card state was paused at the time of authorization.
 
             * `FRAUD_ADVICE` - Transaction declined due to risk.
+
+            * `GLOBAL_TRANSACTION_LIMIT` - Platform spend limit exceeded, contact
+            [support@lithic.com](mailto:support@lithic.com).
+
+            * `GLOBAL_WEEKLY_LIMIT` - Platform spend limit exceeded, contact [support@lithic.com](mailto:support@lithic.com).
+
+            * `GLOBAL_MONTHLY_LIMIT` - Platform spend limit exceeded, contact [support@lithic.com](mailto:support@lithic.com).
 
             * `INACTIVE_ACCOUNT` - Account is inactive. Contact [support@lithic.com](mailto:support@lithic.com).
 
@@ -12456,9 +12278,6 @@ webhooks:
                 doing_business_as:
                   title: Doing Business As
                   type: string
-                event_type:
-                  title: Event Type
-                  type: string
                 name:
                   description: The nickname given to this record of External Bank
                     Account
@@ -12517,7 +12336,6 @@ webhooks:
                 - country
                 - created
                 - currency
-                - event_type
                 - owner
                 - owner_type
                 - routing_number
@@ -12582,9 +12400,6 @@ webhooks:
                 doing_business_as:
                   title: Doing Business As
                   type: string
-                event_type:
-                  title: Event Type
-                  type: string
                 name:
                   description: The nickname given to this record of External Bank
                     Account
@@ -12643,7 +12458,6 @@ webhooks:
                 - country
                 - created
                 - currency
-                - event_type
                 - owner
                 - owner_type
                 - routing_number
@@ -12782,17 +12596,7 @@ webhooks:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/Statement'
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      type: string
-                  type: object
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received
-            successfully
+              $ref: '#/components/schemas/Statement'
       summary: statements.created
       tags:
         - Event Types
@@ -12828,7 +12632,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/FinancialTransaction'
+                - $ref: '#/components/schemas/Transfer'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
