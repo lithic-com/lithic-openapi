@@ -3048,7 +3048,6 @@ paths:
                       - financial_account.created
                       - payment_transaction.created
                       - payment_transaction.updated
-                      - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
                       - transfer_transaction.created
@@ -3192,7 +3191,6 @@ paths:
                       - financial_account.created
                       - payment_transaction.created
                       - payment_transaction.updated
-                      - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
                       - transfer_transaction.created
@@ -3437,7 +3435,6 @@ paths:
                 - financial_account.created
                 - payment_transaction.created
                 - payment_transaction.updated
-                - settlement_report.updated
                 - statements.created
                 - three_ds_authentication.created
                 - transfer_transaction.created
@@ -5011,7 +5008,6 @@ paths:
                     - financial_account.created
                     - payment_transaction.created
                     - payment_transaction.updated
-                    - settlement_report.updated
                     - statements.created
                     - three_ds_authentication.created
                     - transfer_transaction.created
@@ -7288,26 +7284,6 @@ webhooks:
       summary: payment_transaction.updated
       tags:
         - Event Types
-  settlement_report.updated:
-    post:
-      description: Occurs when a settlement report is updated.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/SettlementReport'
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      type: string
-                  type: object
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: settlement_report.updated
-      tags:
-        - Event Types
   statements.created:
     post:
       description: Occurs when a statement has been created
@@ -9527,7 +9503,6 @@ components:
             - financial_account.created
             - payment_transaction.created
             - payment_transaction.updated
-            - settlement_report.updated
             - statements.created
             - three_ds_authentication.created
             - transfer_transaction.created
@@ -9574,7 +9549,6 @@ components:
               - financial_account.created
               - payment_transaction.created
               - payment_transaction.updated
-              - settlement_report.updated
               - statements.created
               - three_ds_authentication.created
               - transfer_transaction.created
@@ -10444,7 +10418,7 @@ components:
           type: string
         currency:
           description: Three-digit alphabetic ISO 4217 code.
-          example: USD
+          example: '840'
           maxLength: 3
           minLength: 3
           type: string
