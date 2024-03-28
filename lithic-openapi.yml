@@ -9801,14 +9801,12 @@ components:
             * `DECLINED` - The card transaction was declined.
             * `EXPIRED` - Lithic reversed the card authorization as it has passed its expiration time.
             * `PENDING` - Authorization is pending completion from the merchant or pending release from ACH hold period
-            * `RETURNED` - The financial transaction has been returned.
             * `SETTLED` - The financial transaction is completed.
             * `VOIDED` - The merchant has voided the previously pending card authorization.
           enum:
             - DECLINED
             - EXPIRED
             - PENDING
-            - RETURNED
             - SETTLED
             - VOIDED
           type: string
@@ -11927,42 +11925,44 @@ components:
         - PENDING
       title: VerificationState
     settlementSummaryDetails:
-      properties:
-        disputes_gross_amount:
-          description: The total gross amount of disputes settlements.
-          example: 0
-          type: integer
-        institution:
-          description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
-          example: '00001'
-          type: string
-        interchange_gross_amount:
-          description: The total amount of interchange.
-          example: -7
-          type: integer
-        network:
-          description: Card network where the transaction took place
-          enum:
-            - INTERLINK
-            - MAESTRO
-            - MASTERCARD
-            - UNKNOWN
-            - VISA
-          example: MASTERCARD
-          type: string
-        other_fees_gross_amount:
-          description: Total amount of gross other fees outside of interchange.
-          example: 0
-          type: integer
-        settled_net_amount:
-          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
-          example: 1893
-          type: integer
-        transactions_gross_amount:
-          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
-          example: 1900
-          type: integer
-      type: object
+      oneOf:
+        - type: 'null'
+        - properties:
+            disputes_gross_amount:
+              description: The total gross amount of disputes settlements.
+              example: 0
+              type: integer
+            institution:
+              description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
+              example: '00001'
+              type: string
+            interchange_gross_amount:
+              description: The total amount of interchange.
+              example: -7
+              type: integer
+            network:
+              description: Card network where the transaction took place
+              enum:
+                - INTERLINK
+                - MAESTRO
+                - MASTERCARD
+                - UNKNOWN
+                - VISA
+              example: MASTERCARD
+              type: string
+            other_fees_gross_amount:
+              description: Total amount of gross other fees outside of interchange.
+              example: 0
+              type: integer
+            settled_net_amount:
+              description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+              example: 1893
+              type: integer
+            transactions_gross_amount:
+              description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+              example: 1900
+              type: integer
+          type: object
     asa_request_pos_terminal_pin_capability:
       type: string
       enum:
