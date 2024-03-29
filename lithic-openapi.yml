@@ -3041,6 +3041,7 @@ paths:
                       - digital_wallet.tokenization_approval_request
                       - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
+                      - digital_wallet.tokenization_two_factor_authentication_code_sent
                       - dispute.updated
                       - dispute_evidence.upload_failed
                       - external_bank_account.created
@@ -3185,6 +3186,7 @@ paths:
                       - digital_wallet.tokenization_approval_request
                       - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
+                      - digital_wallet.tokenization_two_factor_authentication_code_sent
                       - dispute.updated
                       - dispute_evidence.upload_failed
                       - external_bank_account.created
@@ -3430,6 +3432,7 @@ paths:
                 - digital_wallet.tokenization_approval_request
                 - digital_wallet.tokenization_result
                 - digital_wallet.tokenization_two_factor_authentication_code
+                - digital_wallet.tokenization_two_factor_authentication_code_sent
                 - dispute.updated
                 - dispute_evidence.upload_failed
                 - external_bank_account.created
@@ -5004,6 +5007,7 @@ paths:
                     - digital_wallet.tokenization_approval_request
                     - digital_wallet.tokenization_result
                     - digital_wallet.tokenization_two_factor_authentication_code
+                    - digital_wallet.tokenization_two_factor_authentication_code_sent
                     - dispute.updated
                     - dispute_evidence.upload_failed
                     - external_bank_account.created
@@ -6737,7 +6741,7 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code:
     post:
-      description: Occurs when a tokenization request 2FA auth code is delivered.
+      description: Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
       requestBody:
         content:
           application/json:
@@ -6763,7 +6767,7 @@ webhooks:
                   properties:
                     type:
                       description: |-
-                        The communication method that the user has selected to use to receive the 2FA Authentication Code.
+                        The communication method that the user has selected to use to receive the authentication code.
                         Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
                       enum:
                         - EMAIL_TO_CARDHOLDER_ADDRESS
@@ -6772,7 +6776,7 @@ webhooks:
                       type: string
                     value:
                       description: |-
-                        The location where the user wants to receive the 2FA Authentication Code.
+                        The location where the user wants to receive the authentication code.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
                       example: '5555555555'
                       type: string
@@ -6781,7 +6785,7 @@ webhooks:
                     - value
                   type: object
                 authentication_code:
-                  description: 2FA Authentication Code to provide to the user tokenizing a card.
+                  description: Authentication code to provide to the user tokenizing a card.
                   example: '123456'
                   type: string
                 card_token:
@@ -6817,6 +6821,84 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: digital_wallet.tokenization_two_factor_authentication_code
+      tags:
+        - Event Types
+  digital_wallet.tokenization_two_factor_authentication_code_sent:
+    post:
+      description: Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: 2FA Code Sent Schema
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  activation_method:
+                    type: TEXT_TO_CARDHOLDER_NUMBER
+                    value: 5555555555
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: digital_wallet.tokenization_two_factor_authentication_code_sent
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                activation_method:
+                  description: ''
+                  properties:
+                    type:
+                      description: |-
+                        The communication method that the user has selected to use to receive the authentication code.
+                        Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
+                      enum:
+                        - EMAIL_TO_CARDHOLDER_ADDRESS
+                        - TEXT_TO_CARDHOLDER_NUMBER
+                      example: TEXT_TO_CARDHOLDER_NUMBER
+                      type: string
+                    value:
+                      description: |-
+                        The location to which the authentication code was sent.
+                        The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
+                      example: '5555555555'
+                      type: string
+                  required:
+                    - type
+                    - value
+                  type: object
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  title: Created
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - digital_wallet.tokenization_two_factor_authentication_code_sent
+                  example: digital_wallet.tokenization_two_factor_authentication_code_sent
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the tokenization
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - activation_method
+                - card_token
+                - created
+                - event_type
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: digital_wallet.tokenization_two_factor_authentication_code_sent
       tags:
         - Event Types
   dispute.updated:
@@ -9508,6 +9590,7 @@ components:
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
             * `digital_wallet.tokenization_result` - Notification of the end result of a tokenization, whether successful or failed.
             * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
+            * `digital_wallet.tokenization_two_factor_authentication_code_sent` - Notification that a two factor authentication code for activating a digital wallet has been sent to the end user.
           enum:
             - account_holder.created
             - account_holder.updated
@@ -9520,6 +9603,7 @@ components:
             - digital_wallet.tokenization_approval_request
             - digital_wallet.tokenization_result
             - digital_wallet.tokenization_two_factor_authentication_code
+            - digital_wallet.tokenization_two_factor_authentication_code_sent
             - dispute.updated
             - dispute_evidence.upload_failed
             - external_bank_account.created
@@ -9567,6 +9651,7 @@ components:
               - digital_wallet.tokenization_approval_request
               - digital_wallet.tokenization_result
               - digital_wallet.tokenization_two_factor_authentication_code
+              - digital_wallet.tokenization_two_factor_authentication_code_sent
               - dispute.updated
               - dispute_evidence.upload_failed
               - external_bank_account.created
