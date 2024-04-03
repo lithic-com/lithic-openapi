@@ -8279,16 +8279,46 @@ components:
         available_spend_limit:
           properties:
             daily:
-              description: The available spend limit relative to the daily limit configured on the Account.
+              description: The available spend limit (in cents) relative to the daily limit configured on the Account.
               example: 100000
               type: integer
             lifetime:
-              description: The available spend limit relative to the lifetime limit configured on the Account.
+              description: The available spend limit (in cents) relative to the lifetime limit configured on the Account.
               example: 300000
               type: integer
             monthly:
-              description: The available spend limit relative to the monthly limit configured on the Account.
+              description: The available spend limit (in cents) relative to the monthly limit configured on the Account.
               example: 200000
+              type: integer
+          type: object
+        spend_limit:
+          properties:
+            daily:
+              description: The configured daily spend limit (in cents) on the Account.
+              example: 500000
+              type: integer
+            lifetime:
+              description: The configured lifetime spend limit (in cents) on the Account.
+              example: 500000
+              type: integer
+            monthly:
+              description: The configured monthly spend limit (in cents) on the Account.
+              example: 500000
+              type: integer
+          type: object
+        spend_velocity:
+          properties:
+            daily:
+              description: Current daily spend velocity (in cents) on the Account. Present if daily spend limit is set.
+              example: 40000
+              type: integer
+            lifetime:
+              description: Current lifetime spend velocity (in cents) on the Account. Present if lifetime spend limit is set.
+              example: 20000
+              type: integer
+            monthly:
+              description: Current monthly spend velocity (in cents) on the Account. Present if monthly spend limit is set.
+              example: 30000
               type: integer
           type: object
       required:
@@ -9011,16 +9041,46 @@ components:
         available_spend_limit:
           properties:
             annually:
-              description: The available spend limit relative to the annual limit configured on the Card.
+              description: The available spend limit (in cents) relative to the annual limit configured on the Card.
               example: 200000
               type: integer
             forever:
-              description: The available spend limit relative to the forever limit configured on the Card.
+              description: The available spend limit (in cents) relative to the forever limit configured on the Card.
               example: 300000
               type: integer
             monthly:
-              description: The available spend limit relative to the monthly limit configured on the Card.
+              description: The available spend limit (in cents) relative to the monthly limit configured on the Card.
               example: 200000
+              type: integer
+          type: object
+        spend_limit:
+          properties:
+            annually:
+              description: The configured annual spend limit (in cents) on the Card.
+              example: 500000
+              type: integer
+            forever:
+              description: The configured forever spend limit (in cents) on the Card.
+              example: 500000
+              type: integer
+            monthly:
+              description: The configured monthly spend limit (in cents) on the Card.
+              example: 500000
+              type: integer
+          type: object
+        spend_velocity:
+          properties:
+            annually:
+              description: Current annual spend velocity (in cents) on the Card. Present if annual spend limit is set.
+              example: 300000
+              type: integer
+            forever:
+              description: Current forever spend velocity (in cents) on the Card. Present if forever spend limit is set.
+              example: 200000
+              type: integer
+            monthly:
+              description: Current monthly spend velocity (in cents) on the Card. Present if monthly spend limit is set.
+              example: 300000
               type: integer
           type: object
       required:
