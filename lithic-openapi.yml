@@ -8279,16 +8279,46 @@ components:
         available_spend_limit:
           properties:
             daily:
-              description: The available spend limit relative to the daily limit configured on the Account.
+              description: The available spend limit (in cents) relative to the daily limit configured on the Account.
               example: 100000
               type: integer
             lifetime:
-              description: The available spend limit relative to the lifetime limit configured on the Account.
+              description: The available spend limit (in cents) relative to the lifetime limit configured on the Account.
               example: 300000
               type: integer
             monthly:
-              description: The available spend limit relative to the monthly limit configured on the Account.
+              description: The available spend limit (in cents) relative to the monthly limit configured on the Account.
               example: 200000
+              type: integer
+          type: object
+        spend_limit:
+          properties:
+            daily:
+              description: The configured daily spend limit (in cents) on the Account.
+              example: 500000
+              type: integer
+            lifetime:
+              description: The configured lifetime spend limit (in cents) on the Account.
+              example: 500000
+              type: integer
+            monthly:
+              description: The configured monthly spend limit (in cents) on the Account.
+              example: 500000
+              type: integer
+          type: object
+        spend_velocity:
+          properties:
+            daily:
+              description: Current daily spend velocity (in cents) on the Account. Present if daily spend limit is set.
+              example: 40000
+              type: integer
+            lifetime:
+              description: Current lifetime spend velocity (in cents) on the Account. Present if lifetime spend limit is set.
+              example: 20000
+              type: integer
+            monthly:
+              description: Current monthly spend velocity (in cents) on the Account. Present if monthly spend limit is set.
+              example: 30000
               type: integer
           type: object
       required:
@@ -9011,16 +9041,46 @@ components:
         available_spend_limit:
           properties:
             annually:
-              description: The available spend limit relative to the annual limit configured on the Card.
+              description: The available spend limit (in cents) relative to the annual limit configured on the Card.
               example: 200000
               type: integer
             forever:
-              description: The available spend limit relative to the forever limit configured on the Card.
+              description: The available spend limit (in cents) relative to the forever limit configured on the Card.
               example: 300000
               type: integer
             monthly:
-              description: The available spend limit relative to the monthly limit configured on the Card.
+              description: The available spend limit (in cents) relative to the monthly limit configured on the Card.
               example: 200000
+              type: integer
+          type: object
+        spend_limit:
+          properties:
+            annually:
+              description: The configured annual spend limit (in cents) on the Card.
+              example: 500000
+              type: integer
+            forever:
+              description: The configured forever spend limit (in cents) on the Card.
+              example: 500000
+              type: integer
+            monthly:
+              description: The configured monthly spend limit (in cents) on the Card.
+              example: 500000
+              type: integer
+          type: object
+        spend_velocity:
+          properties:
+            annually:
+              description: Current annual spend velocity (in cents) on the Card. Present if annual spend limit is set.
+              example: 300000
+              type: integer
+            forever:
+              description: Current forever spend velocity (in cents) on the Card. Present if forever spend limit is set.
+              example: 200000
+              type: integer
+            monthly:
+              description: Current monthly spend velocity (in cents) on the Card. Present if monthly spend limit is set.
+              example: 300000
               type: integer
           type: object
       required:
@@ -11438,7 +11498,9 @@ components:
         acquirer_fee:
           description: Fee assessed by the merchant and paid for by the cardholder in the smallest unit of the currency. Will be zero if no fee is assessed. Rebates may be transmitted as a negative value to indicate credited fees.
           example: 0
-          type: integer
+          type:
+            - integer
+            - 'null'
         acquirer_reference_number:
           description: |
             Unique identifier assigned to a transaction by the acquirer that can be used in dispute and chargeback filing.
@@ -11455,13 +11517,17 @@ components:
         authorization_amount:
           description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
           example: 1500
-          type: integer
+          type:
+            - integer
+            - 'null'
         authorization_code:
           description: A fixed-width 6-digit numeric identifier that can be used to identify a transaction with networks.
           example: '123456'
           maxLength: 6
           minLength: 6
-          type: string
+          type:
+            - string
+            - 'null'
         avs:
           properties:
             address:
@@ -11470,7 +11536,9 @@ components:
             zipcode:
               description: Cardholder ZIP code
               type: string
-          type: object
+          type:
+            - object
+            - 'null'
         card_token:
           description: Token for the card used in this transaction.
           example: 19c22c47-7a75-43ee-9891-595419830f7e
@@ -11493,11 +11561,15 @@ components:
         merchant_amount:
           description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
           example: 1500
-          type: integer
+          type:
+            - integer
+            - 'null'
         merchant_authorization_amount:
           description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
           example: 1500
-          type: integer
+          type:
+            - integer
+            - 'null'
         merchant_currency:
           description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
           example: USD
@@ -11520,7 +11592,9 @@ components:
             Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
 
             A score may not be available for all authorizations, and where it is not, this field will be set to null.
-          type: number
+          type:
+            - integer
+            - 'null'
         pos:
           properties:
             entry_mode:
@@ -11642,7 +11716,9 @@ components:
           required:
             - entry_mode
             - terminal
-          type: object
+          type:
+            - object
+            - 'null'
         result:
           description: |
             `APPROVED` or decline reason. See Event result types
@@ -11702,7 +11778,9 @@ components:
                 - OTHER
                 - SAMSUNG_PAY
               type: string
-          type: object
+          type:
+            - object
+            - 'null'
       required:
         - acquirer_fee
         - acquirer_reference_number
@@ -11757,6 +11835,7 @@ components:
               - CARD_EXPIRED
               - CARD_EXPIRY_DATE_INCORRECT
               - CARD_INVALID
+              - CARD_NOT_ACTIVATED
               - CARD_PAUSED
               - CARD_PIN_INCORRECT
               - CARD_RESTRICTED
