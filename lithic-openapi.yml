@@ -12129,6 +12129,7 @@ components:
       type: object
     asa_request_pos_terminal_pin_capability:
       type: string
+      description: Status of whether the POS is able to accept PINs
       enum:
         - CAPABLE
         - INOPERATIVE
@@ -12136,6 +12137,7 @@ components:
         - UNSPECIFIED
     asa_request_pos_terminal_type:
       type: string
+      description: POS type
       enum:
         - ATM
         - AUTHORIZATION
@@ -12177,44 +12179,72 @@ components:
       type: object
       properties:
         acceptor_id:
+          description: Unique alphanumeric identifier for the payment card acceptor (merchant).
           type: string
         city:
+          description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
           type: string
         country:
+          description: 'Country or entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.'
           type: string
         descriptor:
+          description: Short description of card acceptor.
           type: string
         mcc:
+          description: Merchant Category Code (MCC)
           type: string
         state:
+          description: Geographic state of card acceptor
           type: string
     asa_request_avs:
-      description: AVS object in ASA
+      description: Contains address validation (AVS) information collected by the merchant to be verified by the issuer.
       type: object
       properties:
         address:
+          description: Address Line
           type: string
         zipcode:
+          description: ZIP Code, typically 5 digits.
           type: string
     asa_request_card:
       description: Card object in ASA
       type: object
       properties:
         hostname:
+          description: Hostname of card’s locked merchant (will be empty if not applicable)
           type: string
         last_four:
+          description: Last four digits of the card number
           type: string
         memo:
+          description: Customizable name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
           type: string
         spend_limit:
+          description: |-
+            Amount (in cents) to limit approved authorizations. Purchase requests above the spend limit will be declined (refunds and credits will be approved).
+
+            Note that while spend limits are enforced based on authorized and settled volume on a card, they are not recommended to be used for balance or reconciliation-level accuracy. Spend limits also cannot block force posted charges (i.e., when a merchant sends a clearing message without a prior authorization).
           type: number
         spend_limit_duration:
+          description: Note that to support recurring monthly payments, which can occur on different day every month, the time window we consider for MONTHLY velocity starts 6 days after the current calendar date one month prior.
           type: string
+          enum:
+            - ANNUALLY
+            - FOREVER
+            - MONTHLY
+            - TRANSACTION
         state:
           type: string
+          enum:
+            - CLOSED
+            - OPEN
+            - PAUSED
+            - PENDING_ACTIVATION
+            - PENDING_FULFILLMENT
         type:
           $ref: '#/components/schemas/card-type'
         token:
+          description: Globally unique identifier for the card.
           type: string
           format: uuid
     asa_request_cardholder_authentication:
@@ -12224,55 +12254,140 @@ components:
         3ds_version:
           oneOf:
             - type: 'null'
+              description: 3DS version not available
             - type: string
+              description: The 3DS version used for the authentication
         acquirer_exemption:
           type: string
+          description: Whether an acquirer exemption applied to the transaction.
+          enum:
+            - NONE
+            - MERCHANT_INITIATED_TRANSACTION
+            - TRANSACTION_RISK_ANALYSIS
+            - RECURRING_PAYMENT
+            - LOW_VALUE
+            - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
+            - SECURE_CORPORATE_PAYMENT
+            - AUTHENTICATION_OUTAGE_EXCEPTION
         liability_shift:
           type: string
+          description: Indicates whether liability shift to the issuer applies to the transaction.
+          enum:
+            - NONE
+            - 3DS_AUTHENTICATED
+            - TOKEN_AUTHENTICATED
         verification_attempted:
           type: string
+          description: Indicates whether a 3DS challenge flow was used, and if so, what the verification method was. (deprecated, use `authentication_result`)
+          enum:
+            - NONE
+            - OTHER
         verification_result:
           type: string
+          description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
+          enum:
+            - SUCCESS
+            - FRICTIONLESS
+            - NOT_ATTEMPTED
         authentication_result:
           type: string
+          description: Indicates what the outcome of the 3DS authentication process is.
+          enum:
+            - SUCCESS
+            - DECLINE
+            - ATTEMPTS
+            - NONE
         decision_made_by:
           type: string
+          description: Indicates which party made the 3DS authentication decision.
+          enum:
+            - NETWORK
+            - LITHIC_DEFAULT
+            - LITHIC_RULES
+            - CUSTOMER_ENDPOINT
+            - UNKNOWN
         three_ds_authentication_token:
           oneOf:
             - type: 'null'
+              description: 3DS authentication token not available.
             - type: string
+              description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
     asa_request_pos_entry_mode:
       description: POS > Entry Mode object in ASA
       type: object
       properties:
         card:
+          description: Card Presence Indicator
           type: string
+          enum:
+            - PRESENT
+            - NOT_PRESENT
         cardholder:
+          description: Cardholder Presence Indicator
           type: string
+          enum:
+            - DEFERRED_BILLING
+            - ELECTRONIC_ORDER
+            - INSTALLMENT
+            - MAIL_ORDER
+            - NOT_PRESENT
+            - PRESENT
+            - REOCCURRING
+            - TELEPHONE_ORDER
+            - PREAUTHORIZED
         pan:
+          description: Method of entry for the PAN
           type: string
+          enum:
+            - AUTO_ENTRY
+            - BAR_CODE
+            - CONTACTLESS
+            - ECOMMERCE
+            - ERROR_KEYED
+            - ERROR_MAGNETIC_STRIPE
+            - ICC
+            - KEY_ENTERED
+            - MAGNETIC_STRIPE
+            - MANUAL
+            - OCR
+            - SECURE_CARDLESS
+            - UNSPECIFIED
+            - UNKNOWN
+            - CREDENTIAL_ON_FILE
+            - ECOMMERCE
         pin_entered:
           type: boolean
+          description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
     asa_request_pos_terminal:
       description: POS > Terminal object in ASA
       type: object
       properties:
         attended:
           type: boolean
+          description: True if a clerk is present at the sale.
         card_retention_capable:
           type: boolean
+          description: True if the terminal is capable of retaining the card.
         on_premise:
           type: boolean
+          description: True if the sale was made at the place of business (vs. mobile).
         operator:
           type: string
+          description: The person that is designated to swipe the card
+          enum:
+            - CARDHOLDER
+            - CARD_ACCEPTOR
+            - ADMINISTRATIVE
         partial_approval_capable:
           type: boolean
+          description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
         pin_capability:
           $ref: '#/components/schemas/asa_request_pos_terminal_pin_capability'
         type:
           $ref: '#/components/schemas/asa_request_pos_terminal_type'
     asa_request_status:
       type: string
+      description: The type of authorization request that this request is for. Note that `CREDIT_AUTHORIZATION` and `FINANCIAL_CREDIT_AUTHORIZATION` is only available to users with credit decisioning via ASA enabled.
       enum:
         - AUTHORIZATION
         - CREDIT_AUTHORIZATION
@@ -12293,7 +12408,8 @@ components:
           $ref: '#/components/schemas/asa_request_card'
         cardholder_authentication:
           oneOf:
-            - type: 'null'
+            - description: Cardholder Authentication information not available
+              type: 'null'
             - $ref: '#/components/schemas/asa_request_cardholder_authentication'
         pos:
           type: object
@@ -12304,19 +12420,29 @@ components:
               $ref: '#/components/schemas/asa_request_pos_terminal'
         amount:
           type: number
+          description: Authorization amount of the transaction (in cents), including any acquirer fees. The contents of this field are identical to `authorization_amount`.
         acquirer_fee:
           type: number
+          description: Fee (in cents) assessed by the merchant and paid for by the cardholder. Will be zero if no fee is assessed. Rebates may be transmitted as a negative value to indicate credited fees.
         authorization_amount:
           type: number
+          description: The base transaction amount (in cents) plus the acquirer fee field. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
         cash_amount:
           type: number
+          description: |-
+            The portion of the transaction requested as cash back by the cardholder, and does not include any acquirer fees. The amount field includes the purchase amount, the requested cash back amount, and any acquirer fees.
+
+            If no cash back was requested, the value of this field will be 0, and the field will always be present.
         cashback:
           type: number
+          description: Deprecated, use `cash_amount`.
         token_info:
           type: object
+          description: Will be present if the transaction is tokenized, and absent for a physical or virtual non-tokenized transaction.
           properties:
             wallet_type:
               type: string
+              description: The wallet_type field will indicate the source of the token. Possible token sources include digital wallets (Apple, Google, or Samsung Pay), merchant tokenization, and “other” sources like in-flight commerce. Masterpass is not currently supported and is included for future use.
               enum:
                 - MASTERPASS
                 - APPLE_PAY
@@ -12325,25 +12451,40 @@ components:
                 - MERCHANT
                 - OTHER
         ttl:
+          description: 'Deprecated: approximate time-to-live for the authorization.'
           type: string
           format: date-time
         conversion_rate:
+          description: If the transaction was requested in a currency other than the settlement currency, this field will be populated to indicate the rate used to translate the merchant_amount to the amount (i.e., `merchant_amount` x `conversion_rate` = `amount`). Note that the `merchant_amount` is in the local currency and the amount is in the settlement currency.
           type: number
         created:
           type: string
           format: date-time
+          description: Date and time when the transaction first occurred in UTC.
         merchant_amount:
           type: number
+          description: The amount that the merchant will receive, denominated in `merchant_currency` and in the smallest currency unit. Note the amount includes `acquirer_fee`, similar to `authorization_amount`. It will be different from `authorization_amount` if the merchant is taking payment in a different currency.
         merchant_currency:
           type: string
+          description: ISO 4217 alpha 3 code for the currency of the transaction.
         network:
           type: string
+          description: Card network of the authorization.
+          enum:
+            - INTERLINK
+            - MAESTRO
+            - MASTERCARD
+            - VISA
+            - UNKNOWN
         network_risk_score:
           oneOf:
             - type: 'null'
+              description: Network risk score not available.
             - type: number
+              description: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
         settled_amount:
           type: number
+          description: Amount (in cents) of the transaction that has been settled, including any acquirer fees
         status:
           $ref: '#/components/schemas/asa_request_status'
         token:
@@ -12351,12 +12492,13 @@ components:
           type: string
           format: uuid
         event_token:
-          description: The event_uuid associated with the authorization. This field is only set for instances enrolled into the beta.
+          description: The event token associated with the authorization. This field is only set for programs enrolled into the beta.
           type: string
           format: uuid
       $defs:
         asa_request_status:
           type: string
+          description: The type of authorization request that this request is for. Note that `CREDIT_AUTHORIZATION` and `FINANCIAL_CREDIT_AUTHORIZATION` is only available to users with credit decisioning via ASA enabled.
           enum:
             - AUTHORIZATION
             - CREDIT_AUTHORIZATION
@@ -12374,6 +12516,7 @@ components:
             - MPOS_CAPABLE
         asa_request_pos_terminal_type:
           type: string
+          description: POS type
           enum:
             - ATM
             - AUTHORIZATION
@@ -12401,6 +12544,7 @@ components:
             - UNKNOWN
         asa_request_pos_terminal_pin_capability:
           type: string
+          description: Status of whether the POS is able to accept PINs
           enum:
             - CAPABLE
             - INOPERATIVE
@@ -12411,51 +12555,102 @@ components:
           type: object
           properties:
             acceptor_id:
+              description: Unique alphanumeric identifier for the payment card acceptor (merchant).
               type: string
             city:
+              description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
               type: string
             country:
+              description: 'Country or entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.'
               type: string
             descriptor:
+              description: Short description of card acceptor.
               type: string
             mcc:
+              description: Merchant Category Code (MCC)
               type: string
             state:
+              description: Geographic state of card acceptor
               type: string
         asa_request_avs:
-          description: AVS object in ASA
+          description: Contains address validation (AVS) information collected by the merchant to be verified by the issuer.
           type: object
           properties:
             address:
+              description: Address Line
               type: string
             zipcode:
+              description: ZIP Code, typically 5 digits.
               type: string
         asa_request_pos_entry_mode:
           description: POS > Entry Mode object in ASA
           type: object
           properties:
             card:
+              description: Card Presence Indicator
               type: string
+              enum:
+                - PRESENT
+                - NOT_PRESENT
             cardholder:
+              description: Cardholder Presence Indicator
               type: string
+              enum:
+                - DEFERRED_BILLING
+                - ELECTRONIC_ORDER
+                - INSTALLMENT
+                - MAIL_ORDER
+                - NOT_PRESENT
+                - PRESENT
+                - REOCCURRING
+                - TELEPHONE_ORDER
+                - PREAUTHORIZED
             pan:
+              description: Method of entry for the PAN
               type: string
+              enum:
+                - AUTO_ENTRY
+                - BAR_CODE
+                - CONTACTLESS
+                - ECOMMERCE
+                - ERROR_KEYED
+                - ERROR_MAGNETIC_STRIPE
+                - ICC
+                - KEY_ENTERED
+                - MAGNETIC_STRIPE
+                - MANUAL
+                - OCR
+                - SECURE_CARDLESS
+                - UNSPECIFIED
+                - UNKNOWN
+                - CREDENTIAL_ON_FILE
+                - ECOMMERCE
             pin_entered:
               type: boolean
+              description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
         asa_request_pos_terminal:
           description: POS > Terminal object in ASA
           type: object
           properties:
             attended:
               type: boolean
+              description: True if a clerk is present at the sale.
             card_retention_capable:
               type: boolean
+              description: True if the terminal is capable of retaining the card.
             on_premise:
               type: boolean
+              description: True if the sale was made at the place of business (vs. mobile).
             operator:
               type: string
+              description: The person that is designated to swipe the card
+              enum:
+                - CARDHOLDER
+                - CARD_ACCEPTOR
+                - ADMINISTRATIVE
             partial_approval_capable:
               type: boolean
+              description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
             pin_capability:
               $ref: '#/components/schemas/asa_request_pos_terminal_pin_capability'
             type:
@@ -12467,42 +12662,103 @@ components:
             3ds_version:
               oneOf:
                 - type: 'null'
+                  description: 3DS version not available
                 - type: string
+                  description: The 3DS version used for the authentication
             acquirer_exemption:
               type: string
+              description: Whether an acquirer exemption applied to the transaction.
+              enum:
+                - NONE
+                - MERCHANT_INITIATED_TRANSACTION
+                - TRANSACTION_RISK_ANALYSIS
+                - RECURRING_PAYMENT
+                - LOW_VALUE
+                - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
+                - SECURE_CORPORATE_PAYMENT
+                - AUTHENTICATION_OUTAGE_EXCEPTION
             liability_shift:
               type: string
+              description: Indicates whether liability shift to the issuer applies to the transaction.
+              enum:
+                - NONE
+                - 3DS_AUTHENTICATED
+                - TOKEN_AUTHENTICATED
             verification_attempted:
               type: string
+              description: Indicates whether a 3DS challenge flow was used, and if so, what the verification method was. (deprecated, use `authentication_result`)
+              enum:
+                - NONE
+                - OTHER
             verification_result:
               type: string
+              description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
+              enum:
+                - SUCCESS
+                - FRICTIONLESS
+                - NOT_ATTEMPTED
             authentication_result:
               type: string
+              description: Indicates what the outcome of the 3DS authentication process is.
+              enum:
+                - SUCCESS
+                - DECLINE
+                - ATTEMPTS
+                - NONE
             decision_made_by:
               type: string
+              description: Indicates which party made the 3DS authentication decision.
+              enum:
+                - NETWORK
+                - LITHIC_DEFAULT
+                - LITHIC_RULES
+                - CUSTOMER_ENDPOINT
+                - UNKNOWN
             three_ds_authentication_token:
               oneOf:
                 - type: 'null'
+                  description: 3DS authentication token not available.
                 - type: string
+                  description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
         asa_request_card:
           description: Card object in ASA
           type: object
           properties:
             hostname:
+              description: Hostname of card’s locked merchant (will be empty if not applicable)
               type: string
             last_four:
+              description: Last four digits of the card number
               type: string
             memo:
+              description: Customizable name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
               type: string
             spend_limit:
+              description: |-
+                Amount (in cents) to limit approved authorizations. Purchase requests above the spend limit will be declined (refunds and credits will be approved).
+
+                Note that while spend limits are enforced based on authorized and settled volume on a card, they are not recommended to be used for balance or reconciliation-level accuracy. Spend limits also cannot block force posted charges (i.e., when a merchant sends a clearing message without a prior authorization).
               type: number
             spend_limit_duration:
+              description: Note that to support recurring monthly payments, which can occur on different day every month, the time window we consider for MONTHLY velocity starts 6 days after the current calendar date one month prior.
               type: string
+              enum:
+                - ANNUALLY
+                - FOREVER
+                - MONTHLY
+                - TRANSACTION
             state:
               type: string
+              enum:
+                - CLOSED
+                - OPEN
+                - PAUSED
+                - PENDING_ACTIVATION
+                - PENDING_FULFILLMENT
             type:
               $ref: '#/components/schemas/card-type'
             token:
+              description: Globally unique identifier for the card.
               type: string
               format: uuid
     asa-response:
