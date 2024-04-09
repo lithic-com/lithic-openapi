@@ -3042,6 +3042,7 @@ paths:
                       - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
                       - digital_wallet.tokenization_two_factor_authentication_code_sent
+                      - digital_wallet.tokenization_updated
                       - dispute.updated
                       - dispute_evidence.upload_failed
                       - external_bank_account.created
@@ -3187,6 +3188,7 @@ paths:
                       - digital_wallet.tokenization_result
                       - digital_wallet.tokenization_two_factor_authentication_code
                       - digital_wallet.tokenization_two_factor_authentication_code_sent
+                      - digital_wallet.tokenization_updated
                       - dispute.updated
                       - dispute_evidence.upload_failed
                       - external_bank_account.created
@@ -3433,6 +3435,7 @@ paths:
                 - digital_wallet.tokenization_result
                 - digital_wallet.tokenization_two_factor_authentication_code
                 - digital_wallet.tokenization_two_factor_authentication_code_sent
+                - digital_wallet.tokenization_updated
                 - dispute.updated
                 - dispute_evidence.upload_failed
                 - external_bank_account.created
@@ -5008,6 +5011,7 @@ paths:
                     - digital_wallet.tokenization_result
                     - digital_wallet.tokenization_two_factor_authentication_code
                     - digital_wallet.tokenization_two_factor_authentication_code_sent
+                    - digital_wallet.tokenization_updated
                     - dispute.updated
                     - dispute_evidence.upload_failed
                     - external_bank_account.created
@@ -6899,6 +6903,72 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: digital_wallet.tokenization_two_factor_authentication_code_sent
+      tags:
+        - Event Types
+  digital_wallet.tokenization_updated:
+    post:
+      description: Occurs when a tokenization's status has changed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-13T16:05:09.893241'
+                  event_type: digital_wallet.tokenization_updated
+                  tokenization:
+                    account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
+                    card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+                    created_at: '2023-09-13T15:30:11.948371'
+                    events:
+                      - created_at: '2023-09-13T16:05:09.893241'
+                        result: TOKEN_ACTIVATED
+                        token: a690b617-d3d4-4976-82f6-901f817ad98a
+                        type: TOKENIZATION_UPDATED
+                      - created_at: '2023-09-13T16:01:13.643241'
+                        result: APPROVED
+                        token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
+                        type: TOKENIZATION_AUTHORIZATION
+                    status: ACTIVE
+                    token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                    token_requestor_name: APPLE_PAY
+                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    updated_at: '2023-09-13T16:05:09.893241'
+                  tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+              properties:
+                account_token:
+                  description: Account token
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Card token
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Created date
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - digital_wallet.tokenization_updated
+                  example: digital_wallet.tokenization_updated
+                  type: string
+                tokenization:
+                  $ref: '#/components/schemas/Tokenization'
+              required:
+                - account_token
+                - card_token
+                - created
+                - event_type
+                - tokenization
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: digital_wallet.tokenization_updated
       tags:
         - Event Types
   dispute.updated:
@@ -9651,6 +9721,7 @@ components:
             * `digital_wallet.tokenization_result` - Notification of the end result of a tokenization, whether successful or failed.
             * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
             * `digital_wallet.tokenization_two_factor_authentication_code_sent` - Notification that a two factor authentication code for activating a digital wallet has been sent to the end user.
+            * `digital_wallet.tokenization_updated` - Notification that a digital wallet tokenization's status has changed.
           enum:
             - account_holder.created
             - account_holder.updated
@@ -9664,6 +9735,7 @@ components:
             - digital_wallet.tokenization_result
             - digital_wallet.tokenization_two_factor_authentication_code
             - digital_wallet.tokenization_two_factor_authentication_code_sent
+            - digital_wallet.tokenization_updated
             - dispute.updated
             - dispute_evidence.upload_failed
             - external_bank_account.created
@@ -9712,6 +9784,7 @@ components:
               - digital_wallet.tokenization_result
               - digital_wallet.tokenization_two_factor_authentication_code
               - digital_wallet.tokenization_two_factor_authentication_code_sent
+              - digital_wallet.tokenization_updated
               - dispute.updated
               - dispute_evidence.upload_failed
               - external_bank_account.created
