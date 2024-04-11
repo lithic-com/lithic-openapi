@@ -12330,6 +12330,7 @@ components:
           enum:
             - PRESENT
             - NOT_PRESENT
+            - UNKNOWN
         cardholder:
           description: Cardholder Presence Indicator
           type: string
@@ -12342,7 +12343,7 @@ components:
             - PRESENT
             - REOCCURRING
             - TELEPHONE_ORDER
-            - PREAUTHORIZED
+            - UNKNOWN
         pan:
           description: Method of entry for the PAN
           type: string
@@ -12386,6 +12387,7 @@ components:
             - CARDHOLDER
             - CARD_ACCEPTOR
             - ADMINISTRATIVE
+            - UNKNOWN
         partial_approval_capable:
           type: boolean
           description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
@@ -12634,6 +12636,7 @@ components:
               enum:
                 - PRESENT
                 - NOT_PRESENT
+                - UNKNOWN
             cardholder:
               description: Cardholder Presence Indicator
               type: string
@@ -12646,7 +12649,7 @@ components:
                 - PRESENT
                 - REOCCURRING
                 - TELEPHONE_ORDER
-                - PREAUTHORIZED
+                - UNKNOWN
             pan:
               description: Method of entry for the PAN
               type: string
@@ -12690,6 +12693,7 @@ components:
                 - CARDHOLDER
                 - CARD_ACCEPTOR
                 - ADMINISTRATIVE
+                - UNKNOWN
             partial_approval_capable:
               type: boolean
               description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
