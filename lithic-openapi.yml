@@ -12330,6 +12330,7 @@ components:
           enum:
             - PRESENT
             - NOT_PRESENT
+            - UNKNOWN
         cardholder:
           description: Cardholder Presence Indicator
           type: string
@@ -12342,7 +12343,7 @@ components:
             - PRESENT
             - REOCCURRING
             - TELEPHONE_ORDER
-            - PREAUTHORIZED
+            - UNKNOWN
         pan:
           description: Method of entry for the PAN
           type: string
@@ -12386,6 +12387,7 @@ components:
             - CARDHOLDER
             - CARD_ACCEPTOR
             - ADMINISTRATIVE
+            - UNKNOWN
         partial_approval_capable:
           type: boolean
           description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
@@ -12402,6 +12404,35 @@ components:
         - FINANCIAL_AUTHORIZATION
         - FINANCIAL_CREDIT_AUTHORIZATION
         - BALANCE_INQUIRY
+    asa_request_fleet_info:
+      description: Optional Object containing information if the Card is a part of a Fleet managed program
+      type: object
+      properties:
+        driver_id:
+          oneOf:
+            - type: 'null'
+              description: 'Driver ID was not provided as part of the transaction '
+            - type: string
+              description: ID representing the driver
+        vehicle_id:
+          oneOf:
+            - type: 'null'
+              description: Vehicle ID was not provided as part of the transaction
+            - type: string
+              description: ID or number associated with the vehicle
+        fleet_restriction_code:
+          type: string
+          description: Code indicating which restrictions, if any, there are on purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
+          enum:
+            - NO_RESTRICTIONS
+            - FUEL_ONLY
+        fleet_prompt_code:
+          type: string
+          description: Code indicating what the driver was prompted to enter at time of purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
+          enum:
+            - NO_PROMPT
+            - VEHICLE_ID
+            - DRIVER_ID
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -12503,6 +12534,11 @@ components:
           description: The event token associated with the authorization. This field is only set for programs enrolled into the beta.
           type: string
           format: uuid
+        fleet_info:
+          oneOf:
+            - type: 'null'
+              description: Transaction is not associated with a fleet program
+            - $ref: '#/components/schemas/asa_request_fleet_info'
       $defs:
         asa_request_status:
           type: string
@@ -12600,6 +12636,7 @@ components:
               enum:
                 - PRESENT
                 - NOT_PRESENT
+                - UNKNOWN
             cardholder:
               description: Cardholder Presence Indicator
               type: string
@@ -12612,7 +12649,7 @@ components:
                 - PRESENT
                 - REOCCURRING
                 - TELEPHONE_ORDER
-                - PREAUTHORIZED
+                - UNKNOWN
             pan:
               description: Method of entry for the PAN
               type: string
@@ -12656,6 +12693,7 @@ components:
                 - CARDHOLDER
                 - CARD_ACCEPTOR
                 - ADMINISTRATIVE
+                - UNKNOWN
             partial_approval_capable:
               type: boolean
               description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
@@ -12663,6 +12701,35 @@ components:
               $ref: '#/components/schemas/asa_request_pos_terminal_pin_capability'
             type:
               $ref: '#/components/schemas/asa_request_pos_terminal_type'
+        asa_request_fleet_info:
+          description: Optional Object containing information if the Card is a part of a Fleet managed program
+          type: object
+          properties:
+            driver_id:
+              oneOf:
+                - type: 'null'
+                  description: 'Driver ID was not provided as part of the transaction '
+                - type: string
+                  description: ID representing the driver
+            vehicle_id:
+              oneOf:
+                - type: 'null'
+                  description: Vehicle ID was not provided as part of the transaction
+                - type: string
+                  description: ID or number associated with the vehicle
+            fleet_restriction_code:
+              type: string
+              description: Code indicating which restrictions, if any, there are on purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
+              enum:
+                - NO_RESTRICTIONS
+                - FUEL_ONLY
+            fleet_prompt_code:
+              type: string
+              description: Code indicating what the driver was prompted to enter at time of purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
+              enum:
+                - NO_PROMPT
+                - VEHICLE_ID
+                - DRIVER_ID
         asa_request_cardholder_authentication:
           description: Cardholder Authentication object in ASA
           type: object
@@ -12787,6 +12854,8 @@ components:
             - INSUFFICIENT_FUNDS
             - UNAUTHORIZED_MERCHANT
             - VELOCITY_EXCEEDED
+            - INVALID_DRIVER
+            - INVALID_VEHICLE
         token:
           type: string
           description: The transaction token from the ASA request.
