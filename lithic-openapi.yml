@@ -3872,16 +3872,6 @@ paths:
             format: uuid
             title: External Bank Account Token
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                financial_account_token:
-                  description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
-                  format: uuid
-                  title: Financial Account Token
-                  type: string
       responses:
         '200':
           content:
@@ -8606,7 +8596,7 @@ components:
           title: Name
           type: string
         financial_account_token:
-          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
+          description: The financial account token of the operating account used to verify the account
           format: uuid
           title: Financial Account Token
           type: string
@@ -8740,7 +8730,7 @@ components:
           title: Doing Business As
           type: string
         financial_account_token:
-          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
+          description: The financial account token of the operating account used to verify the account
           format: uuid
           title: Financial Account Token
           type: string
@@ -8779,7 +8769,6 @@ components:
         - account_number
         - country
         - currency
-        - financial_account_token
         - owner
         - owner_type
         - routing_number
@@ -8888,7 +8877,6 @@ components:
           type: string
           x-lithic-tag: Enterprise
         funding:
-          description: 'Deprecated: Funding account for the card.'
           $ref: '#/components/schemas/FundingAccount'
         hostname:
           description: Hostname of card’s locked merchant (will be empty if not applicable).
