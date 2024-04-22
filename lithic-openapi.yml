@@ -8888,6 +8888,7 @@ components:
           type: string
           x-lithic-tag: Enterprise
         funding:
+          description: 'Deprecated: Funding account for the card.'
           $ref: '#/components/schemas/FundingAccount'
         hostname:
           description: Hostname of card’s locked merchant (will be empty if not applicable).
