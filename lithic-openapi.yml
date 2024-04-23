@@ -3872,6 +3872,16 @@ paths:
             format: uuid
             title: External Bank Account Token
             type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                financial_account_token:
+                  description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
+                  format: uuid
+                  title: Financial Account Token
+                  type: string
       responses:
         '200':
           content:
@@ -8596,7 +8606,7 @@ components:
           title: Name
           type: string
         financial_account_token:
-          description: The financial account token of the operating account used to verify the account
+          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
           format: uuid
           title: Financial Account Token
           type: string
@@ -8730,7 +8740,7 @@ components:
           title: Doing Business As
           type: string
         financial_account_token:
-          description: The financial account token of the operating account used to verify the account
+          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
           format: uuid
           title: Financial Account Token
           type: string
@@ -8769,6 +8779,7 @@ components:
         - account_number
         - country
         - currency
+        - financial_account_token
         - owner
         - owner_type
         - routing_number
@@ -8877,6 +8888,7 @@ components:
           type: string
           x-lithic-tag: Enterprise
         funding:
+          description: 'Deprecated: Funding account for the card.'
           $ref: '#/components/schemas/FundingAccount'
         hostname:
           description: Hostname of card’s locked merchant (will be empty if not applicable).
@@ -11448,6 +11460,10 @@ components:
         created_at:
           description: Date and time when the tokenization first occurred. UTC time zone.
           format: date-time
+          type: string
+        digital_card_art_token:
+          description: Specifies the digital card art displayed in the user’s digital wallet after tokenization. This will be null if the tokenization was created without an associated digital card art. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
+          format: uuid
           type: string
         events:
           description: A list of events related to the tokenization.
