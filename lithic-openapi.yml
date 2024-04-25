@@ -1940,7 +1940,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/Balance'
+                      $ref: '#/components/schemas/FinancialAccountBalance'
                     type: array
                   has_more:
                     description: More data exists.
@@ -3872,6 +3872,16 @@ paths:
             format: uuid
             title: External Bank Account Token
             type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                financial_account_token:
+                  description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
+                  format: uuid
+                  title: Financial Account Token
+                  type: string
       responses:
         '200':
           content:
@@ -4084,7 +4094,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/Balance'
+                      $ref: '#/components/schemas/FinancialAccountBalance'
                     type: array
                   has_more:
                     description: More data exists.
@@ -6211,7 +6221,7 @@ webhooks:
               properties:
                 data:
                   items:
-                    $ref: '#/components/schemas/Balance'
+                    $ref: '#/components/schemas/FinancialAccountBalance'
                   type: array
                 event_type:
                   description: The type of event that occurred.
@@ -8499,7 +8509,7 @@ components:
           type: string
       type: object
     Balance:
-      description: Balance of a Financial Account
+      description: Balance
       properties:
         available_amount:
           description: Funds available for spend in the currency's smallest unit (e.g., cents for USD)
@@ -8553,6 +8563,61 @@ components:
         - total_amount
         - updated
       type: object
+    FinancialAccountBalance:
+      description: Balance of a Financial Account
+      properties:
+        available_amount:
+          description: Funds available for spend in the currency's smallest unit (e.g., cents for USD)
+          type: integer
+        created:
+          description: Date and time for when the balance was first created.
+          format: date-time
+          type: string
+        currency:
+          description: 3-digit alphabetic ISO 4217 code for the local currency of the balance.
+          type: string
+        token:
+          description: Globally unique identifier for the financial account that holds this balance.
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          format: uuid
+          type: string
+        type:
+          description: Type of financial account.
+          enum:
+            - ISSUING
+            - OPERATING
+            - RESERVE
+          type: string
+        last_transaction_event_token:
+          description: Globally unique identifier for the last financial transaction event that impacted this balance.
+          format: uuid
+          type: string
+        last_transaction_token:
+          description: Globally unique identifier for the last financial transaction that impacted this balance.
+          format: uuid
+          type: string
+        pending_amount:
+          description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD).
+          type: integer
+        total_amount:
+          description: The sum of available and pending balance in the currency's smallest unit (e.g., cents for USD).
+          type: integer
+        updated:
+          description: Date and time for when the balance was last updated.
+          format: date-time
+          type: string
+      required:
+        - available_amount
+        - created
+        - currency
+        - token
+        - type
+        - last_transaction_event_token
+        - last_transaction_token
+        - pending_amount
+        - total_amount
+        - updated
+      type: object
     BankAccountApiResponse:
       properties:
         account_token:
@@ -8596,7 +8661,7 @@ components:
           title: Name
           type: string
         financial_account_token:
-          description: The financial account token of the operating account used to verify the account
+          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
           format: uuid
           title: Financial Account Token
           type: string
@@ -8730,7 +8795,7 @@ components:
           title: Doing Business As
           type: string
         financial_account_token:
-          description: The financial account token of the operating account used to verify the account
+          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
           format: uuid
           title: Financial Account Token
           type: string
@@ -8769,6 +8834,7 @@ components:
         - account_number
         - country
         - currency
+        - financial_account_token
         - owner
         - owner_type
         - routing_number
@@ -8877,6 +8943,7 @@ components:
           type: string
           x-lithic-tag: Enterprise
         funding:
+          description: 'Deprecated: Funding account for the card.'
           $ref: '#/components/schemas/FundingAccount'
         hostname:
           description: Hostname of card’s locked merchant (will be empty if not applicable).
@@ -11448,6 +11515,10 @@ components:
         created_at:
           description: Date and time when the tokenization first occurred. UTC time zone.
           format: date-time
+          type: string
+        digital_card_art_token:
+          description: Specifies the digital card art displayed in the user’s digital wallet after tokenization. This will be null if the tokenization was created without an associated digital card art. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
+          format: uuid
           type: string
         events:
           description: A list of events related to the tokenization.
