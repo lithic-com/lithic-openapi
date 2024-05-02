@@ -10291,6 +10291,7 @@ components:
             - KYC_EXEMPT
           type: string
       required:
+        - address
         - email
         - first_name
         - kyc_exemption_type
@@ -11960,6 +11961,8 @@ components:
               - FORMAT_ERROR
               - INSUFFICIENT_FUNDING_SOURCE_BALANCE
               - INSUFFICIENT_FUNDS
+              - INVALID_DRIVER
+              - INVALID_VEHICLE
               - LITHIC_SYSTEM_ERROR
               - LITHIC_SYSTEM_RATE_LIMIT
               - MALFORMED_ASA_RESPONSE
@@ -12291,6 +12294,9 @@ components:
       properties:
         acceptor_id:
           description: Unique alphanumeric identifier for the payment card acceptor (merchant).
+          type: string
+        acquiring_institution_id:
+          description: Unique numeric identifier of the acquiring institution.
           type: string
         city:
           description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
@@ -12703,6 +12709,9 @@ components:
           properties:
             acceptor_id:
               description: Unique alphanumeric identifier for the payment card acceptor (merchant).
+              type: string
+            acquiring_institution_id:
+              description: Unique numeric identifier of the acquiring institution.
               type: string
             city:
               description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
