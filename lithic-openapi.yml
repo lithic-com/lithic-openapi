@@ -12295,9 +12295,6 @@ components:
         acceptor_id:
           description: Unique alphanumeric identifier for the payment card acceptor (merchant).
           type: string
-        acquiring_institution_id:
-          description: Unique numeric identifier of the acquiring institution.
-          type: string
         city:
           description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
           type: string
@@ -12709,9 +12706,6 @@ components:
           properties:
             acceptor_id:
               description: Unique alphanumeric identifier for the payment card acceptor (merchant).
-              type: string
-            acquiring_institution_id:
-              description: Unique numeric identifier of the acquiring institution.
               type: string
             city:
               description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
