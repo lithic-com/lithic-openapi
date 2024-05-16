@@ -12367,18 +12367,18 @@ components:
       description: Optional Object containing information if the Card is a part of a Fleet managed program
       type: object
       properties:
-        driver_id:
+        driver_number:
           oneOf:
             - type: 'null'
-              description: 'Driver ID was not provided as part of the transaction '
+              description: 'Driver Number was not provided as part of the transaction '
             - type: string
-              description: ID representing the driver
-        vehicle_id:
+              description: Number representing the driver
+        vehicle_number:
           oneOf:
             - type: 'null'
-              description: Vehicle ID was not provided as part of the transaction
+              description: Vehicle Number was not provided as part of the transaction
             - type: string
-              description: ID or number associated with the vehicle
+              description: Number associated with the vehicle
         fleet_restriction_code:
           type: string
           description: Code indicating which restrictions, if any, there are on purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
@@ -12390,8 +12390,8 @@ components:
           description: Code indicating what the driver was prompted to enter at time of purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
           enum:
             - NO_PROMPT
-            - VEHICLE_ID
-            - DRIVER_ID
+            - VEHICLE_NUMBER
+            - DRIVER_NUMBER
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -12667,18 +12667,18 @@ components:
           description: Optional Object containing information if the Card is a part of a Fleet managed program
           type: object
           properties:
-            driver_id:
+            driver_number:
               oneOf:
                 - type: 'null'
-                  description: 'Driver ID was not provided as part of the transaction '
+                  description: 'Driver Number was not provided as part of the transaction '
                 - type: string
-                  description: ID representing the driver
-            vehicle_id:
+                  description: Number representing the driver
+            vehicle_number:
               oneOf:
                 - type: 'null'
-                  description: Vehicle ID was not provided as part of the transaction
+                  description: Vehicle Number was not provided as part of the transaction
                 - type: string
-                  description: ID or number associated with the vehicle
+                  description: Number associated with the vehicle
             fleet_restriction_code:
               type: string
               description: Code indicating which restrictions, if any, there are on purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
@@ -12690,8 +12690,8 @@ components:
               description: Code indicating what the driver was prompted to enter at time of purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
               enum:
                 - NO_PROMPT
-                - VEHICLE_ID
-                - DRIVER_ID
+                - VEHICLE_NUMBER
+                - DRIVER_NUMBER
         asa_request_cardholder_authentication:
           description: Cardholder Authentication object in ASA
           type: object
