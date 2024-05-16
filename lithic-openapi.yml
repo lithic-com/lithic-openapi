@@ -12816,8 +12816,8 @@ components:
             - INSUFFICIENT_FUNDS
             - UNAUTHORIZED_MERCHANT
             - VELOCITY_EXCEEDED
-            - INVALID_DRIVER
-            - INVALID_VEHICLE
+            - DRIVER_NUMBER_INVALID
+            - VEHICLE_NUMBER_INVALID
         token:
           type: string
           description: The transaction token from the ASA request.
