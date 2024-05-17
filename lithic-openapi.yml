@@ -11682,7 +11682,7 @@ components:
         - PAUSED
       title: Account State
     verification_state:
-      $id: https://lithic.com/schemas/customer-facing/treasury/cies/verification_method.json
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/verification_state.json
       $schema: https://json-schema.org/draft/2020-12/schema
       type: string
       enum:
