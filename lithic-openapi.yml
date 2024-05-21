@@ -12077,9 +12077,7 @@ components:
           maxItems: 2
           minItems: 2
           items:
-            oneOf:
-              - type: integer
-              - type: integer
+            type: integer
       required:
         - micro_deposits
     retry_micro_deposit_verification_request:
