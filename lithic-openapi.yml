@@ -3626,7 +3626,7 @@ paths:
           required: false
           schema:
             items:
-              $ref: '#/components/schemas/AccountType'
+              $ref: '#/components/schemas/searchable_account_types'
             title: Account Types
             type: array
         - in: query
@@ -3642,7 +3642,7 @@ paths:
           required: false
           schema:
             items:
-              $ref: '#/components/schemas/OwnerType'
+              $ref: '#/components/schemas/owner_type'
             title: Owner Types
             type: array
         - in: query
@@ -3650,7 +3650,7 @@ paths:
           required: false
           schema:
             items:
-              $ref: '#/components/schemas/AccountState'
+              $ref: '#/components/schemas/account_state'
             title: Account States
             type: array
         - in: query
@@ -3658,7 +3658,7 @@ paths:
           required: false
           schema:
             items:
-              $ref: '#/components/schemas/VerificationState'
+              $ref: '#/components/schemas/verification_state'
             title: Verification States
             type: array
         - $ref: '#/components/parameters/endingBefore'
@@ -3669,7 +3669,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankAccountsApiResponse'
+                $ref: '#/components/schemas/bank_accounts_api_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3735,18 +3735,18 @@ paths:
               discriminator:
                 propertyName: verification_method
                 mapping:
-                  MICRO_DEPOSIT: '#/components/schemas/BankVerifiedCreateBankAccountApiRequest'
-                  PLAID: '#/components/schemas/PlaidCreateBankAccountApiRequest'
-                  PRENOTE: '#/components/schemas/BankVerifiedCreateBankAccountApiRequest'
+                  MICRO_DEPOSIT: '#/components/schemas/bank_verified_create_bank_account_api_request'
+                  PLAID: '#/components/schemas/plaid_verified_create_bank_account_api_request'
+                  PRENOTE: '#/components/schemas/bank_verified_create_bank_account_api_request'
               oneOf:
-                - $ref: '#/components/schemas/BankVerifiedCreateBankAccountApiRequest'
-                - $ref: '#/components/schemas/PlaidCreateBankAccountApiRequest'
+                - $ref: '#/components/schemas/bank_verified_create_bank_account_api_request'
+                - $ref: '#/components/schemas/plaid_verified_create_bank_account_api_request'
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankAccountApiResponse'
+                $ref: '#/components/schemas/bank_account_api_response'
           description: Created
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3776,7 +3776,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankAccountApiResponse'
+                $ref: '#/components/schemas/bank_account_api_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3804,14 +3804,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateBankAccountApiRequest'
+              $ref: '#/components/schemas/update_bank_account_api_request'
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankAccountApiResponse'
+                $ref: '#/components/schemas/bank_account_api_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3840,14 +3840,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MicroDepositVerificationDetails'
+              $ref: '#/components/schemas/micro_deposit_verification_request'
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankAccountApiResponse'
+                $ref: '#/components/schemas/bank_account_api_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3876,18 +3876,13 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                financial_account_token:
-                  description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
-                  format: uuid
-                  title: Financial Account Token
-                  type: string
+              $ref: '#/components/schemas/retry_micro_deposit_verification_request'
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankAccountApiResponse'
+                $ref: '#/components/schemas/bank_account_api_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -7062,123 +7057,7 @@ webhooks:
         content:
           application/json:
             schema:
-              properties:
-                account_token:
-                  description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
-                  format: uuid
-                  title: Account Token
-                  type: string
-                address:
-                  $ref: '#/components/schemas/ExternalBankAccountAddress'
-                company_id:
-                  description: Optional field that helps identify bank accounts in receipts
-                  title: Company Id
-                  type: string
-                country:
-                  description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
-                  title: Country
-                  type: string
-                created:
-                  description: An ISO 8601 string representing when this funding source was added to the Lithic account.
-                  format: date-time
-                  title: Created
-                  type: string
-                currency:
-                  description: currency of the external account 3-digit alphabetic ISO 4217 code
-                  title: Currency
-                  type: string
-                dob:
-                  description: Date of Birth of the Individual that owns the external bank account
-                  format: date
-                  title: Date of Birth
-                  type: string
-                doing_business_as:
-                  title: Doing Business As
-                  type: string
-                event_type:
-                  title: Event Type
-                  type: string
-                financial_account_token:
-                  format: uuid
-                  title: Financial Account Token
-                  type: string
-                name:
-                  description: The nickname given to this record of External Bank Account
-                  title: Name
-                  type: string
-                owner:
-                  description: Legal Name of the business or individual who owns the external account. This will appear in statements
-                  title: Owner
-                  type: string
-                owner_type:
-                  enum:
-                    - BUSINESS
-                    - INDIVIDUAL
-                  title: Owner Type
-                  type: string
-                routing_number:
-                  title: Routing Number
-                  type: string
-                state:
-                  enum:
-                    - CLOSED
-                    - ENABLED
-                    - PAUSED
-                  title: State
-                  type: string
-                token:
-                  description: A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association
-                  format: uuid
-                  title: Token
-                  type: string
-                type:
-                  enum:
-                    - CHECKING
-                    - SAVINGS
-                  title: Type
-                  type: string
-                user_defined_id:
-                  title: User Defined ID
-                  type: string
-                verification_attempts:
-                  description: The number of attempts at verification
-                  title: Verification Attempts
-                  type: integer
-                verification_failed_reason:
-                  description: Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network
-                  title: Verification Failed Reason
-                  type: string
-                verification_method:
-                  enum:
-                    - MANUAL
-                    - MICRO_DEPOSIT
-                    - PLAID
-                    - PRENOTE
-                  title: Verification Method
-                  type: string
-                verification_state:
-                  enum:
-                    - ENABLED
-                    - FAILED_VERIFICATION
-                    - INSUFFICIENT_FUNDS
-                    - PENDING
-                  title: Verification State
-                  type: string
-              required:
-                - country
-                - created
-                - currency
-                - event_type
-                - owner
-                - owner_type
-                - routing_number
-                - state
-                - token
-                - type
-                - verification_attempts
-                - verification_method
-                - verification_state
-              type: object
+              $ref: '#/components/schemas/bank_account_api_response'
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
@@ -7192,123 +7071,7 @@ webhooks:
         content:
           application/json:
             schema:
-              properties:
-                account_token:
-                  description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
-                  format: uuid
-                  title: Account Token
-                  type: string
-                address:
-                  $ref: '#/components/schemas/ExternalBankAccountAddress'
-                company_id:
-                  description: Optional field that helps identify bank accounts in receipts
-                  title: Company Id
-                  type: string
-                country:
-                  description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
-                  title: Country
-                  type: string
-                created:
-                  description: An ISO 8601 string representing when this funding source was added to the Lithic account.
-                  format: date-time
-                  title: Created
-                  type: string
-                currency:
-                  description: currency of the external account 3-digit alphabetic ISO 4217 code
-                  title: Currency
-                  type: string
-                dob:
-                  description: Date of Birth of the Individual that owns the external bank account
-                  format: date
-                  title: Date of Birth
-                  type: string
-                doing_business_as:
-                  title: Doing Business As
-                  type: string
-                event_type:
-                  title: Event Type
-                  type: string
-                financial_account_token:
-                  format: uuid
-                  title: Financial Account Token
-                  type: string
-                name:
-                  description: The nickname given to this record of External Bank Account
-                  title: Name
-                  type: string
-                owner:
-                  description: Legal Name of the business or individual who owns the external account. This will appear in statements
-                  title: Owner
-                  type: string
-                owner_type:
-                  enum:
-                    - BUSINESS
-                    - INDIVIDUAL
-                  title: Owner Type
-                  type: string
-                routing_number:
-                  title: Routing Number
-                  type: string
-                state:
-                  enum:
-                    - CLOSED
-                    - ENABLED
-                    - PAUSED
-                  title: State
-                  type: string
-                token:
-                  description: A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association
-                  format: uuid
-                  title: Token
-                  type: string
-                type:
-                  enum:
-                    - CHECKING
-                    - SAVINGS
-                  title: Type
-                  type: string
-                user_defined_id:
-                  title: User Defined ID
-                  type: string
-                verification_attempts:
-                  description: The number of attempts at verification
-                  title: Verification Attempts
-                  type: integer
-                verification_failed_reason:
-                  description: Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network
-                  title: Verification Failed Reason
-                  type: string
-                verification_method:
-                  enum:
-                    - MANUAL
-                    - MICRO_DEPOSIT
-                    - PLAID
-                    - PRENOTE
-                  title: Verification Method
-                  type: string
-                verification_state:
-                  enum:
-                    - ENABLED
-                    - FAILED_VERIFICATION
-                    - INSUFFICIENT_FUNDS
-                    - PENDING
-                  title: Verification State
-                  type: string
-              required:
-                - country
-                - created
-                - currency
-                - event_type
-                - owner
-                - owner_type
-                - routing_number
-                - state
-                - token
-                - type
-                - verification_attempts
-                - verification_method
-                - verification_state
-              type: object
+              $ref: '#/components/schemas/bank_account_api_response'
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
@@ -8339,17 +8102,6 @@ components:
       required:
         - available_spend_limit
       type: object
-    AccountState:
-      enum:
-        - CLOSED
-        - ENABLED
-        - PAUSED
-      title: AccountState
-    AccountType:
-      enum:
-        - CHECKING
-        - SAVINGS
-      title: AccountType
     Address:
       properties:
         address1:
@@ -8617,230 +8369,6 @@ components:
         - pending_amount
         - total_amount
         - updated
-      type: object
-    BankAccountApiResponse:
-      properties:
-        account_token:
-          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
-          format: uuid
-          title: Account Token
-          type: string
-        address:
-          $ref: '#/components/schemas/ExternalBankAccountAddress'
-        company_id:
-          description: Optional field that helps identify bank accounts in receipts
-          title: Company Id
-          type: string
-        country:
-          description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
-          title: Country
-          type: string
-        created:
-          description: An ISO 8601 string representing when this funding source was added to the Lithic account.
-          format: date-time
-          title: Created
-          type: string
-        currency:
-          description: currency of the external account 3-digit alphabetic ISO 4217 code
-          title: Currency
-          type: string
-        dob:
-          description: Date of Birth of the Individual that owns the external bank account
-          format: date
-          title: Date of Birth
-          type: string
-        doing_business_as:
-          title: Doing Business As
-          type: string
-        last_four:
-          description: The last 4 digits of the bank account. Derived by Lithic from the account number passed
-          title: Last Four
-          type: string
-        name:
-          description: The nickname given to this record of External Bank Account
-          title: Name
-          type: string
-        financial_account_token:
-          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
-          format: uuid
-          title: Financial Account Token
-          type: string
-        owner:
-          description: Legal Name of the business or individual who owns the external account. This will appear in statements
-          title: Owner
-          type: string
-        owner_type:
-          enum:
-            - BUSINESS
-            - INDIVIDUAL
-          title: Owner Type
-          type: string
-        routing_number:
-          title: Routing Number
-          type: string
-        state:
-          enum:
-            - CLOSED
-            - ENABLED
-            - PAUSED
-          title: State
-          type: string
-        token:
-          description: A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association
-          format: uuid
-          title: Token
-          type: string
-        type:
-          enum:
-            - CHECKING
-            - SAVINGS
-          title: Type
-          type: string
-        user_defined_id:
-          title: User Defined ID
-          type: string
-        verification_attempts:
-          description: The number of attempts at verification
-          title: Verification Attempts
-          type: integer
-        verification_failed_reason:
-          description: Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network
-          title: Verification Failed Reason
-          type: string
-        verification_method:
-          enum:
-            - MANUAL
-            - MICRO_DEPOSIT
-            - PLAID
-            - PRENOTE
-          title: Verification Method
-          type: string
-        verification_state:
-          enum:
-            - ENABLED
-            - FAILED_VERIFICATION
-            - INSUFFICIENT_FUNDS
-            - PENDING
-          title: Verification State
-          type: string
-      required:
-        - country
-        - created
-        - currency
-        - last_four
-        - owner
-        - owner_type
-        - routing_number
-        - state
-        - token
-        - type
-        - verification_attempts
-        - verification_method
-        - verification_state
-      title: BankAccountApiResponse
-      type: object
-    BankAccountsApiResponse:
-      properties:
-        data:
-          items:
-            $ref: '#/components/schemas/BankAccountApiResponse'
-          title: Data
-          type: array
-        has_more:
-          title: More data exists
-          type: boolean
-      required:
-        - data
-        - has_more
-      title: BankAccountsApiResponse
-      type: object
-    BankVerifiedCreateBankAccountApiRequest:
-      properties:
-        account_number:
-          maxLength: 17
-          minLength: 1
-          pattern: ^[0-9-]{1,17}$
-          title: Account Number
-          type: string
-        account_token:
-          format: uuid
-          title: Account Token
-          type: string
-        address:
-          $ref: '#/components/schemas/ExternalBankAccountAddress'
-        company_id:
-          maxLength: 10
-          minLength: 1
-          pattern: ^[a-zA-Z0-9]*$
-          title: Company Id
-          type: string
-        country:
-          maxLength: 3
-          minLength: 3
-          pattern: ^[A-Z]{3}$
-          title: Country
-          type: string
-        currency:
-          maxLength: 3
-          minLength: 3
-          pattern: ^[A-Z]{3}$
-          title: Currency
-          type: string
-        dob:
-          description: Date of Birth of the Individual that owns the external bank account
-          format: date
-          title: Date of Birth
-          type: string
-        doing_business_as:
-          title: Doing Business As
-          type: string
-        financial_account_token:
-          description: The financial account token of the operating account, which will provide the funds for micro deposits used to verify the account
-          format: uuid
-          title: Financial Account Token
-          type: string
-        name:
-          maxLength: 50
-          minLength: 1
-          pattern: ^[!-~ ]*$
-          title: Name
-          type: string
-        owner:
-          maxLength: 22
-          minLength: 1
-          pattern: ^[!-~ ]*$
-          title: Owner
-          type: string
-        owner_type:
-          $ref: '#/components/schemas/OwnerType'
-        routing_number:
-          minLength: 1
-          pattern: ^[0-9]{9}$
-          title: Routing Number
-          type: string
-        type:
-          $ref: '#/components/schemas/AccountType'
-        user_defined_id:
-          title: User Defined ID
-          type: string
-        verification_enforcement:
-          default: true
-          description: Indicates whether verification was enforced for a given association record. For MICRO_DEPOSIT, option to disable verification if the external bank account has already been verified before. By default, verification will be required unless users pass in a value of false
-          title: Verification Enforcement
-          type: boolean
-        verification_method:
-          $ref: '#/components/schemas/VerificationMethod'
-      required:
-        - account_number
-        - country
-        - currency
-        - financial_account_token
-        - owner
-        - owner_type
-        - routing_number
-        - type
-        - verification_method
-      title: Bank Verified Create Bank Account Api Request
       type: object
     BusinessAccount:
       properties:
@@ -10160,7 +9688,7 @@ components:
           type: array
         beneficial_owner_individuals:
           description: |
-            List of all individuals with >25% ownership in the company. If no entity or individual owns >25% of the company,
+            List of all direct and indirect individuals with >25% ownership in the company. If no entity or individual owns >25% of the company,
             and the largest shareholder is an individual, please identify them in this field.
             See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
           items:
@@ -10399,23 +9927,6 @@ components:
         - token
         - url
       type: object
-    MicroDepositVerificationDetails:
-      properties:
-        micro_deposits:
-          items:
-            type: integer
-          title: Micro Deposits
-          type: array
-      required:
-        - micro_deposits
-      title: MicroDepositVerificationDetails
-      type: object
-    OwnerType:
-      enum:
-        - BUSINESS
-        - INDIVIDUAL
-      title: OwnerType
-      type: string
     PaymentMethodAttributes:
       properties:
         company_id:
@@ -10503,50 +10014,6 @@ components:
             - user_defined_id
           type: object
       title: PaymentResponse
-    PlaidCreateBankAccountApiRequest:
-      properties:
-        account_token:
-          format: uuid
-          title: Account Token
-          type: string
-        company_id:
-          maxLength: 10
-          minLength: 1
-          pattern: ^[a-zA-Z0-9]*$
-          title: Company Id
-          type: string
-        dob:
-          description: Date of Birth of the Individual that owns the external bank account
-          format: date
-          title: Date of Birth
-          type: string
-        doing_business_as:
-          title: Doing Business As
-          type: string
-        owner:
-          maxLength: 22
-          minLength: 1
-          pattern: ^[!-~ ]*$
-          title: Owner
-          type: string
-        owner_type:
-          $ref: '#/components/schemas/OwnerType'
-        processor_token:
-          minLength: 1
-          title: Processor Token
-          type: string
-        user_defined_id:
-          title: User Defined ID
-          type: string
-        verification_method:
-          $ref: '#/components/schemas/VerificationMethod'
-      required:
-        - owner
-        - owner_type
-        - processor_token
-        - verification_method
-      title: Plaid Create Bank Account Api Request
-      type: object
     PostPaymentResponse:
       allOf:
         - $ref: '#/components/schemas/PaymentResponse'
@@ -11958,11 +11425,10 @@ components:
               - CUSTOM_ASA_RESULT
               - DECLINED
               - DO_NOT_HONOR
+              - DRIVER_NUMBER_INVALID
               - FORMAT_ERROR
               - INSUFFICIENT_FUNDING_SOURCE_BALANCE
               - INSUFFICIENT_FUNDS
-              - INVALID_DRIVER
-              - INVALID_VEHICLE
               - LITHIC_SYSTEM_ERROR
               - LITHIC_SYSTEM_RATE_LIMIT
               - MALFORMED_ASA_RESPONSE
@@ -11981,6 +11447,7 @@ components:
               - TRANSACTION_NOT_PERMITTED_TO_ISSUER_OR_CARDHOLDER
               - TRANSACTION_PREVIOUSLY_COMPLETED
               - UNAUTHORIZED_MERCHANT
+              - VEHICLE_NUMBER_INVALID
             type: string
           type: array
         result:
@@ -12144,43 +11611,6 @@ components:
           format: date-time
           type: string
       type: object
-    UpdateBankAccountApiRequest:
-      properties:
-        address:
-          $ref: '#/components/schemas/ExternalBankAccountAddress'
-        company_id:
-          maxLength: 10
-          minLength: 1
-          pattern: ^[a-zA-Z0-9]*$
-          title: Company Id
-          type: string
-        dob:
-          description: Date of Birth of the Individual that owns the external bank account
-          format: date
-          title: Date of Birth
-          type: string
-        doing_business_as:
-          title: Doing Business As
-          type: string
-        name:
-          maxLength: 50
-          minLength: 1
-          pattern: ^[!-~ ]*$
-          title: Name
-          type: string
-        owner:
-          maxLength: 22
-          minLength: 1
-          pattern: ^[!-~ ]*$
-          title: Owner
-          type: string
-        owner_type:
-          $ref: '#/components/schemas/OwnerType'
-        user_defined_id:
-          title: User Defined ID
-          type: string
-      title: UpdateBankAccountApiRequest
-      type: object
     UpdateFinancialAccountRequest:
       properties:
         nickname:
@@ -12189,21 +11619,6 @@ components:
           type: string
       title: UpdateFinancialAccountRequest
       type: object
-    VerificationMethod:
-      enum:
-        - MANUAL
-        - MICRO_DEPOSIT
-        - PLAID
-        - PRENOTE
-      title: VerificationMethod
-      type: string
-    VerificationState:
-      enum:
-        - ENABLED
-        - FAILED_VERIFICATION
-        - INSUFFICIENT_FUNDS
-        - PENDING
-      title: VerificationState
     settlementSummaryDetails:
       properties:
         disputes_gross_amount:
@@ -12241,6 +11656,430 @@ components:
           example: 1900
           type: integer
       type: object
+    searchable_account_types:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/searchable_account_types.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - CHECKING
+        - SAVINGS
+      title: Searchable Account Type
+    owner_type:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/owner_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - INDIVIDUAL
+        - BUSINESS
+      title: Owner Type
+    account_state:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/account_state.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - ENABLED
+        - CLOSED
+        - PAUSED
+      title: Account State
+    verification_state:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/verification_state.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - PENDING
+        - ENABLED
+        - FAILED_VERIFICATION
+        - INSUFFICIENT_FUNDS
+      title: Verification State
+    verification_method:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - MANUAL
+        - MICRO_DEPOSIT
+        - PLAID
+        - PRENOTE
+      title: Verification Method
+    address:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/address.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Address
+      type: object
+      properties:
+        address1:
+          type: string
+          minLength: 1
+          maxLength: 40
+        address2:
+          type: string
+          minLength: 1
+          maxLength: 40
+        city:
+          type: string
+          minLength: 1
+          maxLength: 40
+        state:
+          type: string
+          minLength: 2
+          maxLength: 2
+        postal_code:
+          type: string
+          minLength: 5
+          maxLength: 10
+          pattern: ^[0-9]{5}(-[0-9]{4})?$
+        country:
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+      required:
+        - address1
+        - city
+        - state
+        - postal_code
+        - country
+    bank_account_api_response:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/bank_account_api_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Bank Account Api Response
+      type: object
+      properties:
+        token:
+          description: A globally unique identifier for this record of an external bank account association. If a program links an external bank account to more than one end-user or to both the program and the end-user, then Lithic will return each record of the association
+          type: string
+          format: uuid
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+        routing_number:
+          description: Routing Number
+          type: string
+        last_four:
+          description: The last 4 digits of the bank account. Derived by Lithic from the account number passed
+          type: string
+        name:
+          description: The nickname given to this record of External Bank Account
+          type: string
+        currency:
+          description: currency of the external account 3-digit alphabetic ISO 4217 code
+          type: string
+        country:
+          description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
+          type: string
+        account_token:
+          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
+          type: string
+          format: uuid
+        created:
+          description: An ISO 8601 string representing when this funding source was added to the Lithic account.
+          type: string
+          format: date-time
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        doing_business_as:
+          description: Doing Business As
+          type: string
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+        verification_failed_reason:
+          description: Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network
+          type: string
+        verification_attempts:
+          description: The number of attempts at verification
+          type: integer
+        financial_account_token:
+          description: The financial account token of the operating account to fund the micro deposits
+          type: string
+          format: uuid
+        type:
+          description: Account Type
+          $ref: '#/components/schemas/searchable_account_types'
+        verification_method:
+          description: Verification Method
+          $ref: '#/components/schemas/verification_method'
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        state:
+          description: Account State
+          $ref: '#/components/schemas/account_state'
+        verification_state:
+          description: Verification State
+          $ref: '#/components/schemas/verification_state'
+        address:
+          description: Address
+          $ref: '#/components/schemas/address'
+      required:
+        - token
+        - type
+        - verification_method
+        - owner_type
+        - owner
+        - state
+        - verification_state
+        - routing_number
+        - last_four
+        - currency
+        - country
+        - created
+        - verification_attempts
+    bank_accounts_api_response:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/bank_accounts_api_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Bank Accounts Api Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/bank_account_api_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
+    bank_verified_verification_method:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/bank_verified_verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - MICRO_DEPOSIT
+        - PRENOTE
+      title: Bank Verified Verification Methods
+    bank_verified_create_bank_account_api_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/bank_verified_create_bank_account_api_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Bank Verified Create Bank Account Api Request
+      type: object
+      properties:
+        verification_method:
+          description: Verification Method
+          $ref: '#/components/schemas/bank_verified_verification_method'
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[!-~ ]*$
+        account_token:
+          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
+          type: string
+          format: uuid
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[a-zA-Z0-9]*$
+        doing_business_as:
+          description: Doing Business As
+          type: string
+          minLength: 1
+          maxLength: 40
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+          minLength: 1
+          maxLength: 256
+        type:
+          description: Account Type
+          $ref: '#/components/schemas/searchable_account_types'
+        routing_number:
+          description: Routing Number
+          type: string
+          minLength: 9
+          maxLength: 9
+          pattern: ^[0-9]{9}$
+        account_number:
+          description: Routing Number
+          type: string
+          minLength: 1
+          maxLength: 17
+          pattern: ^[0-9-]{1,17}$
+        name:
+          description: The nickname given to this record of External Bank Account
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[!-~ ]*$
+        country:
+          description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        currency:
+          description: currency of the external account 3-digit alphabetic ISO 4217 code
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        verification_enforcement:
+          type: boolean
+          default: true
+        address:
+          description: Address
+          $ref: '#/components/schemas/address'
+        financial_account_token:
+          description: The financial account token of the operating account to fund the micro deposits
+          type: string
+          format: uuid
+      required:
+        - type
+        - routing_number
+        - account_number
+        - country
+        - currency
+        - verification_method
+        - owner_type
+        - owner
+    plaid_verified_verification_method:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/plaid_verified_verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - PLAID
+      title: Plaid Verified Verification Methods
+    plaid_verified_create_bank_account_api_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/plaid_verified_create_bank_account_api_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Plaid Verified Create Bank Account Api Request
+      type: object
+      properties:
+        verification_method:
+          description: Verification Method
+          $ref: '#/components/schemas/plaid_verified_verification_method'
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[!-~ ]*$
+        account_token:
+          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
+          type: string
+          format: uuid
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[a-zA-Z0-9]*$
+        doing_business_as:
+          description: Doing Business As
+          type: string
+          minLength: 1
+          maxLength: 40
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+          minLength: 1
+          maxLength: 256
+        processor_token:
+          type: string
+          minLength: 1
+      required:
+        - processor_token
+        - verification_method
+        - owner_type
+        - owner
+    update_bank_account_api_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/update_bank_account_api_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Update Bank Account Api Request
+      type: object
+      properties:
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[!-~ ]*$
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        name:
+          description: The nickname given to this record of External Bank Account
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[!-~ ]*$
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[a-zA-Z0-9]*$
+        address:
+          description: Address
+          $ref: '#/components/schemas/address'
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        doing_business_as:
+          description: Doing Business As
+          type: string
+          minLength: 1
+          maxLength: 40
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+          minLength: 1
+          maxLength: 256
+    micro_deposit_verification_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/micro_deposit_verification_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Micro Deposit Verification Request
+      type: object
+      properties:
+        micro_deposits:
+          type: array
+          title: Micro Deposits
+          maxItems: 2
+          minItems: 2
+          items:
+            type: integer
+      required:
+        - micro_deposits
+    retry_micro_deposit_verification_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/retry_micro_deposit_verification_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Retry Micro Deposit Verification Request
+      type: object
+      properties:
+        financial_account_token:
+          type: string
+          format: uuid
     asa_request_pos_terminal_pin_capability:
       type: string
       description: Status of whether the POS is able to accept PINs
@@ -12517,18 +12356,18 @@ components:
       description: Optional Object containing information if the Card is a part of a Fleet managed program
       type: object
       properties:
-        driver_id:
+        driver_number:
           oneOf:
             - type: 'null'
-              description: 'Driver ID was not provided as part of the transaction '
+              description: 'Driver Number was not provided as part of the transaction '
             - type: string
-              description: ID representing the driver
-        vehicle_id:
+              description: Number representing the driver
+        vehicle_number:
           oneOf:
             - type: 'null'
-              description: Vehicle ID was not provided as part of the transaction
+              description: Vehicle Number was not provided as part of the transaction
             - type: string
-              description: ID or number associated with the vehicle
+              description: Number associated with the vehicle
         fleet_restriction_code:
           type: string
           description: Code indicating which restrictions, if any, there are on purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
@@ -12540,8 +12379,8 @@ components:
           description: Code indicating what the driver was prompted to enter at time of purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
           enum:
             - NO_PROMPT
-            - VEHICLE_ID
-            - DRIVER_ID
+            - VEHICLE_NUMBER
+            - DRIVER_NUMBER
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -12817,18 +12656,18 @@ components:
           description: Optional Object containing information if the Card is a part of a Fleet managed program
           type: object
           properties:
-            driver_id:
+            driver_number:
               oneOf:
                 - type: 'null'
-                  description: 'Driver ID was not provided as part of the transaction '
+                  description: 'Driver Number was not provided as part of the transaction '
                 - type: string
-                  description: ID representing the driver
-            vehicle_id:
+                  description: Number representing the driver
+            vehicle_number:
               oneOf:
                 - type: 'null'
-                  description: Vehicle ID was not provided as part of the transaction
+                  description: Vehicle Number was not provided as part of the transaction
                 - type: string
-                  description: ID or number associated with the vehicle
+                  description: Number associated with the vehicle
             fleet_restriction_code:
               type: string
               description: Code indicating which restrictions, if any, there are on purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
@@ -12840,8 +12679,8 @@ components:
               description: Code indicating what the driver was prompted to enter at time of purchase. This is configured at a program level and is a static configuration, and does not change on a request to request basis
               enum:
                 - NO_PROMPT
-                - VEHICLE_ID
-                - DRIVER_ID
+                - VEHICLE_NUMBER
+                - DRIVER_NUMBER
         asa_request_cardholder_authentication:
           description: Cardholder Authentication object in ASA
           type: object
@@ -12966,8 +12805,8 @@ components:
             - INSUFFICIENT_FUNDS
             - UNAUTHORIZED_MERCHANT
             - VELOCITY_EXCEEDED
-            - INVALID_DRIVER
-            - INVALID_VEHICLE
+            - DRIVER_NUMBER_INVALID
+            - VEHICLE_NUMBER_INVALID
         token:
           type: string
           description: The transaction token from the ASA request.
