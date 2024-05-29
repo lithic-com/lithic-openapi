@@ -12119,7 +12119,7 @@ components:
           type: string
       required:
         - financial_account_token
-        - transaction_group_uuid
+        - token
         - receipt_type
         - amount
     result:
