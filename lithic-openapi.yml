@@ -12100,8 +12100,8 @@ components:
           description: Financial Account Token
           type: string
           format: uuid
-        transaction_group_uuid:
-          description: Transaction Group Uuid
+        token:
+          description: Payment token
           type: string
           format: uuid
         receipt_type:
