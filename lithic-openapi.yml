@@ -12008,9 +12008,9 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       type: string
       enum:
-        - PROGRAM_TRANSACTION_LIMITS_EXCEEDED
-        - PROGRAM_DAILY_LIMITS_EXCEEDED
-        - PROGRAM_MONTHLY_LIMITS_EXCEEDED
+        - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
+        - PROGRAM_DAILY_LIMIT_EXCEEDED
+        - PROGRAM_MONTHLY_LIMIT_EXCEEDED
       title: Supported Simulation Decline Reasons
     simulate_action_request:
       $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_action_request.json
