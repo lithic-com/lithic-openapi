@@ -8747,7 +8747,7 @@ components:
           title: Payment Method
           type: string
         method_attributes:
-          $ref: '#/components/schemas/PaymentMethodAttributes'
+          $ref: '#/components/schemas/PaymentMethodRequestAttributes'
         token:
           description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
           format: uuid
@@ -9353,6 +9353,12 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/PaymentEventType'
+      required:
+        - amount
+        - created
+        - result
+        - token
+        - type
       type: object
     PaymentEventType:
       description: |-
@@ -9891,6 +9897,19 @@ components:
         - return_reason_code
         - sec_code
       title: PaymentMethodAttributes
+      type: object
+    PaymentMethodRequestAttributes:
+      properties:
+        sec_code:
+          enum:
+            - CCD
+            - PPD
+            - WEB
+          title: SEC Code
+          type: string
+      required:
+        - sec_code
+      title: PaymentMethodRequestAttributes
       type: object
     PaymentResponse:
       properties:
