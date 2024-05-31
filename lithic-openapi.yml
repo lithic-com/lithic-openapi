@@ -9307,18 +9307,6 @@ components:
           description: Date and time when the financial event occurred. UTC time zone.
           format: date-time
           type: string
-        detailed_results:
-          description: More detailed reasons for the event
-          items:
-            enum:
-              - APPROVED
-              - FUNDS_INSUFFICIENT
-              - ACCOUNT_INVALID
-              - PROGRAM_TRANSACTION_LIMITS_EXCEEDED
-              - PROGRAM_DAILY_LIMITS_EXCEEDED
-              - PROGRAM_MONTHLY_LIMITS_EXCEEDED
-            type: string
-          type: array
         result:
           description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
           enum:
@@ -9332,6 +9320,66 @@ components:
         type:
           $ref: '#/components/schemas/FinancialEventType'
       type: object
+    PaymentEvent:
+      properties:
+        amount:
+          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        created:
+          description: Date and time when the financial event occurred. UTC time zone.
+          format: date-time
+          type: string
+        detailed_results:
+          description: More detailed reasons for the event
+          items:
+            enum:
+              - APPROVED
+              - FUNDS_INSUFFICIENT
+              - ACCOUNT_INVALID
+              - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
+              - PROGRAM_DAILY_LIMIT_EXCEEDED
+              - PROGRAM_MONTHLY_LIMIT_EXCEEDED
+            type: string
+          type: array
+        result:
+          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
+          enum:
+            - APPROVED
+            - DECLINED
+          type: string
+        token:
+          description: Globally unique identifier.
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/PaymentEventType'
+      type: object
+    PaymentEventType:
+      description: |-
+        Event types:
+        * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
+        * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
+        * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
+        * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the fed.
+        * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
+        * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+        * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
+        * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
+        * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
+        * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
+        * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+      enum:
+        - ACH_ORIGINATION_CANCELLED
+        - ACH_ORIGINATION_INITIATED
+        - ACH_ORIGINATION_PROCESSED
+        - ACH_ORIGINATION_SETTLED
+        - ACH_ORIGINATION_RELEASED
+        - ACH_ORIGINATION_REVIEWED
+        - ACH_RECEIPT_PROCESSED
+        - ACH_RECEIPT_SETTLED
+        - ACH_RETURN_INITIATED
+        - ACH_RETURN_PROCESSED
+      type: string
     FinancialEventType:
       description: |
         Event types:
@@ -9435,12 +9483,12 @@ components:
         status:
           description: |
             Status types:
-            * `DECLINED` - The card transaction was declined.
-            * `EXPIRED` - Lithic reversed the card authorization as it has passed its expiration time.
-            * `PENDING` - Authorization is pending completion from the merchant or pending release from ACH hold period
-            * `RETURNED` - The financial transaction has been returned.
-            * `SETTLED` - The financial transaction is completed.
-            * `VOIDED` - The merchant has voided the previously pending card authorization.
+            * `DECLINED` - The transaction was declined.
+            * `EXPIRED` - The authorization as it has passed its expiration time. Card transaction only.
+            * `PENDING` - The transaction is expected to settle.
+            * `RETURNED` - The transaction has been returned.
+            * `SETTLED` - The transaction is completed.
+            * `VOIDED` - The transaction was voided. Card transaction only.
           enum:
             - DECLINED
             - EXPIRED
@@ -9845,54 +9893,118 @@ components:
       title: PaymentMethodAttributes
       type: object
     PaymentResponse:
-      allOf:
-        - $ref: '#/components/schemas/FinancialTransaction'
-        - properties:
-            direction:
-              enum:
-                - CREDIT
-                - DEBIT
-              title: ACH Direction
-              type: string
-            financial_account_token:
-              format: uuid
-              title: Financial Account Token
-              type: string
-            external_bank_account_token:
-              format: uuid
-              title: External Bank Account Token
-              type:
-                - string
-                - 'null'
-            method:
-              enum:
-                - ACH_NEXT_DAY
-                - ACH_SAME_DAY
-              title: Payment Method
-              type: string
-            method_attributes:
-              $ref: '#/components/schemas/PaymentMethodAttributes'
-            source:
-              enum:
-                - CUSTOMER
-                - LITHIC
-              title: Payment Message Source
-              type: string
-            user_defined_id:
-              maxLength: 512
-              title: User Defined Id
-              type:
-                - string
-                - 'null'
-          required:
-            - direction
-            - external_bank_account_token
-            - financial_account_token
-            - method
-            - method_attributes
-            - source
-            - user_defined_id
-          type: object
+      properties:
+        category:
+          description: Payment category
+          enum:
+            - ACH
+          type: string
+        created:
+          description: Date and time when the payment first occurred. UTC time zone.
+          format: date-time
+          type: string
+        currency:
+          description: 3-digit alphabetic ISO 4217 code for the settling currency of the payment.
+          type: string
+        descriptor:
+          description: A string that provides a description of the payment; may be useful to display to users.
+          type: string
+        events:
+          description: A list of all payment events that have modified this payment.
+          items:
+            $ref: '#/components/schemas/PaymentEvent'
+          type: array
+        pending_amount:
+          description: |
+            Pending amount of the payment in the currency's smallest unit (e.g., cents).
+            The value of this field will go to zero over time once the payment is settled.
+          type: integer
+        result:
+          description: APPROVED payments were successful while DECLINED payments were declined by Lithic or returned.
+          enum:
+            - APPROVED
+            - DECLINED
+          type: string
+        settled_amount:
+          description: Amount of the payment that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        status:
+          description: |
+            Status types:
+            * `DECLINED` - The payment was declined.
+            * `PENDING` - The payment is being processed and has yet to settle or release (origination debit).
+            * `RETURNED` - The payment has been returned.
+            * `SETTLED` - The payment is completed.
+          enum:
+            - DECLINED
+            - PENDING
+            - RETURNED
+            - SETTLED
+          type: string
+        token:
+          description: Globally unique identifier.
+          format: uuid
+          type: string
+        updated:
+          description: Date and time when the financial transaction was last updated. UTC time zone.
+          format: date-time
+          type: string
+        direction:
+          enum:
+            - CREDIT
+            - DEBIT
+          title: ACH Direction
+          type: string
+        financial_account_token:
+          format: uuid
+          title: Financial Account Token
+          type: string
+        external_bank_account_token:
+          format: uuid
+          title: External Bank Account Token
+          type:
+            - string
+            - 'null'
+        method:
+          enum:
+            - ACH_NEXT_DAY
+            - ACH_SAME_DAY
+          title: Payment Method
+          type: string
+        method_attributes:
+          $ref: '#/components/schemas/PaymentMethodAttributes'
+        source:
+          enum:
+            - CUSTOMER
+            - LITHIC
+          title: Payment Message Source
+          type: string
+        user_defined_id:
+          maxLength: 512
+          title: User Defined Id
+          type:
+            - string
+            - 'null'
+      required:
+        - direction
+        - external_bank_account_token
+        - financial_account_token
+        - method
+        - method_attributes
+        - source
+        - user_defined_id
+        - category
+        - created
+        - currency
+        - descriptor
+        - events
+        - pending_amount
+        - result
+        - settled_amount
+        - status
+        - token
+        - updated
+      type: object
       title: PaymentResponse
     PostPaymentResponse:
       allOf:
