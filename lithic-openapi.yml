@@ -7661,10 +7661,17 @@ components:
             - postal_code
             - state
           type: object
+        created:
+          description: Timestamp of when the account was created. For accounts created before 2023-05-11, this field will be null.
+          format: date-time
+          type:
+            - string
+            - 'null'
       required:
         - spend_limit
         - state
         - token
+        - created
       type: object
     AccountCreditConfigurationRequest:
       properties:
