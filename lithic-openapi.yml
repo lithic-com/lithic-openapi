@@ -137,7 +137,7 @@ paths:
                         user_type: BUSINESS
                         verification_application:
                           created: '2024-01-11T19:50:36.105449'
-                          status: PENDING_DOCUMENT
+                          status: PENDING_REVIEW
                           status_reasons: []
                           updated: '2024-01-11T19:50:36.105449'
                     has_more: false
@@ -319,9 +319,13 @@ paths:
                   status:
                     description: |
                       KYC and KYB evaluation states.
-                      Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+
+                      Note:
+                      * `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `KYC_ADVANCED` workflow.
+                      * `PENDING_REVIEW` is only applicable for the `KYB_BASIC` workflow.
                     enum:
                       - ACCEPTED
+                      - PENDING_REVIEW
                       - PENDING_DOCUMENT
                       - PENDING_RESUBMIT
                       - REJECTED
@@ -7756,10 +7760,15 @@ components:
         status:
           description: |
             <Deprecated. Use verification_application.status instead>
+
             KYC and KYB evaluation states.
-            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+
+            Note:
+            * `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `KYC_ADVANCED` workflow.
+            * `PENDING_REVIEW` is only applicable for the `KYB_BASIC` workflow.
           enum:
             - ACCEPTED
+            - PENDING_REVIEW
             - PENDING_DOCUMENT
             - PENDING_RESUBMIT
             - REJECTED
@@ -7930,9 +7939,13 @@ components:
         status:
           description: |
             KYC and KYB evaluation states.
-            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+
+            Note:
+            * `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `KYC_ADVANCED` workflow.
+            * `PENDING_REVIEW` is only applicable for the `KYB_BASIC` workflow.
           enum:
             - ACCEPTED
+            - PENDING_REVIEW
             - PENDING_DOCUMENT
             - PENDING_RESUBMIT
             - REJECTED
