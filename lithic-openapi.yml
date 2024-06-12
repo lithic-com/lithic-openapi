@@ -3661,9 +3661,11 @@ paths:
                   MICRO_DEPOSIT: '#/components/schemas/bank_verified_create_bank_account_api_request'
                   PLAID: '#/components/schemas/plaid_verified_create_bank_account_api_request'
                   PRENOTE: '#/components/schemas/bank_verified_create_bank_account_api_request'
+                  EXTERNALLY_VERIFIED: '#/components/schemas/externally_verified_create_bank_account_api_request'
               oneOf:
                 - $ref: '#/components/schemas/bank_verified_create_bank_account_api_request'
                 - $ref: '#/components/schemas/plaid_verified_create_bank_account_api_request'
+                - $ref: '#/components/schemas/externally_verified_create_bank_account_api_request'
       responses:
         '201':
           content:
@@ -12070,6 +12072,7 @@ components:
         - MICRO_DEPOSIT
         - PLAID
         - PRENOTE
+        - EXTERNALLY_VERIFIED
       title: Verification Method
     address:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/address.json
@@ -12129,7 +12132,7 @@ components:
           description: The last 4 digits of the bank account. Derived by Lithic from the account number passed
           type: string
         name:
-          description: The nickname given to this record of External Bank Account
+          description: The nickname for this External Bank Account
           type: string
         currency:
           description: currency of the external account 3-digit alphabetic ISO 4217 code
@@ -12279,13 +12282,13 @@ components:
           maxLength: 9
           pattern: ^[0-9]{9}$
         account_number:
-          description: Routing Number
+          description: Account Number
           type: string
           minLength: 1
           maxLength: 17
           pattern: ^[0-9-]{1,17}$
         name:
-          description: The nickname given to this record of External Bank Account
+          description: The nickname for this External Bank Account
           type: string
           minLength: 1
           maxLength: 50
@@ -12380,6 +12383,102 @@ components:
         - verification_method
         - owner_type
         - owner
+    externally_verified_verification_method:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/externally_verified_verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - EXTERNALLY_VERIFIED
+      title: Externally Verified Verification Methods
+    externally_verified_create_bank_account_api_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/externally_verified_create_bank_account_api_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Externally Verified Create Bank Account Api Request
+      type: object
+      properties:
+        verification_method:
+          description: Verification Method
+          $ref: '#/components/schemas/externally_verified_verification_method'
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[!-~ ]*$
+        account_token:
+          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
+          type: string
+          format: uuid
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[a-zA-Z0-9]*$
+        doing_business_as:
+          description: Doing Business As
+          type: string
+          minLength: 1
+          maxLength: 40
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+          minLength: 1
+          maxLength: 256
+        type:
+          description: Account Type
+          $ref: '#/components/schemas/searchable_account_types'
+        routing_number:
+          description: Routing Number
+          type: string
+          minLength: 9
+          maxLength: 9
+          pattern: ^[0-9]{9}$
+        account_number:
+          description: Account Number
+          type: string
+          minLength: 1
+          maxLength: 17
+          pattern: ^[0-9-]{1,17}$
+        name:
+          description: The nickname for this External Bank Account
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[!-~ ]*$
+        country:
+          description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        currency:
+          description: currency of the external account 3-digit alphabetic ISO 4217 code
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        address:
+          description: Address
+          $ref: '#/components/schemas/address'
+      required:
+        - type
+        - routing_number
+        - account_number
+        - country
+        - currency
+        - verification_method
+        - owner_type
+        - owner
     update_bank_account_api_request:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/update_bank_account_api_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -12396,7 +12495,7 @@ components:
           description: Owner Type
           $ref: '#/components/schemas/owner_type'
         name:
-          description: The nickname given to this record of External Bank Account
+          description: The nickname for this External Bank Account
           type: string
           minLength: 1
           maxLength: 50
