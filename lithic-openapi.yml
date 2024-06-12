@@ -16,6 +16,7 @@ security:
 tags:
   - name: 3DS
   - name: Account
+  - name: Book Transfer
   - name: Account Holder
   - name: Auth Stream Access (ASA)
   - name: Authorization Rules
@@ -164,8 +165,8 @@ paths:
         - Account Holder
     post:
       description: |-
-        Run an individual or business's information through the Customer Identification Program (CIP) and return an `account_token` if the status is accepted or pending (i.e., further action required).
-        All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the workflow is under review or further action will be needed to complete the account creation process.
+        Run an individual or business's information through the Customer Identification Program (CIP).
+        All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the enrollment is under review or further action will be needed to complete the account enrollment process.
         This endpoint can only be used on accounts that are part of the program that the calling API key manages.
       operationId: postAccountHolders
       requestBody:
@@ -3660,9 +3661,11 @@ paths:
                   MICRO_DEPOSIT: '#/components/schemas/bank_verified_create_bank_account_api_request'
                   PLAID: '#/components/schemas/plaid_verified_create_bank_account_api_request'
                   PRENOTE: '#/components/schemas/bank_verified_create_bank_account_api_request'
+                  EXTERNALLY_VERIFIED: '#/components/schemas/externally_verified_create_bank_account_api_request'
               oneOf:
                 - $ref: '#/components/schemas/bank_verified_create_bank_account_api_request'
                 - $ref: '#/components/schemas/plaid_verified_create_bank_account_api_request'
+                - $ref: '#/components/schemas/externally_verified_create_bank_account_api_request'
       responses:
         '201':
           content:
@@ -4198,6 +4201,14 @@ paths:
               - SETTLED
             title: Status
             type: string
+        - in: query
+          name: category
+          required: false
+          schema:
+            enum:
+              - ACH
+            title: Category
+            type: string
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/endingBefore'
@@ -4625,7 +4636,7 @@ paths:
                   description: Amount of the transaction to be simulated in currency specified in merchant_currency, including any acquirer fees.
                   type: integer
                 merchant_currency:
-                  description: 3-digit alphabetic ISO 4217 currency code.
+                  description: '3-digit alphabetic ISO 4217 currency code. Note: Simulator only accepts USD, GBP, EUR and defaults to GBP if another ISO 4217 code is provided'
                   example: GBP
                   type: string
                 pan:
@@ -5851,6 +5862,7 @@ paths:
         - Transaction
   /transfer:
     post:
+      deprecated: true
       description: Transfer funds between two financial accounts or between a financial account and card
       operationId: postTransfer
       requestBody:
@@ -5899,11 +5911,221 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
       summary: Transfer funds within Lithic
       tags:
-        - Financial Account
+        - Book Transfer
+  /book_transfers:
+    get:
+      description: List book transfers
+      parameters:
+        - description: Book Transfer category to be returned.
+          in: query
+          name: category
+          schema:
+            enum:
+              - BALANCE_OR_FUNDING
+              - FEE
+              - REWARD
+              - ADJUSTMENT
+              - DERECOGNITION
+              - DISPUTE
+              - INTERNAL
+            type: string
+        - description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
+          in: query
+          name: financial_account_token
+          schema:
+            format: uuid
+            type: string
+        - description: Book transfer result to be returned.
+          in: query
+          name: result
+          schema:
+            enum:
+              - APPROVED
+              - DECLINED
+            type: string
+        - description: Book transfer status to be returned.
+          in: query
+          name: status
+          schema:
+            enum:
+              - DECLINED
+              - SETTLED
+            type: string
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+      operationId: getBookTransfers
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/BookTransferResponse'
+                    title: Data
+                    type: array
+                  has_more:
+                    title: More data exists
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List book transfers
+      tags:
+        - Book Transfer
+    post:
+      description: Book transfer funds between two financial accounts or between a financial account and card
+      operationId: postBookTransfers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                amount:
+                  description: Amount to be transferred in the currency’s smallest unit (e.g., cents for USD). This should always be a positive value.
+                  type: integer
+                  minimum: 1
+                category:
+                  description: Category of the book transfer
+                  enum:
+                    - ADJUSTMENT
+                    - BALANCE_OR_FUNDING
+                    - DERECOGNITION
+                    - DISPUTE
+                    - FEE
+                    - REWARD
+                    - TRANSFER
+                  type: string
+                from_financial_account_token:
+                  description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
+                  format: uuid
+                  type: string
+                memo:
+                  description: Optional descriptor for the transfer.
+                  type: string
+                  maxLength: 512
+                subtype:
+                  description: The program specific subtype code for the specified category/type.
+                  type: string
+                to_financial_account_token:
+                  description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
+                  format: uuid
+                  type: string
+                token:
+                  description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
+                  format: uuid
+                  type: string
+                type:
+                  description: Type of book_transfer
+                  enum:
+                    - ATM_WITHDRAWAL
+                    - ATM_DECLINE
+                    - INTERNATIONAL_ATM_WITHDRAWAL
+                    - INACTIVITY
+                    - STATEMENT
+                    - MONTHLY
+                    - QUARTERLY
+                    - ANNUAL
+                    - CUSTOMER_SERVICE
+                    - ACCOUNT_MAINTENANCE
+                    - ACCOUNT_ACTIVATION
+                    - ACCOUNT_CLOSURE
+                    - CARD_REPLACEMENT
+                    - CARD_DELIVERY
+                    - CARD_CREATE
+                    - CURRENCY_CONVERSION
+                    - INTEREST
+                    - LATE_PAYMENT
+                    - BILL_PAYMENT
+                    - CASH_BACK
+                    - ACCOUNT_TO_ACCOUNT
+                    - CARD_TO_CARD
+                    - DISBURSE
+                    - BILLING_ERROR
+                    - LOSS_WRITE_OFF
+                    - EXPIRED_CARD
+                    - EARLY_DERECOGNITION
+                    - ESCHEATMENT
+                    - INACTIVITY_FEE_DOWN
+                    - PROVISIONAL_CREDIT
+                    - DISPUTE_WON
+                    - TRANSFER
+                  type: string
+              required:
+                - amount
+                - category
+                - from_financial_account_token
+                - subtype
+                - to_financial_account_token
+                - type
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookTransferResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create book transfer
+      tags:
+        - Book Transfer
+  /book_transfers/{book_transfer_token}:
+    get:
+      description: Get book transfer by token
+      parameters:
+        - description: Id of the book transfer to retrieve
+          in: path
+          name: book_transfer_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      operationId: getBookTransfer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookTransferResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get book transfer by token
+      tags:
+        - Book Transfer
 webhooks:
   account_holder.created:
     post:
-      description: Occurs when a new account_holder is created and is either ACCEPTED or PENDING_REVIEW.
+      description: Occurs when a new account_holder is created.
       requestBody:
         content:
           application/json:
@@ -9415,6 +9637,76 @@ components:
         - token
         - type
       type: object
+    TransferEvent:
+      allOf:
+        - $ref: '#/components/schemas/FinancialEvent'
+        - properties:
+            subtype:
+              description: The program specific subtype code for the specified category/type.
+              type: string
+            memo:
+              description: Memo for the transfer.
+              type: string
+            detailed_results:
+              description: Detailed Results
+              type: array
+              items:
+                enum:
+                  - APPROVED
+                  - FUNDS_INSUFFICIENT
+                type: string
+        - required:
+            - amount
+            - type
+            - result
+            - created
+            - token
+            - subtype
+            - memo
+    BookTransferEvent:
+      properties:
+        amount:
+          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        type:
+          description: Subtype of the book transfer
+          type: string
+        result:
+          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
+          enum:
+            - APPROVED
+            - DECLINED
+          type: string
+        created:
+          description: Date and time when the financial event occurred. UTC time zone.
+          format: date-time
+          type: string
+        token:
+          description: Globally unique identifier.
+          format: uuid
+          type: string
+        subtype:
+          description: The program specific subtype code for the specified category/type.
+          type: string
+        memo:
+          description: Memo for the transfer.
+          type: string
+        detailed_results:
+          description: Detailed Results
+          type: array
+          items:
+            enum:
+              - APPROVED
+              - FUNDS_INSUFFICIENT
+            type: string
+      required:
+        - amount
+        - type
+        - result
+        - created
+        - token
+        - subtype
+        - memo
     PaymentEventType:
       description: |-
         Event types:
@@ -11617,6 +11909,80 @@ components:
           format: date-time
           type: string
       type: object
+    BookTransferResponse:
+      properties:
+        category:
+          description: Category of the book transfer
+          enum:
+            - ADJUSTMENT
+            - BALANCE_OR_FUNDING
+            - DERECOGNITION
+            - DISPUTE
+            - FEE
+            - REWARD
+            - TRANSFER
+          type: string
+        created:
+          description: Date and time when the transfer occurred. UTC time zone.
+          format: date-time
+          type: string
+        currency:
+          description: 3-digit alphabetic ISO 4217 code for the settling currency of the transaction.
+          type: string
+        events:
+          description: A list of all financial events that have modified this transfer.
+          items:
+            $ref: '#/components/schemas/BookTransferEvent'
+          type: array
+        from_financial_account_token:
+          description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
+          format: uuid
+          type: string
+        pending_amount:
+          description: |
+            Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
+            The value of this field will go to zero over time once the financial transaction is settled.
+          type: integer
+        result:
+          description: APPROVED transactions were successful while DECLINED transactions were declined by user, Lithic, or the network.
+          enum:
+            - APPROVED
+            - DECLINED
+          type: string
+        settled_amount:
+          description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        status:
+          description: 'Status types: * `DECLINED` - The transfer was declined. * `PENDING` - The transfer is pending release from a hold. * `SETTLED` - The transfer is completed. '
+          enum:
+            - DECLINED
+            - PENDING
+            - SETTLED
+          type: string
+        to_financial_account_token:
+          description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
+        token:
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
+          format: uuid
+          type: string
+        updated:
+          description: Date and time when the financial transaction was last updated. UTC time zone.
+          format: date-time
+          type: string
+      type: object
+      required:
+        - category
+        - created
+        - currency
+        - events
+        - from_financial_account_token
+        - pending_amount
+        - result
+        - settled_amount
+        - status
+        - to_financial_account_token
+        - token
+        - updated
     UpdateFinancialAccountRequest:
       properties:
         nickname:
@@ -11706,6 +12072,7 @@ components:
         - MICRO_DEPOSIT
         - PLAID
         - PRENOTE
+        - EXTERNALLY_VERIFIED
       title: Verification Method
     address:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/address.json
@@ -11765,7 +12132,7 @@ components:
           description: The last 4 digits of the bank account. Derived by Lithic from the account number passed
           type: string
         name:
-          description: The nickname given to this record of External Bank Account
+          description: The nickname for this External Bank Account
           type: string
         currency:
           description: currency of the external account 3-digit alphabetic ISO 4217 code
@@ -11915,13 +12282,13 @@ components:
           maxLength: 9
           pattern: ^[0-9]{9}$
         account_number:
-          description: Routing Number
+          description: Account Number
           type: string
           minLength: 1
           maxLength: 17
           pattern: ^[0-9-]{1,17}$
         name:
-          description: The nickname given to this record of External Bank Account
+          description: The nickname for this External Bank Account
           type: string
           minLength: 1
           maxLength: 50
@@ -12016,6 +12383,102 @@ components:
         - verification_method
         - owner_type
         - owner
+    externally_verified_verification_method:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/externally_verified_verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - EXTERNALLY_VERIFIED
+      title: Externally Verified Verification Methods
+    externally_verified_create_bank_account_api_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/externally_verified_create_bank_account_api_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Externally Verified Create Bank Account Api Request
+      type: object
+      properties:
+        verification_method:
+          description: Verification Method
+          $ref: '#/components/schemas/externally_verified_verification_method'
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[!-~ ]*$
+        account_token:
+          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
+          type: string
+          format: uuid
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[a-zA-Z0-9]*$
+        doing_business_as:
+          description: Doing Business As
+          type: string
+          minLength: 1
+          maxLength: 40
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+          minLength: 1
+          maxLength: 256
+        type:
+          description: Account Type
+          $ref: '#/components/schemas/searchable_account_types'
+        routing_number:
+          description: Routing Number
+          type: string
+          minLength: 9
+          maxLength: 9
+          pattern: ^[0-9]{9}$
+        account_number:
+          description: Account Number
+          type: string
+          minLength: 1
+          maxLength: 17
+          pattern: ^[0-9-]{1,17}$
+        name:
+          description: The nickname for this External Bank Account
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[!-~ ]*$
+        country:
+          description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        currency:
+          description: currency of the external account 3-digit alphabetic ISO 4217 code
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        address:
+          description: Address
+          $ref: '#/components/schemas/address'
+      required:
+        - type
+        - routing_number
+        - account_number
+        - country
+        - currency
+        - verification_method
+        - owner_type
+        - owner
     update_bank_account_api_request:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/update_bank_account_api_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -12032,7 +12495,7 @@ components:
           description: Owner Type
           $ref: '#/components/schemas/owner_type'
         name:
-          description: The nickname given to this record of External Bank Account
+          description: The nickname for this External Bank Account
           type: string
           minLength: 1
           maxLength: 50
