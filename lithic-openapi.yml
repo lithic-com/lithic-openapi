@@ -31,6 +31,7 @@ tags:
   - name: Payment
   - name: Responder Endpoints
   - name: Settlement Report
+  - name: Statement
   - name: Status
   - name: Tokenization
   - name: Transaction
@@ -2973,6 +2974,7 @@ paths:
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
+                      - statements.created
                       - three_ds_authentication.created
                       - transfer_transaction.created
                     type: string
@@ -3118,6 +3120,7 @@ paths:
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
+                      - statements.created
                       - three_ds_authentication.created
                       - transfer_transaction.created
                     type: string
@@ -3364,6 +3367,7 @@ paths:
                 - payment_transaction.created
                 - payment_transaction.updated
                 - settlement_report.updated
+                - statements.created
                 - three_ds_authentication.created
                 - transfer_transaction.created
               type: string
@@ -4881,6 +4885,7 @@ paths:
                     - payment_transaction.created
                     - payment_transaction.updated
                     - settlement_report.updated
+                    - statements.created
                     - three_ds_authentication.created
                     - transfer_transaction.created
                   type: string
@@ -6115,47 +6120,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Get book transfer by token
-      tags:
-        - Book Transfer
-  /book_transfers/{book_transfer_token}/reverse:
-    post:
-      description: Reverse a book transfer
-      parameters:
-        - description: Id of the book transfer to retrieve
-          in: path
-          name: book_transfer_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      operationId: reverseBookTransfer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                memo:
-                  description: Optional descriptor for the reversal.
-                  type: string
-                  maxLength: 512
-              type: object
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BookTransferResponse'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Reverse book transfer
       tags:
         - Book Transfer
 webhooks:
@@ -7402,6 +7366,26 @@ webhooks:
       summary: settlement_report.updated
       tags:
         - Event Types
+  statements.created:
+    post:
+      description: Occurs when a statement has been created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Statement'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: statements.created
+      tags:
+        - Event Types
   three_ds_authentication.created:
     post:
       description: Occurs when a 3DS authentication is created.
@@ -7504,6 +7488,13 @@ components:
       schema:
         format: uuid
         type: string
+    beginDate:
+      description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+      in: query
+      name: begin
+      schema:
+        format: date
+        type: string
     beginTime:
       description: Date string in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
       in: query
@@ -7580,6 +7571,13 @@ components:
       schema:
         format: uuid
         type: string
+    endDate:
+      description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+      in: query
+      name: end
+      schema:
+        format: date
+        type: string
     endTime:
       description: Date string in RFC 3339 format. Only entries created before the specified time will be included. UTC time zone.
       in: query
@@ -7630,6 +7628,17 @@ components:
       schema:
         format: uuid
         type: string
+    fundingSourceToken:
+      examples:
+        fundingSourceTokenExample:
+          summary: A sample funding source token
+          value: 73ca53a1-bf91-502b-97d9-f64788f8b2ab
+      in: path
+      name: funding_source_token
+      required: true
+      schema:
+        format: uuid
+        type: string
     pageSize:
       description: Page size (for pagination).
       in: query
@@ -7644,6 +7653,17 @@ components:
       in: query
       name: starting_after
       required: false
+      schema:
+        type: string
+    statementToken:
+      description: Globally unique identifier for statements.
+      examples:
+        statementTokenExample:
+          summary: A sample statement token
+          value: 2UJf2y1JT6nsvDRH4rgSlfWs6sw
+      in: path
+      name: statement_token
+      required: true
       schema:
         type: string
     transactionToken:
@@ -7875,6 +7895,22 @@ components:
         - token
         - created
       type: object
+    AccountCreditConfigurationRequest:
+      properties:
+        billing_period:
+          description: Number of days within the billing period
+          type: integer
+        credit_limit:
+          description: Credit limit extended to the Business Account
+          type: integer
+        external_bank_account_token:
+          description: The external bank account token to use for auto-collections
+          format: uuid
+          type: string
+        payment_period:
+          description: Number of days after the billing period ends that a payment is required
+          type: integer
+      type: object
     AccountHolder:
       properties:
         account_token:
@@ -8005,6 +8041,22 @@ components:
           type: string
       required:
         - token
+      type: object
+    AccountHolderCollectionsConfiguration:
+      properties:
+        billing_period:
+          description: Number of days within the billing period
+          type: integer
+        external_bank_account_token:
+          description: The external bank account token to use for auto-collections
+          format: uuid
+          type: string
+        payment_period:
+          description: Number of days after the billing period ends that a payment is required
+          type: integer
+      required:
+        - billing_period
+        - payment_period
       type: object
     AccountHolderDocument:
       description: Describes the document and the required document image uploads required to re-run KYC.
@@ -8466,6 +8518,20 @@ components:
         - pending_amount
         - total_amount
         - updated
+      type: object
+    BusinessAccount:
+      properties:
+        collections_configuration:
+          $ref: '#/components/schemas/AccountHolderCollectionsConfiguration'
+        credit_limit:
+          description: Credit limit extended to the Account
+          type: integer
+        token:
+          description: Account token
+          format: uuid
+          type: string
+      required:
+        - token
       type: object
     BusinessEntity:
       properties:
@@ -9269,6 +9335,33 @@ components:
         - token
         - upload_status
       type: object
+    EmbedRequest:
+      properties:
+        css:
+          description: A publicly available URI, so the white-labeled card element can be styled with the client's branding.
+          type: string
+        expiration:
+          description: |
+            An RFC 3339 timestamp for when the request should expire. UTC time zone.
+
+            If no timezone is specified, UTC will be used. If payload does not contain an expiration, the request will never expire.
+
+            Using an `expiration` reduces the risk of a [replay attack](https://en.wikipedia.org/wiki/Replay_attack). Without supplying the `expiration`, in the event that a malicious user gets a copy of your request in transit, they will be able to obtain the response data indefinitely.
+          format: date-time
+          type: string
+        target_origin:
+          description: |
+            Required if you want to post the element clicked to the parent iframe.
+
+            If you supply this param, you can also capture click events in the parent iframe by adding an event listener.
+          type: string
+        token:
+          description: Globally unique identifier for the card to be displayed.
+          format: uuid
+          type: string
+      required:
+        - token
+      type: object
     Error:
       properties:
         debugging_request_id:
@@ -9330,6 +9423,7 @@ components:
             - payment_transaction.created
             - payment_transaction.updated
             - settlement_report.updated
+            - statements.created
             - three_ds_authentication.created
             - transfer_transaction.created
           type: string
@@ -9378,6 +9472,7 @@ components:
               - payment_transaction.created
               - payment_transaction.updated
               - settlement_report.updated
+              - statements.created
               - three_ds_authentication.created
               - transfer_transaction.created
             type: string
@@ -9394,6 +9489,49 @@ components:
         - disabled
         - token
         - url
+      type: object
+    ExternalBankAccountAddress:
+      description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules.
+      properties:
+        address1:
+          maxLength: 40
+          minLength: 1
+          title: Address1
+          type: string
+        address2:
+          maxLength: 40
+          minLength: 1
+          title: Address2
+          type: string
+        city:
+          maxLength: 40
+          minLength: 1
+          title: City
+          type: string
+        country:
+          maxLength: 3
+          minLength: 3
+          pattern: ^[A-Z]{3}$
+          title: Country
+          type: string
+        postal_code:
+          maxLength: 10
+          minLength: 5
+          pattern: ^[0-9]{5}(-[0-9]{4})?$
+          title: Postal Code
+          type: string
+        state:
+          maxLength: 2
+          minLength: 2
+          title: State
+          type: string
+      required:
+        - address1
+        - city
+        - country
+        - postal_code
+        - state
+      title: Address
       type: object
     FinancialAccount:
       description: Financial Account
@@ -10511,6 +10649,175 @@ components:
         - last_name
         - postal_code
         - state
+      type: object
+    Statement:
+      properties:
+        ach_period_total:
+          description: Total payments during this billing period.
+          title: ACH Period Total
+          type: integer
+        ach_ytd_total:
+          description: Year-to-date settled payment total
+          title: ACH YTD Total
+          type: integer
+        adjustments_period_total:
+          description: Total adjustments during this billing period.
+          title: Adjustments Period Total
+          type: integer
+        adjustments_ytd_total:
+          description: Year-to-date settled adjustments total
+          title: Adjustments YTD Total
+          type: integer
+        amount_due:
+          description: Payment due at the end of the billing period. Negative amount indicates something is owed. If the amount owed is positive (e.g., there was a net credit), then payment should be returned to the cardholder via ACH.
+          title: Amount Due
+          type: integer
+        available_credit:
+          description: Amount of credit available to spend
+          title: Available Credit
+          type: integer
+        created:
+          description: Timestamp of when the statement was created
+          format: date-time
+          title: Created Time
+          type: string
+        credit_limit:
+          description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender.
+          title: Credit Limit
+          type: integer
+        days_in_billing_cycle:
+          description: Number of days in the billing cycle
+          title: Days in Billing Cycle
+          type: integer
+        ending_balance:
+          description: Balance at the end of the billing period. For charge cards, this should be the same at the statement amount due.
+          title: Ending Balance
+          type: integer
+        financial_account_token:
+          description: Globally unique identifier for a financial account
+          format: uuid
+          title: Financial Account Token
+          type: string
+        payment_due_date:
+          description: Date when the payment is due
+          format: date
+          title: Payment Due Date
+          type: string
+        purchases_period_total:
+          description: Total settled card transactions during this billing period, determined by liability date.
+          title: Purchases Period Total
+          type: integer
+        purchases_ytd_total:
+          description: Year-to-date settled card transaction total
+          title: Purchases YTD Total
+          type: integer
+        starting_balance:
+          description: Balance at the start of the billing period
+          title: Starting Balance
+          type: integer
+        statement_end_date:
+          description: Date when the billing period ended
+          format: date
+          title: Statement End Date
+          type: string
+        statement_start_date:
+          description: Date when the billing period began
+          format: date
+          title: Statement Start Date
+          type: string
+        token:
+          description: Globally unique identifier for a statement
+          title: Statement Token
+          type: string
+        updated:
+          description: Timestamp of when the statement was updated
+          format: date-time
+          title: Updated Time
+          type: string
+      required:
+        - ach_period_total
+        - ach_ytd_total
+        - adjustments_period_total
+        - adjustments_ytd_total
+        - amount_due
+        - available_credit
+        - created
+        - credit_limit
+        - days_in_billing_cycle
+        - ending_balance
+        - financial_account_token
+        - payment_due_date
+        - purchases_period_total
+        - purchases_ytd_total
+        - starting_balance
+        - statement_end_date
+        - statement_start_date
+        - token
+        - updated
+      title: StatementResponse
+      type: object
+    StatementLineItem:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        card_token:
+          description: Globally unique identifier for a card
+          format: uuid
+          title: Card Token
+          type: string
+        category:
+          enum:
+            - ACH
+            - CARD
+            - TRANSFER
+          title: Category of Transaction
+          type: string
+        created:
+          description: Timestamp of when the line item was generated
+          format: date-time
+          title: Created
+          type: string
+        currency:
+          description: 3-digit alphabetic ISO 4217 code for the settling currency of the transaction
+          title: Currency
+          type: string
+        descriptor:
+          title: Descriptor
+          type: string
+        event_type:
+          $ref: '#/components/schemas/FinancialEventType'
+        financial_account_token:
+          description: Globally unique identifier for a financial account
+          format: uuid
+          title: Financial Account Token
+          type: string
+        financial_transaction_token:
+          description: Globally unique identifier for a financial transaction
+          format: uuid
+          title: Financial Account Token
+          type: string
+        settled_date:
+          description: Date that the transaction settled
+          format: date
+          title: Settled Date
+          type: string
+        token:
+          description: Globally unique identifier for a Statement Line Item
+          format: uuid
+          title: Token
+          type: string
+      required:
+        - amount
+        - category
+        - created
+        - currency
+        - event_type
+        - financial_account_token
+        - financial_transaction_token
+        - settled_date
+        - token
+      title: StatementLineItemResponse
       type: object
     ThreeDSAddress:
       properties:
@@ -12797,6 +13104,15 @@ components:
             - FINANCIAL_AUTHORIZATION
             - FINANCIAL_CREDIT_AUTHORIZATION
             - BALANCE_INQUIRY
+        asa_request_pos_terminal_operator:
+          type: string
+          enum:
+            - CAPABLE
+            - INOPERATIVE
+            - NOT_CAPABLE
+            - UNSPECIFIED
+            - UNKNOWN
+            - MPOS_CAPABLE
         asa_request_pos_terminal_type:
           type: string
           description: POS type
