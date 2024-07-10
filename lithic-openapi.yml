@@ -12025,7 +12025,6 @@ components:
         - verification_method
         - owner_type
         - owner
-        - financial_account_token
     plaid_verified_verification_method:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/plaid_verified_verification_method.json
       $schema: https://json-schema.org/draft/2020-12/schema
