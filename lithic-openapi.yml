@@ -9174,6 +9174,10 @@ components:
             - OPERATING
           title: Account Type
           type: string
+        is_for_benefit_of:
+          title: Is For Benefit Of
+          type: boolean
+          default: false
       required:
         - nickname
         - type
@@ -9677,11 +9681,16 @@ components:
           description: Date and time for when the financial account was last updated.
           format: date-time
           type: string
+        is_for_benefit_of:
+          description: Whether the financial account holds funds for benefit of another party.
+          type: boolean
+          default: false
       required:
         - created
         - token
         - type
         - updated
+        - is_for_benefit_of
       type: object
     FinancialEvent:
       properties:
