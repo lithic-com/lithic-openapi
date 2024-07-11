@@ -5811,7 +5811,7 @@ paths:
       tags:
         - Tokenization
   /tokenizations/{tokenization_token}/resend_activation_code:
-    get:
+    post:
       description: |-
         This endpoint is used to ask the card network to send another activation code to a cardholder that has already tried tokenizing a card. A successful response indicates that the request was successfully delivered to the card network.
         The endpoint may only be used on Mastercard digital wallet tokenizations with status `INACTIVE`, `PENDING_ACTIVATION`, or `PENDING_2FA`. The network will send a new activation code to the one of the contact methods provided in the initial tokenization flow. If a user fails to enter the code correctly 3 times, the contact method will not be eligible for resending the activation code, and the cardholder must restart the provision process.
@@ -5861,7 +5861,7 @@ paths:
       tags:
         - Tokenization
   /tokenizations/{tokenization_token}/update_digital_card_art:
-    get:
+    post:
       description: |-
         This endpoint is used update the digital card art for a digital wallet tokenization. A successful response indicates that the card network has updated the tokenization's art, and the tokenization's `digital_cart_art_token` field was updated.
         The endpoint may not be used on tokenizations with status `DEACTIVATED`.
