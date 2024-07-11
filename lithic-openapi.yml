@@ -5185,6 +5185,9 @@ paths:
                   default: 5
                   description: The device score (1-5) that represents how the Digital Wallet's view on how reputable an end user's device is.
                   type: integer
+                entity:
+                  description: Optional field to specify the token requestor name for a merchant token simulation. Ignored when tokenization_source is not MERCHANT.
+                  type: string
                 expiration_date:
                   description: The expiration date of the card in 'MM/YY' format.
                   maxLength: 5
@@ -5202,6 +5205,7 @@ paths:
                     - APPLE_PAY
                     - GOOGLE
                     - SAMSUNG_PAY
+                    - MERCHANT
                   type: string
                 wallet_recommended_decision:
                   default: APPROVED
@@ -5237,6 +5241,7 @@ paths:
                     type: TOKENIZATION_AUTHORIZATION
                 status: ACTIVE
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                tokenization_channel: DIGITAL_WALLET
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                 updated_at: '2023-08-28T15:57:14.578051'
