@@ -5607,6 +5607,14 @@ paths:
           schema:
             format: date
             type: string
+        - description: Filter for tokenizations by tokenization channel. If this is not specified, only DIGITAL_WALLET tokenizations will be returned.
+          in: query
+          name: tokenization_channel
+          schema:
+            enum:
+              - DIGITAL_WALLET
+              - MERCHANT
+            type: string
         - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
         - $ref: '#/components/parameters/startingAfter'
