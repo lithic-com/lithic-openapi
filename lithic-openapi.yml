@@ -2975,6 +2975,11 @@ paths:
                       - settlement_report.updated
                       - three_ds_authentication.created
                       - transfer_transaction.created
+                      - tokenization.approval_request
+                      - tokenization.result
+                      - tokenization.two_factor_authentication_code
+                      - tokenization.two_factor_authentication_code_sent
+                      - tokenization.updated
                     type: string
                   type: array
                 url:
@@ -3120,6 +3125,11 @@ paths:
                       - settlement_report.updated
                       - three_ds_authentication.created
                       - transfer_transaction.created
+                      - tokenization.approval_request
+                      - tokenization.result
+                      - tokenization.two_factor_authentication_code
+                      - tokenization.two_factor_authentication_code_sent
+                      - tokenization.updated
                     type: string
                   type: array
                 url:
@@ -3366,6 +3376,11 @@ paths:
                 - settlement_report.updated
                 - three_ds_authentication.created
                 - transfer_transaction.created
+                - tokenization.approval_request
+                - tokenization.result
+                - tokenization.two_factor_authentication_code
+                - tokenization.two_factor_authentication_code_sent
+                - tokenization.updated
               type: string
             maxLength: 10
             type: array
@@ -4883,6 +4898,11 @@ paths:
                     - settlement_report.updated
                     - three_ds_authentication.created
                     - transfer_transaction.created
+                    - tokenization.approval_request
+                    - tokenization.result
+                    - tokenization.two_factor_authentication_code
+                    - tokenization.two_factor_authentication_code_sent
+                    - tokenization.updated
                   type: string
               type: object
       responses:
@@ -5165,6 +5185,9 @@ paths:
                   default: 5
                   description: The device score (1-5) that represents how the Digital Wallet's view on how reputable an end user's device is.
                   type: integer
+                entity:
+                  description: Optional field to specify the token requestor name for a merchant token simulation. Ignored when tokenization_source is not MERCHANT.
+                  type: string
                 expiration_date:
                   description: The expiration date of the card in 'MM/YY' format.
                   maxLength: 5
@@ -5182,6 +5205,7 @@ paths:
                     - APPLE_PAY
                     - GOOGLE
                     - SAMSUNG_PAY
+                    - MERCHANT
                   type: string
                 wallet_recommended_decision:
                   default: APPROVED
@@ -5217,6 +5241,7 @@ paths:
                     type: TOKENIZATION_AUTHORIZATION
                 status: ACTIVE
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                tokenization_channel: DIGITAL_WALLET
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                 updated_at: '2023-08-28T15:57:14.578051'
@@ -5586,6 +5611,14 @@ paths:
           name: end
           schema:
             format: date
+            type: string
+        - description: Filter for tokenizations by tokenization channel. If this is not specified, only DIGITAL_WALLET tokenizations will be returned.
+          in: query
+          name: tokenization_channel
+          schema:
+            enum:
+              - DIGITAL_WALLET
+              - MERCHANT
             type: string
         - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
@@ -6845,7 +6878,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_approval_request:
     post:
-      description: Occurs when a tokenization approval request is made.
+      description: |
+        Occurs when a tokenization approval request is made.
+
+        This event will be deprecated in the future. We recommend using `tokenization.approval_request` instead.
       requestBody:
         content:
           application/json:
@@ -6876,6 +6912,7 @@ webhooks:
                     token_requestor_name: APPLE_PAY
                   event_type: digital_wallet.tokenization_approval_request
                   issuer_decision: APPROVED
+                  tokenization_channel: DIGITAL_WALLET
                   tokenization_source: PUSH_PROVISION
                   tokenization_token: tok_1234567890abcdef
                   wallet_decisioning_info:
@@ -7013,6 +7050,13 @@ webhooks:
                     - VERIFICATION_REQUIRED
                   example: APPROVED
                   type: string
+                tokenization_channel:
+                  description: The channel through which the tokenization was made.
+                  enum:
+                    - DIGITAL_WALLET
+                    - MERCHANT
+                  example: DIGITAL_WALLET
+                  type: string
                 tokenization_source:
                   description: The source of the tokenization.
                   enum:
@@ -7054,6 +7098,7 @@ webhooks:
                 - digital_wallet_token_metadata
                 - event_type
                 - issuer_decision
+                - tokenization_channel
                 - tokenization_token
                 - wallet_decisioning_info
               type: object
@@ -7065,7 +7110,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_result:
     post:
-      description: Occurs when a tokenization request succeeded or failed.
+      description: |
+        Occurs when a tokenization request succeeded or failed.
+
+        This event will be deprecated in the future. We recommend using `tokenization.result` instead.
       requestBody:
         content:
           application/json:
@@ -7165,7 +7213,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code:
     post:
-      description: Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
+      description: |
+        Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
+
+        This event will be deprecated in the future. We recommend using `tokenization.two_factor_authentication_code` instead.
       requestBody:
         content:
           application/json:
@@ -7249,7 +7300,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code_sent:
     post:
-      description: Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+      description: |
+        Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+
+        This event will be deprecated in the future. We recommend using `tokenization.two_factor_authentication_code_sent` instead.
       requestBody:
         content:
           application/json:
@@ -7327,7 +7381,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_updated:
     post:
-      description: Occurs when a tokenization's status has changed.
+      description: |
+        Occurs when a tokenization's status has changed.
+
+        This event will be deprecated in the future. We recommend using `tokenization.updated` instead.
       requestBody:
         content:
           application/json:
@@ -7669,6 +7726,563 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: three_ds_authentication.created
+      tags:
+        - Event Types
+  tokenization.approval_request:
+    post:
+      description: Occurs when a tokenization approval request is made.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-18T12:34:56Z'
+                  customer_tokenization_decision:
+                    latency: '100'
+                    outcome: APPROVED
+                    responder_url: https://example.com
+                    response_code: '123456'
+                  device:
+                    imei: '123456789012345'
+                    ip_address: 1.1.1.1
+                    location: 37.3860517,-122.0838511
+                  token_metadata:
+                    payment_account_info:
+                      account_holder_data:
+                        phone_number: '+123456789012'
+                      pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+                      payment_account_reference: ref_1234567890123456789012
+                      token_unique_reference: token_unique_ref_1234567890123456789012345678
+                    payment_app_instance_id: app_instance_123456789012345678901234567890
+                    status: Pending
+                    token_requestor_id: '12345678901'
+                    token_requestor_name: APPLE_PAY
+                  event_type: tokenization.approval_request
+                  issuer_decision: APPROVED
+                  tokenization_channel: MERCHANT
+                  tokenization_source: PUSH_PROVISION
+                  tokenization_token: tok_1234567890abcdef
+                  wallet_decisioning_info:
+                    account_score: '100'
+                    device_score: '100'
+                    recommendation_reasons:
+                      - Reason1
+                    recommended_decision: Decision1
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  format: date-time
+                  type: string
+                customer_tokenization_decision:
+                  description: Contains information about the customer's tokenization decision if they are enrolled
+                  properties:
+                    latency:
+                      description: Time in ms it took for the customer's URL to respond
+                      example: '100'
+                      type: string
+                    outcome:
+                      description: The outcome of the customer's decision
+                      enum:
+                        - APPROVED
+                        - DECLINED
+                        - ERROR
+                        - INVALID_RESPONSE
+                        - REQUIRE_ADDITIONAL_AUTHENTICATION
+                        - TIMEOUT
+                      example: APPROVED
+                      type: string
+                    responder_url:
+                      description: The customer's subscribed URL
+                      example: https://example.com
+                      type: string
+                    response_code:
+                      description: The response code that the customer provided
+                      example: '123456'
+                      type: string
+                  required:
+                    - outcome
+                    - responder_url
+                  type: object
+                device:
+                  description: Contains information about the target device to be provisioned
+                  properties:
+                    imei:
+                      description: The IMEI number of the device being provisioned
+                      example: '123456789012345'
+                      maxLength: 15
+                      type: string
+                    ip_address:
+                      description: The IP of the device initiating the request
+                      example: 1.1.1.1
+                      maxLength: 64
+                      type: string
+                    location:
+                      description: Latitude and longitude where the device the consumer is attempting to authorize is located
+                      example: 37.3860517,-122.0838511
+                      maxLength: 64
+                      type: string
+                  type: object
+                token_metadata:
+                  description: Contains the metadata for the tokenization
+                  properties:
+                    payment_account_info:
+                      description: Contains the information of the account responsible for the payment.
+                      properties:
+                        account_holder_data:
+                          description: Additional information that can be used to identify the account holder, such as name, address, etc
+                          properties:
+                            phone_number:
+                              description: The phone number, may contain country code along with phone number when countryDialInCode is not present
+                              maxLength: 20
+                              type: string
+                          type: object
+                        pan_unique_reference:
+                          description: Reference to the PAN that is unique per token requestor
+                          maxLength: 64
+                          type: string
+                        payment_account_reference:
+                          description: The unique account reference assigned to the PAN
+                          maxLength: 29
+                          type: string
+                        token_unique_reference:
+                          description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
+                          maxLength: 64
+                          type: string
+                      required:
+                        - account_holder_data
+                      type: object
+                    payment_app_instance_id:
+                      description: The identifier of the Payment App instance within a device that will be provisioned with a token
+                      maxLength: 48
+                      type: string
+                    status:
+                      description: The current status of the token. Pending or declined.
+                      type: string
+                    token_requestor_id:
+                      description: The party that requested the digitization
+                      maxLength: 11
+                      minLength: 11
+                      type: string
+                    token_requestor_name:
+                      description: Human-readable name of the wallet that the token_requestor_id maps to.
+                      enum:
+                        - APPLE_PAY
+                        - GOOGLE_PAY
+                        - SAMSUNG_PAY
+                      example: APPLE_PAY
+                      type: string
+                  required:
+                    - payment_account_info
+                    - status
+                  type: object
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.approval_request
+                  example: tokenization.approval_request
+                  type: string
+                issuer_decision:
+                  description: Whether Lithic decisioned on the token, and if so, what the decision was. APPROVED/VERIFICATION_REQUIRED/DENIED.
+                  enum:
+                    - APPROVED
+                    - DENIED
+                    - VERIFICATION_REQUIRED
+                  example: APPROVED
+                  type: string
+                tokenization_channel:
+                  description: The channel through which the tokenization was made.
+                  enum:
+                    - DIGITAL_WALLET
+                    - MERCHANT
+                  example: DIGITAL_WALLET
+                  type: string
+                tokenization_source:
+                  description: The source of the tokenization.
+                  enum:
+                    - ACCOUNT_ON_FILE
+                    - MANUAL_PROVISION
+                    - PUSH_PROVISION
+                  example: PUSH_PROVISION
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the token attempt
+                  type: string
+                wallet_decisioning_info:
+                  description: Contains information about the decision recommended by the Wallet Provider
+                  properties:
+                    account_score:
+                      description: Score given to the account by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    device_score:
+                      description: Score given to the device by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    recommendation_reasons:
+                      description: Reasons provided to the Wallet Provider on how the recommended decision was reached
+                      items:
+                        type: string
+                      type: array
+                    recommended_decision:
+                      description: The decision recommended by the Wallet Provider
+                      maxLength: 64
+                      type: string
+                  type: object
+              required:
+                - account_token
+                - card_token
+                - created
+                - token_metadata
+                - event_type
+                - issuer_decision
+                - tokenization_channel
+                - tokenization_token
+                - wallet_decisioning_info
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.approval_request
+      tags:
+        - Event Types
+  tokenization.result:
+    post:
+      description: Occurs when a tokenization request succeeded or failed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: tokenization.result
+                  tokenization_result_details:
+                    issuer_decision: APPROVED
+                    tokenization_decline_reasons:
+                      - ACCOUNT_SCORE_1
+                      - DEVICE_SCORE_1
+                    wallet_decision: APPROVED
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Account token
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Card token
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Created date
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.result
+                  example: tokenization.result
+                  type: string
+                tokenization_result_details:
+                  additionalProperties: false
+                  description: The result of the tokenization request.
+                  properties:
+                    customer_decision:
+                      description: The customer's tokenization decision if applicable.
+                      type: string
+                    issuer_decision:
+                      description: Lithic's tokenization decision.
+                      type: string
+                    token_activated_date_time:
+                      description: An RFC 3339 timestamp indicating when the tokenization succeeded.
+                      example: '2020-01-01T00:00:00Z'
+                      format: date-time
+                      type: string
+                    tokenization_decline_reasons:
+                      description: A list of reasons the tokenization failed.
+                      example:
+                        - ACCOUNT_SCORE_1
+                        - DEVICE_SCORE_1
+                      items:
+                        enum:
+                          - ACCOUNT_SCORE_1
+                          - ALL_WALLET_DECLINE_REASONS_PRESENT
+                          - CARD_EXPIRY_MONTH_MISMATCH
+                          - CARD_EXPIRY_YEAR_MISMATCH
+                          - CARD_INVALID_STATE
+                          - CUSTOMER_RED_PATH
+                          - CVC_MISMATCH
+                          - DEVICE_SCORE_1
+                          - INVALID_CUSTOMER_RESPONSE
+                          - NETWORK_FAILURE
+                          - WALLET_RECOMMENDED_DECISION_RED
+                        type: string
+                      type: array
+                    wallet_decision:
+                      description: The wallet's recommended decision.
+                      example: APPROVED
+                      type: string
+                  required:
+                    - issuer_decision
+                    - tokenization_decline_reasons
+                  type: object
+                tokenization_token:
+                  description: Tokenization token
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - card_token
+                - created
+                - event_type
+                - tokenization_result_details
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.result
+      tags:
+        - Event Types
+  tokenization.two_factor_authentication_code:
+    post:
+      description: Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Self Serve 2FA Code Schema
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  activation_method:
+                    type: TEXT_TO_CARDHOLDER_NUMBER
+                    value: 5555555555
+                  authentication_code: 123456
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: tokenization.two_factor_authentication_code
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                activation_method:
+                  description: ''
+                  properties:
+                    type:
+                      description: |-
+                        The communication method that the user has selected to use to receive the authentication code.
+                        Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
+                      enum:
+                        - EMAIL_TO_CARDHOLDER_ADDRESS
+                        - TEXT_TO_CARDHOLDER_NUMBER
+                      example: TEXT_TO_CARDHOLDER_NUMBER
+                      type: string
+                    value:
+                      description: |-
+                        The location where the user wants to receive the authentication code.
+                        The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
+                      example: '5555555555'
+                      type: string
+                  required:
+                    - type
+                    - value
+                  type: object
+                authentication_code:
+                  description: Authentication code to provide to the user tokenizing a card.
+                  example: '123456'
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  title: Created
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.two_factor_authentication_code
+                  example: tokenization.two_factor_authentication_code
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the tokenization
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - activation_method
+                - authentication_code
+                - card_token
+                - created
+                - event_type
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.two_factor_authentication_code
+      tags:
+        - Event Types
+  tokenization.two_factor_authentication_code_sent:
+    post:
+      description: Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: 2FA Code Sent Schema
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  activation_method:
+                    type: TEXT_TO_CARDHOLDER_NUMBER
+                    value: 5555555555
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: tokenization.two_factor_authentication_code_sent
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                activation_method:
+                  description: ''
+                  properties:
+                    type:
+                      description: |-
+                        The communication method that the user has selected to use to receive the authentication code.
+                        Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
+                      enum:
+                        - EMAIL_TO_CARDHOLDER_ADDRESS
+                        - TEXT_TO_CARDHOLDER_NUMBER
+                      example: TEXT_TO_CARDHOLDER_NUMBER
+                      type: string
+                    value:
+                      description: |-
+                        The location to which the authentication code was sent.
+                        The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
+                      example: '5555555555'
+                      type: string
+                  required:
+                    - type
+                    - value
+                  type: object
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  title: Created
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.two_factor_authentication_code_sent
+                  example: tokenization.two_factor_authentication_code_sent
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the tokenization
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - activation_method
+                - card_token
+                - created
+                - event_type
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.two_factor_authentication_code_sent
+      tags:
+        - Event Types
+  tokenization.updated:
+    post:
+      description: Occurs when a tokenization's status has changed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-13T16:05:09.893241'
+                  event_type: tokenization.updated
+                  tokenization:
+                    account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
+                    card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+                    created_at: '2023-09-13T15:30:11.948371'
+                    events:
+                      - created_at: '2023-09-13T16:05:09.893241'
+                        result: TOKEN_ACTIVATED
+                        token: a690b617-d3d4-4976-82f6-901f817ad98a
+                        type: TOKENIZATION_UPDATED
+                      - created_at: '2023-09-13T16:01:13.643241'
+                        result: APPROVED
+                        token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
+                        type: TOKENIZATION_AUTHORIZATION
+                    status: ACTIVE
+                    token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                    token_requestor_name: APPLE_PAY
+                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    updated_at: '2023-09-13T16:05:09.893241'
+                  tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+              properties:
+                account_token:
+                  description: Account token
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Card token
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Created date
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.updated
+                  example: tokenization.updated
+                  type: string
+                tokenization:
+                  $ref: '#/components/schemas/Tokenization'
+              required:
+                - account_token
+                - card_token
+                - created
+                - event_type
+                - tokenization
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.updated
       tags:
         - Event Types
   transfer_transaction.created:
@@ -9174,6 +9788,10 @@ components:
             - OPERATING
           title: Account Type
           type: string
+        is_for_benefit_of:
+          title: Is For Benefit Of
+          type: boolean
+          default: false
       required:
         - nickname
         - type
@@ -9578,6 +10196,11 @@ components:
             - settlement_report.updated
             - three_ds_authentication.created
             - transfer_transaction.created
+            - tokenization.approval_request
+            - tokenization.result
+            - tokenization.two_factor_authentication_code
+            - tokenization.two_factor_authentication_code_sent
+            - tokenization.updated
           type: string
         payload:
           type: object
@@ -9626,6 +10249,11 @@ components:
               - settlement_report.updated
               - three_ds_authentication.created
               - transfer_transaction.created
+              - tokenization.approval_request
+              - tokenization.result
+              - tokenization.two_factor_authentication_code
+              - tokenization.two_factor_authentication_code_sent
+              - tokenization.updated
             type: string
           type: array
         token:
@@ -9677,11 +10305,16 @@ components:
           description: Date and time for when the financial account was last updated.
           format: date-time
           type: string
+        is_for_benefit_of:
+          description: Whether the financial account holds funds for benefit of another party.
+          type: boolean
+          default: false
       required:
         - created
         - token
         - type
         - updated
+        - is_for_benefit_of
       type: object
     FinancialEvent:
       properties:
@@ -11254,20 +11887,28 @@ components:
           format: uuid
           type: string
         token_requestor_name:
-          description: The entity that is requested the tokenization. Represents a Digital Wallet.
+          description: The entity that requested the tokenization. Represents a Digital Wallet or merchant.
           enum:
             - AMAZON_ONE
             - ANDROID_PAY
             - APPLE_PAY
+            - FACEBOOK
             - FITBIT_PAY
             - GARMIN_PAY
             - MICROSOFT_PAY
+            - NETFLIX
             - SAMSUNG_PAY
             - UNKNOWN
             - VISA_CHECKOUT
           type: string
         token_unique_reference:
           description: The network's unique reference for the tokenization.
+          type: string
+        tokenization_channel:
+          description: The channel through which the tokenization was made.
+          enum:
+            - DIGITAL_WALLET
+            - MERCHANT
           type: string
         updated_at:
           description: Latest date and time when the tokenization was updated. UTC time zone.
@@ -11281,6 +11922,7 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
+        - tokenization_channel
         - updated_at
       type: object
     TokenizationEvent:
