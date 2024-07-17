@@ -2890,6 +2890,129 @@ paths:
       summary: Embedded card UI
       tags:
         - Card
+  /transactions/{transaction_token}/enhanced_commercial_data:
+    get:
+      description: Get all L2/L3 enhanced commercial data associated with a transaction.
+      summary: Get a list of enhanced commercial data for a transaction
+      operationId: listEnhancedTransactionData
+      tags:
+        - Transaction
+      parameters:
+        - required: true
+          schema:
+            title: Transaction Token
+            type: string
+            format: uuid
+          name: transaction_token
+          description: The token of the transaction to retrieve enhanced data for.
+          in: path
+          example: 00000000-0000-0000-0000-000000000000
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhancedDataListResponse'
+              examples:
+                listEnhancedTransactionDataResponse:
+                  value:
+                    data:
+                      - token: fda41769-2a3f-5532-898f-0d2034f2da85
+                        transaction_token: 6b79924e-0f01-4bdf-9485-9f6da44b6be2
+                        event_token: 49bbd49c-dfe1-56db-86ad-98c7c2bd75e4
+                        common:
+                          customer_reference_number: null
+                          merchant_reference_number: null
+                          order_date: null
+                          line_items: []
+                          tax:
+                            merchant_tax_id: '521236050'
+                            amount: null
+                            exempt: null
+                        fleet:
+                          - service_type: SELF_SERVICE
+                            driver_number: null
+                            vehicle_number: '012345'
+                            odometer: 12345
+                            amount_totals:
+                              gross_sale: 104
+                              discount: null
+                              net_sale: 104
+                            fuel:
+                              quantity: '0.24300'
+                              type: PREMIUM_SUPER
+                              unit_of_measure: GALLONS
+                              unit_price: 4300
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /transactions/events/{event_token}/enhanced_commercial_data:
+    get:
+      description: Get L2/L3 enhanced commercial data associated with a transaction event.
+      summary: Get enhanced commercial data for a transaction event
+      operationId: getEnhancedTransactionData
+      tags:
+        - Transaction
+      parameters:
+        - required: true
+          schema:
+            title: Event Token
+            type: string
+            format: uuid
+          name: event_token
+          description: The token of the event to retrieve enhanced data for.
+          in: path
+          example: 00000000-0000-0000-0000-000000000000
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhancedData'
+              examples:
+                getEnhancedTransactionDataResponse:
+                  value:
+                    token: fda41769-2a3f-5532-898f-0d2034f2da85
+                    transaction_token: 6b79924e-0f01-4bdf-9485-9f6da44b6be2
+                    event_token: 49bbd49c-dfe1-56db-86ad-98c7c2bd75e4
+                    common:
+                      customer_reference_number: null
+                      merchant_reference_number: null
+                      order_date: null
+                      line_items: []
+                      tax:
+                        merchant_tax_id: '521236050'
+                        amount: null
+                        exempt: null
+                    fleet:
+                      - service_type: SELF_SERVICE
+                        driver_number: null
+                        vehicle_number: '012345'
+                        odometer: 12345
+                        amount_totals:
+                          gross_sale: 104
+                          discount: null
+                          net_sale: 104
+                        fuel:
+                          quantity: '0.24300'
+                          type: PREMIUM_SUPER
+                          unit_of_measure: GALLONS
+                          unit_price: 4300
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /event_subscriptions:
     get:
       description: List all the event subscriptions.
@@ -2975,6 +3098,11 @@ paths:
                       - settlement_report.updated
                       - three_ds_authentication.created
                       - transfer_transaction.created
+                      - tokenization.approval_request
+                      - tokenization.result
+                      - tokenization.two_factor_authentication_code
+                      - tokenization.two_factor_authentication_code_sent
+                      - tokenization.updated
                     type: string
                   type: array
                 url:
@@ -3120,6 +3248,11 @@ paths:
                       - settlement_report.updated
                       - three_ds_authentication.created
                       - transfer_transaction.created
+                      - tokenization.approval_request
+                      - tokenization.result
+                      - tokenization.two_factor_authentication_code
+                      - tokenization.two_factor_authentication_code_sent
+                      - tokenization.updated
                     type: string
                   type: array
                 url:
@@ -3366,6 +3499,11 @@ paths:
                 - settlement_report.updated
                 - three_ds_authentication.created
                 - transfer_transaction.created
+                - tokenization.approval_request
+                - tokenization.result
+                - tokenization.two_factor_authentication_code
+                - tokenization.two_factor_authentication_code_sent
+                - tokenization.updated
               type: string
             maxLength: 10
             type: array
@@ -4883,6 +5021,11 @@ paths:
                     - settlement_report.updated
                     - three_ds_authentication.created
                     - transfer_transaction.created
+                    - tokenization.approval_request
+                    - tokenization.result
+                    - tokenization.two_factor_authentication_code
+                    - tokenization.two_factor_authentication_code_sent
+                    - tokenization.updated
                   type: string
               type: object
       responses:
@@ -5165,6 +5308,9 @@ paths:
                   default: 5
                   description: The device score (1-5) that represents how the Digital Wallet's view on how reputable an end user's device is.
                   type: integer
+                entity:
+                  description: Optional field to specify the token requestor name for a merchant token simulation. Ignored when tokenization_source is not MERCHANT.
+                  type: string
                 expiration_date:
                   description: The expiration date of the card in 'MM/YY' format.
                   maxLength: 5
@@ -5182,6 +5328,7 @@ paths:
                     - APPLE_PAY
                     - GOOGLE
                     - SAMSUNG_PAY
+                    - MERCHANT
                   type: string
                 wallet_recommended_decision:
                   default: APPROVED
@@ -5217,6 +5364,7 @@ paths:
                     type: TOKENIZATION_AUTHORIZATION
                 status: ACTIVE
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                tokenization_channel: DIGITAL_WALLET
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                 updated_at: '2023-08-28T15:57:14.578051'
@@ -5586,6 +5734,14 @@ paths:
           name: end
           schema:
             format: date
+            type: string
+        - description: Filter for tokenizations by tokenization channel. If this is not specified, only DIGITAL_WALLET tokenizations will be returned.
+          in: query
+          name: tokenization_channel
+          schema:
+            enum:
+              - DIGITAL_WALLET
+              - MERCHANT
             type: string
         - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/pageSize'
@@ -6843,9 +6999,114 @@ webhooks:
       summary: card_transaction.updated
       tags:
         - Event Types
+  card_transaction.enhanced_data.created:
+    post:
+      description: Occurs when L2/L3 enhanced commercial data is processed for a transaction event.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/EnhancedData'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - card_transaction.enhanced_data.created
+                      example: card_transaction.enhanced_data.created
+                      type: string
+                  type: object
+              examples:
+                - token: fda41769-2a3f-5532-898f-0d2034f2da85
+                  transaction_token: 6b79924e-0f01-4bdf-9485-9f6da44b6be2
+                  event_token: 49bbd49c-dfe1-56db-86ad-98c7c2bd75e4
+                  event_type: card_transaction.enhanced_data.created
+                  common:
+                    customer_reference_number: null
+                    merchant_reference_number: null
+                    order_date: null
+                    line_items: []
+                    tax:
+                      merchant_tax_id: '521236050'
+                      amount: null
+                      exempt: null
+                  fleet:
+                    - service_type: SELF_SERVICE
+                      driver_number: null
+                      vehicle_number: '012345'
+                      odometer: 12345
+                      amount_totals:
+                        gross_sale: 104
+                        discount: null
+                        net_sale: 104
+                      fuel:
+                        quantity: '0.24300'
+                        type: PREMIUM_SUPER
+                        unit_of_measure: GALLONS
+                        unit_price: 4300
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: card_transaction.enhanced_transaction_data.created
+      tags:
+        - Event Types
+  card_transaction.enhanced_data.updated:
+    post:
+      description: Occurs when L2/L3 enhanced commercial data is reprocessed for a transaction event.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/EnhancedData'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - card_transaction.enhanced_data.updated
+                      example: card_transaction.enhanced_data.updated
+                      type: string
+                  type: object
+              examples:
+                - token: fda41769-2a3f-5532-898f-0d2034f2da85
+                  transaction_token: 6b79924e-0f01-4bdf-9485-9f6da44b6be2
+                  event_token: 49bbd49c-dfe1-56db-86ad-98c7c2bd75e4
+                  event_type: card_transaction.enhanced_data.updated
+                  common:
+                    customer_reference_number: null
+                    merchant_reference_number: null
+                    order_date: null
+                    line_items: []
+                    tax:
+                      merchant_tax_id: '521236050'
+                      amount: null
+                      exempt: null
+                  fleet:
+                    - service_type: SELF_SERVICE
+                      driver_number: null
+                      vehicle_number: '012345'
+                      odometer: 12345
+                      amount_totals:
+                        gross_sale: 104
+                        discount: null
+                        net_sale: 104
+                      fuel:
+                        quantity: '0.24300'
+                        type: PREMIUM_SUPER
+                        unit_of_measure: GALLONS
+                        unit_price: 4300
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: card_transaction.enhanced_transaction_data.updated
+      tags:
+        - Event Types
   digital_wallet.tokenization_approval_request:
     post:
-      description: Occurs when a tokenization approval request is made.
+      description: |
+        Occurs when a tokenization approval request is made.
+
+        This event will be deprecated in the future. We recommend using `tokenization.approval_request` instead.
       requestBody:
         content:
           application/json:
@@ -6876,6 +7137,7 @@ webhooks:
                     token_requestor_name: APPLE_PAY
                   event_type: digital_wallet.tokenization_approval_request
                   issuer_decision: APPROVED
+                  tokenization_channel: DIGITAL_WALLET
                   tokenization_source: PUSH_PROVISION
                   tokenization_token: tok_1234567890abcdef
                   wallet_decisioning_info:
@@ -7013,6 +7275,13 @@ webhooks:
                     - VERIFICATION_REQUIRED
                   example: APPROVED
                   type: string
+                tokenization_channel:
+                  description: The channel through which the tokenization was made.
+                  enum:
+                    - DIGITAL_WALLET
+                    - MERCHANT
+                  example: DIGITAL_WALLET
+                  type: string
                 tokenization_source:
                   description: The source of the tokenization.
                   enum:
@@ -7054,6 +7323,7 @@ webhooks:
                 - digital_wallet_token_metadata
                 - event_type
                 - issuer_decision
+                - tokenization_channel
                 - tokenization_token
                 - wallet_decisioning_info
               type: object
@@ -7065,7 +7335,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_result:
     post:
-      description: Occurs when a tokenization request succeeded or failed.
+      description: |
+        Occurs when a tokenization request succeeded or failed.
+
+        This event will be deprecated in the future. We recommend using `tokenization.result` instead.
       requestBody:
         content:
           application/json:
@@ -7165,7 +7438,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code:
     post:
-      description: Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
+      description: |
+        Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
+
+        This event will be deprecated in the future. We recommend using `tokenization.two_factor_authentication_code` instead.
       requestBody:
         content:
           application/json:
@@ -7249,7 +7525,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code_sent:
     post:
-      description: Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+      description: |
+        Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+
+        This event will be deprecated in the future. We recommend using `tokenization.two_factor_authentication_code_sent` instead.
       requestBody:
         content:
           application/json:
@@ -7327,7 +7606,10 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_updated:
     post:
-      description: Occurs when a tokenization's status has changed.
+      description: |
+        Occurs when a tokenization's status has changed.
+
+        This event will be deprecated in the future. We recommend using `tokenization.updated` instead.
       requestBody:
         content:
           application/json:
@@ -7669,6 +7951,563 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: three_ds_authentication.created
+      tags:
+        - Event Types
+  tokenization.approval_request:
+    post:
+      description: Occurs when a tokenization approval request is made.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-18T12:34:56Z'
+                  customer_tokenization_decision:
+                    latency: '100'
+                    outcome: APPROVED
+                    responder_url: https://example.com
+                    response_code: '123456'
+                  device:
+                    imei: '123456789012345'
+                    ip_address: 1.1.1.1
+                    location: 37.3860517,-122.0838511
+                  token_metadata:
+                    payment_account_info:
+                      account_holder_data:
+                        phone_number: '+123456789012'
+                      pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+                      payment_account_reference: ref_1234567890123456789012
+                      token_unique_reference: token_unique_ref_1234567890123456789012345678
+                    payment_app_instance_id: app_instance_123456789012345678901234567890
+                    status: Pending
+                    token_requestor_id: '12345678901'
+                    token_requestor_name: APPLE_PAY
+                  event_type: tokenization.approval_request
+                  issuer_decision: APPROVED
+                  tokenization_channel: MERCHANT
+                  tokenization_source: PUSH_PROVISION
+                  tokenization_token: tok_1234567890abcdef
+                  wallet_decisioning_info:
+                    account_score: '100'
+                    device_score: '100'
+                    recommendation_reasons:
+                      - Reason1
+                    recommended_decision: Decision1
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  format: date-time
+                  type: string
+                customer_tokenization_decision:
+                  description: Contains information about the customer's tokenization decision if they are enrolled
+                  properties:
+                    latency:
+                      description: Time in ms it took for the customer's URL to respond
+                      example: '100'
+                      type: string
+                    outcome:
+                      description: The outcome of the customer's decision
+                      enum:
+                        - APPROVED
+                        - DECLINED
+                        - ERROR
+                        - INVALID_RESPONSE
+                        - REQUIRE_ADDITIONAL_AUTHENTICATION
+                        - TIMEOUT
+                      example: APPROVED
+                      type: string
+                    responder_url:
+                      description: The customer's subscribed URL
+                      example: https://example.com
+                      type: string
+                    response_code:
+                      description: The response code that the customer provided
+                      example: '123456'
+                      type: string
+                  required:
+                    - outcome
+                    - responder_url
+                  type: object
+                device:
+                  description: Contains information about the target device to be provisioned
+                  properties:
+                    imei:
+                      description: The IMEI number of the device being provisioned
+                      example: '123456789012345'
+                      maxLength: 15
+                      type: string
+                    ip_address:
+                      description: The IP of the device initiating the request
+                      example: 1.1.1.1
+                      maxLength: 64
+                      type: string
+                    location:
+                      description: Latitude and longitude where the device the consumer is attempting to authorize is located
+                      example: 37.3860517,-122.0838511
+                      maxLength: 64
+                      type: string
+                  type: object
+                token_metadata:
+                  description: Contains the metadata for the tokenization
+                  properties:
+                    payment_account_info:
+                      description: Contains the information of the account responsible for the payment.
+                      properties:
+                        account_holder_data:
+                          description: Additional information that can be used to identify the account holder, such as name, address, etc
+                          properties:
+                            phone_number:
+                              description: The phone number, may contain country code along with phone number when countryDialInCode is not present
+                              maxLength: 20
+                              type: string
+                          type: object
+                        pan_unique_reference:
+                          description: Reference to the PAN that is unique per token requestor
+                          maxLength: 64
+                          type: string
+                        payment_account_reference:
+                          description: The unique account reference assigned to the PAN
+                          maxLength: 29
+                          type: string
+                        token_unique_reference:
+                          description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
+                          maxLength: 64
+                          type: string
+                      required:
+                        - account_holder_data
+                      type: object
+                    payment_app_instance_id:
+                      description: The identifier of the Payment App instance within a device that will be provisioned with a token
+                      maxLength: 48
+                      type: string
+                    status:
+                      description: The current status of the token. Pending or declined.
+                      type: string
+                    token_requestor_id:
+                      description: The party that requested the digitization
+                      maxLength: 11
+                      minLength: 11
+                      type: string
+                    token_requestor_name:
+                      description: Human-readable name of the wallet that the token_requestor_id maps to.
+                      enum:
+                        - APPLE_PAY
+                        - GOOGLE_PAY
+                        - SAMSUNG_PAY
+                      example: APPLE_PAY
+                      type: string
+                  required:
+                    - payment_account_info
+                    - status
+                  type: object
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.approval_request
+                  example: tokenization.approval_request
+                  type: string
+                issuer_decision:
+                  description: Whether Lithic decisioned on the token, and if so, what the decision was. APPROVED/VERIFICATION_REQUIRED/DENIED.
+                  enum:
+                    - APPROVED
+                    - DENIED
+                    - VERIFICATION_REQUIRED
+                  example: APPROVED
+                  type: string
+                tokenization_channel:
+                  description: The channel through which the tokenization was made.
+                  enum:
+                    - DIGITAL_WALLET
+                    - MERCHANT
+                  example: DIGITAL_WALLET
+                  type: string
+                tokenization_source:
+                  description: The source of the tokenization.
+                  enum:
+                    - ACCOUNT_ON_FILE
+                    - MANUAL_PROVISION
+                    - PUSH_PROVISION
+                  example: PUSH_PROVISION
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the token attempt
+                  type: string
+                wallet_decisioning_info:
+                  description: Contains information about the decision recommended by the Wallet Provider
+                  properties:
+                    account_score:
+                      description: Score given to the account by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    device_score:
+                      description: Score given to the device by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    recommendation_reasons:
+                      description: Reasons provided to the Wallet Provider on how the recommended decision was reached
+                      items:
+                        type: string
+                      type: array
+                    recommended_decision:
+                      description: The decision recommended by the Wallet Provider
+                      maxLength: 64
+                      type: string
+                  type: object
+              required:
+                - account_token
+                - card_token
+                - created
+                - token_metadata
+                - event_type
+                - issuer_decision
+                - tokenization_channel
+                - tokenization_token
+                - wallet_decisioning_info
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.approval_request
+      tags:
+        - Event Types
+  tokenization.result:
+    post:
+      description: Occurs when a tokenization request succeeded or failed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: tokenization.result
+                  tokenization_result_details:
+                    issuer_decision: APPROVED
+                    tokenization_decline_reasons:
+                      - ACCOUNT_SCORE_1
+                      - DEVICE_SCORE_1
+                    wallet_decision: APPROVED
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Account token
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Card token
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Created date
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.result
+                  example: tokenization.result
+                  type: string
+                tokenization_result_details:
+                  additionalProperties: false
+                  description: The result of the tokenization request.
+                  properties:
+                    customer_decision:
+                      description: The customer's tokenization decision if applicable.
+                      type: string
+                    issuer_decision:
+                      description: Lithic's tokenization decision.
+                      type: string
+                    token_activated_date_time:
+                      description: An RFC 3339 timestamp indicating when the tokenization succeeded.
+                      example: '2020-01-01T00:00:00Z'
+                      format: date-time
+                      type: string
+                    tokenization_decline_reasons:
+                      description: A list of reasons the tokenization failed.
+                      example:
+                        - ACCOUNT_SCORE_1
+                        - DEVICE_SCORE_1
+                      items:
+                        enum:
+                          - ACCOUNT_SCORE_1
+                          - ALL_WALLET_DECLINE_REASONS_PRESENT
+                          - CARD_EXPIRY_MONTH_MISMATCH
+                          - CARD_EXPIRY_YEAR_MISMATCH
+                          - CARD_INVALID_STATE
+                          - CUSTOMER_RED_PATH
+                          - CVC_MISMATCH
+                          - DEVICE_SCORE_1
+                          - INVALID_CUSTOMER_RESPONSE
+                          - NETWORK_FAILURE
+                          - WALLET_RECOMMENDED_DECISION_RED
+                        type: string
+                      type: array
+                    wallet_decision:
+                      description: The wallet's recommended decision.
+                      example: APPROVED
+                      type: string
+                  required:
+                    - issuer_decision
+                    - tokenization_decline_reasons
+                  type: object
+                tokenization_token:
+                  description: Tokenization token
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - card_token
+                - created
+                - event_type
+                - tokenization_result_details
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.result
+      tags:
+        - Event Types
+  tokenization.two_factor_authentication_code:
+    post:
+      description: Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Self Serve 2FA Code Schema
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  activation_method:
+                    type: TEXT_TO_CARDHOLDER_NUMBER
+                    value: 5555555555
+                  authentication_code: 123456
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: tokenization.two_factor_authentication_code
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                activation_method:
+                  description: ''
+                  properties:
+                    type:
+                      description: |-
+                        The communication method that the user has selected to use to receive the authentication code.
+                        Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
+                      enum:
+                        - EMAIL_TO_CARDHOLDER_ADDRESS
+                        - TEXT_TO_CARDHOLDER_NUMBER
+                      example: TEXT_TO_CARDHOLDER_NUMBER
+                      type: string
+                    value:
+                      description: |-
+                        The location where the user wants to receive the authentication code.
+                        The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
+                      example: '5555555555'
+                      type: string
+                  required:
+                    - type
+                    - value
+                  type: object
+                authentication_code:
+                  description: Authentication code to provide to the user tokenizing a card.
+                  example: '123456'
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  title: Created
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.two_factor_authentication_code
+                  example: tokenization.two_factor_authentication_code
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the tokenization
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - activation_method
+                - authentication_code
+                - card_token
+                - created
+                - event_type
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.two_factor_authentication_code
+      tags:
+        - Event Types
+  tokenization.two_factor_authentication_code_sent:
+    post:
+      description: Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: 2FA Code Sent Schema
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  activation_method:
+                    type: TEXT_TO_CARDHOLDER_NUMBER
+                    value: 5555555555
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2020-01-01T00:00:00Z'
+                  event_type: tokenization.two_factor_authentication_code_sent
+                  tokenization_token: 00000000-0000-0000-0000-000000000003
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                activation_method:
+                  description: ''
+                  properties:
+                    type:
+                      description: |-
+                        The communication method that the user has selected to use to receive the authentication code.
+                        Supported Values: Sms = "TEXT_TO_CARDHOLDER_NUMBER". Email = "EMAIL_TO_CARDHOLDER_ADDRESS"
+                      enum:
+                        - EMAIL_TO_CARDHOLDER_ADDRESS
+                        - TEXT_TO_CARDHOLDER_NUMBER
+                      example: TEXT_TO_CARDHOLDER_NUMBER
+                      type: string
+                    value:
+                      description: |-
+                        The location to which the authentication code was sent.
+                        The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
+                      example: '5555555555'
+                      type: string
+                  required:
+                    - type
+                    - value
+                  type: object
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  title: Created
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.two_factor_authentication_code_sent
+                  example: tokenization.two_factor_authentication_code_sent
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the tokenization
+                  example: 00000000-0000-0000-0000-000000000003
+                  type: string
+              required:
+                - account_token
+                - activation_method
+                - card_token
+                - created
+                - event_type
+                - tokenization_token
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.two_factor_authentication_code_sent
+      tags:
+        - Event Types
+  tokenization.updated:
+    post:
+      description: Occurs when a tokenization's status has changed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-13T16:05:09.893241'
+                  event_type: tokenization.updated
+                  tokenization:
+                    account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
+                    card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+                    created_at: '2023-09-13T15:30:11.948371'
+                    events:
+                      - created_at: '2023-09-13T16:05:09.893241'
+                        result: TOKEN_ACTIVATED
+                        token: a690b617-d3d4-4976-82f6-901f817ad98a
+                        type: TOKENIZATION_UPDATED
+                      - created_at: '2023-09-13T16:01:13.643241'
+                        result: APPROVED
+                        token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
+                        type: TOKENIZATION_AUTHORIZATION
+                    status: ACTIVE
+                    token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                    token_requestor_name: APPLE_PAY
+                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    updated_at: '2023-09-13T16:05:09.893241'
+                  tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+              properties:
+                account_token:
+                  description: Account token
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Card token
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Created date
+                  example: '2020-01-01T00:00:00Z'
+                  format: date-time
+                  type: string
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.updated
+                  example: tokenization.updated
+                  type: string
+                tokenization:
+                  $ref: '#/components/schemas/Tokenization'
+              required:
+                - account_token
+                - card_token
+                - created
+                - event_type
+                - tokenization
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: tokenization.updated
       tags:
         - Event Types
   transfer_transaction.created:
@@ -8534,6 +9373,22 @@ components:
         - total_amount
         - updated
       type: object
+    AmountTotals:
+      title: AmountTotals
+      type: object
+      properties:
+        gross_sale:
+          title: Gross Sale
+          description: The gross sale amount.
+          type: integer
+        discount:
+          title: Discount
+          description: The discount applied to the gross sale amount.
+          type: integer
+        net_sale:
+          title: Net Sale
+          description: The amount after discount.
+          type: integer
     AuthRule:
       allOf:
         - $ref: '#/components/schemas/AuthRuleRequest'
@@ -9159,6 +10014,33 @@ components:
           description: QR code url to display on the card carrier
           type: string
       type: object
+    CommonData:
+      title: CommonData
+      required:
+        - tax
+        - line_items
+      type: object
+      properties:
+        customer_reference_number:
+          title: Customer Reference Number
+          description: An optional customer identifier.
+          type: string
+        merchant_reference_number:
+          title: Merchant Reference Number
+          description: An optional merchant identifier.
+          type: string
+        order_date:
+          title: Order Date
+          description: The date of the order.
+          type: string
+          format: date
+        tax:
+          $ref: '#/components/schemas/TaxData'
+        line_items:
+          title: Line Items
+          type: array
+          items:
+            $ref: '#/components/schemas/LineItem'
     CreateFinancialAccountRequest:
       properties:
         account_token:
@@ -9174,6 +10056,9 @@ components:
             - OPERATING
           title: Account Type
           type: string
+        is_for_benefit_of:
+          title: Is For Benefit Of
+          type: boolean
       required:
         - nickname
         - type
@@ -9515,6 +10400,49 @@ components:
         - token
         - upload_status
       type: object
+    EnhancedData:
+      title: EnhancedData
+      required:
+        - token
+        - transaction_token
+        - event_token
+        - common
+        - fleet
+      type: object
+      properties:
+        token:
+          title: Token
+          description: A unique identifier for the enhanced commercial data.
+          type: string
+          format: uuid
+        transaction_token:
+          title: Transaction Token
+          description: The token of the transaction that the enhanced data is associated with.
+          type: string
+          format: uuid
+        event_token:
+          title: Event Token
+          description: The token of the event that the enhanced data is associated with.
+          type: string
+          format: uuid
+        common:
+          $ref: '#/components/schemas/CommonData'
+        fleet:
+          title: Fleet
+          type: array
+          items:
+            $ref: '#/components/schemas/Fleet'
+    EnhancedDataListResponse:
+      title: EnhancedDataListResponse
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/EnhancedData'
     Error:
       properties:
         debugging_request_id:
@@ -9578,6 +10506,11 @@ components:
             - settlement_report.updated
             - three_ds_authentication.created
             - transfer_transaction.created
+            - tokenization.approval_request
+            - tokenization.result
+            - tokenization.two_factor_authentication_code
+            - tokenization.two_factor_authentication_code_sent
+            - tokenization.updated
           type: string
         payload:
           type: object
@@ -9626,6 +10559,11 @@ components:
               - settlement_report.updated
               - three_ds_authentication.created
               - transfer_transaction.created
+              - tokenization.approval_request
+              - tokenization.result
+              - tokenization.two_factor_authentication_code
+              - tokenization.two_factor_authentication_code_sent
+              - tokenization.updated
             type: string
           type: array
         token:
@@ -9677,11 +10615,15 @@ components:
           description: Date and time for when the financial account was last updated.
           format: date-time
           type: string
+        is_for_benefit_of:
+          description: Whether the financial account holds funds for benefit of another party.
+          type: boolean
       required:
         - created
         - token
         - type
         - updated
+        - is_for_benefit_of
       type: object
     FinancialEvent:
       properties:
@@ -9703,8 +10645,182 @@ components:
           format: uuid
           type: string
         type:
-          $ref: '#/components/schemas/FinancialEventType'
+          $ref: '#/components/schemas/financial_event_type'
       type: object
+    Fleet:
+      title: Fleet
+      required:
+        - fuel
+        - amount_totals
+      type: object
+      properties:
+        service_type:
+          description: The type of fuel service.
+          $ref: '#/components/schemas/ServiceType'
+        odometer:
+          title: Odometer
+          description: The odometer reading entered into at the terminal at the time of sale.
+          type: integer
+        vehicle_number:
+          title: Vehicle Number
+          description: The vehicle number entered into at the terminal at the time of sale, with leading zeroes stripped.
+          type: string
+        driver_number:
+          title: Driver Number
+          description: The driver number entered into at the terminal at the time of sale, with leading zeroes stripped.
+          type: string
+        fuel:
+          $ref: '#/components/schemas/FuelData'
+        amount_totals:
+          $ref: '#/components/schemas/AmountTotals'
+    FuelData:
+      title: FuelData
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/FuelType'
+        quantity:
+          title: Quantity
+          description: The quantity of fuel purchased.
+          type: number
+        unit_price:
+          title: Unit Price
+          description: The price per unit of fuel.
+          type: integer
+        unit_of_measure:
+          $ref: '#/components/schemas/FuelUnitOfMeasure'
+    FuelUnitOfMeasure:
+      title: FuelUnitOfMeasure
+      description: Unit of measure for fuel disbursement.
+      enum:
+        - GALLONS
+        - LITERS
+        - POUNDS
+        - KILOGRAMS
+        - IMPERIAL_GALLONS
+        - NOT_APPLICABLE
+        - UNKNOWN
+    FuelType:
+      title: FuelType
+      description: The type of fuel purchased.
+      enum:
+        - UNKNOWN
+        - REGULAR
+        - MID_PLUS
+        - PREMIUM_SUPER
+        - MID_PLUS_2
+        - PREMIUM_SUPER_2
+        - ETHANOL_5_7_BLEND
+        - MID_PLUS_ETHANOL_5_7_PERCENT_BLEND
+        - PREMIUM_SUPER_ETHANOL_5_7_PERCENT_BLEND
+        - ETHANOL_7_7_PERCENT_BLEND
+        - MID_PLUS_ETHANOL_7_7_PERCENT_BLEND
+        - GREEN_GASOLINE_REGULAR
+        - GREEN_GASOLINE_MID_PLUS
+        - GREEN_GASOLINE_PREMIUM_SUPER
+        - REGULAR_DIESEL_2
+        - PREMIUM_DIESEL_2
+        - REGULAR_DIESEL_1
+        - COMPRESSED_NATURAL_GAS
+        - LIQUID_PROPANE_GAS
+        - LIQUID_NATURAL_GAS
+        - E_85
+        - REFORMULATED_1
+        - REFORMULATED_2
+        - REFORMULATED_3
+        - REFORMULATED_4
+        - REFORMULATED_5
+        - DIESEL_OFF_ROAD_1_AND_2_NON_TAXABLE
+        - DIESEL_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_OFF_ROAD_NON_TAXABLE
+        - UNDEFINED_FUEL
+        - RACING_FUEL
+        - MID_PLUS_2_10_PERCENT_BLEND
+        - PREMIUM_SUPER_2_10_PERCENT_BLEND
+        - MID_PLUS_ETHANOL_2_15_PERCENT_BLEND
+        - PREMIUM_SUPER_ETHANOL_2_15_PERCENT_BLEND
+        - PREMIUM_SUPER_ETHANOL_7_7_PERCENT_BLEND
+        - REGULAR_ETHANOL_10_PERCENT_BLEND
+        - MID_PLUS_ETHANOL_10_PERCENT_BLEND
+        - PREMIUM_SUPER_ETHANOL_10_PERCENT_BLEND
+        - B2_DIESEL_BLEND_2_PERCENT_BIODIESEL
+        - B5_DIESEL_BLEND_5_PERCENT_BIODIESEL
+        - B10_DIESEL_BLEND_10_PERCENT_BIODIESEL
+        - B11_DIESEL_BLEND_11_PERCENT_BIODIESEL
+        - B15_DIESEL_BLEND_15_PERCENT_BIODIESEL
+        - B20_DIESEL_BLEND_20_PERCENT_BIODIESEL
+        - B100_DIESEL_BLEND_100_PERCENT_BIODIESEL
+        - B1_DIESEL_BLEND_1_PERCENT_BIODIESEL
+        - ADDITIZED_DIESEL_2
+        - ADDITIZED_DIESEL_3
+        - RENEWABLE_DIESEL_R95
+        - RENEWABLE_DIESEL_BIODIESEL_6_20_PERCENT
+        - DIESEL_EXHAUST_FLUID
+        - PREMIUM_DIESEL_1
+        - REGULAR_ETHANOL_15_PERCENT_BLEND
+        - MID_PLUS_ETHANOL_15_PERCENT_BLEND
+        - PREMIUM_SUPER_ETHANOL_15_PERCENT_BLEND
+        - PREMIUM_DIESEL_BLEND_LESS_THAN_20_PERCENT_BIODIESEL
+        - PREMIUM_DIESEL_BLEND_GREATER_THAN_20_PERCENT_BIODIESEL
+        - B75_DIESEL_BLEND_75_PERCENT_BIODIESEL
+        - B99_DIESEL_BLEND_99_PERCENT_BIODIESEL
+        - MISCELLANEOUS_FUEL
+        - JET_FUEL
+        - AVIATION_FUEL_REGULAR
+        - AVIATION_FUEL_PREMIUM
+        - AVIATION_FUEL_JP8
+        - AVIATION_FUEL_4
+        - AVIATION_FUEL_5
+        - BIOJET_DIESEL
+        - AVIATION_BIOFUEL_GASOLINE
+        - MISCELLANEOUS_AVIATION_FUEL
+        - MARINE_FUEL_1
+        - MARINE_FUEL_2
+        - MARINE_FUEL_3
+        - MARINE_FUEL_4
+        - MARINE_FUEL_5
+        - MARINE_OTHER
+        - MARINE_DIESEL
+        - MISCELLANEOUS_MARINE_FUEL
+        - KEROSENE_LOW_SULFUR
+        - WHITE_GAS
+        - HEATING_OIL
+        - OTHER_FUEL_NON_TAXABLE
+        - KEROSENE_ULTRA_LOW_SULFUR
+        - KEROSENE_LOW_SULFUR_NON_TAXABLE
+        - KEROSENE_ULTRA_LOW_SULFUR_NON_TAXABLE
+        - EVC_1_LEVEL_1_CHARGE_110V_15_AMP
+        - EVC_2_LEVEL_2_CHARGE_240V_15_40_AMP
+        - EVC_3_LEVEL_3_CHARGE_480V_3_PHASE_CHARGE
+        - BIODIESEL_BLEND_2_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_5_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_10_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_11_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_15_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_20_PERCENT_OFF_ROAD_NON_TAXABLE
+        - DIESEL_1_OFF_ROAD_NON_TAXABLE
+        - DIESEL_2_OFF_ROAD_NON_TAXABLE
+        - DIESEL_1_PREMIUM_OFF_ROAD_NON_TAXABLE
+        - DIESEL_2_PREMIUM_OFF_ROAD_NON_TAXABLE
+        - ADDITIVE_DOSAGE
+        - ETHANOL_BLENDS_E16_E84
+        - LOW_OCTANE_UNL
+        - BLENDED_DIESEL_1_AND_2
+        - OFF_ROAD_REGULAR_NON_TAXABLE
+        - OFF_ROAD_MID_PLUS_NON_TAXABLE
+        - OFF_ROAD_PREMIUM_SUPER_NON_TAXABLE
+        - OFF_ROAD_MID_PLUS_2_NON_TAXABLE
+        - OFF_ROAD_PREMIUM_SUPER_2_NON_TAXABLE
+        - RECREATIONAL_FUEL_90_OCTANE
+        - HYDROGEN_H35
+        - HYDROGEN_H70
+        - RENEWABLE_DIESEL_R95_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_1_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_75_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_99_PERCENT_OFF_ROAD_NON_TAXABLE
+        - BIODIESEL_BLEND_100_PERCENT_OFF_ROAD_NON_TAXABLE
+        - RENEWABLE_DIESEL_BIODIESEL_6_20_PERCENT_OFF_ROAD_NON_TAXABLE
+        - MISCELLANEOUS_OTHER_FUEL
     PaymentEvent:
       properties:
         amount:
@@ -9840,64 +10956,6 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
-      type: string
-    FinancialEventType:
-      description: |
-        Event types:
-        * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
-        * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
-        * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
-        * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the fed.
-        * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
-        * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
-        * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
-        * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
-        * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
-        * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
-        * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-        * `AUTHORIZATION` - Authorize a card transaction.
-        * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
-        * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
-        * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
-        * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
-        * `CLEARING` - Card Transaction is settled.
-        * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
-        * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
-        * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
-        * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
-        * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
-        * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
-        * `RETURN` - A card refund has been processed on the transaction.
-        * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
-        * `TRANSFER` - Successful internal transfer of funds between financial accounts.
-        * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internl transfer of funds due to insufficient balance of the sender.
-      enum:
-        - ACH_ORIGINATION_CANCELLED
-        - ACH_ORIGINATION_INITIATED
-        - ACH_ORIGINATION_PROCESSED
-        - ACH_ORIGINATION_SETTLED
-        - ACH_ORIGINATION_RELEASED
-        - ACH_ORIGINATION_REVIEWED
-        - ACH_RECEIPT_PROCESSED
-        - ACH_RECEIPT_SETTLED
-        - ACH_RETURN_INITIATED
-        - ACH_RETURN_PROCESSED
-        - AUTHORIZATION
-        - AUTHORIZATION_ADVICE
-        - AUTHORIZATION_EXPIRY
-        - AUTHORIZATION_REVERSAL
-        - BALANCE_INQUIRY
-        - CLEARING
-        - CORRECTION_CREDIT
-        - CORRECTION_DEBIT
-        - CREDIT_AUTHORIZATION
-        - CREDIT_AUTHORIZATION_ADVICE
-        - FINANCIAL_AUTHORIZATION
-        - FINANCIAL_CREDIT_AUTHORIZATION
-        - RETURN
-        - RETURN_REVERSAL
-        - TRANSFER
-        - TRANSFER_INSUFFICIENT_FUNDS
       type: string
     FinancialTransaction:
       properties:
@@ -10066,6 +11124,27 @@ components:
           example: '+12124007676'
           type: string
       type: object
+    LineItem:
+      title: LineItem
+      description: An L2/L3 enhanced commercial data line item.
+      type: object
+      properties:
+        product_code:
+          title: Product Code
+          description: An identifier for the item purchased.
+          type: string
+        description:
+          title: Description
+          description: A human-readable description of the item.
+          type: string
+        quantity:
+          title: Quantity
+          description: The quantity of the item purchased.
+          type: number
+        amount:
+          title: Amount
+          description: The price of the item purchased in merchant currency.
+          type: number
     Kyb:
       properties:
         beneficial_owner_entities:
@@ -10689,6 +11768,15 @@ components:
         - transactions_gross_amount
         - updated
       type: object
+    ServiceType:
+      title: FuelServiceType
+      description: The type of fuel service procured in a fleet transaction.
+      enum:
+        - UNKNOWN
+        - UNDEFINED
+        - SELF_SERVICE
+        - FULL_SERVICE
+        - NON_FUEL_ONLY
     ShippingAddress:
       properties:
         address1:
@@ -10766,6 +11854,28 @@ components:
         - postal_code
         - state
       type: object
+    TaxData:
+      title: TaxData
+      type: object
+      properties:
+        amount:
+          title: Amount
+          description: The amount of tax collected.
+          type: integer
+        exempt:
+          title: Exempt
+          $ref: '#/components/schemas/TaxExemptIndicator'
+        merchant_tax_id:
+          title: Merchant Tax ID
+          description: The tax ID of the merchant.
+          type: string
+    TaxExemptIndicator:
+      title: TaxExemptIndicator
+      description: A flag indicating whether the transaction is tax exempt or not.
+      enum:
+        - TAX_INCLUDED
+        - TAX_NOT_INCLUDED
+        - NOT_SUPPORTED
     ThreeDSAddress:
       properties:
         address1:
@@ -11254,20 +12364,28 @@ components:
           format: uuid
           type: string
         token_requestor_name:
-          description: The entity that is requested the tokenization. Represents a Digital Wallet.
+          description: The entity that requested the tokenization. Represents a Digital Wallet or merchant.
           enum:
             - AMAZON_ONE
             - ANDROID_PAY
             - APPLE_PAY
+            - FACEBOOK
             - FITBIT_PAY
             - GARMIN_PAY
             - MICROSOFT_PAY
+            - NETFLIX
             - SAMSUNG_PAY
             - UNKNOWN
             - VISA_CHECKOUT
           type: string
         token_unique_reference:
           description: The network's unique reference for the tokenization.
+          type: string
+        tokenization_channel:
+          description: The channel through which the tokenization was made.
+          enum:
+            - DIGITAL_WALLET
+            - MERCHANT
           type: string
         updated_at:
           description: Latest date and time when the tokenization was updated. UTC time zone.
@@ -11281,6 +12399,7 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
+        - tokenization_channel
         - updated_at
       type: object
     TokenizationEvent:
@@ -11975,6 +13094,67 @@ components:
           example: 1900
           type: integer
       type: object
+    financial_event_type:
+      $id: https://lithic.com/schemas/treasury/statements/financial_event_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Financial Event Type
+      type: string
+      description: |-
+        Event types:
+                * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
+                * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
+                * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
+                * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the fed.
+                * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
+                * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+                * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
+                * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
+                * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
+                * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
+                * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+                * `AUTHORIZATION` - Authorize a card transaction.
+                * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
+                * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
+                * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
+                * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
+                * `CLEARING` - Card Transaction is settled.
+                * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
+                * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
+                * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
+                * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
+                * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
+                * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
+                * `RETURN` - A card refund has been processed on the transaction.
+                * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
+                * `TRANSFER` - Successful internal transfer of funds between financial accounts.
+                * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internal transfer of funds due to insufficient balance of the sender.
+      enum:
+        - ACH_ORIGINATION_CANCELLED
+        - ACH_ORIGINATION_INITIATED
+        - ACH_ORIGINATION_PROCESSED
+        - ACH_ORIGINATION_SETTLED
+        - ACH_ORIGINATION_RELEASED
+        - ACH_ORIGINATION_REVIEWED
+        - ACH_RECEIPT_PROCESSED
+        - ACH_RECEIPT_SETTLED
+        - ACH_RETURN_INITIATED
+        - ACH_RETURN_PROCESSED
+        - AUTHORIZATION
+        - AUTHORIZATION_ADVICE
+        - AUTHORIZATION_EXPIRY
+        - AUTHORIZATION_REVERSAL
+        - BALANCE_INQUIRY
+        - CLEARING
+        - CORRECTION_CREDIT
+        - CORRECTION_DEBIT
+        - CREDIT_AUTHORIZATION
+        - CREDIT_AUTHORIZATION_ADVICE
+        - FINANCIAL_AUTHORIZATION
+        - FINANCIAL_CREDIT_AUTHORIZATION
+        - RETURN
+        - RETURN_REVERSAL
+        - TRANSFER
+        - TRANSFER_INSUFFICIENT_FUNDS
     searchable_account_types:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/searchable_account_types.json
       $schema: https://json-schema.org/draft/2020-12/schema
