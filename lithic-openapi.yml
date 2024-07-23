@@ -22,15 +22,14 @@ tags:
   - name: Authorization Rules
   - name: Balance
   - name: Card
-  - name: Card Product
   - name: Dispute
   - name: Event
-  - name: Event Types
   - name: External Bank Account
   - name: Financial Account
   - name: Payment
   - name: Responder Endpoints
   - name: Settlement Report
+  - name: Statements
   - name: Status
   - name: Tokenization
   - name: Transaction
@@ -4202,6 +4201,42 @@ paths:
       summary: Get balances
       tags:
         - Balance
+  /financial_accounts/{financial_account_token}/credit_configuration:
+    get:
+      description: Get an Account's credit configuration
+      operationId: getAccountCreditConfiguration
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+      summary: Get account credit configuration
+      tags:
+        - Account
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/financial-account-credit-config-response'
+    patch:
+      description: Update an account's credit configuration
+      operationId: patchAccountCreditConfiguration
+      summary: Update account credit configuration
+      tags:
+        - Account
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/financial-account-credit-config-request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/financial-account-credit-config-response'
   /financial_accounts/{financial_account_token}/financial_transactions:
     get:
       description: List the financial transactions for a given financial account.
@@ -4299,6 +4334,166 @@ paths:
       summary: Get financial transaction
       tags:
         - Financial Account
+  /financial_accounts/{financial_account_token}/statements:
+    get:
+      description: List the statements for a given financial account.
+      operationId: getStatements
+      parameters:
+        - description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+          in: query
+          name: begin
+          required: false
+          schema:
+            description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+            format: date
+            title: Begin
+            type: string
+        - description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+          in: query
+          name: end
+          required: false
+          schema:
+            description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+            format: date
+            title: End
+            type: string
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+            title: Ending Before
+            type: string
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          required: false
+          schema:
+            default: 50
+            description: Page size (for pagination).
+            maximum: 100
+            minimum: 1
+            title: Page Size
+            type: integer
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+            title: Starting After
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/statements_response'
+          description: OK
+      summary: List statements
+      tags:
+        - Statements
+  /financial_accounts/{financial_account_token}/statements/{statement_token}:
+    get:
+      description: Get a specific statement for a given financial account.
+      operationId: getStatement
+      parameters:
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Globally unique identifier for statements.
+          in: path
+          name: statement_token
+          required: true
+          schema:
+            description: Globally unique identifier for statements.
+            title: Statement Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/statement_response'
+          description: OK
+      summary: Get statement by token
+      tags:
+        - Statements
+  /financial_accounts/{financial_account_token}/statements/{statement_token}/line_items:
+    get:
+      description: List the line items for a given statement within a given financial account.
+      operationId: getStatementLineItems
+      parameters:
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+            title: Ending Before
+            type: string
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          required: false
+          schema:
+            default: 50
+            description: Page size (for pagination).
+            maximum: 100
+            minimum: 1
+            title: Page Size
+            type: integer
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+            title: Starting After
+            type: string
+        - description: Globally unique identifier for statements.
+          in: path
+          name: statement_token
+          required: true
+          schema:
+            description: Globally unique identifier for statements.
+            title: Statement Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/statement_line_items_response'
+          description: OK
+      summary: List line items for a statement
+      tags:
+        - Statements
   /payments:
     get:
       description: List all the payments for the provided search criteria.
@@ -13682,6 +13877,275 @@ components:
         financial_account_token:
           type: string
           format: uuid
+    financial-account-credit-config-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-response.json
+      title: Financial Account Credit Configuration Response
+      type: object
+      properties:
+        account_token:
+          type: string
+          description: Globally unique identifier for the account
+          example: b68b7424-aa69-4cbc-a946-30d90181b621
+          format: uuid
+        credit_limit:
+          type:
+            - integer
+            - 'null'
+        external_bank_account_token:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        credit_product_token:
+          type:
+            - string
+            - 'null'
+          description: Globally unique identifier for the credit product
+      required:
+        - account_token
+        - credit_limit
+        - external_bank_account_token
+        - credit_product_token
+    financial-account-credit-config-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-request.json
+      title: Financial Account Credit Configuration Request
+      type: object
+      properties:
+        credit_limit:
+          type: integer
+          minimum: 0
+        external_bank_account_token:
+          type: string
+          format: uuid
+        credit_product_token:
+          type: string
+          description: Globally unique identifier for the credit product
+      required: []
+    statement_totals:
+      $id: https://lithic.com/schemas/treasury/statements/statements_totals.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Statement Totals
+      type: object
+      properties:
+        payments:
+          type: integer
+        purchases:
+          type: integer
+        fees:
+          type: integer
+        credits:
+          type: integer
+        interest:
+          type: integer
+        cash_advances:
+          type: integer
+        balance_transfers:
+          type: integer
+      required:
+        - payments
+        - purchases
+        - fees
+        - credits
+        - interest
+        - cash_advances
+        - balance_transfers
+    account_state-2:
+      $id: https://lithic.com/schemas/treasury/statements/account_state.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - STANDARD
+        - PROMO
+        - PENALTY
+      title: Account State
+    account_standing:
+      $id: https://lithic.com/schemas/treasury/statements/account_standing.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Account Standing
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/account_state-2'
+        period_number:
+          description: Current overall period number
+          type: integer
+      required:
+        - state
+        - period_number
+    statement_response:
+      $id: https://lithic.com/schemas/treasury/statements/statement_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Statement Response
+      type: object
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for a statement
+          title: Statement Token
+        financial_account_token:
+          description: Globally unique identifier for a financial account
+          type: string
+          format: uuid
+        statement_start_date:
+          description: Date when the billing period began
+          type: string
+          format: date
+        statement_end_date:
+          description: Date when the billing period ended
+          type: string
+          format: date
+        payment_due_date:
+          description: Date when the payment is due
+          type: string
+          format: date
+        days_in_billing_cycle:
+          description: Number of days in the billing cycle
+          type: integer
+        credit_limit:
+          description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender.
+          type: integer
+        available_credit:
+          description: Amount of credit available to spend
+          type: integer
+        starting_balance:
+          description: Balance at the start of the billing period
+          type: integer
+        ending_balance:
+          description: Balance at the end of the billing period. For charge cards, this should be the same at the statement amount due.
+          type: integer
+        amount_due:
+          description: Payment due at the end of the billing period. Negative amount indicates something is owed. If the amount owed is positive (e.g., there was a net credit), then payment should be returned to the cardholder via ACH.
+          type: integer
+        amount_past_due:
+          description: Payment past due at the end of the billing period.
+          type: integer
+        period_totals:
+          $ref: '#/components/schemas/statement_totals'
+        ytd_totals:
+          $ref: '#/components/schemas/statement_totals'
+        created:
+          description: Timestamp of when the statement was created
+          type: string
+          format: date-time
+        updated:
+          description: Timestamp of when the statement was updated
+          type: string
+          format: date-time
+        next_statement_date:
+          description: Date of when the next statement will be created
+          type: string
+          format: date
+        credit_product_token:
+          description: Globally unique identifier for a credit product
+          type: string
+        account_standing:
+          $ref: '#/components/schemas/account_standing'
+      required:
+        - token
+        - financial_account_token
+        - statement_start_date
+        - statement_end_date
+        - payment_due_date
+        - days_in_billing_cycle
+        - credit_limit
+        - available_credit
+        - starting_balance
+        - ending_balance
+        - amount_due
+        - amount_past_due
+        - period_totals
+        - ytd_totals
+        - created
+        - updated
+        - next_statement_date
+        - credit_product_token
+        - account_standing
+    statements_response:
+      $id: https://lithic.com/schemas/treasury/statements/statements_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Statements Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/statement_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
+    statement_line_item_response:
+      $id: https://lithic.com/schemas/treasury/statements/statement_line_item_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Statement Line Item Response
+      type: object
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for a Statement Line Item
+        financial_account_token:
+          description: Globally unique identifier for a financial account
+          type: string
+          format: uuid
+        card_token:
+          description: Globally unique identifier for a card
+          type: string
+          format: uuid
+        financial_transaction_token:
+          description: Globally unique identifier for a financial transaction
+          type: string
+          format: uuid
+        category:
+          type: string
+          enum:
+            - ACH
+            - CARD
+            - TRANSFER
+        event_type:
+          $ref: '#/components/schemas/financial_event_type'
+        settled_date:
+          description: Date that the transaction settled
+          type: string
+          format: date
+        descriptor:
+          type: string
+        amount:
+          type: integer
+        currency:
+          type: string
+          description: 3-digit alphabetic ISO 4217 code for the settling currency of the transaction
+        created:
+          type: string
+          format: date-time
+          description: Timestamp of when the line item was generated
+      required:
+        - token
+        - financial_account_token
+        - financial_transaction_token
+        - category
+        - event_type
+        - settled_date
+        - amount
+        - currency
+        - created
+    statement_line_items_response:
+      $id: https://lithic.com/schemas/treasury/statements/statementline_items_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Statement Line Items Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/statement_line_item_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
     simulate_receipt_request:
       $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_receipt_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
