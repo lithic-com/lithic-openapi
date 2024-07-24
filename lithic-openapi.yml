@@ -14033,10 +14033,6 @@ components:
           description: Timestamp of when the statement was updated
           type: string
           format: date-time
-        next_statement_date:
-          description: Date of when the next statement will be created
-          type: string
-          format: date
         credit_product_token:
           description: Globally unique identifier for a credit product
           type: string
@@ -14059,7 +14055,6 @@ components:
         - ytd_totals
         - created
         - updated
-        - next_statement_date
         - credit_product_token
         - account_standing
     statements_response:
