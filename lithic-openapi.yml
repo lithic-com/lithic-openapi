@@ -2887,8 +2887,8 @@ paths:
         - Card
   /transactions/{transaction_token}/enhanced_commercial_data:
     get:
-      description: Get all L2/L3 enhanced commercial data associated with a transaction.
-      summary: Get a list of enhanced commercial data for a transaction
+      description: Get all L2/L3 enhanced commercial data associated with a transaction. Not available in sandbox.
+      summary: List enhanced commercial data
       operationId: listEnhancedTransactionData
       tags:
         - Transaction
@@ -2899,7 +2899,7 @@ paths:
             type: string
             format: uuid
           name: transaction_token
-          description: The token of the transaction to retrieve enhanced data for.
+          description: The token of the transaction that the enhanced data is associated with.
           in: path
           example: 00000000-0000-0000-0000-000000000000
       responses:
@@ -2949,8 +2949,8 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
   /transactions/events/{event_token}/enhanced_commercial_data:
     get:
-      description: Get L2/L3 enhanced commercial data associated with a transaction event.
-      summary: Get enhanced commercial data for a transaction event
+      description: Get L2/L3 enhanced commercial data associated with a transaction event. Not available in sandbox.
+      summary: Get enhanced commercial data
       operationId: getEnhancedTransactionData
       tags:
         - Transaction
@@ -2961,7 +2961,7 @@ paths:
             type: string
             format: uuid
           name: event_token
-          description: The token of the event to retrieve enhanced data for.
+          description: The token of the transaction event that the enhanced data is associated with.
           in: path
           example: 00000000-0000-0000-0000-000000000000
       responses:
@@ -4657,7 +4657,7 @@ paths:
       description: List details.
       operationId: getSettlementDetails
       parameters:
-        - description: Date of the settlement report to retrieve.
+        - description: Date of the settlement report to retrieve. Not available in sandbox.
           example: '2023-09-01'
           in: path
           name: report_date
@@ -4724,7 +4724,7 @@ paths:
         - Settlement Report
   /reports/settlement/summary/{report_date}:
     get:
-      description: Get the settlement report for a specified report date.
+      description: Get the settlement report for a specified report date. Not available in sandbox.
       operationId: getSummary
       parameters:
         - description: Date of the settlement report to retrieve.
@@ -10214,11 +10214,11 @@ components:
       properties:
         customer_reference_number:
           title: Customer Reference Number
-          description: An optional customer identifier.
+          description: A customer identifier.
           type: string
         merchant_reference_number:
           title: Merchant Reference Number
-          description: An optional merchant identifier.
+          description: A merchant identifier.
           type: string
         order_date:
           title: Order Date
@@ -10850,15 +10850,15 @@ components:
           $ref: '#/components/schemas/ServiceType'
         odometer:
           title: Odometer
-          description: The odometer reading entered into at the terminal at the time of sale.
+          description: The odometer reading entered into the terminal at the time of sale.
           type: integer
         vehicle_number:
           title: Vehicle Number
-          description: The vehicle number entered into at the terminal at the time of sale, with leading zeroes stripped.
+          description: The vehicle number entered into the terminal at the time of sale, with leading zeros stripped.
           type: string
         driver_number:
           title: Driver Number
-          description: The driver number entered into at the terminal at the time of sale, with leading zeroes stripped.
+          description: The driver number entered into the terminal at the time of sale, with leading zeros stripped.
           type: string
         fuel:
           $ref: '#/components/schemas/FuelData'
