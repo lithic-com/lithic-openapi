@@ -3984,6 +3984,35 @@ paths:
       summary: Retry external bank account via prenote
       tags:
         - External Bank Account
+  /credit_products/{credit_product_id}/extended_credit:
+    get:
+      description: Get the extended credit for a given credit product under a program
+      operationId: getExtendedCredit
+      parameters:
+        - description: Credit Product ID
+          in: path
+          name: credit_product_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/extended_credit'
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get extended credit
+      tags:
+        - Credit Product
   /financial_accounts:
     get:
       description: Retrieve information on your financial accounts including routing and account number.
@@ -13286,7 +13315,7 @@ components:
           type: integer
       type: object
     financial_event_type:
-      $id: https://lithic.com/schemas/treasury/statements/financial_event_type.json
+      $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Financial Event Type
       type: string
@@ -13877,6 +13906,16 @@ components:
         financial_account_token:
           type: string
           format: uuid
+    extended_credit:
+      $id: https://lithic.com/schemas/treasury/ledger/extended_credit.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Extended Credit
+      type: object
+      properties:
+        credit_extended:
+          type: integer
+      required:
+        - credit_extended
     financial-account-credit-config-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-response.json
