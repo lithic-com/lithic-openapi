@@ -3091,6 +3091,7 @@ paths:
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
+                      - statements.created
                       - three_ds_authentication.created
                       - transfer_transaction.created
                       - tokenization.approval_request
@@ -3241,6 +3242,7 @@ paths:
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
+                      - statements.created
                       - three_ds_authentication.created
                       - transfer_transaction.created
                       - tokenization.approval_request
@@ -3492,6 +3494,7 @@ paths:
                 - payment_transaction.created
                 - payment_transaction.updated
                 - settlement_report.updated
+                - statements.created
                 - three_ds_authentication.created
                 - transfer_transaction.created
                 - tokenization.approval_request
@@ -5239,6 +5242,7 @@ paths:
                     - payment_transaction.created
                     - payment_transaction.updated
                     - settlement_report.updated
+                    - statements.created
                     - three_ds_authentication.created
                     - transfer_transaction.created
                     - tokenization.approval_request
@@ -6062,7 +6066,7 @@ paths:
     post:
       description: |-
         This endpoint is used to ask the card network to pause a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network pauses the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on tokenizations with status `ACTIVE`.
-        Transactions attemped with a paused tokenization will be declined.
+        A paused token will prevent merchants from sending authorizations, and is a temporary status that can be changed.
         Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
       operationId: pauseTokenization
       parameters:
@@ -6126,7 +6130,7 @@ paths:
     post:
       description: |-
         This endpoint is used to ask the card network to deactivate a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network deactivates the tokenization, the state will be updated and a tokenization.updated event will be sent.
-        Transactions attemped with a deactivated tokenization will be declined. If the target is a digital wallet tokenization, it will be removed from its device.
+        Authorizations attempted with a deactivated tokenization will be blocked and will not be forwarded to Lithic from the network. Deactivating the token is a permanent operation. If the target is a digital wallet tokenization, it will be removed from its device.
         Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
       operationId: deactivateTokenization
       parameters:
@@ -8148,6 +8152,20 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: settlement_report.updated
+      tags:
+        - Event Types
+  statements.created:
+    post:
+      description: Occurs when a statement has been created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/statements_created_webhook'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: statements.created
       tags:
         - Event Types
   three_ds_authentication.created:
@@ -10724,6 +10742,7 @@ components:
             - payment_transaction.created
             - payment_transaction.updated
             - settlement_report.updated
+            - statements.created
             - three_ds_authentication.created
             - transfer_transaction.created
             - tokenization.approval_request
@@ -10777,6 +10796,7 @@ components:
               - payment_transaction.created
               - payment_transaction.updated
               - settlement_report.updated
+              - statements.created
               - three_ds_authentication.created
               - transfer_transaction.created
               - tokenization.approval_request
@@ -15057,6 +15077,20 @@ components:
                 - type: 'null'
       required:
         - result
+    statements_created_webhook:
+      $id: https://lithic.com/schemas/treasury/statements/statements_created_webhook.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Statement Webhook
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/statement_response'
+      properties:
+        event_type:
+          type: string
+          enum:
+            - statements.created
+      required:
+        - event_type
   securitySchemes:
     ApiKeyAuth:
       in: header
