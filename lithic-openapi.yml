@@ -3076,6 +3076,7 @@ paths:
                       - balance.updated
                       - card.created
                       - card.renewed
+                      - card.reissued
                       - card.shipped
                       - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
@@ -3227,6 +3228,7 @@ paths:
                       - balance.updated
                       - card.created
                       - card.renewed
+                      - card.reissued
                       - card.shipped
                       - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
@@ -3479,6 +3481,7 @@ paths:
                 - balance.updated
                 - card.created
                 - card.renewed
+                - card.reissued
                 - card.shipped
                 - card_transaction.updated
                 - digital_wallet.tokenization_approval_request
@@ -5227,6 +5230,7 @@ paths:
                     - balance.updated
                     - card.created
                     - card.renewed
+                    - card.reissued
                     - card.shipped
                     - card_transaction.updated
                     - digital_wallet.tokenization_approval_request
@@ -7111,6 +7115,35 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: card.renewed
+      tags:
+        - Event Types
+  card.reissued:
+    post:
+      description: Occurs when a card is reissued.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - card_token: 00000000-0000-0000-0000-000000000001
+                  event_type: card.reissued
+              properties:
+                card_token:
+                  description: The token of the card that was reissued.
+                  example: 00000000-0000-0000-0000-000000000001
+                  format: uuid
+                  type: string
+                event_type:
+                  description: The type of event that occurred.
+                  enum:
+                    - card.reissued
+                  example: card.reissued
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: card.reissued
       tags:
         - Event Types
   card.shipped:
@@ -10712,6 +10745,7 @@ components:
             * `account_holder.verification` - Notification than an account holder's identity verification is complete.
             * `card.created` - Notification that a card has been created.
             * `card.renewed` - Notification that a card has been renewed.
+            * `card.reissued` - Notification that a card has been reissued.
             * `card.shipped` - Physical card shipment notification. See https://docs.lithic.com/docs/cards#physical-card-shipped-webhook.
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
@@ -10727,6 +10761,7 @@ components:
             - balance.updated
             - card.created
             - card.renewed
+            - card.reissued
             - card.shipped
             - card_transaction.updated
             - digital_wallet.tokenization_approval_request
@@ -10781,6 +10816,7 @@ components:
               - balance.updated
               - card.created
               - card.renewed
+              - card.reissued
               - card.shipped
               - card_transaction.updated
               - digital_wallet.tokenization_approval_request
