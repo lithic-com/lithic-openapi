@@ -9814,7 +9814,7 @@ components:
                 enum:
                   - COMPLETED
                   - FAILED
-                  - PENDING
+                  - PENDING_UPLOAD
                   - UPLOADED
                 type: string
               status_reasons:
