@@ -606,7 +606,7 @@ paths:
               recieveLinkForDriversLicense:
                 summary: Initiate account holder document upload
                 value:
-                  document_type: drivers_license
+                  document_type: EIN_LETTER
             schema:
               properties:
                 document_type:
@@ -9760,14 +9760,11 @@ components:
       description: Describes the document and the required document image uploads required to re-run KYC.
       example:
         account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
-        document_type: drivers_license
+        document_type: EIN_LETTER
+        entity_token: b50a84c9-8e86-4016-b1c7-0b9f71d4bb84
         required_document_uploads:
           - image_type: front
-            status: PENDING
-            status_reasons: []
-            upload_url: https://lithic-document-verification-uploads.com
-          - image_type: back
-            status: UPLOADED
+            status: PENDING_UPLOAD
             status_reasons: []
             upload_url: https://lithic-document-verification-uploads.com
         token: 12345678-3630-4cd0-bbec-1a0fa5c7e149
@@ -9779,12 +9776,29 @@ components:
         document_type:
           description: Type of documentation to be submitted for verification.
           enum:
-            - commercial_license
-            - drivers_license
-            - passport
-            - passport_card
-            - visa
+            - EIN_LETTER
+            - TAX_RETURN
+            - OPERATING_AGREEMENT
+            - CERTIFICATE_OF_FORMATION
+            - DRIVERS_LICENSE
+            - PASSPORT
+            - PASSPORT_CARD
+            - CERTIFICATE_OF_GOOD_STANDING
+            - ARTICLES_OF_INCORPORATION
+            - ARTICLES_OF_ORGANIZATION
+            - BYLAWS
+            - GOVERNMENT_BUSINESS_LICENSE
+            - PARTNERSHIP_AGREEMENT
+            - SS4_FORM
+            - BANK_STATEMENT
+            - UTILITY_BILL_STATEMENT
+            - SSN_CARD
+            - ITIN_LETTER
           type: string
+        entity_token:
+          description: Globally unique identifier for the entity.
+          type: string
+          format: uuid
         required_document_uploads:
           items:
             description: Represents a single image of the document to upload.
@@ -9821,6 +9835,10 @@ components:
 
                   Note that the upload URLs expire after 7 days. If an upload URL expires, you can
                   refresh the URLs by retrieving the document upload from `GET /account_holders/{account_holder_token}/documents`.
+                type: string
+              token:
+                description: Globally unique identifier for the document upload.
+                format: uuid
                 type: string
             type: object
           type: array
