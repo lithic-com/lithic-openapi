@@ -14492,28 +14492,28 @@ components:
         - interest
         - cash_advances
         - balance_transfers
-    account_state-2:
-      $id: https://lithic.com/schemas/treasury/statements/account_state.json
+    period_state:
+      $id: https://lithic.com/schemas/treasury/statements/period_state.json
       $schema: https://json-schema.org/draft/2020-12/schema
       type: string
       enum:
         - STANDARD
         - PROMO
         - PENALTY
-      title: Account State
+      title: Period State
     account_standing:
       $id: https://lithic.com/schemas/treasury/statements/account_standing.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Account Standing
       type: object
       properties:
-        state:
-          $ref: '#/components/schemas/account_state-2'
+        period_state:
+          $ref: '#/components/schemas/period_state'
         period_number:
           description: Current overall period number
           type: integer
       required:
-        - state
+        - period_state
         - period_number
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
