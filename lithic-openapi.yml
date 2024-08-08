@@ -80,6 +80,7 @@ paths:
                           first_name: John
                           last_name: Appleseed
                           phone_number: '5555555555'
+                          entity_token: 49c978db-20c4-46d8-9db4-b0ef28c03533
                         phone_number: '5555555555'
                         status: ACCEPTED
                         token: b68b7424-aa69-4cbc-a946-30d90181b621
@@ -103,6 +104,7 @@ paths:
                             parent_company: Example company
                             phone_numbers:
                               - '5555555555'
+                            entity_token: d89185ca-1fad-4f33-905c-416b4270a5d4
                         business_account_token: 00000000-0000-0000-0000-000000000000
                         business_entity:
                           address:
@@ -117,6 +119,7 @@ paths:
                           parent_company: Example company
                           phone_numbers:
                             - '5555555555'
+                          entity_token: f360a3c0-24e6-4852-ae82-27916a5c4e86
                         control_person:
                           address:
                             address1: 451 New Forest Way
@@ -129,6 +132,7 @@ paths:
                           first_name: John
                           last_name: Appleseed
                           phone_number: '5555555555'
+                          entity_token: 9d657ba0-7c8a-4946-a596-f99d978a4137
                         created: '2024-01-11T19:50:36.105449'
                         exemption_type: AUTHORIZED_USER
                         external_id: 851030f1-9b7b-4939-8ac9-161bd972d26f
@@ -377,24 +381,110 @@ paths:
           content:
             application/json:
               examples:
-                acceptedEvaluationResponse:
+                kycAcceptedReview:
                   summary: Accepted KYC evaluation response
                   value:
-                    account_token: b68b7424-aa69-4cbc-a946-30d90181b621
-                    business_account_token: 6b67b340-ed11-4463-a33d-0d7f7fdcd28c
-                    email: test@lithic.com
+                    token: b68b7424-aa69-4cbc-a946-30d90181b621
+                    account_token: 6b67b340-ed11-4463-a33d-0d7f7fdcd28c
+                    business_account_token: 5310469f-3a16-44ce-89f8-cdc4446fcfdf
+                    external_id: ''
+                    created: '2024-01-11T19:50:36.105449'
+                    user_type: INDIVIDUAL
+                    exemption_type: ''
+                    verification_application:
+                      created: '2024-01-11T19:50:36.105449'
+                      updated: '2024-01-11T19:50:36.105449'
+                      status: ACCEPTED
+                      status_reasons: []
+                    individual:
+                      address:
+                        address1: 451 New Forest Way
+                        city: Springfield
+                        state: IL
+                        postal_code: '68022'
+                        country: US
+                      dob: '1991-03-08T08:00:00Z'
+                      email: john@appleseed.com
+                      first_name: John
+                      last_name: Appleseed
+                      phone_number: '5555555555'
+                      entity_token: fd771a07-c5c2-42f3-a53c-a6c79c6c0d07
+                    email: john@appleseed.com
                     phone_number: '5555555555'
                     status: ACCEPTED
-                    status_reasons: []
-                    token: 12345678-aa69-4cbc-a946-30d90181b621
-                pendingDocumentResponse:
-                  summary: Pending document submission KYC evaluation response
+                kybBasicPendingReview:
+                  summary: Pending review submission for a KYB_BASIC account_holder
                   value:
-                    account_token: b68b7424-aa69-4cbc-a946-30d90181b621
-                    status: PENDING_DOCUMENT
-                    status_reasons:
-                      - DOB_VERIFICATION_FAILURE
-                    token: 12345678-aa69-4cbc-a946-30d90181b621
+                    token: fa68ed76-9d02-4d45-8a3f-782f3b6a8b3f
+                    account_token: 732f7328-a2d7-4281-a264-e8cb5af8d392
+                    business_account_token: 00000000-0000-0000-0000-000000000000
+                    external_id: ''
+                    created: '2024-01-11T19:50:36.105449'
+                    user_type: BUSINESS
+                    exemption_type: ''
+                    verification_application:
+                      created: '2024-01-11T19:50:36.105449'
+                      updated: '2024-01-11T19:50:36.105449'
+                      status: PENDING_REVIEW
+                      status_reasons:
+                        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+                    required_documents:
+                      - entity_token: 83cf25ae-c14f-4d10-9fa2-0119f36c7286
+                        status_reasons:
+                          - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+                        valid_documents:
+                          - EIN_LETTER
+                          - TAX_RETURN
+                          - CERTIFICATE_OF_GOOD_STANDING
+                          - ARTICLES_OF_INCORPORATION
+                          - ARTICLES_OF_ORGANIZATION
+                          - CERTIFICATE_OF_FORMATION
+                          - BYLAWS
+                          - GOVERNMENT_BUSINESS_LICENSE
+                          - PARTNERSHIP_AGREEMENT
+                          - BANK_STATEMENT
+                          - UTILITY_BILL_STATEMENT
+                    business_entity:
+                      address:
+                        address1: 22 Street North
+                        city: New York
+                        state: NY
+                        postal_code: '10004'
+                        country: US
+                      dba_business_name: Busy Business, Inc.
+                      government_id: 98-7654321
+                      legal_business_name: Busy Business, Inc.
+                      parent_company: Example company
+                      phone_numbers:
+                        - '5555555555'
+                      entity_token: 05cc03c9-dea6-4d17-a11e-0f3ea57d51a5
+                    control_person:
+                      address:
+                        address1: 451 New Forest Way
+                        city: Springfield
+                        state: IL
+                        postal_code: '68022'
+                        country: US
+                      dob: '1991-03-08T08:00:00Z'
+                      email: john@appleseed.com
+                      first_name: John
+                      last_name: Appleseed
+                      phone_number: '5555555555'
+                      entity_token: fd771a07-c5c2-42f3-a53c-a6c79c6c0d07
+                    beneficial_owner_entities:
+                      - address:
+                          address1: 22 Street North
+                          city: New York
+                          state: NY
+                          postal_code: '10004'
+                          country: US
+                        dba_business_name: Busy Business, Inc.
+                        government_id: 98-7654321
+                        legal_business_name: Busy Business, Inc.
+                        parent_company: Example company
+                        phone_numbers:
+                          - '5555555555'
+                        entity_token: 2b3cdab5-c866-408f-85bc-e707015ee409
               schema:
                 $ref: '#/components/schemas/AccountHolder'
           description: OK
@@ -516,21 +606,35 @@ paths:
               recieveLinkForDriversLicense:
                 summary: Initiate account holder document upload
                 value:
-                  document_type: drivers_license
+                  document_type: EIN_LETTER
             schema:
               properties:
                 document_type:
-                  description: Type of the document to upload.
+                  description: The type of document to upload
                   enum:
-                    - commercial_license
-                    - drivers_license
-                    - passport
-                    - passport_card
-                    - visa
+                    - EIN_LETTER
+                    - TAX_RETURN
+                    - OPERATING_AGREEMENT
+                    - CERTIFICATE_OF_FORMATION
+                    - DRIVERS_LICENSE
+                    - PASSPORT
+                    - PASSPORT_CARD
+                    - CERTIFICATE_OF_GOOD_STANDING
+                    - ARTICLES_OF_INCORPORATION
+                    - ARTICLES_OF_ORGANIZATION
+                    - BYLAWS
+                    - GOVERNMENT_BUSINESS_LICENSE
+                    - PARTNERSHIP_AGREEMENT
+                    - SS4_FORM
+                    - BANK_STATEMENT
+                    - UTILITY_BILL_STATEMENT
+                    - SSN_CARD
+                    - ITIN_LETTER
                   type: string
-              required:
-                - document_type
-              type: object
+                entity_token:
+                  description: Globally unique identifier for the entity.
+                  type: string
+                  format: uuid
         required: true
       responses:
         '201':
@@ -5689,6 +5793,97 @@ paths:
       summary: Simulate void transaction
       tags:
         - Transaction
+  /simulate/account_holders/enrollment_review:
+    post:
+      summary: Simulate an account holder's enrollment review
+      description: ' Simulates an enrollment review for an account holder. This endpoint is only applicable for workflows that may required intervention such as `KYB_BASIC` or `KYC_ADVANCED`. '
+      operationId: simulateAccountHolderEnrollmentReview
+      requestBody:
+        content:
+          application/json:
+            examples:
+              simulateAcceptedReviewRequest:
+                summary: Simulate an accepted enrollment review request
+                value:
+                  account_holder_token: 1415964d-4400-4d79-9fb3-eee0faaee4e4
+                  status: ACCEPTED
+                  status_reasons: []
+              simulateRejectedReviewRequest:
+                summary: Simulate a rejected enrollment review request
+                value:
+                  account_holder_token: b8d0cdd2-182c-4623-b104-9f50808b8373
+                  status: REJECTED
+                  status_reasons:
+                    - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
+            schema:
+              $ref: '#/components/schemas/simulate-enrollment-review-request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/account-holder-response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '401':
+          $ref: '#/components/responses/responses-Unauthorized'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+        '409':
+          $ref: '#/components/responses/responses-Conflict'
+        '429':
+          $ref: '#/components/responses/responses-TooManyRequests'
+      tags:
+        - Account Holder
+  /simulate/account_holders/enrollment_document_review:
+    post:
+      summary: Simulate an account holder document upload's review
+      description: Simulates a review for an account holder document upload.
+      operationId: simulateAccountHolderEnrollmentDocumentReview
+      requestBody:
+        content:
+          application/json:
+            examples:
+              simulateUploadedReviewRequest:
+                summary: Simulate an uploaded enrollment document upload review request
+                value:
+                  document_upload_token: b11cd67b-0a52-4180-8365-314f3def5426
+                  status: UPLOADED
+              simulateAcceptedReviewRequest:
+                summary: Simulate an accepted enrollment document upload review request
+                value:
+                  document_upload_token: 70bde493-66a7-454b-8e79-51a0d976a7d2
+                  status: ACCEPTED
+              simulateRejectedReviewRequest:
+                summary: Simulate a rejected enrollment document upload review request
+                value:
+                  document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
+                  status: REJECTED
+                  status_reason: DOCUMENT_MISSING_REQUIRED_DATA
+            schema:
+              $ref: '#/components/schemas/simulate-enrollment-document-review-request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/document'
+          description: OK
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '401':
+          $ref: '#/components/responses/responses-Unauthorized'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+        '409':
+          $ref: '#/components/responses/responses-Conflict'
+        '429':
+          $ref: '#/components/responses/responses-TooManyRequests'
+      tags:
+        - Account Holder
   /status:
     get:
       description: Status of api
@@ -6803,6 +6998,30 @@ webhooks:
                   status: ACCEPTED
                   status_reasons: []
                   token: 00000000-0000-0000-0000-000000000001
+                  required_documents: []
+                - account_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-26 16:41:40.530987'
+                  event_type: account_holder.created
+                  status: PENDING_REVIEW
+                  status_reasons:
+                    - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+                  token: 00000000-0000-0000-0000-000000000001
+                  required_documents:
+                    - entity_token: 83cf25ae-c14f-4d10-9fa2-0119f36c7286
+                      status_reasons:
+                        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+                      valid_documents:
+                        - EIN_LETTER
+                        - TAX_RETURN
+                        - CERTIFICATE_OF_GOOD_STANDING
+                        - ARTICLES_OF_INCORPORATION
+                        - ARTICLES_OF_ORGANIZATION
+                        - CERTIFICATE_OF_FORMATION
+                        - BYLAWS
+                        - GOVERNMENT_BUSINESS_LICENSE
+                        - PARTNERSHIP_AGREEMENT
+                        - BANK_STATEMENT
+                        - UTILITY_BILL_STATEMENT
               properties:
                 account_token:
                   description: The token of the account that was created.
@@ -6836,6 +7055,10 @@ webhooks:
                   example: 00000000-0000-0000-0000-000000000001
                   format: uuid
                   type: string
+                required_documents:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/required-document'
               type: object
       responses:
         '200':
@@ -6966,6 +7189,126 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: account_holder.verification
+      tags:
+        - Event Types
+  account_holder_document.updated:
+    post:
+      description: Occurs when an account holder's document upload status has been updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - account_holder_token: 2b52494a-ae73-4ab1-97e8-2dd1d51d18b0
+                  created: '2023-09-26 16:41:40.530987'
+                  event_type: account_holder_document.updated
+                  document_type: EIN_LETTER
+                  entity_token: c5f2d594-d957-4781-8877-fbea31f5944a
+                  required_document_uploads:
+                    - created: '2024-08-05 20:48:51.746833'
+                      image_type: FRONT
+                      status: UPLOADED
+                      status_reasons: []
+                      token: 9e1d69a1-377b-463a-b991-01b3c81519b6
+                      updated: '2024-08-05 21:08:23.635573'
+                    - created: 2024-08-04 001:32:44.113765
+                      image_type: FRONT
+                      status: REJECTED
+                      status_reasons:
+                        - DOCUMENT_MISSING_REQUIRED_DATA
+                      token: 9e1d69a1-377b-463a-b991-01b3c81519b6
+                      updated: '2024-08-04 02:18:47.113773'
+                  token: 9175a05c-a9da-4082-8e14-9296427ebba7
+              properties:
+                account_holder_token:
+                  description: The token of the account_holder that the document belongs to
+                  example: 2b52494a-ae73-4ab1-97e8-2dd1d51d18b0
+                  format: uuid
+                  type: string
+                created:
+                  description: When the account_holder was created
+                  format: date-time
+                  type: string
+                event_type:
+                  description: The name of the event
+                  enum:
+                    - account_holder_document.updated
+                  example: account_holder_document.updated
+                  type: string
+                document_type:
+                  description: The type of document that was uploaded
+                  enum:
+                    - EIN_LETTER
+                    - TAX_RETURN
+                    - OPERATING_AGREEMENT
+                    - CERTIFICATE_OF_FORMATION
+                    - DRIVERS_LICENSE
+                    - PASSPORT
+                    - PASSPORT_CARD
+                    - CERTIFICATE_OF_GOOD_STANDING
+                    - ARTICLES_OF_INCORPORATION
+                    - ARTICLES_OF_ORGANIZATION
+                    - BYLAWS
+                    - GOVERNMENT_BUSINESS_LICENSE
+                    - PARTNERSHIP_AGREEMENT
+                    - SS4_FORM
+                    - BANK_STATEMENT
+                    - UTILITY_BILL_STATEMENT
+                    - SSN_CARD
+                    - ITIN_LETTER
+                  example: EIN_LETTER
+                  type: string
+                entity_token:
+                  description: The token of the entity that the document belongs to
+                  example: c5f2d594-d957-4781-8877-fbea31f5944a
+                  format: uuid
+                  type: string
+                required_doucment_uploads:
+                  items:
+                    description: A document upload that belongs to the overall account holder document
+                    properties:
+                      created:
+                        description: When the document upload was created
+                        format: date-time
+                        type: string
+                      image_type:
+                        description: The type of image that was uploaded
+                        enum:
+                          - FRONT
+                          - BACK
+                        type: string
+                      status:
+                        description: The status of the document upload
+                        enum:
+                          - PENDING_UPLOAD
+                          - UPLOADED
+                          - ACCEPTED
+                          - REJECTED
+                        type: string
+                      status_reasons:
+                        items:
+                          description: If status is REJECTED, status_reasons provides the reasons the document was rejected.
+                          type: string
+                        type: array
+                      token:
+                        description: The token of the document upload
+                        format: uuid
+                        type: string
+                      updated:
+                        description: When the document upload was last updated
+                        format: date-time
+                        type: string
+                  type: array
+                token:
+                  description: The token of the account holder document
+                  example: 9175a05c-a9da-4082-8e14-9296427ebba7
+                  format: uuid
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: account_holder_document.updated
       tags:
         - Event Types
   asa.request:
@@ -9110,6 +9453,52 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
+    responses-BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+      description: A parameter in the query given in the request does not match the valid queries for the endpoint.
+    responses-Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+      description: |
+        |   |   |
+        |---|---|
+        | User has not been authenticated | Invalid or missing API key |
+        | API key is not active | The API key used is no longer active |
+        | Could not find API key | The API key provided is not associated with any user |
+        | Please provide API key in Authorization header | The Authorization header is not in the request |
+        | Please provide API key in the form Authorization: [api-key] | The Authorization header is not formatted properly |
+        | Insufficient privileges. Issuing API key required | Write access requires an Issuing API key. Reach out at [lithic.com/contact](https://lithic.com/contact) |
+        | Insufficient privileges to create virtual cards. | Creating virtual cards requires an additional privilege | Reach out at [lithic.com/contact](https://lithic.com/contact) |
+    responses-NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+      description: The specified resource was not found.
+    responses-Conflict:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+      description: The request could not be completed due to a conflict with the current state of the target resource.
+    responses-TooManyRequests:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+      description: |
+        Client has exceeded the number of allowed requests in a given time period.
+
+        |   |   |
+        |---|---|
+        | Rate limited, too many requests per second | User has exceeded their per second rate limit |
+        | Rate limited, reached daily limit | User has exceeded their daily rate limit |
+        | Rate limited, too many keys tried | One IP has queried too many different API keys |
   schemas:
     AccountConfiguration:
       properties:
@@ -9355,6 +9744,11 @@ components:
         verification_application:
           $ref: '#/components/schemas/AccountHolderVerificationApplication'
           description: Information about the most recent identity verification attempt
+        required_documents:
+          description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
+          type: array
+          items:
+            $ref: '#/components/schemas/required-document'
         website_url:
           description: Only present when user_type == "BUSINESS". Business's primary website.
           format: string
@@ -9366,14 +9760,11 @@ components:
       description: Describes the document and the required document image uploads required to re-run KYC.
       example:
         account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
-        document_type: drivers_license
+        document_type: EIN_LETTER
+        entity_token: b50a84c9-8e86-4016-b1c7-0b9f71d4bb84
         required_document_uploads:
           - image_type: front
-            status: PENDING
-            status_reasons: []
-            upload_url: https://lithic-document-verification-uploads.com
-          - image_type: back
-            status: UPLOADED
+            status: PENDING_UPLOAD
             status_reasons: []
             upload_url: https://lithic-document-verification-uploads.com
         token: 12345678-3630-4cd0-bbec-1a0fa5c7e149
@@ -9385,12 +9776,29 @@ components:
         document_type:
           description: Type of documentation to be submitted for verification.
           enum:
-            - commercial_license
-            - drivers_license
-            - passport
-            - passport_card
-            - visa
+            - EIN_LETTER
+            - TAX_RETURN
+            - OPERATING_AGREEMENT
+            - CERTIFICATE_OF_FORMATION
+            - DRIVERS_LICENSE
+            - PASSPORT
+            - PASSPORT_CARD
+            - CERTIFICATE_OF_GOOD_STANDING
+            - ARTICLES_OF_INCORPORATION
+            - ARTICLES_OF_ORGANIZATION
+            - BYLAWS
+            - GOVERNMENT_BUSINESS_LICENSE
+            - PARTNERSHIP_AGREEMENT
+            - SS4_FORM
+            - BANK_STATEMENT
+            - UTILITY_BILL_STATEMENT
+            - SSN_CARD
+            - ITIN_LETTER
           type: string
+        entity_token:
+          description: Globally unique identifier for the entity.
+          type: string
+          format: uuid
         required_document_uploads:
           items:
             description: Represents a single image of the document to upload.
@@ -9406,7 +9814,7 @@ components:
                 enum:
                   - COMPLETED
                   - FAILED
-                  - PENDING
+                  - PENDING_UPLOAD
                   - UPLOADED
                 type: string
               status_reasons:
@@ -9427,6 +9835,10 @@ components:
 
                   Note that the upload URLs expire after 7 days. If an upload URL expires, you can
                   refresh the URLs by retrieving the document upload from `GET /account_holders/{account_holder_token}/documents`.
+                type: string
+              token:
+                description: Globally unique identifier for the document upload.
+                format: uuid
                 type: string
             type: object
           type: array
@@ -9461,6 +9873,10 @@ components:
           description: Individual's phone number, entered in E.164 format.
           example: '+12124007676'
           type: string
+        entity_token:
+          description: Globally unique identifier for the entity.
+          type: string
+          format: uuid
       type: object
     AccountHolderVerificationApplication:
       description: Represents the status of an identity verification application for an account holder
@@ -9868,6 +10284,10 @@ components:
             type: string
           minItems: 1
           type: array
+        entity_token:
+          description: Globally unique identifier for the entity.
+          type: string
+          format: uuid
       required:
         - address
         - government_id
@@ -13370,6 +13790,32 @@ components:
           example: 1900
           type: integer
       type: object
+    required-document:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/required-document.json
+      title: Account Holder Required Document
+      type: object
+      properties:
+        entity_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for an entity.
+        valid_documents:
+          type: array
+          description: A list of valid documents that will satisfy the KYC requirements for the specified entity.
+          items:
+            type: string
+            description: The name of a required document.
+        status_reasons:
+          type: array
+          description: rovides the status reasons that will be satisfied by providing one of the valid documents.
+          items:
+            type: string
+            description: An account holder's status reason
+      required:
+        - entity_token
+        - valid_documents
+        - status_reasons
     financial_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -14365,6 +14811,437 @@ components:
           $ref: '#/components/schemas/supported_simulation_decline_reasons'
       required:
         - event_type
+    simulate-enrollment-review-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-review.json
+      title: Simulate account holder enrollment review request body
+      type: object
+      properties:
+        account_holder_token:
+          description: The account holder which to perform the simulation upon.
+          type: string
+        status:
+          description: An account holder's status for use within the simulation.
+          type: string
+          enum:
+            - ACCEPTED
+            - REJECTED
+        status_reasons:
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
+          type: array
+          items:
+            type: string
+            enum:
+              - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
+              - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
+              - CONTROL_PERSON_ID_VERIFICATION_FAILURE
+              - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
+              - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_DOB_VERIFICATION_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_BLOCKLIST_ALERT_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_ID_VERIFICATION_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_NAME_VERIFICATION_FAILURE
+    status:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status.json
+      title: KYC/KYB Status
+      description: Enrollment status for KYC/KYB
+      type: string
+      enum:
+        - ACCEPTED
+        - PENDING_DOCUMENT
+        - PENDING_RESUBMIT
+        - REJECTED
+    status-reasons:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
+      title: KYC/KYB Status Reasons
+      description: Status Reasons for KYC/KYB enrollment states
+      type: string
+      enum:
+        - ADDRESS_VERIFICATION_FAILURE
+        - AGE_THRESHOLD_FAILURE
+        - COMPLETE_VERIFICATION_FAILURE
+        - DOB_VERIFICATION_FAILURE
+        - ID_VERIFICATION_FAILURE
+        - MAX_DOCUMENT_ATTEMPTS
+        - MAX_RESUBMISSION_ATTEMPTS
+        - NAME_VERIFICATION_FAILURE
+        - OTHER_VERIFICATION_FAILURE
+        - RISK_THRESHOLD_FAILURE
+        - WATCHLIST_ALERT_FAILURE
+    verification-application:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/verification-application.json
+      title: Verification Application
+      type: object
+      description: Represents the status of an identity verification application for an account holder
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: Timestamp of when the application was created.
+        status:
+          description: |-
+            KYC and KYB evaluation states.
+
+            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+          $ref: '#/components/schemas/status'
+        status_reasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/status-reasons'
+          description: Reason for the evaluation status.
+        updated:
+          type: string
+          format: date-time
+          description: Timestamp of when the application was last updated.
+    address-2:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/api-shared/2024-01-15/address.json
+      title: Address
+      type: object
+      properties:
+        address1:
+          description: Valid deliverable address (no PO boxes).
+          example: 123 Old Forest Way
+          type: string
+        address2:
+          description: Unit or apartment number (if applicable).
+          type: string
+        city:
+          description: Name of city.
+          example: Omaha
+          type: string
+        country:
+          description: Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
+          example: USA
+          type: string
+        postal_code:
+          description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+          example: '68022'
+          type: string
+        state:
+          description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+          example: NE
+          type: string
+      required:
+        - address1
+        - city
+        - country
+        - postal_code
+        - state
+    individual:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/individual.json
+      title: Individual
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/address-2'
+          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
+        dob:
+          type: string
+          example: '1991-03-08 08:00:00'
+          description: Individual's date of birth, as an RFC 3339 date.
+        email:
+          type: string
+          example: tom@middle-earth.com
+          description: Individual's email address. If utilizing Lithic for chargeback processing, this customer email address may be used to communicate dispute status and resolution.
+        first_name:
+          type: string
+          example: Tom
+          description: Individual's first name, as it appears on government-issued identity documents.
+        last_name:
+          type: string
+          example: Bombadil
+          description: Individual's last name, as it appears on government-issued identity documents.
+        phone_number:
+          type: string
+          example: '+12124007676'
+          description: Individual's phone number, entered in E.164 format.
+        government_id:
+          type: string
+          example: 111-23-1412
+          description: Government-issued identification number (required for identity verification and compliance with banking regulations). Social Security Numbers (SSN) and Individual Taxpayer Identification Numbers (ITIN) are currently supported, entered as full nine-digits, with or without hyphens
+          writeOnly: true
+    kyb-business-entity:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyb-workflows/kyb-business-entity.json
+      title: KYB Business Entity
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/address-2'
+          description: Business''s physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
+        dba_business_name:
+          description: Any name that the business operates under that is not its legal business name (if applicable).
+          type: string
+        government_id:
+          description: Government-issued identification number. US Federal Employer Identification Numbers (EIN) are currently supported, entered as full nine-digits, with or without hyphens.
+          example: 114-123-1513
+          type: string
+        legal_business_name:
+          description: Legal (formal) business name.
+          example: Acme, Inc.
+          type: string
+        parent_company:
+          description: Parent company name (if applicable).
+          type: string
+        phone_numbers:
+          description: One or more of the business's phone number(s), entered as a list in E.164 format.
+          items:
+            description: Business phone number, entered in E.164 format.
+            example: '+12124007676'
+            type: string
+          minItems: 1
+          type: array
+      required:
+        - address
+        - government_id
+        - legal_business_name
+        - phone_numbers
+    account-holder-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/account-holder-response.json
+      title: Account Holder
+      type: object
+      properties:
+        token:
+          description: Globally unique identifier for the account holder.
+          type: string
+          format: uuid
+        account_token:
+          description: Globally unique identifier for the account.
+          type: string
+          format: uuid
+        business_account_token:
+          description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
+          type: string
+          format: uuid
+        created:
+          description: Timestamp of when the account holder was created.
+          type: string
+          format: date-time
+        exemption_type:
+          description: The type of KYC exemption for a KYC-Exempt Account Holder. "None" if the account holder is not KYC-Exempt.
+          type: string
+          enum:
+            - AUTHORIZED_USER
+            - PREPAID_CARD_USER
+        external_id:
+          description: Customer-provided token that indicates a relationship with an object outside of the Lithic ecosystem.
+          type: string
+          format: string
+        user_type:
+          description: |-
+            The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
+
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "beneficial_owner_entities",
+
+            "nature_of_business", and "website_url" attributes will be present.
+          type: string
+          enum:
+            - BUSINESS
+            - INDIVIDUAL
+        verification_application:
+          $ref: '#/components/schemas/verification-application'
+          description: Information about the most recent identity verification attempt
+        individual:
+          $ref: '#/components/schemas/individual'
+          description: Only present when user_type == "INDIVIDUAL". Information about the individual for which the account is being opened and KYC is being run.
+        business_entity:
+          $ref: '#/components/schemas/kyb-business-entity'
+          description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
+        beneficial_owner_entities:
+          description: Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
+          type: array
+          items:
+            $ref: '#/components/schemas/kyb-business-entity'
+          minItems: 0
+        beneficial_owner_individuals:
+          description: Only present when user_type == "BUSINESS". List of all individuals with >25% ownership in the company.
+          type: array
+          items:
+            $ref: '#/components/schemas/individual'
+          minItems: 0
+        control_person:
+          $ref: '#/components/schemas/individual'
+          description: |-
+            Only present when user_type == "BUSINESS".
+
+            An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer,
+
+            Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access
+
+            to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
+        nature_of_business:
+          description: Only present when user_type == "BUSINESS". User-submitted description of the business.
+          type: string
+          format: string
+        website_url:
+          description: Only present when user_type == "BUSINESS". Business's primary website.
+          type: string
+          format: string
+        email:
+          description: |
+            <
+              Deprecated.
+              Use control_person.email when user_type == "BUSINESS".
+              Use individual.phone_number when user_type == "INDIVIDUAL".
+            >
+            Primary email of Account Holder.
+          type: string
+        phone_number:
+          description: |
+            <
+              Deprecated.
+              Use control_person.phone_number when user_type == "BUSINESS".
+              Use individual.phone_number when user_type == "INDIVIDUAL".
+            >
+            Primary phone of Account Holder, entered in E.164 format.
+          type: string
+        status:
+          description: |+
+            <Deprecated. Use verification_application.status instead>
+
+            KYC and KYB evaluation states.
+
+            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+
+          $ref: '#/components/schemas/status'
+        status_reasons:
+          description: <Deprecated. Use verification_application.status_reasons> Reason for the evaluation status.
+          type: array
+          items:
+            $ref: '#/components/schemas/status-reasons'
+        required_documents:
+          description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
+          type: array
+          items:
+            $ref: '#/components/schemas/required-document'
+    error:
+      $id: https://lithic.com/schemas/customer-facing/api-shared/error.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Error
+      type: object
+      properties:
+        debugging_request_id:
+          type: string
+          format: uuid
+          description: Identifier to help debug an error.
+        message:
+          type: string
+          description: Explanation of error response.
+      required:
+        - debugging_request_id
+        - message
+    simulate-enrollment-document-review-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-document-review.json
+      title: Simulate account holder enrollment document review request body
+      type: object
+      properties:
+        document_upload_token:
+          description: The account holder document upload which to perform the simulation upon.
+          type: string
+        status:
+          description: An account holder document's upload status for use within the simulation.
+          type: string
+          enum:
+            - UPLOADED
+            - ACCEPTED
+            - REJECTED
+        status_reasons:
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
+          type: array
+          items:
+            type: string
+            enum:
+              - DOCUMENT_MISSING_REQUIRED_DATA
+              - DOCUMENT_UPLOAD_TOO_BLURRY
+              - INVALID_DOCUMENT_TYPE
+    document:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document.json
+      title: Account Holder KYC Document
+      type: object
+      description: A document to be submitted for account holder verification.
+      examples:
+        - account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
+          documents:
+            - account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
+              document_type: drivers_license
+              required_document_uploads:
+                - image_type: front
+                  status: PENDING
+                  status_reasons: []
+                  upload_url: https://lithic-document-verification-uploads.com
+                - image_type: back
+                  status: UPLOADED
+                  status_reasons: []
+                  upload_url: https://lithic-document-verification-uploads.com
+              token: 12345678-3630-4cd0-bbec-1a0fa5c7e149
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the document.
+        account_holder_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the account holder.
+        document_type:
+          type: string
+          enum:
+            - commercial_license
+            - drivers_license
+            - passport
+            - passport_card
+            - visa
+          description: Type of documentation to be submitted for verification.
+        required_document_uploads:
+          type: array
+          description: List of required document images to upload.
+          items:
+            type: object
+            description: Represents a single image of the document to upload.
+            properties:
+              image_type:
+                type: string
+                enum:
+                  - back
+                  - front
+                description: Type of image to upload.
+              status:
+                type: string
+                enum:
+                  - COMPLETED
+                  - FAILED
+                  - PENDING
+                  - UPLOADED
+                description: Status of document image upload.
+              status_reasons:
+                type: array
+                description: Reasons for document image upload status.
+                items:
+                  type: string
+                  enum:
+                    - BACK_IMAGE_BLURRY
+                    - FILE_SIZE_TOO_LARGE
+                    - FRONT_IMAGE_BLURRY
+                    - FRONT_IMAGE_GLARE
+                    - INVALID_FILE_TYPE
+                    - UNKNOWN_ERROR
+              upload_url:
+                type: string
+                description: |-
+                  URL to upload document image to.
+
+                  Note that the upload URLs expire after 7 days. If an upload URL expires, you can
+                  refresh the URLs by retrieving the document upload from `GET /account_holders/{account_holder_token}/documents`.
     asa_request_pos_terminal_pin_capability:
       type: string
       description: Status of whether the POS is able to accept PINs
