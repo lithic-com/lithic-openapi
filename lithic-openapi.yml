@@ -778,7 +778,8 @@ paths:
                   summary: List accounts
                   value:
                     data:
-                      - spend_limit:
+                      - cardholder_currency: USD
+                        spend_limit:
                           daily: 1000
                           lifetime: 10000
                           monthly: 4000
@@ -908,6 +909,7 @@ paths:
               examples:
                 exampleResponse:
                   value:
+                    cardholder_currency: USD
                     spend_limit:
                       daily: 1000
                       lifetime: 100000
@@ -1677,6 +1679,7 @@ paths:
               example:
                 account_token: f3f4918c-dee9-464d-a819-4aa42901d624
                 card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
+                cardholder_currency: USD
                 created: '2021-06-28T22:53:15Z'
                 cvv: '776'
                 exp_month: '06'
@@ -1896,6 +1899,7 @@ paths:
               example:
                 account_token: f3f4918c-dee9-464d-a819-4aa42901d624
                 card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
+                cardholder_currency: USD
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2220,6 +2224,7 @@ paths:
               example:
                 account_token: f3f4918c-dee9-464d-a819-4aa42901d624
                 card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
+                cardholder_currency: USD
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2240,7 +2245,7 @@ paths:
                 spend_limit_duration: FOREVER
                 state: OPEN
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
-                type: VIRTUAL
+                type: PHYSICAL
               schema:
                 $ref: '#/components/schemas/Card'
           description: OK
@@ -2338,6 +2343,7 @@ paths:
               example:
                 account_token: f3f4918c-dee9-464d-a819-4aa42901d624
                 card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
+                cardholder_currency: USD
                 created: '2021-06-28T22:53:15Z'
                 cvv: '742'
                 exp_month: '05'
@@ -2358,7 +2364,7 @@ paths:
                 spend_limit_duration: FOREVER
                 state: OPEN
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
-                type: VIRTUAL
+                type: PHYSICAL
               schema:
                 $ref: '#/components/schemas/Card'
           description: OK
@@ -9534,6 +9540,10 @@ components:
             type: string
           type: array
           deprecated: true
+        cardholder_currency:
+          description: 3-digit alphabetic ISO 4217 code for the currency of the cardholder.
+          example: USD
+          type: string
         spend_limit:
           description: |
             Spend limit information for the user containing the daily, monthly, and lifetime spend limit of the account. Any charges to a card owned by this account will be declined once their transaction volume has surpassed the value in the applicable time limit (rolling). A lifetime limit of 0 indicates that the lifetime limit feature is disabled.
@@ -10314,6 +10324,10 @@ components:
           example: 5e9483eb-8103-4e16-9794-2106111b2eca
           format: uuid
           type: string
+        cardholder_currency:
+          description: 3-digit alphabetic ISO 4217 code for the currency of the cardholder.
+          example: USD
+          type: string
         created:
           description: An RFC 3339 timestamp for when the card was created. UTC time zone.
           example: '2021-06-28T22:53:15Z'
@@ -10484,6 +10498,10 @@ components:
       type: object
     CardProgram:
       properties:
+        cardholder_currency:
+          description: 3-digit alphabetic ISO 4217 code for the currency of the cardholder.
+          example: USD
+          type: string
         created:
           description: Timestamp of when the card program was created.
           format: date-time
@@ -10500,6 +10518,14 @@ components:
           description: The first digits of the card number that this card program starts with.
           example: '52304803'
           type: string
+        settlement_currencies:
+          description: List of 3-digit alphabetic ISO 4217 codes for the currencies that the card program supports for settlement.
+          example:
+            - USD
+            - CAD
+          items:
+            type: string
+          type: array
         token:
           description: Globally unique identifier.
           format: uuid
