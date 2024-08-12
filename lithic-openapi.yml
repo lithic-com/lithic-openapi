@@ -15576,6 +15576,9 @@ components:
         authorization_amount:
           type: number
           description: The base transaction amount (in cents) plus the acquirer fee field. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
+        cardholder_currency:
+          type: string
+          description: ISO 4217 alpha 3 code for cardholder's billing currency.
         cash_amount:
           type: number
           description: |-
