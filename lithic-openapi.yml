@@ -4538,6 +4538,15 @@ paths:
             description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
             title: Starting After
             type: string
+        - description: Whether to include the initial statement. It is not included by default.
+          in: query
+          name: include_initial_statements
+          required: false
+          schema:
+            description: Whether to include the initial statement. It is not included by default.
+            title: Include Initial Statements
+            type: boolean
+            default: false
       responses:
         '200':
           content:
