@@ -12450,42 +12450,48 @@ components:
           format: date-time
           type: string
         currency:
-          description: Three-digit alphabetic ISO 4217 code.
+          description: Three-digit alphabetic ISO 4217 code. (This field is deprecated and will be removed in a future version of the API.)
           example: USD
           maxLength: 3
           minLength: 3
           type: string
+          deprecated: true
         details:
           items:
             $ref: '#/components/schemas/settlementSummaryDetails'
           type: array
         disputes_gross_amount:
-          description: The total gross amount of disputes settlements.
+          description: The total gross amount of disputes settlements. (This field is deprecated and will be removed in a future version of the API. To compute total amounts, Lithic recommends that customers sum the relevant settlement amounts found within `details`.)
           example: 0
           type: integer
+          deprecated: true
         interchange_gross_amount:
-          description: The total amount of interchange.
+          description: The total amount of interchange. (This field is deprecated and will be removed in a future version of the API. To compute total amounts, Lithic recommends that customers sum the relevant settlement amounts found within `details`.)
           example: -7
           type: integer
+          deprecated: true
         is_complete:
           description: Indicates that all data expected on the given report date is available.
           type: boolean
         other_fees_gross_amount:
-          description: Total amount of gross other fees outside of interchange.
+          description: Total amount of gross other fees outside of interchange. (This field is deprecated and will be removed in a future version of the API. To compute total amounts, Lithic recommends that customers sum the relevant settlement amounts found within `details`.)
           example: 0
           type: integer
+          deprecated: true
         report_date:
           description: Date of when the report was first generated.
           example: '2023-06-01'
           type: string
         settled_net_amount:
-          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees).
+          description: The total net amount of cash moved. (net value of settled_gross_amount, interchange, fees). (This field is deprecated and will be removed in a future version of the API. To compute total amounts, Lithic recommends that customers sum the relevant settlement amounts found within `details`.)
           example: 1893
           type: integer
+          deprecated: true
         transactions_gross_amount:
-          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
+          description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes). (This field is deprecated and will be removed in a future version of the API. To compute total amounts, Lithic recommends that customers sum the relevant settlement amounts found within `details`.)
           example: 1900
           type: integer
+          deprecated: true
         updated:
           description: Date and time when the transaction first occurred. UTC time zone.
           example: '2023-06-01T00:00:00'
@@ -12497,6 +12503,7 @@ components:
         - details
         - disputes_gross_amount
         - interchange_gross_amount
+        - is_complete
         - other_fees_gross_amount
         - report_date
         - settled_net_amount
@@ -13794,6 +13801,12 @@ components:
       type: object
     settlementSummaryDetails:
       properties:
+        currency:
+          description: ISO 4217 alpha 3 code.
+          example: USD
+          maxLength: 3
+          minLength: 3
+          type: string
         disputes_gross_amount:
           description: The total gross amount of disputes settlements.
           example: 0
