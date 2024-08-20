@@ -14575,16 +14575,8 @@ components:
           description: Date when the billing period ended
           type: string
           format: date
-        next_statement_end_date:
-          description: Date when the next billing period will end
-          type: string
-          format: date
         payment_due_date:
           description: Date when the payment is due
-          type: string
-          format: date
-        next_payment_due_date:
-          description: Date when the next payment is due
           type: string
           format: date
         days_in_billing_cycle:
