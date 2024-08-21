@@ -3184,6 +3184,7 @@ paths:
                       - account_holder.updated
                       - account_holder.verification
                       - balance.updated
+                      - book_transfer_transaction.created
                       - card.created
                       - card.renewed
                       - card.reissued
@@ -3336,6 +3337,7 @@ paths:
                       - account_holder.updated
                       - account_holder.verification
                       - balance.updated
+                      - book_transfer_transaction.created
                       - card.created
                       - card.renewed
                       - card.reissued
@@ -3589,6 +3591,7 @@ paths:
                 - account_holder.updated
                 - account_holder.verification
                 - balance.updated
+                - book_transfer_transaction.created
                 - card.created
                 - card.renewed
                 - card.reissued
@@ -5347,6 +5350,7 @@ paths:
                     - account_holder.updated
                     - account_holder.verification
                     - balance.updated
+                    - book_transfer_transaction.created
                     - card.created
                     - card.renewed
                     - card.reissued
@@ -7387,6 +7391,52 @@ webhooks:
                 - event_type
               type: object
       summary: balance.updated
+      tags:
+        - Event Types
+  book_transfer_transaction.created:
+    post:
+      description: Occurs when a book transfer transaction is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/BookTransferResponse'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - book_transfer_transaction.created
+                      example: book_transfer_transaction.created
+                      type: string
+                  type: object
+              examples:
+                - category: BALANCE_OR_FUNDING
+                  created: '2023-09-14T12:52:44Z'
+                  currency: USD
+                  event_type: book_transfer_transaction.created
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACCOUNT_TO_ACCOUNT
+                      subtype: CUSTOM
+                      detailed_results:
+                        - APPROVED
+                      memo: Fund account
+                  from_financial_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                  to_financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                  pending_amount: 0
+                  result: APPROVED
+                  settled_amount: 4103
+                  status: SETTLED
+                  token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  updated: '2023-09-14T12:52:44Z'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: book_transfer_transaction.created
       tags:
         - Event Types
   card.created:
@@ -11215,6 +11265,7 @@ components:
             - account_holder.updated
             - account_holder.verification
             - balance.updated
+            - book_transfer_transaction.created
             - card.created
             - card.renewed
             - card.reissued
@@ -11270,6 +11321,7 @@ components:
               - account_holder.updated
               - account_holder.verification
               - balance.updated
+              - book_transfer_transaction.created
               - card.created
               - card.renewed
               - card.reissued
@@ -11625,7 +11677,7 @@ components:
           description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
           type: integer
         type:
-          description: Subtype of the book transfer
+          description: Type of the book transfer
           type: string
         result:
           description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
@@ -11663,6 +11715,7 @@ components:
         - token
         - subtype
         - memo
+        - detailed_results
     PaymentEventType:
       description: |-
         Event types:
