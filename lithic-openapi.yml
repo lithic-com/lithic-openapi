@@ -7439,6 +7439,61 @@ webhooks:
       summary: book_transfer_transaction.created
       tags:
         - Event Types
+  book_transfer_transaction.updated:
+    post:
+      description: Occurs when a book transfer transaction is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/BookTransferResponse'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - book_transfer_transaction.updated
+                      example: book_transfer_transaction.updated
+                      type: string
+                  type: object
+              examples:
+                - category: BALANCE_OR_FUNDING
+                  created: '2023-09-14T12:52:44Z'
+                  currency: USD
+                  event_type: book_transfer_transaction.updated
+                  events:
+                    - amount: 4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACCOUNT_TO_ACCOUNT
+                      subtype: CUSTOM
+                      detailed_results:
+                        - APPROVED
+                      memo: Fund account
+                    - amount: -4103
+                      created: '2023-09-14T12:52:44Z'
+                      result: APPROVED
+                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
+                      type: ACCOUNT_TO_ACCOUNT_REVERSAL
+                      subtype: CUSTOM
+                      detailed_results:
+                        - APPROVED
+                      memo: Fund account
+                  from_financial_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
+                  to_financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+                  pending_amount: 0
+                  result: APPROVED
+                  settled_amount: 0
+                  status: REVERSED
+                  token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  updated: '2023-09-14T12:52:44Z'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: book_transfer_transaction.created
+      tags:
+        - Event Types
   card.created:
     post:
       description: Occurs when a new card is created.
