@@ -9358,7 +9358,7 @@ webhooks:
         '200':
           description: Challenge has been issued to Customer
       tags:
-        - 3DS
+        - Event Types
 components:
   parameters:
     accountHolderTokenPath:
