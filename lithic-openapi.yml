@@ -7491,7 +7491,7 @@ webhooks:
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
-      summary: book_transfer_transaction.created
+      summary: book_transfer_transaction.updated
       tags:
         - Event Types
   card.created:
