@@ -6100,6 +6100,28 @@ paths:
       summary: Rotate the 3DS Decisioning HMAC secret key
       tags:
         - 3DS
+  /three_ds_decisioning/challenge_response:
+    post:
+      description: Card program's response to a 3DS Challenge Request (CReq)
+      summary: Respond to a Challenge Request
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeResponse'
+      responses:
+        '200':
+          description: Challenge Response was received and forwarded to the ACS
+        '400':
+          description: Invalid request body
+        '404':
+          description: The provided token was not found
+        '500':
+          description: Lithic Error
+      tags:
+        - 3DS
   /tokenization_decisioning/secret:
     get:
       description: |
@@ -9286,6 +9308,57 @@ webhooks:
       summary: transfer_transaction.created
       tags:
         - Event Types
+  three_ds_decisioning:
+    post:
+      description: Webhook for Card Programs to decision on 3DS Authentcation Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
+      summary: 3DS Decisioning Request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreeDSAuthentication'
+      responses:
+        '200':
+          description: Information on whether the Request was Approved/Declined and if a Challenge should be created
+          content:
+            application/json:
+              schema:
+                properties:
+                  three_ds_authentication_decision:
+                    enum:
+                      - APPROVE
+                      - DECLINE
+                      - CHALLENGE_REQUESTED
+                    type: string
+                    description: |
+                      * `APPROVE` - Approve the 3DS Transaction and proceed to Authorization
+                      * `DECLINE` - Decline the 3DS Transaction ending the transaction
+                      * `CHALLENGE_REQUESTED` - Conditional Approval for the 3DS Transaction where a follow-up Challenge will be triggered to further authenticate the Cardholder
+                required:
+                  - three_ds_authentication_decision
+      tags:
+        - 3DS
+  three_ds_authentication.challenge:
+    post:
+      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder
+      summary: three_ds_authentication.challenge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authentication_object:
+                  $ref: '#/components/schemas/ThreeDSAuthentication'
+                challenge:
+                  $ref: '#/components/schemas/CustomerChallenge'
+              required:
+                - authentication_object
+                - challenge
+      responses:
+        '200':
+          description: Challenge has been issued to Customer
+      tags:
+        - 3DS
 components:
   parameters:
     accountHolderTokenPath:
@@ -12726,6 +12799,40 @@ components:
         - TAX_INCLUDED
         - TAX_NOT_INCLUDED
         - NOT_SUPPORTED
+    ChallengeResponse:
+      properties:
+        token:
+          description: Globally unique identifier for the 3DS authentication. This token is sent as part of the initial 3DS Decisioning Request and as part of the 3DS Challenge Event in the [ThreeDSAuthentication](#/components/schemas/ThreeDSAuthentication) object
+          format: uuid
+          type: string
+        challenge_response:
+          description: Whether the Cardholder has Approved or Declined the issued Challenge
+          enum:
+            - APPROVE
+            - DECLINE_BY_CUSTOMER
+          type: string
+      required:
+        - token
+        - challenge_response
+    CustomerChallenge:
+      properties:
+        challenge_method_type:
+          description: Type of Challenge that should be issued to the CardHolder
+          enum:
+            - OUT_OF_BAND
+          type: string
+        start_time:
+          description: ISO-8601 time at which the challenge has started
+          type: string
+          format: date-time
+        expiry_time:
+          description: ISO-8601 time at which the challenge expires
+          type: string
+          format: date-time
+      required:
+        - challenge_method_type
+        - start_time
+        - expiry_time
     ThreeDSAddress:
       properties:
         address1:
