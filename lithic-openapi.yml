@@ -9310,7 +9310,7 @@ webhooks:
         - Event Types
   three_ds_decisioning:
     post:
-      description: Webhook for Card Programs to decision on 3DS Authentcation Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
+      description: Webhook for Card Programs to decision on 3DS Authentication Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
       summary: 3DS Decisioning Request
       requestBody:
         content:
@@ -12872,7 +12872,7 @@ components:
       properties:
         account_type:
           description: |
-            Type of account/card that is being used for the transaction. Maps to EMV 3DS field acctType.
+            Type of account/card that is being used for the transaction. Maps to EMV 3DS field `acctType`.
           enum:
             - CREDIT
             - DEBIT
