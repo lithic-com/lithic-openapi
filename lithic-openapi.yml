@@ -1860,7 +1860,12 @@ paths:
                   example: New Card
                   type: string
                 pin:
-                  description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block-enterprise).
+                  description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. Changing PIN also resets PIN status to `OK`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block).
+                  type: string
+                pin_status:
+                  description: Indicates if a card is blocked due a PIN status issue (e.g. excessive incorrect attempts). Can only be set to `OK` to unblock a card.
+                  enum:
+                    - OK
                   type: string
                 spend_limit:
                   description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
@@ -10570,6 +10575,18 @@ components:
           minLength: 16
           type: string
           x-lithic-tag: Enterprise
+        pending_commands:
+          description: 'Indicates if there are offline PIN changes pending card interaction with an offline PIN terminal. Possible commands are: CHANGE_PIN, UNBLOCK_PIN. Applicable only to cards issued in markets supporting offline PINs.'
+          items:
+            type: string
+          type: array
+        pin_status:
+          description: Indicates if a card is blocked due a PIN status issue (e.g. excessive incorrect attempts).
+          enum:
+            - OK
+            - BLOCKED
+            - NOT_SET
+          type: string
         product_id:
           description: Only applicable to cards of type `PHYSICAL`. This must be configured with Lithic before use. Specifies the configuration (i.e., physical card art) that the card should be manufactured with.
           example: '1'
@@ -10632,6 +10649,7 @@ components:
         - created
         - funding
         - last_four
+        - pin_status
         - spend_limit
         - spend_limit_duration
         - state
