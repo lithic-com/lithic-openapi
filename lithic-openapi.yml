@@ -570,7 +570,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/AccountHolderDocument'
+                      $ref: '#/components/schemas/document'
                     type: array
                 type: object
           description: OK
@@ -635,13 +635,16 @@ paths:
                   description: Globally unique identifier for the entity.
                   type: string
                   format: uuid
+              required:
+                - document_type
+                - entity_token
         required: true
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountHolderDocument'
+                $ref: '#/components/schemas/document'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -675,7 +678,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountHolderDocument'
+                $ref: '#/components/schemas/document'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -9958,6 +9961,7 @@ components:
           type: string
       required:
         - token
+        - created
       type: object
     AccountHolderDocument:
       description: Describes the document and the required document image uploads required to re-run KYC.
@@ -10081,6 +10085,14 @@ components:
           type: string
           format: uuid
       type: object
+      required:
+        - address
+        - dob
+        - email
+        - first_name
+        - last_name
+        - phone_number
+        - entity_token
     AccountHolderVerificationApplication:
       description: Represents the status of an identity verification application for an account holder
       properties:
@@ -10496,6 +10508,7 @@ components:
         - government_id
         - legal_business_name
         - phone_numbers
+        - entity_token
       type: object
     Card:
       properties:
@@ -14101,6 +14114,108 @@ components:
         - entity_token
         - valid_documents
         - status_reasons
+    document:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document.json
+      title: Account Holder KYC Document
+      type: object
+      description: |-
+        Describes the document and the required document image uploads
+        required to re-run KYC
+      examples:
+        - account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
+          token: f41c975e-cad8-4e4f-a5cb-cef92ed91083
+          document_type: EIN_LETTER
+          entity_token: b50a84c9-8e86-4016-b1c7-0b9f71d4bb84
+          required_document_uploads:
+            - image_type: FRONT
+              status: PENDING_UPLOAD
+              status_reasons: []
+              upload_url: https://lithic-document-verification-uploads.com
+              token: e254beee-67db-4d8c-b610-306ee07de886
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the document.
+        account_holder_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the account holder.
+        document_type:
+          type: string
+          enum:
+            - DRIVERS_LICENSE
+            - PASSPORT
+            - PASSPORT_CARD
+            - EIN_LETTER
+            - TAX_RETURN
+            - OPERATING_AGREEMENT
+            - CERTIFICATE_OF_FORMATION
+            - CERTIFICATE_OF_GOOD_STANDING
+            - ARTICLES_OF_INCORPORATION
+            - ARTICLES_OF_ORGANIZATION
+            - BYLAWS
+            - GOVERNMENT_BUSINESS_LICENSE
+            - PARTNERSHIP_AGREEMENT
+            - SS4_FORM
+            - BANK_STATEMENT
+            - UTILITY_BILL_STATEMENT
+            - SSN_CARD
+            - ITIN_LETTER
+          description: Type of documentation to be submitted for verification.
+        required_document_uploads:
+          type: array
+          description: Represents a single image of the document to upload.
+          items:
+            type: object
+            description: Represents a single image of the document to upload.
+            properties:
+              image_type:
+                type: string
+                enum:
+                  - FRONT
+                  - BACK
+                description: Type of image to upload.
+              status:
+                type: string
+                enum:
+                  - ACCEPTED
+                  - REJECTED
+                  - PENDING_UPLOAD
+                  - UPLOADED
+                description: Status of document image upload.
+              status_reasons:
+                type: array
+                description: Reasons for document image upload status.
+                items:
+                  type: string
+                  enum:
+                    - DOCUMENT_MISSING_REQUIRED_DATA
+                    - DOCUMENT_UPLOAD_TOO_BLURRY
+                    - FILE_SIZE_TOO_LARGE
+                    - INVALID_DOCUMENT_TYPE
+                    - INVALID_DOCUMENT_UPLOAD
+                    - UNKNOWN_ERROR
+              upload_url:
+                type: string
+                description: |-
+                  URL to upload document image to.
+
+                  Note that the upload URLs expire after 7 days. If an upload URL expires, you can
+                  refresh the URLs by retrieving the document upload from `GET /account_holders/{account_holder_token}/documents`.
+            required:
+              - image_type
+              - status
+              - status_reasons
+              - upload_url
+              - token
+      required:
+        - account_holder_token
+        - document_type
+        - entity_token
+        - required_document_uploads
+        - token
     financial_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15456,85 +15571,6 @@ components:
               - DOCUMENT_MISSING_REQUIRED_DATA
               - DOCUMENT_UPLOAD_TOO_BLURRY
               - INVALID_DOCUMENT_TYPE
-    document:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document.json
-      title: Account Holder KYC Document
-      type: object
-      description: A document to be submitted for account holder verification.
-      examples:
-        - account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
-          documents:
-            - account_holder_token: aab6ad9a-3630-4cd0-bbec-1a0fa5c7e149
-              document_type: drivers_license
-              required_document_uploads:
-                - image_type: front
-                  status: PENDING
-                  status_reasons: []
-                  upload_url: https://lithic-document-verification-uploads.com
-                - image_type: back
-                  status: UPLOADED
-                  status_reasons: []
-                  upload_url: https://lithic-document-verification-uploads.com
-              token: 12345678-3630-4cd0-bbec-1a0fa5c7e149
-      properties:
-        token:
-          type: string
-          format: uuid
-          description: Globally unique identifier for the document.
-        account_holder_token:
-          type: string
-          format: uuid
-          description: Globally unique identifier for the account holder.
-        document_type:
-          type: string
-          enum:
-            - commercial_license
-            - drivers_license
-            - passport
-            - passport_card
-            - visa
-          description: Type of documentation to be submitted for verification.
-        required_document_uploads:
-          type: array
-          description: List of required document images to upload.
-          items:
-            type: object
-            description: Represents a single image of the document to upload.
-            properties:
-              image_type:
-                type: string
-                enum:
-                  - back
-                  - front
-                description: Type of image to upload.
-              status:
-                type: string
-                enum:
-                  - COMPLETED
-                  - FAILED
-                  - PENDING
-                  - UPLOADED
-                description: Status of document image upload.
-              status_reasons:
-                type: array
-                description: Reasons for document image upload status.
-                items:
-                  type: string
-                  enum:
-                    - BACK_IMAGE_BLURRY
-                    - FILE_SIZE_TOO_LARGE
-                    - FRONT_IMAGE_BLURRY
-                    - FRONT_IMAGE_GLARE
-                    - INVALID_FILE_TYPE
-                    - UNKNOWN_ERROR
-              upload_url:
-                type: string
-                description: |-
-                  URL to upload document image to.
-
-                  Note that the upload URLs expire after 7 days. If an upload URL expires, you can
-                  refresh the URLs by retrieving the document upload from `GET /account_holders/{account_holder_token}/documents`.
     asa_request_pos_terminal_pin_capability:
       type: string
       description: Status of whether the POS is able to accept PINs
