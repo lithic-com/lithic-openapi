@@ -52,8 +52,40 @@ paths:
           name: limit
           schema:
             type: integer
+        - description: (Individual Account Holders only) The first name of the account holder. The query is case insensitive and supports partial matches.
+          example: John
+          in: query
+          name: first_name
+          schema:
+            type: string
+        - description: (Individual Account Holders only) The last name of the account holder. The query is case insensitive and supports partial matches.
+          example: Appleseed
+          in: query
+          name: last_name
+          schema:
+            type: string
+        - description: (Business Account Holders only) The legal business name of the account holder. The query is case insensitive and supports partial matches.
+          example: Busy Business, Inc.
+          in: query
+          name: legal_business_name
+          schema:
+            type: string
+        - description: Phone number of the account holder. The query must be an exact match.
+          example: 5555555555
+          in: query
+          name: phone_number
+          schema:
+            type: string
+        - description: Email address of the account holder. The query must be an exact match, case insensitive.
+          example: example@domain.com
+          in: query
+          name: email
+          schema:
+            type: string
         - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/startingAfter'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
       responses:
         '200':
           content:
