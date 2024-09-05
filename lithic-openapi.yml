@@ -9832,7 +9832,7 @@ components:
               example: USA
               type: string
             postal_code:
-              description: Valid postal code. Only USA postal codes (ZIP codes) are currently supported, entered as a five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234.
+              description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
               example: '98109'
               type: string
             state:
@@ -10278,7 +10278,8 @@ components:
           example: USA
           type: string
         postal_code:
-          description: 'Valid postal code. Only USA postal codes (ZIP codes) are currently supported, entered as a five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234. '
+          description: |
+            Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
           example: '68022'
           type: string
         state:
@@ -12267,7 +12268,7 @@ components:
         address:
           $ref: '#/components/schemas/Address'
           description: |
-            KYC Exempt user's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
+            KYC Exempt user's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
         business_account_token:
           description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
           type: string
@@ -12855,7 +12856,7 @@ components:
           minLength: 8
           type: string
         postal_code:
-          description: Postal code (formerly zipcode). For US addresses, either five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234.
+          description: Postal code (formerly zipcode). For US addresses, either five-digit zipcode or nine-digit "ZIP+4".
           example: 10001-1809
           maxLength: 12
           minLength: 1
