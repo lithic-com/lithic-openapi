@@ -11011,6 +11011,38 @@ components:
             - three_ds_authentication_token
             - verification_attempted
             - verification_result
+    CardholderAggregateAmount:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        conversion_rate:
+          title: Conversion Rate
+          type: string
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - conversion_rate
+        - currency
+      title: CardholderAggregateAmount
+      type: object
+    CardholderEventAmounts:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        conversion_rate:
+          title: Conversion Rate
+          type: string
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - conversion_rate
+        - currency
+      title: CardholderEventAmounts
+      type: object
     Carrier:
       properties:
         qr_code_url:
@@ -11117,6 +11149,194 @@ components:
         - type
       title: CreatePaymentRequest
       type: object
+    Currency:
+      description: |-
+        ISO 4217 currency.  Its enumerants are ISO 4217 currencies except for
+        some special currencies like ```XXX``.  Enumerants names are lowercase
+        cureency code e.g. :attr:`Currency.eur`, :attr:`Currency.usd`.
+      enum:
+        - AED
+        - AFN
+        - ALL
+        - AMD
+        - ANG
+        - AOA
+        - ARS
+        - AUD
+        - AWG
+        - AZN
+        - BAM
+        - BBD
+        - BDT
+        - BGN
+        - BHD
+        - BIF
+        - BMD
+        - BND
+        - BOB
+        - BOV
+        - BRL
+        - BSD
+        - BTN
+        - BWP
+        - BYN
+        - BZD
+        - CAD
+        - CDF
+        - CHE
+        - CHF
+        - CHW
+        - CLF
+        - CLP
+        - CNY
+        - COP
+        - COU
+        - CRC
+        - CUC
+        - CUP
+        - CVE
+        - CZK
+        - DJF
+        - DKK
+        - DOP
+        - DZD
+        - EGP
+        - ERN
+        - ETB
+        - EUR
+        - FJD
+        - FKP
+        - GBP
+        - GEL
+        - GHS
+        - GIP
+        - GMD
+        - GNF
+        - GTQ
+        - GYD
+        - HKD
+        - HNL
+        - HRK
+        - HTG
+        - HUF
+        - IDR
+        - ILS
+        - INR
+        - IQD
+        - IRR
+        - ISK
+        - JMD
+        - JOD
+        - JPY
+        - KES
+        - KGS
+        - KHR
+        - KMF
+        - KPW
+        - KRW
+        - KWD
+        - KYD
+        - KZT
+        - LAK
+        - LBP
+        - LKR
+        - LRD
+        - LSL
+        - LYD
+        - MAD
+        - MDL
+        - MGA
+        - MKD
+        - MMK
+        - MNT
+        - MOP
+        - MRU
+        - MUR
+        - MVR
+        - MWK
+        - MXN
+        - MXV
+        - MYR
+        - MZN
+        - NAD
+        - NGN
+        - NIO
+        - NOK
+        - NPR
+        - NZD
+        - OMR
+        - PAB
+        - PEN
+        - PGK
+        - PHP
+        - PKR
+        - PLN
+        - PYG
+        - QAR
+        - RON
+        - RSD
+        - RUB
+        - RWF
+        - SAR
+        - SBD
+        - SCR
+        - SDG
+        - SEK
+        - SGD
+        - SHP
+        - SLE
+        - SLL
+        - SOS
+        - SRD
+        - SSP
+        - STN
+        - SVC
+        - SYP
+        - SZL
+        - THB
+        - TJS
+        - TMT
+        - TND
+        - TOP
+        - TRY
+        - TTD
+        - TWD
+        - TZS
+        - UAH
+        - UGX
+        - USD
+        - USN
+        - UYI
+        - UYU
+        - UYW
+        - UZS
+        - VED
+        - VES
+        - VND
+        - VUV
+        - WST
+        - XAF
+        - XAG
+        - XAU
+        - XBA
+        - XBB
+        - XBC
+        - XBD
+        - XCD
+        - XDR
+        - XOF
+        - XPD
+        - XPF
+        - XPT
+        - XSU
+        - XTS
+        - XUA
+        - XXX
+        - YER
+        - ZAR
+        - ZMW
+        - ZWL
+      title: Currency
     DigitalCardArt:
       properties:
         card_program_token:
@@ -12100,6 +12320,18 @@ components:
         - token
         - type
       type: object
+    HoldAggregateAmount:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - currency
+      title: HoldAggregateAmount
+      type: object
     Individual:
       properties:
         address:
@@ -12357,6 +12589,30 @@ components:
           minLength: 2
           type: string
       type: object
+    MerchantAggregateAmount:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - currency
+      title: MerchantAggregateAmount
+      type: object
+    MerchantEventAmounts:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - currency
+      title: MerchantEventAmounts
+      type: object
     MessageAttempt:
       description: A subscription to specific event types.
       properties:
@@ -12586,6 +12842,34 @@ components:
               $ref: '#/components/schemas/Balance'
           type: object
       title: PostPaymentResponse
+    SettlementAggregateAmount:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - currency
+      title: SettlementAggregateAmount
+      type: object
+    SettlementEventAmounts:
+      properties:
+        amount:
+          title: Amount
+          type: integer
+        conversion_rate:
+          title: Conversion Rate
+          type: string
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - amount
+        - conversion_rate
+        - currency
+      title: SettlementEventAmounts
+      type: object
     SettlementDetail:
       properties:
         account_token:
@@ -13512,6 +13796,8 @@ components:
           description: Authorization amount of the transaction (in cents), including any acquirer fees. This may change over time, and will represent the settled amount once the transaction is settled.
           example: 1500
           type: integer
+        amounts:
+          $ref: '#/components/schemas/TransactionAggregateAmounts'
         authorization_amount:
           description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
           example: 1500
@@ -13779,10 +14065,16 @@ components:
           type:
             - object
             - 'null'
+        updated:
+          description: Date and time when the transaction last updated. UTC time zone.
+          example: '2023-09-26T21:14:28.637Z'
+          format: date-time
+          type: string
       required:
         - acquirer_fee
         - acquirer_reference_number
         - amount
+        - amounts
         - authorization_amount
         - authorization_code
         - avs
@@ -13801,6 +14093,24 @@ components:
         - status
         - token
         - token_info
+        - updated
+      type: object
+    TransactionAggregateAmounts:
+      properties:
+        cardholder:
+          $ref: '#/components/schemas/CardholderAggregateAmount'
+        hold:
+          $ref: '#/components/schemas/HoldAggregateAmount'
+        merchant:
+          $ref: '#/components/schemas/MerchantAggregateAmount'
+        settlement:
+          $ref: '#/components/schemas/SettlementAggregateAmount'
+      required:
+        - cardholder
+        - hold
+        - merchant
+        - settlement
+      title: TransactionAggregateAmounts
       type: object
     TransactionEvent:
       description: A single card transaction may include multiple events that affect the transaction state and lifecycle.
@@ -13809,6 +14119,8 @@ components:
           description: Amount of the transaction event (in cents), including any acquirer fees.
           example: 1500
           type: integer
+        amounts:
+          $ref: '#/components/schemas/TransactionEventAmounts'
         created:
           description: RFC 3339 date and time this event entered the system. UTC time zone.
           example: '2023-09-26T21:14:28.637Z'
@@ -13952,11 +14264,25 @@ components:
           type: string
       required:
         - amount
+        - amounts
         - created
         - detailed_results
         - result
         - token
         - type
+      type: object
+    TransactionEventAmounts:
+      properties:
+        cardholder:
+          $ref: '#/components/schemas/CardholderEventAmounts'
+        merchant:
+          $ref: '#/components/schemas/MerchantEventAmounts'
+        settlement:
+          $ref: '#/components/schemas/SettlementEventAmounts'
+      required:
+        - cardholder
+        - merchant
+      title: TransactionEventAmounts
       type: object
     Transfer:
       properties:
