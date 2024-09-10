@@ -3460,6 +3460,7 @@ paths:
                       - external_bank_account.created
                       - external_bank_account.updated
                       - financial_account.created
+                      - financial_account.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
@@ -3614,6 +3615,7 @@ paths:
                       - external_bank_account.created
                       - external_bank_account.updated
                       - financial_account.created
+                      - financial_account.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
@@ -3869,6 +3871,7 @@ paths:
                 - external_bank_account.created
                 - external_bank_account.updated
                 - financial_account.created
+                - financial_account.updated
                 - payment_transaction.created
                 - payment_transaction.updated
                 - settlement_report.updated
@@ -5629,6 +5632,7 @@ paths:
                     - external_bank_account.created
                     - external_bank_account.updated
                     - financial_account.created
+                    - financial_account.updated
                     - payment_transaction.created
                     - payment_transaction.updated
                     - settlement_report.updated
@@ -8619,6 +8623,29 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: financial_account.created
+      tags:
+        - Event Types
+  financial_account.updated:
+    post:
+      description: Occurs when a financial account is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/FinancialAccount'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - financial_account.updated
+                      example: financial_account.updated
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: financial_account.updated
       tags:
         - Event Types
   payment_transaction.created:
@@ -11645,6 +11672,7 @@ components:
             - external_bank_account.created
             - external_bank_account.updated
             - financial_account.created
+            - financial_account.updated
             - payment_transaction.created
             - payment_transaction.updated
             - settlement_report.updated
@@ -11702,6 +11730,7 @@ components:
               - external_bank_account.created
               - external_bank_account.updated
               - financial_account.created
+              - financial_account.updated
               - payment_transaction.created
               - payment_transaction.updated
               - settlement_report.updated
