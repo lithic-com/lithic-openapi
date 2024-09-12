@@ -14812,7 +14812,7 @@ components:
           $ref: '#/components/schemas/auth-rule-type'
         parameters:
           $ref: '#/components/schemas/auth-rule-parameters'
-      oneOf:
+      anyOf:
         - properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
@@ -17294,13 +17294,13 @@ components:
           type: string
           format: date-time
         current_version_statistics:
-          oneOf:
+          anyOf:
             - type: 'null'
               description: No active version of the Auth Rule is impacting the Authorization stream.
             - description: Statistics for the active version of the Auth Rule that is impacting the Authorization stream.
               $ref: '#/components/schemas/rule-stats'
         draft_version_statistics:
-          oneOf:
+          anyOf:
             - type: 'null'
               description: No draft version of the Auth Rule is running in shadow mode.
             - description: Statistics for the draft version of the Auth Rule that is running in shadow mode in the authorization stream.
