@@ -14348,10 +14348,10 @@ components:
           description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
           type: integer
         status:
-          description: 'Status types: * `DECLINED` - The transfer was declined. * `PENDING` - The transfer is pending release from a hold. * `SETTLED` - The transfer is completed. '
+          description: 'Status types: * `DECLINED` - The transfer was declined. * `REVERSED` - The transfer was reversed * `SETTLED` - The transfer is completed. '
           enum:
             - DECLINED
-            - PENDING
+            - REVERSED
             - SETTLED
           type: string
         to_financial_account_token:
