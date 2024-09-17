@@ -10002,7 +10002,7 @@ components:
       description: Information about an individual associated with an account holder. A subset of the information provided via KYC. For example, we do not return the government id.
       properties:
         address:
-          $ref: '#/components/schemas/USAddress'
+          $ref: '#/components/schemas/Address'
           description: Individual's current address
         dob:
           description: Individual's date of birth, as an RFC 3339 date.
@@ -10040,7 +10040,7 @@ components:
     AccountHolderBusinessResponse:
       properties:
         address:
-          $ref: '#/components/schemas/USAddress'
+          $ref: '#/components/schemas/Address'
           description: |
             Business's physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
         dba_business_name:
@@ -10170,40 +10170,6 @@ components:
           type: object
       required:
         - available_spend_limit
-      type: object
-    USAddress:
-      properties:
-        address1:
-          description: Valid deliverable address (no PO boxes).
-          example: 123 Old Forest Way
-          type: string
-        address2:
-          description: Unit or apartment number (if applicable).
-          type: string
-        city:
-          description: Name of city.
-          example: Omaha
-          type: string
-        country:
-          description: |
-            Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
-          example: USA
-          type: string
-        postal_code:
-          description: 'Valid postal code. Only USA postal codes (ZIP codes) are currently supported, entered as a five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234. '
-          example: '68022'
-          type: string
-        state:
-          description: |
-            Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
-          example: NE
-          type: string
-      required:
-        - address1
-        - city
-        - country
-        - postal_code
-        - state
       type: object
     Address:
       properties:
@@ -10490,7 +10456,7 @@ components:
     BusinessEntity:
       properties:
         address:
-          $ref: '#/components/schemas/USAddress'
+          $ref: '#/components/schemas/Address'
           description: |
             Business's physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
         dba_business_name:
@@ -12284,7 +12250,7 @@ components:
     Individual:
       properties:
         address:
-          $ref: '#/components/schemas/USAddress'
+          $ref: '#/components/schemas/Address'
           description: |
             Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
         dob:
