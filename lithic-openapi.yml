@@ -15421,9 +15421,7 @@ components:
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-state.json
       title: Financial Account State
       description: State of the financial account
-      type:
-        - string
-        - 'null'
+      type: string
       enum:
         - PENDING
         - CURRENT
@@ -15462,7 +15460,6 @@ components:
         - external_bank_account_token
         - credit_product_token
         - tier
-        - financial_account_state
     financial-account-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-response.json
@@ -15568,7 +15565,6 @@ components:
         - external_bank_account_token
         - credit_product_token
         - tier
-        - financial_account_state
     financial-account-credit-config-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-request.json
