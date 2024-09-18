@@ -7300,14 +7300,14 @@ webhooks:
                   created: '2023-09-26 16:41:40.530987'
                   event_type: account_holder.created
                   status: ACCEPTED
-                  status_reasons: []
+                  status_reason: []
                   token: 00000000-0000-0000-0000-000000000001
                   required_documents: []
                 - account_token: 00000000-0000-0000-0000-000000000001
                   created: '2023-09-26 16:41:40.530987'
                   event_type: account_holder.created
                   status: PENDING_REVIEW
-                  status_reasons:
+                  status_reason:
                     - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
                   token: 00000000-0000-0000-0000-000000000001
                   required_documents:
@@ -7349,9 +7349,9 @@ webhooks:
                     - PENDING_REVIEW
                   example: ACCEPTED
                   type: string
-                status_reasons:
+                status_reason:
                   items:
-                    description: If status is not ACCEPTED, status_reasons provides the reasons an account_holder is PENDING_REVIEW.
+                    description: If status is not ACCEPTED, status_reason provides the reasons an account_holder is REJECTED or PENDING_REVIEW.
                     type: string
                   type: array
                 token:
