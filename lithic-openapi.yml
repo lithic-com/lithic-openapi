@@ -14767,25 +14767,32 @@ components:
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/create-auth-rule-request.json
       title: Auth Rule Version 2 Parameters
       type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/auth-rule-type'
-        parameters:
-          $ref: '#/components/schemas/auth-rule-parameters'
       oneOf:
         - properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
+            type:
+              $ref: '#/components/schemas/auth-rule-type'
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
           required:
             - account_tokens
         - properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
+            type:
+              $ref: '#/components/schemas/auth-rule-type'
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
           required:
             - card_tokens
         - properties:
             program_level:
               $ref: '#/components/schemas/program-level'
+            type:
+              $ref: '#/components/schemas/auth-rule-type'
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
           required:
             - program_level
       required:
