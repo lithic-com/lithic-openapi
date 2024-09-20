@@ -10,7 +10,7 @@ info:
   version: 1.0.0
 servers:
   - description: Sandbox environment that provides key functionality mirroring production
-    url: https://sandbox.lithic.com
+    url: https://sandbox.lithic.com/v1
 security:
   - ApiKeyAuth: []
 tags:
@@ -25,7 +25,6 @@ tags:
   - name: Dispute
   - name: Event
   - name: External Bank Account
-  - name: External Payments
   - name: Financial Account
   - name: Payment
   - name: Responder Endpoints
@@ -35,7 +34,7 @@ tags:
   - name: Tokenization
   - name: Transaction
 paths:
-  /v1/account_holders:
+  /account_holders:
     get:
       description: Get a list of individual or business account holders and their KYC or KYB evaluation status.
       operationId: getAccountHolders
@@ -330,7 +329,6 @@ paths:
                     status: ACCEPTED
                     status_reasons: []
                     token: 12345678-aa69-4cbc-a946-30d90181b621
-                    created: '2024-09-16T20:13:41.865274'
                 pendingResubmitResponse:
                   summary: Pending resubmit KYC evaluation response
                   value:
@@ -339,32 +337,6 @@ paths:
                     status_reasons:
                       - NAME_VERIFICATION_FAILURE
                     token: 12345678-aa69-4cbc-a946-30d90181b621
-                    created: '2024-09-16T20:13:41.865274'
-                pendingKYBReviewResponse:
-                  summary: Pending review response for a KYB_BASIC request
-                  value:
-                    account_token: 6016af53-87d4-42aa-b021-0170644d6458
-                    status: PENDING_REVIEW
-                    status_reasons:
-                      - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
-                    token: 12345678-aa69-4cbc-a946-30d90181b621
-                    created: '2024-09-16T20:13:41.865274'
-                    required_documents:
-                      - entity_token: 48afea0a-38b0-44e4-aaa7-c2b5413da9d3
-                        valid_documents:
-                          - EIN_LETTER
-                          - TAX_RETURN
-                          - CERTIFICATE_OF_GOOD_STANDING
-                          - ARTICLES_OF_INCORPORATION
-                          - ARTICLES_OF_ORGANIZATION
-                          - CERTIFICATE_OF_FORMATION
-                          - BYLAWS
-                          - GOVERNMENT_BUSINESS_LICENSE
-                          - PARTNERSHIP_AGREEMENT
-                          - BANK_STATEMENT
-                          - UTILITY_BILL_STATEMENT
-                        status_reasons:
-                          - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
               schema:
                 properties:
                   account_token:
@@ -410,11 +382,6 @@ paths:
                         - WATCHLIST_ALERT_FAILURE
                       type: string
                     type: array
-                  required_documents:
-                    description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/required-document'
                   token:
                     description: Globally unique identifier for the account holder.
                     format: uuid
@@ -435,7 +402,7 @@ paths:
       summary: Create an individual or business account holder
       tags:
         - Account Holder
-  /v1/account_holders/{account_holder_token}:
+  /account_holders/{account_holder_token}:
     get:
       description: Get an Individual or Business Account Holder and/or their KYC or KYB evaluation status.
       operationId: getAccountHolder
@@ -612,7 +579,7 @@ paths:
       summary: Update account holder information
       tags:
         - Account Holder
-  /v1/account_holders/{account_holder_token}/documents:
+  /account_holders/{account_holder_token}/documents:
     get:
       description: |
         Retrieve the status of account holder document uploads, or retrieve the upload URLs to process your image uploads.
@@ -722,7 +689,7 @@ paths:
       summary: Initiate account holder document upload
       tags:
         - Account Holder
-  /v1/account_holders/{account_holder_token}/documents/{document_token}:
+  /account_holders/{account_holder_token}/documents/{document_token}:
     get:
       description: |
         Check the status of an account holder document upload, or retrieve the upload URLs to process your image uploads.
@@ -756,7 +723,7 @@ paths:
       summary: Get account holder document upload status
       tags:
         - Account Holder
-  /v1/account_holders/{account_holder_token}/resubmit:
+  /account_holders/{account_holder_token}/resubmit:
     post:
       description: |
         Resubmit a KYC submission. This endpoint should be used in cases where a KYC submission returned a `PENDING_RESUBMIT` result,
@@ -826,7 +793,7 @@ paths:
       summary: Resubmit account holder information
       tags:
         - Account Holder
-  /v1/accounts:
+  /accounts:
     get:
       description: |
         List account configurations.
@@ -881,7 +848,7 @@ paths:
       summary: List accounts
       tags:
         - Account
-  /v1/accounts/{account_token}:
+  /accounts/{account_token}:
     get:
       description: Get account configuration such as spend limits.
       operationId: getAccountByToken
@@ -1007,7 +974,7 @@ paths:
       summary: Update account
       tags:
         - Account
-  /v1/accounts/{account_token}/spend_limits:
+  /accounts/{account_token}/spend_limits:
     get:
       description: Get an Account's available spend limits, which is based on the spend limit configured on the Account and the amount already spent over the spend limit's duration. For example, if the Account has a daily spend limit of $1000 configured, and has spent $600 in the last 24 hours, the available spend limit returned would be $400.
       operationId: getAccountSpendLimits
@@ -1031,7 +998,7 @@ paths:
       summary: Get account's available spend limits
       tags:
         - Account
-  /v1/aggregate_balances:
+  /aggregate_balances:
     get:
       description: Get the aggregated balance across all end-user accounts by financial account type
       operationId: getAggregateBalances
@@ -1076,7 +1043,7 @@ paths:
       summary: List aggregate balances
       tags:
         - Balance
-  /v1/auth_rules:
+  /auth_rules:
     get:
       description: |
         Return all of the Auth Rules under the program.
@@ -1152,7 +1119,7 @@ paths:
       summary: Create authorization rule
       tags:
         - Authorization Rules
-  /v1/auth_rules/remove:
+  /auth_rules/remove:
     delete:
       description: Remove an existing authorization rule (Auth Rule) from an program, account, or card-level.
       operationId: deleteAuthRuleRemove
@@ -1221,7 +1188,7 @@ paths:
       summary: Remove authorization rule
       tags:
         - Authorization Rules
-  /v1/auth_rules/{auth_rule_token}:
+  /auth_rules/{auth_rule_token}:
     get:
       description: |
         Detail the properties and entities (program, accounts, and cards) associated with an existing authorization rule (Auth Rule).
@@ -1318,7 +1285,7 @@ paths:
       summary: Update authorization rule
       tags:
         - Authorization Rules
-  /v1/auth_rules/{auth_rule_token}/apply:
+  /auth_rules/{auth_rule_token}/apply:
     post:
       description: Applies an existing authorization rule (Auth Rule) to an program, account, or card level.
       operationId: postAuthRuleByTokenApply
@@ -1375,210 +1342,7 @@ paths:
       summary: Apply existing authorization rule
       tags:
         - Authorization Rules
-  /v2/auth_rules:
-    post:
-      parameters: []
-      tags:
-        - Authorization Rules
-      summary: Create a new V2 authorization rule
-      description: Creates a new V2 authorization rule in draft mode
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/create-auth-rule-request'
-      responses:
-        '201':
-          description: Auth Rule Created
-          $ref: '#/components/responses/AuthRule'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-    get:
-      servers:
-        - description: Sandbox environment that provides key functionality mirroring production
-          url: https://sandbox.lithic.com
-      parameters:
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/startingAfter'
-        - $ref: '#/components/parameters/pageSize'
-        - name: card_token
-          in: query
-          description: Only return Authorization Rules that are bound to the provided card token.
-          schema:
-            type: string
-            format: uuid
-          required: false
-        - name: account_token
-          in: query
-          description: Only return Authorization Rules that are bound to the provided account token.
-          schema:
-            type: string
-            format: uuid
-          required: false
-      tags:
-        - Authorization Rules
-      summary: List V2 authorization rules
-      description: Lists V2 authorization rules
-      responses:
-        '200':
-          description: Authorization Rules
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/auth-rule'
-                    type: array
-                  has_more:
-                    description: Indicates whether there are more Authorization Rules to be retrieved by paging through the results.
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-                type: object
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-  /v2/auth_rules/{auth_rule_token}:
-    get:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Fetch a V2 authorization rule
-      description: Fetches an authorization rule by its token
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthRule'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-    patch:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Updates a V2 authorization rule
-      description: Updates an authorization rule's properties
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/patch-auth-rule-request'
-      responses:
-        '200':
-          description: Updated Auth Rule
-          $ref: '#/components/responses/AuthRule'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-  /v2/auth_rules/{auth_rule_token}/apply:
-    post:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Apply a V2 authorization rule
-      description: |
-        Associates an authorization rules with a card program, the provided account(s) or card(s).
-
-        This endpoint will replace any existing associations with the provided list of entities.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/apply-auth-rule-request'
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthRule'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-  /v2/auth_rules/{auth_rule_token}/draft:
-    post:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Draft a new V2 authorization rule version
-      description: |
-        Creates a new draft version of an authorization rules that will be ran in shadow mode.
-
-        This can also be utilized to reset the draft parameters, causing a draft version to no longer be ran in shadow mode.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                parameters:
-                  anyOf:
-                    - type: 'null'
-                      description: Resets the drafts parameters, causing a draft version to no longer be ran in shadow mode.
-                    - $ref: '#/components/schemas/auth-rule-parameters'
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthRule'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-  /v2/auth_rules/{auth_rule_token}/promote:
-    post:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Promote draft authorization rule
-      description: Promotes a draft version of an authorization rule to the currently active version such that it is enforced in the authorization stream.
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthRule'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-  /v2/auth_rules/{auth_rule_token}/report:
-    post:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Request authorization rule performance report
-      description: |
-        Requests a performance report of an authorization rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
-        The generated report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.performance_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
-
-        Note that generating a report may take up to 15 minutes and that delivery is not guaranteed. Customers are required to have created an event subscription to receive the webhook.
-        Additionally, there is a delay of approximately 15 minutes between when Lithic's transaction processing systems have processed the transaction, and when a transaction will be included in the report.
-      responses:
-        '200':
-          description: Report generation request received
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  report_token:
-                    $ref: '#/components/schemas/report-token'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
-        '422':
-          description: Returned when the request was syntactically correct, but could not be processed
-  /v1/auth_stream/secret:
+  /auth_stream/secret:
     get:
       description: |
         Retrieve the ASA HMAC secret key. If one does not exist for your program yet, calling this endpoint will create one for you. The headers (which you can use to verify webhooks) will begin appearing shortly after calling this endpoint for the first time. See [this page](https://docs.lithic.com/docs/auth-stream-access-asa#asa-webhook-verification) for more detail about verifying ASA webhooks.
@@ -1602,7 +1366,7 @@ paths:
       summary: Retrieve the ASA HMAC secret key
       tags:
         - Auth Stream Access (ASA)
-  /v1/auth_stream/secret/rotate:
+  /auth_stream/secret/rotate:
     post:
       description: |
         Generate a new ASA HMAC secret key. The old ASA HMAC secret key will be deactivated 24 hours after a successful request to this endpoint. Make a [`GET /auth_stream/secret`](https://docs.lithic.com/reference/getauthstreamsecret) request to retrieve the new secret key.
@@ -1617,7 +1381,7 @@ paths:
       summary: Rotate the ASA HMAC secret key
       tags:
         - Auth Stream Access (ASA)
-  /v1/balances:
+  /balances:
     get:
       description: Get the balances for a program or a given end-user account
       operationId: getBalances
@@ -1674,7 +1438,7 @@ paths:
       summary: List balances
       tags:
         - Balance
-  /v1/card_programs:
+  /card_programs:
     get:
       description: List card programs.
       operationId: getCardPrograms
@@ -1713,7 +1477,7 @@ paths:
       summary: List card programs
       tags:
         - Card
-  /v1/card_programs/{card_program_token}:
+  /card_programs/{card_program_token}:
     get:
       description: Get card program.
       operationId: getCardProgram
@@ -1739,7 +1503,7 @@ paths:
       summary: Get card program
       tags:
         - Card
-  /v1/cards:
+  /cards:
     get:
       description: List cards.
       operationId: getCards
@@ -1986,7 +1750,7 @@ paths:
       summary: Create card
       tags:
         - Card
-  /v1/cards/aggregate_balances:
+  /cards/aggregate_balances:
     get:
       description: Get the aggregated card balance across all end-user accounts.
       operationId: getCardAggregateBalances
@@ -2032,7 +1796,7 @@ paths:
       summary: List card aggregate balances
       tags:
         - Card
-  /v1/cards/search_by_pan:
+  /cards/search_by_pan:
     post:
       description: |-
         Get card configuration such as spend limit and state. Customers must be PCI compliant to use this endpoint. Please contact [support@lithic.com](mailto:support@lithic.com) for questions.
@@ -2074,7 +1838,7 @@ paths:
       summary: Search for card by PAN
       tags:
         - Card
-  /v1/cards/{card_token}:
+  /cards/{card_token}:
     get:
       description: Get card configuration such as spend limit and state.
       operationId: getCardByToken
@@ -2213,7 +1977,7 @@ paths:
       summary: Update card
       tags:
         - Card
-  /v1/cards/{card_token}/balances:
+  /cards/{card_token}/balances:
     get:
       description: Get the balances for a given card.
       operationId: getCardBalance
@@ -2264,7 +2028,7 @@ paths:
       summary: Get card balances
       tags:
         - Card
-  /v1/cards/{card_token}/financial_transactions:
+  /cards/{card_token}/financial_transactions:
     get:
       description: List the financial transactions for a given card.
       operationId: getCardFinancialTransactions
@@ -2333,7 +2097,7 @@ paths:
       summary: List card financial transactions
       tags:
         - Card
-  /v1/cards/{card_token}/financial_transactions/{financial_transaction_token}:
+  /cards/{card_token}/financial_transactions/{financial_transaction_token}:
     get:
       description: Get the card financial transaction for the provided token.
       operationId: getCardFinancialTransactionByToken
@@ -2360,7 +2124,7 @@ paths:
       summary: Get card financial transaction
       tags:
         - Card
-  /v1/cards/{card_token}/provision:
+  /cards/{card_token}/provision:
     post:
       description: |
         Allow your cardholders to directly add payment cards to the device's digital wallet (e.g. Apple Pay) with one touch from your app.
@@ -2433,7 +2197,7 @@ paths:
       summary: Provision card (Digital Wallet)
       tags:
         - Card
-  /v1/cards/{card_token}/reissue:
+  /cards/{card_token}/reissue:
     post:
       description: |
         Initiate print and shipment of a duplicate physical card.
@@ -2538,7 +2302,7 @@ paths:
       summary: Reissue physical card
       tags:
         - Card
-  /v1/cards/{card_token}/renew:
+  /cards/{card_token}/renew:
     post:
       description: |
         Initiate print and shipment of a renewed physical card.
@@ -2657,7 +2421,7 @@ paths:
       summary: Renew physical card
       tags:
         - Card
-  /v1/cards/{card_token}/spend_limits:
+  /cards/{card_token}/spend_limits:
     get:
       description: Get a Card's available spend limit, which is based on the spend limit configured on the Card and the amount already spent over the spend limit's duration. For example, if the Card has a monthly spend limit of $1000 configured, and has spent $600 in the last month, the available spend limit returned would be $400.
       operationId: getCardSpendLimits
@@ -2681,7 +2445,7 @@ paths:
       summary: Get card's available spend limit
       tags:
         - Card
-  /v1/digital_card_art:
+  /digital_card_art:
     get:
       description: List digital card art.
       operationId: getDigitalCardArt
@@ -2720,7 +2484,7 @@ paths:
       summary: List digital card art
       tags:
         - Tokenization
-  /v1/digital_card_art/{digital_card_art_token}:
+  /digital_card_art/{digital_card_art_token}:
     get:
       description: Get digital card art by token.
       operationId: getDigitalCardArtByToken
@@ -2752,7 +2516,7 @@ paths:
       summary: Get digital card art by token
       tags:
         - Tokenization
-  /v1/disputes:
+  /disputes:
     get:
       description: List disputes.
       operationId: getDisputes
@@ -2891,7 +2655,7 @@ paths:
       summary: Initiate dispute
       tags:
         - Dispute
-  /v1/disputes/{dispute_token}:
+  /disputes/{dispute_token}:
     delete:
       description: Withdraw dispute.
       operationId: deleteDisputeByToken
@@ -2998,7 +2762,7 @@ paths:
       summary: Update dispute
       tags:
         - Dispute
-  /v1/disputes/{dispute_token}/evidences:
+  /disputes/{dispute_token}/evidences:
     get:
       description: List evidence metadata for a dispute.
       operationId: getDisputeEvidences
@@ -3074,7 +2838,7 @@ paths:
       summary: Initiate dispute evidence upload
       tags:
         - Dispute
-  /v1/disputes/{dispute_token}/evidences/{evidence_token}:
+  /disputes/{dispute_token}/evidences/{evidence_token}:
     delete:
       description: Soft delete evidence for a dispute. Evidence will not be reviewed or submitted by Lithic after it is withdrawn.
       operationId: deleteDisputeEvidenceByToken
@@ -3123,7 +2887,7 @@ paths:
       summary: Get dispute evidence
       tags:
         - Dispute
-  /v1/embed/card:
+  /embed/card:
     get:
       description: |
         Handling full card PANs and CVV codes requires that you comply with the Payment Card Industry Data Security Standards (PCI DSS). Some clients choose to reduce their compliance obligations by leveraging our embedded card UI solution documented below.
@@ -3271,7 +3035,7 @@ paths:
       summary: Embedded card UI
       tags:
         - Card
-  /v1/transactions/{transaction_token}/enhanced_commercial_data:
+  /transactions/{transaction_token}/enhanced_commercial_data:
     get:
       description: Get all L2/L3 enhanced commercial data associated with a transaction. Not available in sandbox.
       summary: List enhanced commercial data
@@ -3333,7 +3097,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /v1/transactions/events/{event_token}/enhanced_commercial_data:
+  /transactions/events/{event_token}/enhanced_commercial_data:
     get:
       description: Get L2/L3 enhanced commercial data associated with a transaction event. Not available in sandbox.
       summary: Get enhanced commercial data
@@ -3394,7 +3158,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-  /v1/event_subscriptions:
+  /event_subscriptions:
     get:
       description: List all the event subscriptions.
       operationId: getEventSubscriptions
@@ -3459,7 +3223,6 @@ paths:
                       - account_holder.created
                       - account_holder.updated
                       - account_holder.verification
-                      - auth_rules.performance_report.created
                       - balance.updated
                       - book_transfer_transaction.created
                       - card.created
@@ -3476,10 +3239,7 @@ paths:
                       - dispute_evidence.upload_failed
                       - external_bank_account.created
                       - external_bank_account.updated
-                      - external_payment.created
-                      - external_payment.updated
                       - financial_account.created
-                      - financial_account.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
@@ -3523,7 +3283,7 @@ paths:
       summary: Create event subscription
       tags:
         - Event
-  /v1/event_subscriptions/{event_subscription_token}:
+  /event_subscriptions/{event_subscription_token}:
     delete:
       description: Delete an event subscription.
       operationId: deleteEventSubscription
@@ -3616,7 +3376,6 @@ paths:
                       - account_holder.created
                       - account_holder.updated
                       - account_holder.verification
-                      - auth_rules.performance_report.created
                       - balance.updated
                       - book_transfer_transaction.created
                       - card.created
@@ -3633,10 +3392,7 @@ paths:
                       - dispute_evidence.upload_failed
                       - external_bank_account.created
                       - external_bank_account.updated
-                      - external_payment.created
-                      - external_payment.updated
                       - financial_account.created
-                      - financial_account.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
@@ -3682,7 +3438,7 @@ paths:
       summary: Update event subscription
       tags:
         - Event
-  /v1/event_subscriptions/{event_subscription_token}/attempts:
+  /event_subscriptions/{event_subscription_token}/attempts:
     get:
       description: List all the message attempts for a given event subscription.
       operationId: getMessageAttemptsForEventSubscription
@@ -3734,7 +3490,7 @@ paths:
       summary: List message attempts for an event subscription
       tags:
         - Event
-  /v1/event_subscriptions/{event_subscription_token}/recover:
+  /event_subscriptions/{event_subscription_token}/recover:
     post:
       description: Resend all failed messages since a given time.
       operationId: recoverEventSubscription
@@ -3767,7 +3523,7 @@ paths:
       summary: Resend failed messages
       tags:
         - Event
-  /v1/event_subscriptions/{event_subscription_token}/replay_missing:
+  /event_subscriptions/{event_subscription_token}/replay_missing:
     post:
       description: |
         Replays messages to the endpoint. Only messages that were created after `begin` will be sent. Messages that were previously sent to the endpoint are not resent.
@@ -3797,7 +3553,7 @@ paths:
       summary: Replay missing messages
       tags:
         - Event
-  /v1/event_subscriptions/{event_subscription_token}/secret:
+  /event_subscriptions/{event_subscription_token}/secret:
     get:
       description: Get the secret for an event subscription.
       operationId: getEventSubscriptionSecret
@@ -3833,7 +3589,7 @@ paths:
       summary: Get event subscription secret
       tags:
         - Event
-  /v1/event_subscriptions/{event_subscription_token}/secret/rotate:
+  /event_subscriptions/{event_subscription_token}/secret/rotate:
     post:
       description: |
         Rotate the secret for an event subscription. The previous secret will be valid for the next 24 hours.
@@ -3858,7 +3614,7 @@ paths:
       summary: Rotate event subscription secret
       tags:
         - Event
-  /v1/events:
+  /events:
     get:
       description: List all events.
       operationId: getEvents
@@ -3874,7 +3630,6 @@ paths:
                 - account_holder.created
                 - account_holder.updated
                 - account_holder.verification
-                - auth_rules.performance_report.created
                 - balance.updated
                 - book_transfer_transaction.created
                 - card.created
@@ -3891,10 +3646,7 @@ paths:
                 - dispute_evidence.upload_failed
                 - external_bank_account.created
                 - external_bank_account.updated
-                - external_payment.created
-                - external_payment.updated
                 - financial_account.created
-                - financial_account.updated
                 - payment_transaction.created
                 - payment_transaction.updated
                 - settlement_report.updated
@@ -3952,7 +3704,7 @@ paths:
       summary: List events
       tags:
         - Event
-  /v1/events/{event_token}:
+  /events/{event_token}:
     get:
       description: Get an event.
       operationId: getEvent
@@ -3980,7 +3732,7 @@ paths:
       summary: Get event
       tags:
         - Event
-  /v1/events/{event_token}/attempts:
+  /events/{event_token}/attempts:
     get:
       description: List all the message attempts for a given event.
       operationId: getMessageAttemptsForEvent
@@ -4032,7 +3784,7 @@ paths:
       summary: List message attempts for an event
       tags:
         - Event
-  /v1/events/{event_token}/event_subscriptions/{event_subscription_token}/resend:
+  /events/{event_token}/event_subscriptions/{event_subscription_token}/resend:
     post:
       description: Resend an event to an event subscription.
       operationId: resendEvent
@@ -4068,7 +3820,7 @@ paths:
       summary: Resend event
       tags:
         - Event
-  /v1/external_bank_accounts:
+  /external_bank_accounts:
     get:
       description: List all the external bank accounts for the provided search criteria.
       operationId: searchExternalBankAccounts
@@ -4220,7 +3972,7 @@ paths:
       summary: Create external bank account
       tags:
         - External Bank Account
-  /v1/external_bank_accounts/{external_bank_account_token}:
+  /external_bank_accounts/{external_bank_account_token}:
     get:
       description: Get the external bank account by token.
       operationId: getExternalBankAccountByToken
@@ -4285,7 +4037,7 @@ paths:
       summary: Update external bank account
       tags:
         - External Bank Account
-  /v1/external_bank_accounts/{external_bank_account_token}/micro_deposits:
+  /external_bank_accounts/{external_bank_account_token}/micro_deposits:
     post:
       description: Verify the external bank account by providing the micro deposit amounts.
       operationId: verifyExternalBankAccountByMicroDeposits
@@ -4321,7 +4073,7 @@ paths:
       summary: Verify external bank account via micro deposit amounts
       tags:
         - External Bank Account
-  /v1/external_bank_accounts/{external_bank_account_token}/retry_micro_deposits:
+  /external_bank_accounts/{external_bank_account_token}/retry_micro_deposits:
     post:
       description: Retry external bank account micro deposit verification.
       operationId: retryMicroDeposit
@@ -4356,7 +4108,7 @@ paths:
       summary: Retry external bank account via micro deposit
       tags:
         - External Bank Account
-  /v1/external_bank_accounts/{external_bank_account_token}/retry_prenote:
+  /external_bank_accounts/{external_bank_account_token}/retry_prenote:
     post:
       description: Retry external bank account prenote verification.
       operationId: retryPrenote
@@ -4391,7 +4143,7 @@ paths:
       summary: Retry external bank account via prenote
       tags:
         - External Bank Account
-  /v1/credit_products/{credit_product_id}/extended_credit:
+  /credit_products/{credit_product_id}/extended_credit:
     get:
       description: Get the extended credit for a given credit product under a program
       operationId: getExtendedCredit
@@ -4420,7 +4172,7 @@ paths:
       summary: Get extended credit
       tags:
         - Credit Product
-  /v1/financial_accounts:
+  /financial_accounts:
     get:
       description: Retrieve information on your financial accounts including routing and account number.
       operationId: getFinancialAccounts
@@ -4451,7 +4203,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/financial-accounts-response'
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/FinancialAccount'
+                    type: array
+                  has_more:
+                    description: More data exists.
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+                type: object
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4485,8 +4248,18 @@ paths:
         '200':
           content:
             application/json:
+              examples:
+                getAccountHoldersResponse:
+                  value:
+                    account_number: '12345'
+                    created: '2024-01-11T19:50:36.105449'
+                    nickname: Nickname
+                    routing_number: '011103093'
+                    token: 6c25d6a4-4ff3-46f0-8f9b-f2cbb7e20e09
+                    type: OPERATING
+                    updated: '2024-01-11T19:50:36.105449'
               schema:
-                $ref: '#/components/schemas/financial-account-response'
+                $ref: '#/components/schemas/FinancialAccount'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4499,7 +4272,7 @@ paths:
       summary: Create financial account
       tags:
         - Financial Account
-  /v1/financial_accounts/{financial_account_token}:
+  /financial_accounts/{financial_account_token}:
     get:
       description: Get a financial account
       operationId: getFinancialAccountByToken
@@ -4515,7 +4288,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/financial-account-response'
+                $ref: '#/components/schemas/FinancialAccount'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4550,7 +4323,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/financial-account-response'
+                $ref: '#/components/schemas/FinancialAccount'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4565,7 +4338,7 @@ paths:
       summary: Update financial account
       tags:
         - Financial Account
-  /v1/financial_accounts/{financial_account_token}/balances:
+  /financial_accounts/{financial_account_token}/balances:
     get:
       description: Get the balances for a given financial account.
       operationId: getBalance
@@ -4616,7 +4389,7 @@ paths:
       summary: Get balances
       tags:
         - Balance
-  /v1/financial_accounts/{financial_account_token}/credit_configuration:
+  /financial_accounts/{financial_account_token}/credit_configuration:
     get:
       description: Get an Account's credit configuration
       operationId: getAccountCreditConfiguration
@@ -4624,7 +4397,7 @@ paths:
         - $ref: '#/components/parameters/financialAccountToken'
       summary: Get account credit configuration
       tags:
-        - Financial Account
+        - Account
       responses:
         '200':
           description: OK
@@ -4637,7 +4410,7 @@ paths:
       operationId: patchAccountCreditConfiguration
       summary: Update account credit configuration
       tags:
-        - Financial Account
+        - Account
       parameters:
         - $ref: '#/components/parameters/financialAccountToken'
       requestBody:
@@ -4652,7 +4425,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/financial-account-credit-config-response'
-  /v1/financial_accounts/{financial_account_token}/financial_transactions:
+  /financial_accounts/{financial_account_token}/financial_transactions:
     get:
       description: List the financial transactions for a given financial account.
       operationId: getFinancialTransactions
@@ -4722,7 +4495,7 @@ paths:
       summary: List financial transactions
       tags:
         - Financial Account
-  /v1/financial_accounts/{financial_account_token}/financial_transactions/{financial_transaction_token}:
+  /financial_accounts/{financial_account_token}/financial_transactions/{financial_transaction_token}:
     get:
       description: Get the financial transaction for the provided token.
       operationId: getFinancialTransactionByToken
@@ -4749,7 +4522,7 @@ paths:
       summary: Get financial transaction
       tags:
         - Financial Account
-  /v1/financial_accounts/{financial_account_token}/statements:
+  /financial_accounts/{financial_account_token}/statements:
     get:
       description: List the statements for a given financial account.
       operationId: getStatements
@@ -4827,7 +4600,7 @@ paths:
       summary: List statements
       tags:
         - Statements
-  /v1/financial_accounts/{financial_account_token}/statements/{statement_token}:
+  /financial_accounts/{financial_account_token}/statements/{statement_token}:
     get:
       description: Get a specific statement for a given financial account.
       operationId: getStatement
@@ -4859,7 +4632,7 @@ paths:
       summary: Get statement by token
       tags:
         - Statements
-  /v1/financial_accounts/{financial_account_token}/statements/{statement_token}/line_items:
+  /financial_accounts/{financial_account_token}/statements/{statement_token}/line_items:
     get:
       description: List the line items for a given statement within a given financial account.
       operationId: getStatementLineItems
@@ -4918,7 +4691,7 @@ paths:
       summary: List line items for a statement
       tags:
         - Statements
-  /v1/payments:
+  /payments:
     get:
       description: List all the payments for the provided search criteria.
       operationId: searchPayments
@@ -5016,7 +4789,7 @@ paths:
       summary: Create payment
       tags:
         - Payment
-  /v1/payments/{payment_token}:
+  /payments/{payment_token}:
     get:
       description: Get the payment by token.
       operationId: getPaymentByToken
@@ -5046,7 +4819,7 @@ paths:
       summary: Get payment by token
       tags:
         - Payment
-  /v1/payments/{payment_token}/retry:
+  /payments/{payment_token}/retry:
     post:
       description: Retry an origination which has been returned.
       operationId: retryPayment
@@ -5076,7 +4849,7 @@ paths:
       summary: Retry payment
       tags:
         - Payment
-  /v1/reports/settlement/details/{report_date}:
+  /reports/settlement/details/{report_date}:
     get:
       description: List details.
       operationId: getSettlementDetails
@@ -5146,7 +4919,7 @@ paths:
       summary: List settlement details
       tags:
         - Settlement Report
-  /v1/reports/settlement/summary/{report_date}:
+  /reports/settlement/summary/{report_date}:
     get:
       description: Get the settlement report for a specified report date. Not available in sandbox.
       operationId: getSummary
@@ -5179,7 +4952,7 @@ paths:
       summary: Get settlement summary
       tags:
         - Settlement Report
-  /v1/responder_endpoints:
+  /responder_endpoints:
     delete:
       operationId: deleteResponderEndpoint
       parameters:
@@ -5267,7 +5040,7 @@ paths:
       summary: Enroll a responder endpoint
       tags:
         - Responder Endpoints
-  /v1/simulate/authorization_advice:
+  /simulate/authorization_advice:
     post:
       description: |
         Simulates an authorization advice request from the payment network as if it came from a merchant acquirer. An authorization advice request changes the amount of the transaction.
@@ -5328,7 +5101,7 @@ paths:
       summary: Simulate authorization advice
       tags:
         - Transaction
-  /v1/simulate/authorize:
+  /simulate/authorize:
     post:
       description: |
         Simulates an authorization request from the payment network as if it came from a merchant acquirer. If you're configured for ASA, simulating auths requires your ASA client to be set up properly (respond with a valid JSON to the ASA request). For users that are not configured for ASA, a daily transaction limit of $5000 USD is applied by default. This limit can be modified via the [update account](https://docs.lithic.com/reference/patchaccountbytoken) endpoint.
@@ -5453,7 +5226,7 @@ paths:
       summary: Simulate authorization
       tags:
         - Transaction
-  /v1/simulate/clearing:
+  /simulate/clearing:
     post:
       description: |
         Clears an existing authorization. After this event, the transaction is no longer pending.
@@ -5512,7 +5285,7 @@ paths:
       summary: Simulate clearing transaction
       tags:
         - Transaction
-  /v1/simulate/credit_authorization_advice:
+  /simulate/credit_authorization_advice:
     post:
       description: |
         Simulates a credit authorization advice message from the payment network.
@@ -5595,7 +5368,7 @@ paths:
       summary: Simulate credit authorization advice
       tags:
         - Transaction
-  /v1/simulate/event_subscriptions/{event_subscription_token}/send_example:
+  /simulate/event_subscriptions/{event_subscription_token}/send_example:
     post:
       description: Send an example message for event.
       operationId: sendEventSubscriptionExample
@@ -5616,7 +5389,6 @@ paths:
                     - account_holder.created
                     - account_holder.updated
                     - account_holder.verification
-                    - auth_rules.performance_report.created
                     - balance.updated
                     - book_transfer_transaction.created
                     - card.created
@@ -5633,10 +5405,7 @@ paths:
                     - dispute_evidence.upload_failed
                     - external_bank_account.created
                     - external_bank_account.updated
-                    - external_payment.created
-                    - external_payment.updated
                     - financial_account.created
-                    - financial_account.updated
                     - payment_transaction.created
                     - payment_transaction.updated
                     - settlement_report.updated
@@ -5666,7 +5435,7 @@ paths:
       summary: Send event type example message
       tags:
         - Event
-  /v1/simulate/payments/receipt:
+  /simulate/payments/receipt:
     post:
       description: Simulates a receipt of a Payment.
       operationId: simulatePaymentsReceipt
@@ -5693,7 +5462,7 @@ paths:
       summary: Simulate receipt
       tags:
         - Payment
-  /v1/simulate/payments/release:
+  /simulate/payments/release:
     post:
       description: Simulates a release of a Payment.
       operationId: simulatePaymentsRelease
@@ -5720,7 +5489,7 @@ paths:
       summary: Simulate release payment
       tags:
         - Payment
-  /v1/simulate/payments/return:
+  /simulate/payments/return:
     post:
       description: Simulates a return of a Payment.
       operationId: simulatePaymentsReturn
@@ -5747,7 +5516,7 @@ paths:
       summary: Simulate return payment
       tags:
         - Payment
-  /v1/simulate/payments/{payment_token}/action:
+  /simulate/payments/{payment_token}/action:
     post:
       description: Simulate payment lifecycle event
       operationId: simulatePaymentAction
@@ -5782,7 +5551,7 @@ paths:
       summary: Simulate payment lifecycle event
       tags:
         - Payment
-  /v1/simulate/return:
+  /simulate/return:
     post:
       description: |
         Returns (aka refunds) an amount back to a card. Returns are cleared immediately and do not spend time in a `PENDING` state.
@@ -5849,7 +5618,7 @@ paths:
       summary: Simulate return
       tags:
         - Transaction
-  /v1/simulate/return_reversal:
+  /simulate/return_reversal:
     post:
       description: |
         Voids a settled credit transaction – i.e., a transaction with a negative amount and `SETTLED` status. These can be credit authorizations that have already cleared or financial credit authorizations.
@@ -5895,7 +5664,7 @@ paths:
       summary: Simulate return reversal
       tags:
         - Transaction
-  /v1/simulate/tokenizations:
+  /simulate/tokenizations:
     post:
       description: |
         This endpoint is used to simulate a card's tokenization in the Digital Wallet and merchant tokenization ecosystem.
@@ -6011,7 +5780,7 @@ paths:
       summary: Simulate a card's tokenization
       tags:
         - Tokenization
-  /v1/simulate/void:
+  /simulate/void:
     post:
       description: |
         Voids an existing, uncleared (aka pending) authorization. If amount is not sent the full amount will be voided. Cannot be used on partially completed transactions, but can be used on partially voided transactions. _Note that simulating an authorization expiry on credit authorizations or credit authorization advice is not currently supported but will be added soon._
@@ -6083,7 +5852,7 @@ paths:
       summary: Simulate void transaction
       tags:
         - Transaction
-  /v1/simulate/account_holders/enrollment_review:
+  /simulate/account_holders/enrollment_review:
     post:
       summary: Simulate an account holder's enrollment review
       description: ' Simulates an enrollment review for an account holder. This endpoint is only applicable for workflows that may required intervention such as `KYB_BASIC` or `KYC_ADVANCED`. '
@@ -6116,18 +5885,18 @@ paths:
                 $ref: '#/components/schemas/account-holder-response'
           description: OK
         '400':
-          $ref: '#/components/responses/exception-responses_responses-BadRequest'
+          $ref: '#/components/responses/responses-BadRequest'
         '401':
           $ref: '#/components/responses/responses-Unauthorized'
         '404':
-          $ref: '#/components/responses/exception-responses_responses-NotFound'
+          $ref: '#/components/responses/responses-NotFound'
         '409':
           $ref: '#/components/responses/responses-Conflict'
         '429':
           $ref: '#/components/responses/responses-TooManyRequests'
       tags:
         - Account Holder
-  /v1/simulate/account_holders/enrollment_document_review:
+  /simulate/account_holders/enrollment_document_review:
     post:
       summary: Simulate an account holder document upload's review
       description: Simulates a review for an account holder document upload.
@@ -6163,18 +5932,18 @@ paths:
                 $ref: '#/components/schemas/document'
           description: OK
         '400':
-          $ref: '#/components/responses/exception-responses_responses-BadRequest'
+          $ref: '#/components/responses/responses-BadRequest'
         '401':
           $ref: '#/components/responses/responses-Unauthorized'
         '404':
-          $ref: '#/components/responses/exception-responses_responses-NotFound'
+          $ref: '#/components/responses/responses-NotFound'
         '409':
           $ref: '#/components/responses/responses-Conflict'
         '429':
           $ref: '#/components/responses/responses-TooManyRequests'
       tags:
         - Account Holder
-  /v1/status:
+  /status:
     get:
       description: Status of api
       operationId: getStatus
@@ -6193,7 +5962,7 @@ paths:
       summary: API status check
       tags:
         - Status
-  /v1/three_ds_authentication/simulate:
+  /three_ds_authentication/simulate:
     post:
       description: |
         Simulates a 3DS authentication request from the payment network as if it came from an ACS. If you're configured for 3DS Customer Decisioning, simulating authentications requires your customer decisioning endpoint to be set up properly (respond with a valid JSON).
@@ -6302,7 +6071,7 @@ paths:
       summary: Simulate 3DS authentication
       tags:
         - 3DS
-  /v1/three_ds_authentication/{three_ds_authentication_token}:
+  /three_ds_authentication/{three_ds_authentication_token}:
     get:
       description: Get 3DS Authentication by token
       operationId: getThreeDsAuthenticationByToken
@@ -6332,7 +6101,7 @@ paths:
       summary: Get 3DS authentication
       tags:
         - 3DS
-  /v1/three_ds_decisioning/secret:
+  /three_ds_decisioning/secret:
     get:
       description: |
         Retrieve the 3DS Decisioning HMAC secret key. If one does not exist for your program yet, calling this endpoint will create one for you. The headers (which you can use to verify 3DS Decisioning requests) will begin appearing shortly after calling this endpoint for the first time. See [this page](https://docs.lithic.com/docs/3ds-decisioning#3ds-decisioning-hmac-secrets) for more detail about verifying 3DS Decisioning requests.
@@ -6356,7 +6125,7 @@ paths:
       summary: Retrieve the 3DS Decisioning HMAC secret key
       tags:
         - 3DS
-  /v1/three_ds_decisioning/secret/rotate:
+  /three_ds_decisioning/secret/rotate:
     post:
       description: |
         Generate a new 3DS Decisioning HMAC secret key. The old secret key will be deactivated 24 hours after a successful request to this endpoint. Make a [`GET /three_ds_decisioning/secret`](https://docs.lithic.com/reference/getthreedsdecisioningsecret) request to retrieve the new secret key.
@@ -6371,7 +6140,7 @@ paths:
       summary: Rotate the 3DS Decisioning HMAC secret key
       tags:
         - 3DS
-  /v1/three_ds_decisioning/challenge_response:
+  /three_ds_decisioning/challenge_response:
     post:
       description: Card program's response to a 3DS Challenge Request (CReq)
       summary: Respond to a Challenge Request
@@ -6393,7 +6162,7 @@ paths:
           description: Lithic Error
       tags:
         - 3DS
-  /v1/tokenization_decisioning/secret:
+  /tokenization_decisioning/secret:
     get:
       description: |
         Retrieve the Tokenization Decisioning secret key. If one does not exist your program yet, calling this endpoint will create one for you. The headers of the Tokenization Decisioning request will contain a hmac signature which you can use to verify requests originate from Lithic. See [this page](https://docs.lithic.com/docs/events-api#verifying-webhooks) for more detail about verifying Tokenization Decisioning requests.
@@ -6417,7 +6186,7 @@ paths:
       summary: Retrieve the Tokenization Decisioning HMAC secret key
       tags:
         - Tokenization
-  /v1/tokenization_decisioning/secret/rotate:
+  /tokenization_decisioning/secret/rotate:
     post:
       description: |
         Generate a new Tokenization Decisioning secret key. The old Tokenization Decisioning secret key will be deactivated 24 hours after a successful request to this endpoint.
@@ -6441,7 +6210,7 @@ paths:
       summary: Rotate the Tokenization Decisioning HMAC secret key
       tags:
         - Tokenization
-  /v1/tokenizations:
+  /tokenizations:
     get:
       description: List card tokenizations
       operationId: getTokenizations
@@ -6525,7 +6294,7 @@ paths:
       summary: Get a card's tokenizations
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}:
+  /tokenizations/{tokenization_token}:
     get:
       description: Get tokenization
       operationId: getTokenization
@@ -6574,7 +6343,7 @@ paths:
       summary: Get a single card tokenization
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}/pause:
+  /tokenizations/{tokenization_token}/pause:
     post:
       description: |-
         This endpoint is used to ask the card network to pause a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network pauses the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on tokenizations with status `ACTIVE`.
@@ -6606,7 +6375,7 @@ paths:
       summary: Pause a card tokenization
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}/unpause:
+  /tokenizations/{tokenization_token}/unpause:
     post:
       description: |-
         This endpoint is used to ask the card network to unpause a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network unpauses the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on tokenizations with status `PAUSED`.
@@ -6638,7 +6407,7 @@ paths:
       summary: Unpause a card tokenization
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}/deactivate:
+  /tokenizations/{tokenization_token}/deactivate:
     post:
       description: |-
         This endpoint is used to ask the card network to deactivate a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network deactivates the tokenization, the state will be updated and a tokenization.updated event will be sent.
@@ -6670,7 +6439,7 @@ paths:
       summary: Deactivate a card tokenization
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}/activate:
+  /tokenizations/{tokenization_token}/activate:
     post:
       description: |-
         This endpoint is used to ask the card network to activate a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network activates the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on digital wallet tokenizations with status `INACTIVE`, `PENDING_ACTIVATION`, or `PENDING_2FA`.
@@ -6702,7 +6471,7 @@ paths:
       summary: Activate a card tokenization
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}/resend_activation_code:
+  /tokenizations/{tokenization_token}/resend_activation_code:
     post:
       description: |-
         This endpoint is used to ask the card network to send another activation code to a cardholder that has already tried tokenizing a card. A successful response indicates that the request was successfully delivered to the card network.
@@ -6752,7 +6521,7 @@ paths:
       summary: Resend activation code for a card tokenization
       tags:
         - Tokenization
-  /v1/tokenizations/{tokenization_token}/update_digital_card_art:
+  /tokenizations/{tokenization_token}/update_digital_card_art:
     post:
       description: |-
         This endpoint is used update the digital card art for a digital wallet tokenization. A successful response indicates that the card network has updated the tokenization's art, and the tokenization's `digital_cart_art_token` field was updated.
@@ -6820,7 +6589,7 @@ paths:
       summary: Update digital card art for a card tokenization
       tags:
         - Tokenization
-  /v1/transactions:
+  /transactions:
     get:
       description: |
         List card transactions.
@@ -6968,7 +6737,7 @@ paths:
       summary: List card transactions
       tags:
         - Transaction
-  /v1/transactions/{transaction_token}:
+  /transactions/{transaction_token}:
     get:
       description: |
         Get specific card transaction.
@@ -6993,7 +6762,7 @@ paths:
       summary: Get card transaction
       tags:
         - Transaction
-  /v1/transfer:
+  /transfer:
     post:
       deprecated: true
       description: Transfer funds between two financial accounts or between a financial account and card
@@ -7045,7 +6814,7 @@ paths:
       summary: Transfer funds within Lithic
       tags:
         - Book Transfer
-  /v1/book_transfers:
+  /book_transfers:
     get:
       description: List book transfers
       parameters:
@@ -7225,7 +6994,7 @@ paths:
       summary: Create book transfer
       tags:
         - Book Transfer
-  /v1/book_transfers/{book_transfer_token}:
+  /book_transfers/{book_transfer_token}:
     get:
       description: Get book transfer by token
       parameters:
@@ -7255,7 +7024,7 @@ paths:
       summary: Get book transfer by token
       tags:
         - Book Transfer
-  /v1/book_transfers/{book_transfer_token}/reverse:
+  /book_transfers/{book_transfer_token}/reverse:
     post:
       description: Reverse a book transfer
       parameters:
@@ -7296,252 +7065,6 @@ paths:
       summary: Reverse book transfer
       tags:
         - Book Transfer
-  /v1/external_payments:
-    get:
-      description: List external payments
-      parameters:
-        - description: External Payment category to be returned.
-          in: query
-          name: category
-          schema:
-            $ref: '#/components/schemas/external_payment_category'
-        - description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
-          in: query
-          name: financial_account_token
-          schema:
-            format: uuid
-            type: string
-        - description: External Payment result to be returned.
-          in: query
-          name: result
-          schema:
-            $ref: '#/components/schemas/transaction_result'
-        - description: Book transfer status to be returned.
-          in: query
-          name: status
-          schema:
-            $ref: '#/components/schemas/transaction_status'
-        - $ref: '#/components/parameters/beginTime'
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/endTime'
-        - $ref: '#/components/parameters/pageSize'
-        - $ref: '#/components/parameters/startingAfter'
-      operationId: getExternalPayments
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payments_response'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: List external payments
-      tags:
-        - External Payments
-    post:
-      description: Create external payment
-      operationId: postExternalPayments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/create_external_payment_request'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payment_response'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Create external payment
-      tags:
-        - External Payments
-  /v1/external_payments/{external_payment_token}:
-    get:
-      description: Get external payment
-      parameters:
-        - description: Globally unique identifier for the external payment
-          in: path
-          name: external_payment_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      operationId: getExternalPayment
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payment_response'
-          description: OK
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Get external payment
-      tags:
-        - External Payments
-  /v1/external_payments/{external_payment_token}/settle:
-    post:
-      description: Settle external payment
-      parameters:
-        - description: Globally unique identifier for the external payment
-          in: path
-          name: external_payment_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      operationId: settleExternalPayment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/external_payment_action_with_progress_to_request'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payment_response'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Settle external payment
-      tags:
-        - External Payments
-  /v1/external_payments/{external_payment_token}/release:
-    post:
-      description: Release external payment
-      parameters:
-        - description: Globally unique identifier for the external payment
-          in: path
-          name: external_payment_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      operationId: releaseExternalPayment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/external_payment_action_request'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payment_response'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Release external payment
-      tags:
-        - External Payments
-  /v1/external_payments/{external_payment_token}/cancel:
-    post:
-      description: Cancel external payment
-      parameters:
-        - description: Globally unique identifier for the external payment
-          in: path
-          name: external_payment_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      operationId: cancelExternalPayment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/external_payment_action_request'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payment_response'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Cancel external payment
-      tags:
-        - External Payments
-  /v1/external_payments/{external_payment_token}/reverse:
-    post:
-      description: Reverse external payment
-      parameters:
-        - description: Globally unique identifier for the external payment
-          in: path
-          name: external_payment_token
-          required: true
-          schema:
-            format: uuid
-            type: string
-      operationId: reverseExternalPayment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/external_payment_action_request'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/external_payment_response'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Reverse external payment
-      tags:
-        - External Payments
 webhooks:
   account_holder.created:
     post:
@@ -7555,14 +7078,14 @@ webhooks:
                   created: '2023-09-26 16:41:40.530987'
                   event_type: account_holder.created
                   status: ACCEPTED
-                  status_reason: []
+                  status_reasons: []
                   token: 00000000-0000-0000-0000-000000000001
                   required_documents: []
                 - account_token: 00000000-0000-0000-0000-000000000001
                   created: '2023-09-26 16:41:40.530987'
                   event_type: account_holder.created
                   status: PENDING_REVIEW
-                  status_reason:
+                  status_reasons:
                     - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
                   token: 00000000-0000-0000-0000-000000000001
                   required_documents:
@@ -7604,9 +7127,9 @@ webhooks:
                     - PENDING_REVIEW
                   example: ACCEPTED
                   type: string
-                status_reason:
+                status_reasons:
                   items:
-                    description: If status is not ACCEPTED, status_reason provides the reasons an account_holder is REJECTED or PENDING_REVIEW.
+                    description: If status is not ACCEPTED, status_reasons provides the reasons an account_holder is PENDING_REVIEW.
                     type: string
                   type: array
                 token:
@@ -7894,39 +7417,6 @@ webhooks:
       summary: Auth Stream Access Request
       tags:
         - Auth Stream Access (ASA)
-  tokenization-decisioning.request:
-    post:
-      description: Tokenization Customer Decisioning Request
-      parameters:
-        - $ref: '#/components/parameters/webhookId'
-        - $ref: '#/components/parameters/webhookTimestamp'
-        - $ref: '#/components/parameters/webhookSignature'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/tokenization-decisioning-request'
-      responses:
-        '200':
-          description: Return a HTTP 200 status to indicate that the Tokenization Responder was able to handle the request.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/tokenization-decisioning-response'
-      summary: Tokenization Decisioning Request
-      tags:
-        - Tokenization
-  auth_rules.performance_report.created:
-    post:
-      description: Authorization Rules performance report created.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/performance-report'
-      summary: auth_rules.performance_report.created
-      tags:
-        - Event Types
   balance.updated:
     post:
       description: Financial Account Balance Update
@@ -8397,16 +7887,232 @@ webhooks:
   digital_wallet.tokenization_approval_request:
     post:
       description: |
-        Occurs when a tokenization approval request is made.  This event will be deprecated in the future. We recommend using `tokenization.approval_request` instead.
+        Occurs when a tokenization approval request is made.
+
+        This event will be deprecated in the future. We recommend using `tokenization.approval_request` instead.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/digital-wallet-tokenization-approval-request'
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-18T12:34:56Z'
+                  customer_tokenization_decision:
+                    latency: '100'
+                    outcome: APPROVED
+                    responder_url: https://example.com
+                    response_code: '123456'
+                  device:
+                    imei: '123456789012345'
+                    ip_address: 1.1.1.1
+                    location: 37.3860517,-122.0838511
+                  digital_wallet_token_metadata:
+                    payment_account_info:
+                      account_holder_data:
+                        phone_number: '+123456789012'
+                      pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+                      payment_account_reference: ref_1234567890123456789012
+                      token_unique_reference: token_unique_ref_1234567890123456789012345678
+                    payment_app_instance_id: app_instance_123456789012345678901234567890
+                    status: Pending
+                    token_requestor_id: '12345678901'
+                    token_requestor_name: APPLE_PAY
+                  event_type: digital_wallet.tokenization_approval_request
+                  issuer_decision: APPROVED
+                  tokenization_channel: DIGITAL_WALLET
+                  tokenization_source: PUSH_PROVISION
+                  tokenization_token: tok_1234567890abcdef
+                  wallet_decisioning_info:
+                    account_score: '100'
+                    device_score: '100'
+                    recommendation_reasons:
+                      - Reason1
+                    recommended_decision: Decision1
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  format: date-time
+                  type: string
+                customer_tokenization_decision:
+                  description: Contains information about the customer's tokenization decision if they are enrolled
+                  properties:
+                    latency:
+                      description: Time in ms it took for the customer's URL to respond
+                      example: '100'
+                      type: string
+                    outcome:
+                      description: The outcome of the customer's decision
+                      enum:
+                        - APPROVED
+                        - DECLINED
+                        - ERROR
+                        - INVALID_RESPONSE
+                        - REQUIRE_ADDITIONAL_AUTHENTICATION
+                        - TIMEOUT
+                      example: APPROVED
+                      type: string
+                    responder_url:
+                      description: The customer's subscribed URL
+                      example: https://example.com
+                      type: string
+                    response_code:
+                      description: The response code that the customer provided
+                      example: '123456'
+                      type: string
+                  required:
+                    - outcome
+                    - responder_url
+                  type: object
+                device:
+                  description: Contains information about the target device to be provisioned
+                  properties:
+                    imei:
+                      description: The IMEI number of the device being provisioned
+                      example: '123456789012345'
+                      maxLength: 15
+                      type: string
+                    ip_address:
+                      description: The IP of the device initiating the request
+                      example: 1.1.1.1
+                      maxLength: 64
+                      type: string
+                    location:
+                      description: Latitude and longitude where the device the consumer is attempting to authorize is located
+                      example: 37.3860517,-122.0838511
+                      maxLength: 64
+                      type: string
+                  type: object
+                digital_wallet_token_metadata:
+                  description: Contains the metadata for the digital wallet being tokenized
+                  properties:
+                    payment_account_info:
+                      description: Contains the information of the account responsible for the payment.
+                      properties:
+                        account_holder_data:
+                          description: Additional information that can be used to identify the account holder, such as name, address, etc
+                          properties:
+                            phone_number:
+                              description: The phone number, may contain country code along with phone number when countryDialInCode is not present
+                              maxLength: 20
+                              type: string
+                          type: object
+                        pan_unique_reference:
+                          description: Reference to the PAN that is unique per Wallet Provider
+                          maxLength: 64
+                          type: string
+                        payment_account_reference:
+                          description: The unique account reference assigned to the PAN
+                          maxLength: 29
+                          type: string
+                        token_unique_reference:
+                          description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
+                          maxLength: 64
+                          type: string
+                      required:
+                        - account_holder_data
+                      type: object
+                    payment_app_instance_id:
+                      description: The identifier of the Payment App instance within a device that will be provisioned with a token
+                      maxLength: 48
+                      type: string
+                    status:
+                      description: The current status of the digital wallet token. Pending or declined.
+                      type: string
+                    token_requestor_id:
+                      description: The party that requested the digitization
+                      maxLength: 11
+                      minLength: 11
+                      type: string
+                    token_requestor_name:
+                      description: Human-readable name of the wallet that the token_requestor_id maps to.
+                      enum:
+                        - APPLE_PAY
+                        - GOOGLE_PAY
+                        - SAMSUNG_PAY
+                      example: APPLE_PAY
+                      type: string
+                  required:
+                    - payment_account_info
+                    - status
+                  type: object
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - digital_wallet.tokenization_approval_request
+                  example: digital_wallet.tokenization_approval_request
+                  type: string
+                issuer_decision:
+                  description: Whether Lithic decisioned on the token, and if so, what the decision was. APPROVED/VERIFICATION_REQUIRED/DENIED.
+                  enum:
+                    - APPROVED
+                    - DENIED
+                    - VERIFICATION_REQUIRED
+                  example: APPROVED
+                  type: string
+                tokenization_channel:
+                  description: The channel through which the tokenization was made.
+                  enum:
+                    - DIGITAL_WALLET
+                    - MERCHANT
+                  example: DIGITAL_WALLET
+                  type: string
+                tokenization_source:
+                  description: The source of the tokenization.
+                  enum:
+                    - ACCOUNT_ON_FILE
+                    - MANUAL_PROVISION
+                    - PUSH_PROVISION
+                  example: PUSH_PROVISION
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the digital wallet token attempt
+                  type: string
+                wallet_decisioning_info:
+                  description: Contains information about the decision recommended by the Wallet Provider
+                  properties:
+                    account_score:
+                      description: Score given to the account by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    device_score:
+                      description: Score given to the device by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    recommendation_reasons:
+                      description: Reasons provided to the Wallet Provider on how the recommended decision was reached
+                      items:
+                        type: string
+                      type: array
+                    recommended_decision:
+                      description: The decision recommended by the Wallet Provider
+                      maxLength: 64
+                      type: string
+                  type: object
+              required:
+                - account_token
+                - card_token
+                - created
+                - digital_wallet_token_metadata
+                - event_type
+                - issuer_decision
+                - tokenization_channel
+                - tokenization_token
+                - wallet_decisioning_info
+              type: object
       responses:
         '200':
-          description: |
-            Return a 200 status to indicate that the data was received successfully.
+          description: Return a 200 status to indicate that the data was received successfully
       summary: digital_wallet.tokenization_approval_request
       tags:
         - Event Types
@@ -8852,34 +8558,6 @@ webhooks:
       summary: external_bank_account.updated
       tags:
         - Event Types
-  external_payment.created:
-    post:
-      description: Occurs when an external payment is created.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/external_payment_response_created_event'
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: external_payment.created
-      tags:
-        - Event Types
-  external_payment.updated:
-    post:
-      description: Occurs when an external payment is updated.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/external_payment_response_updated_event'
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: external_payment.updated
-      tags:
-        - Event Types
   financial_account.created:
     post:
       description: Occurs when a financial account is created.
@@ -8888,7 +8566,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/financial-account-response'
+                - $ref: '#/components/schemas/FinancialAccount'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -8901,29 +8579,6 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: financial_account.created
-      tags:
-        - Event Types
-  financial_account.updated:
-    post:
-      description: Occurs when a financial account is updated.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/financial-account-response'
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - financial_account.updated
-                      example: financial_account.updated
-                      type: string
-                  type: object
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: financial_account.updated
       tags:
         - Event Types
   payment_transaction.created:
@@ -9097,17 +8752,230 @@ webhooks:
         - Event Types
   tokenization.approval_request:
     post:
-      description: |
-        Occurs when a tokenization approval request is made.
+      description: Occurs when a tokenization approval request is made.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/tokenization-approval-request'
+              examples:
+                - account_token: 00000000-0000-0000-0000-000000000002
+                  card_token: 00000000-0000-0000-0000-000000000001
+                  created: '2023-09-18T12:34:56Z'
+                  customer_tokenization_decision:
+                    latency: '100'
+                    outcome: APPROVED
+                    responder_url: https://example.com
+                    response_code: '123456'
+                  device:
+                    imei: '123456789012345'
+                    ip_address: 1.1.1.1
+                    location: 37.3860517,-122.0838511
+                  token_metadata:
+                    payment_account_info:
+                      account_holder_data:
+                        phone_number: '+123456789012'
+                      pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+                      payment_account_reference: ref_1234567890123456789012
+                      token_unique_reference: token_unique_ref_1234567890123456789012345678
+                    payment_app_instance_id: app_instance_123456789012345678901234567890
+                    status: Pending
+                    token_requestor_id: '12345678901'
+                    token_requestor_name: APPLE_PAY
+                  event_type: tokenization.approval_request
+                  issuer_decision: APPROVED
+                  tokenization_channel: MERCHANT
+                  tokenization_source: PUSH_PROVISION
+                  tokenization_token: tok_1234567890abcdef
+                  wallet_decisioning_info:
+                    account_score: '100'
+                    device_score: '100'
+                    recommendation_reasons:
+                      - Reason1
+                    recommended_decision: Decision1
+              properties:
+                account_token:
+                  description: Unique identifier for the user tokenizing a card
+                  example: 00000000-0000-0000-0000-000000000002
+                  type: string
+                card_token:
+                  description: Unique identifier for the card being tokenized
+                  example: 00000000-0000-0000-0000-000000000001
+                  type: string
+                created:
+                  description: Indicate when the request was received from Mastercard or Visa
+                  format: date-time
+                  type: string
+                customer_tokenization_decision:
+                  description: Contains information about the customer's tokenization decision if they are enrolled
+                  properties:
+                    latency:
+                      description: Time in ms it took for the customer's URL to respond
+                      example: '100'
+                      type: string
+                    outcome:
+                      description: The outcome of the customer's decision
+                      enum:
+                        - APPROVED
+                        - DECLINED
+                        - ERROR
+                        - INVALID_RESPONSE
+                        - REQUIRE_ADDITIONAL_AUTHENTICATION
+                        - TIMEOUT
+                      example: APPROVED
+                      type: string
+                    responder_url:
+                      description: The customer's subscribed URL
+                      example: https://example.com
+                      type: string
+                    response_code:
+                      description: The response code that the customer provided
+                      example: '123456'
+                      type: string
+                  required:
+                    - outcome
+                    - responder_url
+                  type: object
+                device:
+                  description: Contains information about the target device to be provisioned
+                  properties:
+                    imei:
+                      description: The IMEI number of the device being provisioned
+                      example: '123456789012345'
+                      maxLength: 15
+                      type: string
+                    ip_address:
+                      description: The IP of the device initiating the request
+                      example: 1.1.1.1
+                      maxLength: 64
+                      type: string
+                    location:
+                      description: Latitude and longitude where the device the consumer is attempting to authorize is located
+                      example: 37.3860517,-122.0838511
+                      maxLength: 64
+                      type: string
+                  type: object
+                token_metadata:
+                  description: Contains the metadata for the tokenization
+                  properties:
+                    payment_account_info:
+                      description: Contains the information of the account responsible for the payment.
+                      properties:
+                        account_holder_data:
+                          description: Additional information that can be used to identify the account holder, such as name, address, etc
+                          properties:
+                            phone_number:
+                              description: The phone number, may contain country code along with phone number when countryDialInCode is not present
+                              maxLength: 20
+                              type: string
+                          type: object
+                        pan_unique_reference:
+                          description: Reference to the PAN that is unique per token requestor
+                          maxLength: 64
+                          type: string
+                        payment_account_reference:
+                          description: The unique account reference assigned to the PAN
+                          maxLength: 29
+                          type: string
+                        token_unique_reference:
+                          description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
+                          maxLength: 64
+                          type: string
+                      required:
+                        - account_holder_data
+                      type: object
+                    payment_app_instance_id:
+                      description: The identifier of the Payment App instance within a device that will be provisioned with a token
+                      maxLength: 48
+                      type: string
+                    status:
+                      description: The current status of the token. Pending or declined.
+                      type: string
+                    token_requestor_id:
+                      description: The party that requested the digitization
+                      maxLength: 11
+                      minLength: 11
+                      type: string
+                    token_requestor_name:
+                      description: Human-readable name of the wallet that the token_requestor_id maps to.
+                      enum:
+                        - APPLE_PAY
+                        - GOOGLE_PAY
+                        - SAMSUNG_PAY
+                      example: APPLE_PAY
+                      type: string
+                  required:
+                    - payment_account_info
+                    - status
+                  type: object
+                event_type:
+                  description: The name of this event
+                  enum:
+                    - tokenization.approval_request
+                  example: tokenization.approval_request
+                  type: string
+                issuer_decision:
+                  description: Whether Lithic decisioned on the token, and if so, what the decision was. APPROVED/VERIFICATION_REQUIRED/DENIED.
+                  enum:
+                    - APPROVED
+                    - DENIED
+                    - VERIFICATION_REQUIRED
+                  example: APPROVED
+                  type: string
+                tokenization_channel:
+                  description: The channel through which the tokenization was made.
+                  enum:
+                    - DIGITAL_WALLET
+                    - MERCHANT
+                  example: DIGITAL_WALLET
+                  type: string
+                tokenization_source:
+                  description: The source of the tokenization.
+                  enum:
+                    - ACCOUNT_ON_FILE
+                    - MANUAL_PROVISION
+                    - PUSH_PROVISION
+                  example: PUSH_PROVISION
+                  type: string
+                tokenization_token:
+                  description: Unique identifier for the token attempt
+                  type: string
+                wallet_decisioning_info:
+                  description: Contains information about the decision recommended by the Wallet Provider
+                  properties:
+                    account_score:
+                      description: Score given to the account by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    device_score:
+                      description: Score given to the device by the Wallet Provider
+                      example: '100'
+                      maxLength: 64
+                      type: string
+                    recommendation_reasons:
+                      description: Reasons provided to the Wallet Provider on how the recommended decision was reached
+                      items:
+                        type: string
+                      type: array
+                    recommended_decision:
+                      description: The decision recommended by the Wallet Provider
+                      maxLength: 64
+                      type: string
+                  type: object
+              required:
+                - account_token
+                - card_token
+                - created
+                - token_metadata
+                - event_type
+                - issuer_decision
+                - tokenization_channel
+                - tokenization_token
+                - wallet_decisioning_info
+              type: object
       responses:
         '200':
-          description: |
-            Return a 200 status to indicate that the data was received successfully.
+          description: Return a 200 status to indicate that the data was received successfully
       summary: tokenization.approval_request
       tags:
         - Event Types
@@ -9745,45 +9613,6 @@ components:
       schema:
         type: string
       example: v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE= v1,bm9ldHUjKzFob2VudXRob2VodWUzMjRvdWVvdW9ldQo=
-    InstanceToken:
-      name: x-instance-uuid
-      in: header
-      schema:
-        type: string
-        format: uuid
-      required: true
-    EndingBefore:
-      description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
-      in: query
-      name: ending_before
-      required: false
-      schema:
-        type: string
-        format: uuid
-    PageSize:
-      description: Page size (for pagination).
-      in: query
-      name: page_size
-      schema:
-        default: 50
-        maximum: 100
-        minimum: 1
-        type: integer
-    StartingAfter:
-      description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
-      in: query
-      name: starting_after
-      required: false
-      schema:
-        type: string
-        format: uuid
-    AuthRuleToken:
-      name: auth_rule_token
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
   responses:
     BadRequest:
       content:
@@ -9859,24 +9688,6 @@ components:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
     responses-BadRequest:
-      description: Bad Request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/schemas-Error'
-    responses-NotFound:
-      description: Not Found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/schemas-Error'
-    AuthRule:
-      description: Authorization Rule
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/auth-rule'
-    exception-responses_responses-BadRequest:
       content:
         application/json:
           schema:
@@ -9897,7 +9708,7 @@ components:
         | Please provide API key in the form Authorization: [api-key] | The Authorization header is not formatted properly |
         | Insufficient privileges. Issuing API key required | Write access requires an Issuing API key. Reach out at [lithic.com/contact](https://lithic.com/contact) |
         | Insufficient privileges to create virtual cards. | Creating virtual cards requires an additional privilege | Reach out at [lithic.com/contact](https://lithic.com/contact) |
-    exception-responses_responses-NotFound:
+    responses-NotFound:
       content:
         application/json:
           schema:
@@ -10462,15 +10273,17 @@ components:
           example: Omaha
           type: string
         country:
-          description: 'Valid country code, entered in uppercase ISO 3166-1 alpha-3 three-character format. Only USA is currently supported for all workflows. KYC_EXEMPT supports CAN additionally. '
+          description: |
+            Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
           example: USA
           type: string
         postal_code:
-          description: 'Valid postal code. USA postal codes (ZIP codes) are supported, entered as a five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234.  KYC_EXEMPT supports Canadian postal codes. '
+          description: 'Valid postal code. Only USA postal codes (ZIP codes) are currently supported, entered as a five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234. '
           example: '68022'
           type: string
         state:
-          description: Valid state code. USA state codes are supported, entered in uppercase ISO 3166-2 two-character format. KYC_EXEMPT supports Canadian province codes.
+          description: |
+            Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
           example: NE
           type: string
       required:
@@ -11198,38 +11011,6 @@ components:
             - three_ds_authentication_token
             - verification_attempted
             - verification_result
-    CardholderAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        conversion_rate:
-          title: Conversion Rate
-          type: string
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - conversion_rate
-        - currency
-      title: CardholderAggregateAmount
-      type: object
-    CardholderEventAmounts:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        conversion_rate:
-          title: Conversion Rate
-          type: string
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - conversion_rate
-        - currency
-      title: CardholderEventAmounts
-      type: object
     Carrier:
       properties:
         qr_code_url:
@@ -11336,194 +11117,6 @@ components:
         - type
       title: CreatePaymentRequest
       type: object
-    Currency:
-      description: |-
-        ISO 4217 currency.  Its enumerants are ISO 4217 currencies except for
-        some special currencies like ```XXX``.  Enumerants names are lowercase
-        cureency code e.g. :attr:`Currency.eur`, :attr:`Currency.usd`.
-      enum:
-        - AED
-        - AFN
-        - ALL
-        - AMD
-        - ANG
-        - AOA
-        - ARS
-        - AUD
-        - AWG
-        - AZN
-        - BAM
-        - BBD
-        - BDT
-        - BGN
-        - BHD
-        - BIF
-        - BMD
-        - BND
-        - BOB
-        - BOV
-        - BRL
-        - BSD
-        - BTN
-        - BWP
-        - BYN
-        - BZD
-        - CAD
-        - CDF
-        - CHE
-        - CHF
-        - CHW
-        - CLF
-        - CLP
-        - CNY
-        - COP
-        - COU
-        - CRC
-        - CUC
-        - CUP
-        - CVE
-        - CZK
-        - DJF
-        - DKK
-        - DOP
-        - DZD
-        - EGP
-        - ERN
-        - ETB
-        - EUR
-        - FJD
-        - FKP
-        - GBP
-        - GEL
-        - GHS
-        - GIP
-        - GMD
-        - GNF
-        - GTQ
-        - GYD
-        - HKD
-        - HNL
-        - HRK
-        - HTG
-        - HUF
-        - IDR
-        - ILS
-        - INR
-        - IQD
-        - IRR
-        - ISK
-        - JMD
-        - JOD
-        - JPY
-        - KES
-        - KGS
-        - KHR
-        - KMF
-        - KPW
-        - KRW
-        - KWD
-        - KYD
-        - KZT
-        - LAK
-        - LBP
-        - LKR
-        - LRD
-        - LSL
-        - LYD
-        - MAD
-        - MDL
-        - MGA
-        - MKD
-        - MMK
-        - MNT
-        - MOP
-        - MRU
-        - MUR
-        - MVR
-        - MWK
-        - MXN
-        - MXV
-        - MYR
-        - MZN
-        - NAD
-        - NGN
-        - NIO
-        - NOK
-        - NPR
-        - NZD
-        - OMR
-        - PAB
-        - PEN
-        - PGK
-        - PHP
-        - PKR
-        - PLN
-        - PYG
-        - QAR
-        - RON
-        - RSD
-        - RUB
-        - RWF
-        - SAR
-        - SBD
-        - SCR
-        - SDG
-        - SEK
-        - SGD
-        - SHP
-        - SLE
-        - SLL
-        - SOS
-        - SRD
-        - SSP
-        - STN
-        - SVC
-        - SYP
-        - SZL
-        - THB
-        - TJS
-        - TMT
-        - TND
-        - TOP
-        - TRY
-        - TTD
-        - TWD
-        - TZS
-        - UAH
-        - UGX
-        - USD
-        - USN
-        - UYI
-        - UYU
-        - UYW
-        - UZS
-        - VED
-        - VES
-        - VND
-        - VUV
-        - WST
-        - XAF
-        - XAG
-        - XAU
-        - XBA
-        - XBB
-        - XBC
-        - XBD
-        - XCD
-        - XDR
-        - XOF
-        - XPD
-        - XPF
-        - XPT
-        - XSU
-        - XTS
-        - XUA
-        - XXX
-        - YER
-        - ZAR
-        - ZMW
-        - ZWL
-      title: Currency
     DigitalCardArt:
       properties:
         card_program_token:
@@ -11897,7 +11490,6 @@ components:
             - account_holder.created
             - account_holder.updated
             - account_holder.verification
-            - auth_rules.performance_report.created
             - balance.updated
             - book_transfer_transaction.created
             - card.created
@@ -11914,10 +11506,7 @@ components:
             - dispute_evidence.upload_failed
             - external_bank_account.created
             - external_bank_account.updated
-            - external_payment.created
-            - external_payment.updated
             - financial_account.created
-            - financial_account.updated
             - payment_transaction.created
             - payment_transaction.updated
             - settlement_report.updated
@@ -11957,7 +11546,6 @@ components:
               - account_holder.created
               - account_holder.updated
               - account_holder.verification
-              - auth_rules.performance_report.created
               - balance.updated
               - book_transfer_transaction.created
               - card.created
@@ -11974,10 +11562,7 @@ components:
               - dispute_evidence.upload_failed
               - external_bank_account.created
               - external_bank_account.updated
-              - external_payment.created
-              - external_payment.updated
               - financial_account.created
-              - financial_account.updated
               - payment_transaction.created
               - payment_transaction.updated
               - settlement_report.updated
@@ -12003,6 +11588,52 @@ components:
         - disabled
         - token
         - url
+      type: object
+    FinancialAccount:
+      description: Financial Account
+      properties:
+        account_number:
+          description: Account number for your Lithic-assigned bank account number, if applicable.
+          type: string
+        account_token:
+          description: Account token of the financial account if applicable.
+          format: uuid
+          type: string
+        created:
+          description: Date and time for when the financial account was first created.
+          format: date-time
+          type: string
+        nickname:
+          description: User-defined nickname for the financial account.
+          type: string
+        routing_number:
+          description: Routing number for your Lithic-assigned bank account number, if applicable.
+          type: string
+        token:
+          description: Globally unique identifier for the financial account.
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          format: uuid
+          type: string
+        type:
+          description: Type of financial account
+          enum:
+            - ISSUING
+            - OPERATING
+            - RESERVE
+          type: string
+        updated:
+          description: Date and time for when the financial account was last updated.
+          format: date-time
+          type: string
+        is_for_benefit_of:
+          description: Whether the financial account holds funds for benefit of another party.
+          type: boolean
+      required:
+        - created
+        - token
+        - type
+        - updated
+        - is_for_benefit_of
       type: object
     FinancialEvent:
       properties:
@@ -12469,18 +12100,6 @@ components:
         - token
         - type
       type: object
-    HoldAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: HoldAggregateAmount
-      type: object
     Individual:
       properties:
         address:
@@ -12738,30 +12357,6 @@ components:
           minLength: 2
           type: string
       type: object
-    MerchantAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: MerchantAggregateAmount
-      type: object
-    MerchantEventAmounts:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: MerchantEventAmounts
-      type: object
     MessageAttempt:
       description: A subscription to specific event types.
       properties:
@@ -12991,34 +12586,6 @@ components:
               $ref: '#/components/schemas/Balance'
           type: object
       title: PostPaymentResponse
-    SettlementAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: SettlementAggregateAmount
-      type: object
-    SettlementEventAmounts:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        conversion_rate:
-          title: Conversion Rate
-          type: string
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - conversion_rate
-        - currency
-      title: SettlementEventAmounts
-      type: object
     SettlementDetail:
       properties:
         account_token:
@@ -13945,8 +13512,6 @@ components:
           description: Authorization amount of the transaction (in cents), including any acquirer fees. This may change over time, and will represent the settled amount once the transaction is settled.
           example: 1500
           type: integer
-        amounts:
-          $ref: '#/components/schemas/TransactionAggregateAmounts'
         authorization_amount:
           description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
           example: 1500
@@ -14214,16 +13779,10 @@ components:
           type:
             - object
             - 'null'
-        updated:
-          description: Date and time when the transaction last updated. UTC time zone.
-          example: '2023-09-26T21:14:28.637Z'
-          format: date-time
-          type: string
       required:
         - acquirer_fee
         - acquirer_reference_number
         - amount
-        - amounts
         - authorization_amount
         - authorization_code
         - avs
@@ -14242,24 +13801,6 @@ components:
         - status
         - token
         - token_info
-        - updated
-      type: object
-    TransactionAggregateAmounts:
-      properties:
-        cardholder:
-          $ref: '#/components/schemas/CardholderAggregateAmount'
-        hold:
-          $ref: '#/components/schemas/HoldAggregateAmount'
-        merchant:
-          $ref: '#/components/schemas/MerchantAggregateAmount'
-        settlement:
-          $ref: '#/components/schemas/SettlementAggregateAmount'
-      required:
-        - cardholder
-        - hold
-        - merchant
-        - settlement
-      title: TransactionAggregateAmounts
       type: object
     TransactionEvent:
       description: A single card transaction may include multiple events that affect the transaction state and lifecycle.
@@ -14268,8 +13809,6 @@ components:
           description: Amount of the transaction event (in cents), including any acquirer fees.
           example: 1500
           type: integer
-        amounts:
-          $ref: '#/components/schemas/TransactionEventAmounts'
         created:
           description: RFC 3339 date and time this event entered the system. UTC time zone.
           example: '2023-09-26T21:14:28.637Z'
@@ -14413,25 +13952,11 @@ components:
           type: string
       required:
         - amount
-        - amounts
         - created
         - detailed_results
         - result
         - token
         - type
-      type: object
-    TransactionEventAmounts:
-      properties:
-        cardholder:
-          $ref: '#/components/schemas/CardholderEventAmounts'
-        merchant:
-          $ref: '#/components/schemas/MerchantEventAmounts'
-        settlement:
-          $ref: '#/components/schemas/SettlementEventAmounts'
-      required:
-        - cardholder
-        - merchant
-      title: TransactionEventAmounts
       type: object
     Transfer:
       properties:
@@ -14549,10 +14074,10 @@ components:
           description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
           type: integer
         status:
-          description: 'Status types: * `DECLINED` - The transfer was declined. * `REVERSED` - The transfer was reversed * `SETTLED` - The transfer is completed. '
+          description: 'Status types: * `DECLINED` - The transfer was declined. * `PENDING` - The transfer is pending release from a hold. * `SETTLED` - The transfer is completed. '
           enum:
             - DECLINED
-            - REVERSED
+            - PENDING
             - SETTLED
           type: string
         to_financial_account_token:
@@ -14706,10 +14231,6 @@ components:
             - SSN_CARD
             - ITIN_LETTER
           description: Type of documentation to be submitted for verification.
-        entity_token:
-          type: string
-          format: uuid
-          description: Globally unique identifier for an entity.
         required_document_uploads:
           type: array
           description: Represents a single image of the document to upload.
@@ -14750,10 +14271,6 @@ components:
 
                   Note that the upload URLs expire after 7 days. If an upload URL expires, you can
                   refresh the URLs by retrieving the document upload from `GET /account_holders/{account_holder_token}/documents`.
-              token:
-                type: string
-                format: uuid
-                description: Globally unique identifier for the document upload.
             required:
               - image_type
               - status
@@ -14766,322 +14283,6 @@ components:
         - entity_token
         - required_document_uploads
         - token
-    auth-rule-token:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-token.json
-      title: Auth Rule Token
-      type: string
-      format: uuid
-      readOnly: true
-    auth-rule-state:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-state.json
-      title: Auth Rule Version 2 State
-      type: string
-      description: The state of the Auth Rule
-      enum:
-        - ACTIVE
-        - INACTIVE
-    program-level:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/program-level.json
-      title: Auth Rule Program Level Parameter
-      type: boolean
-      description: Whether the Auth Rule applies to all authorizations on the card program.
-    card-tokens:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/card-tokens.json
-      title: Auth Rule Card Tokens
-      description: Card tokens to which the Auth Rule applies.
-      type: array
-      items:
-        type: string
-        format: uuid
-    account-tokens:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/account-tokens.json
-      title: Auth Rule Account Tokens
-      description: Account tokens to which the Auth Rule applies.
-      type: array
-      items:
-        type: string
-        format: uuid
-    auth-rule-type:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-type.json
-      title: Auth Rule Version 2 Types
-      type: string
-      enum:
-        - CONDITIONAL_BLOCK
-        - VELOCITY_LIMIT
-      description: The type of Auth Rule
-    conditional-block-parameters:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-block-parameters.json
-      title: Conditional Block Rule Parameters
-      type: object
-      properties:
-        conditions:
-          type: array
-          items:
-            type: object
-            properties:
-              attribute:
-                type: string
-                description: The attribute to target
-                enum:
-                  - MCC
-                  - COUNTRY
-                  - CURRENCY
-                  - MERCHANT_ID
-                  - DESCRIPTOR
-                  - LIABILITY_SHIFT
-                  - PAN_ENTRY_MODE
-                  - TRANSACTION_AMOUNT
-                  - RISK_SCORE
-              operation:
-                type: string
-                description: The operation to apply to the attribute
-                enum:
-                  - IS_ONE_OF
-                  - IS_NOT_ONE_OF
-                  - MATCHES
-                  - DOES_NOT_MATCH
-                  - IS_GREATER_THAN
-                  - IS_LESS_THAN
-              value:
-                anyOf:
-                  - type: string
-                    description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - type: number
-                    description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
-                  - type: array
-                    items:
-                      type: string
-                    description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
-      required:
-        - conditions
-    velocity-limit-parameters:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-parameters.json
-      title: Velocity Limit Rule Parameters
-      type: object
-      properties:
-        scope:
-          type: string
-          enum:
-            - CARD
-            - ACCOUNT
-        period:
-          anyOf:
-            - type: number
-              description: The size of the trailing window to calculate Spend Velocity over in seconds.
-              minimum: 10
-              maximum: 2678400
-            - type: string
-              enum:
-                - DAY
-                - MONTH
-              description: |-
-                The window of time to calculate Spend Velocity over.
-
-                * `DAY`: Velocity over the current day since midnight Eastern Time.
-                * `MONTH`: Velocity over the current month since 00:00 / 12 AM on the first of the month in Eastern Time.
-        filters:
-          type: object
-          properties:
-            include_mccs:
-              anyOf:
-                - type: 'null'
-                  description: Include all MCCs into the velocity computation.
-                - type: array
-                  items:
-                    type: string
-                    pattern: ^[0-9]{4}$
-                    example: '5542'
-                  description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
-            include_countries:
-              anyOf:
-                - type: 'null'
-                  description: Include all countries into the velocity computation.
-                - type: array
-                  items:
-                    type: string
-                    pattern: ^[A-Z]{3}$
-                    example: USA
-                  description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
-        limit_amount:
-          anyOf:
-            - type: 'null'
-              description: No velocity limit on amount is applied to the transaction.
-            - type: number
-              description: The maximum amount of spend velocity allowed in the period in minor units (the smallest unit of a currency, e.g. cents for USD). Transactions exceeding this limit will be declined.
-              example: 10000
-        limit_count:
-          anyOf:
-            - type: 'null'
-              description: No limit on the number of velocity impacting events is applied.
-            - type: number
-              description: |-
-                The number of spend velocity impacting transactions may not exceed this limit in the period. Transactions exceeding this limit will be declined.
-                A spend velocity impacting transaction is a transaction that has been authorized, and optionally settled, or a force post (a transaction that settled without prior authorization).
-      required:
-        - scope
-        - period
-        - filters
-    auth-rule-parameters:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-parameters.json
-      title: Auth Rule Version 2 Parameters
-      description: Parameters for the current version of the Auth Rule
-      anyOf:
-        - $ref: '#/components/schemas/conditional-block-parameters'
-        - $ref: '#/components/schemas/velocity-limit-parameters'
-    auth-rule-version:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-version.json
-      title: Auth Rule Version
-      type: integer
-      description: The version of the rule, this is incremented whenever the rule's parameters change.
-      readOnly: true
-    auth-rule:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
-      title: Auth Rule Version 2
-      type: object
-      properties:
-        token:
-          $ref: '#/components/schemas/auth-rule-token'
-        state:
-          $ref: '#/components/schemas/auth-rule-state'
-        program_level:
-          $ref: '#/components/schemas/program-level'
-        card_tokens:
-          $ref: '#/components/schemas/card-tokens'
-        account_tokens:
-          $ref: '#/components/schemas/account-tokens'
-        type:
-          $ref: '#/components/schemas/auth-rule-type'
-        current_version:
-          anyOf:
-            - type: 'null'
-              description: No current version.
-            - type: object
-              properties:
-                parameters:
-                  $ref: '#/components/schemas/auth-rule-parameters'
-                version:
-                  $ref: '#/components/schemas/auth-rule-version'
-              required:
-                - parameters
-                - version
-        draft_version:
-          anyOf:
-            - type: 'null'
-              description: No draft version.
-            - type: object
-              properties:
-                parameters:
-                  $ref: '#/components/schemas/auth-rule-parameters'
-                version:
-                  $ref: '#/components/schemas/auth-rule-version'
-              required:
-                - parameters
-                - version
-      required:
-        - token
-        - state
-        - program_level
-        - card_tokens
-        - account_tokens
-        - type
-        - current_version
-        - draft_version
-    schemas-Error:
-      type: object
-      properties:
-        error:
-          type: string
-          example: Invalid input
-    create-auth-rule-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/create-auth-rule-request.json
-      title: Auth Rule Version 2 Parameters
-      type: object
-      oneOf:
-        - properties:
-            account_tokens:
-              $ref: '#/components/schemas/account-tokens'
-            type:
-              $ref: '#/components/schemas/auth-rule-type'
-            parameters:
-              $ref: '#/components/schemas/auth-rule-parameters'
-          required:
-            - account_tokens
-        - properties:
-            card_tokens:
-              $ref: '#/components/schemas/card-tokens'
-            type:
-              $ref: '#/components/schemas/auth-rule-type'
-            parameters:
-              $ref: '#/components/schemas/auth-rule-parameters'
-          required:
-            - card_tokens
-        - properties:
-            program_level:
-              $ref: '#/components/schemas/program-level'
-            type:
-              $ref: '#/components/schemas/auth-rule-type'
-            parameters:
-              $ref: '#/components/schemas/auth-rule-parameters'
-          required:
-            - program_level
-      required:
-        - parameters
-        - type
-    patch-auth-rule-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/patch-auth-rule-request.json
-      title: Auth Rule Version 2 Patch Request
-      type: object
-      properties:
-        state:
-          description: |-
-            The desired state of the Auth Rule.
-
-            Note that only deactivating an Auth Rule through this endpoint is supported at this time. If you need to (re-)activate an Auth Rule the /promote endpoint should be used to promote a draft to the currently active version.
-          type: string
-          const: INACTIVE
-    apply-auth-rule-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/apply-auth-rule-request.json
-      title: Auth Rule Apply Version 2 Parameters
-      anyOf:
-        - type: object
-          properties:
-            account_tokens:
-              $ref: '#/components/schemas/account-tokens'
-          required:
-            - account_tokens
-        - type: object
-          properties:
-            card_tokens:
-              $ref: '#/components/schemas/card-tokens'
-          required:
-            - card_tokens
-        - type: object
-          properties:
-            program_level:
-              $ref: '#/components/schemas/program-level'
-          required:
-            - program_level
-    report-token:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/report-token.json
-      title: Auth Rule Performance Report Token
-      type: string
-      format: uuid
-      readOnly: true
     financial_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15684,136 +14885,6 @@ components:
           type: integer
       required:
         - credit_extended
-    instance-financial-account-type:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/instance-financial-account-type.json
-      title: Instance Financial Account Type
-      description: Type of instance financial account
-      type: string
-      enum:
-        - ISSUING
-        - RESERVE
-        - OPERATING
-    account-financial-account-type:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/account-financial-account-type.json
-      title: Account Financial Account Type
-      description: Type of account financial account
-      type: string
-      enum:
-        - ISSUING
-        - OPERATING
-    financial-account-state:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-state.json
-      title: Financial Account State
-      description: State of the financial account
-      type: string
-      enum:
-        - PENDING
-        - CURRENT
-        - DELINQUENT
-    financial-account-credit-config:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config.json
-      title: Financial Account Credit Config
-      type:
-        - object
-        - 'null'
-      properties:
-        credit_limit:
-          type:
-            - integer
-            - 'null'
-        external_bank_account_token:
-          type:
-            - string
-            - 'null'
-          format: uuid
-        credit_product_token:
-          type:
-            - string
-            - 'null'
-          description: Globally unique identifier for the credit product
-        tier:
-          type:
-            - string
-            - 'null'
-          description: Tier assigned to the financial account
-        financial_account_state:
-          $ref: '#/components/schemas/financial-account-state'
-      required:
-        - credit_limit
-        - external_bank_account_token
-        - credit_product_token
-        - tier
-    financial-account-response:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-response.json
-      title: Financial Account Response
-      type: object
-      properties:
-        token:
-          type: string
-          description: Globally unique identifier for the account
-          example: b68b7424-aa69-4cbc-a946-30d90181b621
-          format: uuid
-        created:
-          type: string
-          format: date-time
-        updated:
-          type: string
-          format: date-time
-        type:
-          oneOf:
-            - $ref: '#/components/schemas/instance-financial-account-type'
-            - $ref: '#/components/schemas/account-financial-account-type'
-        routing_number:
-          type:
-            - string
-            - 'null'
-        account_number:
-          type:
-            - string
-            - 'null'
-        nickname:
-          type:
-            - string
-            - 'null'
-        account_token:
-          type:
-            - string
-            - 'null'
-          format: uuid
-        is_for_benefit_of:
-          type: boolean
-          description: Whether financial account is for the benefit of another entity
-        credit_configuration:
-          $ref: '#/components/schemas/financial-account-credit-config'
-      required:
-        - token
-        - created
-        - updated
-        - type
-        - nickname
-        - is_for_benefit_of
-        - account_token
-        - credit_configuration
-    financial-accounts-response:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/financial-accounts-response.json
-      title: Financial Accounts Response
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/financial-account-response'
-        has_more:
-          type: boolean
-      required:
-        - data
-        - has_more
     financial-account-credit-config-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-response.json
@@ -15845,13 +14916,17 @@ components:
             - 'null'
           description: Tier assigned to the financial account
         financial_account_state:
-          $ref: '#/components/schemas/financial-account-state'
+          type:
+            - string
+            - 'null'
+          description: State of the financial account
       required:
         - account_token
         - credit_limit
         - external_bank_account_token
         - credit_product_token
         - tier
+        - financial_account_state
     financial-account-credit-config-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-request.json
@@ -16579,246 +15654,6 @@ components:
               - DOCUMENT_MISSING_REQUIRED_DATA
               - DOCUMENT_UPLOAD_TOO_BLURRY
               - INVALID_DOCUMENT_TYPE
-    external_payment_category:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Category
-      type: string
-      enum:
-        - EXTERNAL_WIRE
-        - EXTERNAL_ACH
-        - EXTERNAL_CHECK
-        - EXTERNAL_TRANSFER
-    transaction_result:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_result.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Transaction Result
-      type: string
-      enum:
-        - APPROVED
-        - DECLINED
-    transaction_status:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_status.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Transaction Status
-      type: string
-      enum:
-        - PENDING
-        - SETTLED
-        - DECLINED
-        - REVERSED
-    external_payment_event_type:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event_type.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Event Type
-      type: string
-      enum:
-        - EXTERNAL_WIRE_INITIATED
-        - EXTERNAL_WIRE_CANCELED
-        - EXTERNAL_WIRE_SETTLED
-        - EXTERNAL_WIRE_REVERSED
-        - EXTERNAL_WIRE_RELEASED
-        - EXTERNAL_ACH_INITIATED
-        - EXTERNAL_ACH_CANCELED
-        - EXTERNAL_ACH_SETTLED
-        - EXTERNAL_ACH_REVERSED
-        - EXTERNAL_ACH_RELEASED
-        - EXTERNAL_TRANSFER_INITIATED
-        - EXTERNAL_TRANSFER_CANCELED
-        - EXTERNAL_TRANSFER_SETTLED
-        - EXTERNAL_TRANSFER_REVERSED
-        - EXTERNAL_TRANSFER_RELEASED
-        - EXTERNAL_CHECK_INITIATED
-        - EXTERNAL_CHECK_CANCELED
-        - EXTERNAL_CHECK_SETTLED
-        - EXTERNAL_CHECK_REVERSED
-        - EXTERNAL_CHECK_RELEASED
-    detailed_results:
-      $id: https://lithic.com/schemas/treasury/ledger/detailed_results.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Detailed Results
-      type: string
-      enum:
-        - APPROVED
-    external_payment_event:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Event
-      type: object
-      properties:
-        amount:
-          type: integer
-        type:
-          $ref: '#/components/schemas/external_payment_event_type'
-        result:
-          $ref: '#/components/schemas/transaction_result'
-        detailed_results:
-          type: array
-          items:
-            $ref: '#/components/schemas/detailed_results'
-        created:
-          type: string
-          format: date-time
-        token:
-          type: string
-          format: uuid
-        memo:
-          type: string
-        effective_date:
-          type: string
-          format: date
-      required:
-        - amount
-        - type
-        - result
-        - detailed_results
-        - created
-        - token
-        - memo
-        - effective_date
-    external_payment_direction:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_direction.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Direction
-      type: string
-      enum:
-        - DEPOSIT
-        - WITHDRAWAL
-    external_payment_response:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Response
-      type: object
-      properties:
-        token:
-          type: string
-          format: uuid
-        result:
-          $ref: '#/components/schemas/transaction_result'
-        category:
-          $ref: '#/components/schemas/external_payment_category'
-        status:
-          $ref: '#/components/schemas/transaction_status'
-        settled_amount:
-          type: integer
-        pending_amount:
-          type: integer
-        currency:
-          type: string
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/external_payment_event'
-        created:
-          type: string
-          format: date-time
-        updated:
-          type: string
-          format: date-time
-        user_defined_id:
-          type: string
-        financial_account_token:
-          type: string
-          format: uuid
-        payment_type:
-          $ref: '#/components/schemas/external_payment_direction'
-      required:
-        - token
-        - result
-        - category
-        - status
-        - settled_amount
-        - pending_amount
-        - currency
-        - events
-        - created
-        - updated
-        - financial_account_token
-        - payment_type
-    external_payments_response:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payments_response.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payments Response
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/external_payment_response'
-        has_more:
-          type: boolean
-      required:
-        - data
-        - has_more
-    external_payment_progress_to:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_progress_to.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Progress To
-      type: string
-      enum:
-        - SETTLED
-        - RELEASED
-    create_external_payment_request:
-      $id: https://lithic.com/schemas/treasury/ledger/create_external_payment_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Create External Payment Request
-      type: object
-      properties:
-        category:
-          $ref: '#/components/schemas/external_payment_category'
-        financial_account_token:
-          type: string
-          format: uuid
-        amount:
-          type: integer
-        memo:
-          type: string
-        user_defined_id:
-          type: string
-        effective_date:
-          type: string
-          format: date
-        token:
-          type: string
-          format: uuid
-        payment_type:
-          $ref: '#/components/schemas/external_payment_direction'
-        progress_to:
-          $ref: '#/components/schemas/external_payment_progress_to'
-      required:
-        - category
-        - financial_account_token
-        - amount
-        - effective_date
-        - payment_type
-    external_payment_action_with_progress_to_request:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_action_with_progress_to_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Action with Progress to Request
-      type: object
-      properties:
-        memo:
-          type: string
-        effective_date:
-          type: string
-          format: date
-        progress_to:
-          $ref: '#/components/schemas/external_payment_progress_to'
-      required:
-        - effective_date
-    external_payment_action_request:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_action_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Action Request
-      type: object
-      properties:
-        memo:
-          type: string
-        effective_date:
-          type: string
-          format: date
-      required:
-        - effective_date
     asa_request_pos_terminal_pin_capability:
       type: string
       description: Status of whether the POS is able to accept PINs
@@ -17570,436 +16405,6 @@ components:
                 - type: 'null'
       required:
         - result
-    device:
-      $id: https://lithic.com/schemas/tokenization/shared/device.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: object
-      properties:
-        imei:
-          description: The IMEI number of the device being provisioned
-          example: '123456789012345'
-          maxLength: 15
-          type: string
-        ip_address:
-          description: The IP address of the device initiating the request
-          example: 1.1.1.1
-          maxLength: 64
-          type: string
-        location:
-          description: Latitude and longitude where the device is located during the authorization attempt
-          example: 37.3860517,-122.0838511
-          maxLength: 64
-          type: string
-      required:
-        - imei
-        - ip_address
-        - location
-    digital-wallet-token-metadata:
-      $id: https://lithic.com/schemas/tokenization/shared/digital-wallet-token-metadata.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: Contains the metadata for the digital wallet being tokenized.
-      type: object
-      properties:
-        payment_account_info:
-          description: Contains the information of the account responsible for the payment.
-          type: object
-          properties:
-            account_holder_data:
-              description: Additional information that can be used to identify the account holder, such as name, address, etc
-              type: object
-              properties:
-                phone_number:
-                  description: The phone number, may contain country code along with phone number when countryDialInCode is not present
-                  type: string
-                  maxLength: 20
-            pan_unique_reference:
-              description: Reference to the PAN that is unique per Wallet Provider
-              type: string
-              maxLength: 64
-            payment_account_reference:
-              description: The unique account reference assigned to the PAN
-              type: string
-              maxLength: 29
-            token_unique_reference:
-              description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
-              type: string
-              maxLength: 64
-          required:
-            - account_holder_data
-        payment_app_instance_id:
-          description: The identifier of the Payment App instance within a device that will be provisioned with a token
-          type: string
-          maxLength: 48
-        status:
-          description: The current status of the digital wallet token. Pending or declined.
-          type: string
-        token_requestor_id:
-          description: The party that requested the digitization
-          type: string
-          minLength: 11
-          maxLength: 11
-        token_requestor_name:
-          description: Human-readable name of the wallet that the token_requestor_id maps to.
-          type: string
-          enum:
-            - APPLE_PAY
-          example: APPLE_PAY
-      required:
-        - payment_account_info
-        - status
-    wallet-decisioning-info:
-      $id: https://lithic.com/schemas/tokenization/shared/wallet-decisioning-info.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: object
-      properties:
-        account_score:
-          description: Score given to the account by the Wallet Provider
-          example: '100'
-          maxLength: 64
-          type: string
-        device_score:
-          description: Score given to the device by the Wallet Provider
-          example: '100'
-          maxLength: 64
-          type: string
-        recommendation_reasons:
-          description: Reasons provided to the Wallet Provider on how the recommended decision was reached
-          type: array
-          items:
-            type: string
-        recommended_decision:
-          description: The decision recommended by the Wallet Provider
-          example: Decision1
-          maxLength: 64
-          type: string
-      required:
-        - account_score
-        - device_score
-        - recommended_decision
-    tokenization-request-base:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-request-base.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: Base properties shared by both tokenization decisioning requests (with response) and without
-      type: object
-      properties:
-        account_token:
-          description: Unique identifier for the user tokenizing a card
-          example: 00000000-0000-0000-0000-000000000002
-          type: string
-        card_token:
-          description: Unique identifier for the card being tokenized
-          example: 00000000-0000-0000-0000-000000000001
-          type: string
-        created:
-          description: Indicate when the request was received from Mastercard or Visa
-          format: date-time
-          type: string
-        device:
-          $ref: '#/components/schemas/device'
-        digital_wallet_token_metadata:
-          $ref: '#/components/schemas/digital-wallet-token-metadata'
-        issuer_decision:
-          description: Whether Lithic decisioned on the token, and if so, what the decision was. APPROVED/VERIFICATION_REQUIRED/DENIED.
-          enum:
-            - APPROVED
-            - DENIED
-            - VERIFICATION_REQUIRED
-          example: APPROVED
-          type: string
-        tokenization_channel:
-          description: The channel through which the tokenization was made.
-          enum:
-            - DIGITAL_WALLET
-            - MERCHANT
-          example: DIGITAL_WALLET
-          type: string
-        tokenization_source:
-          description: The source of the tokenization.
-          enum:
-            - ACCOUNT_ON_FILE
-            - MANUAL_PROVISION
-            - PUSH_PROVISION
-          example: PUSH_PROVISION
-          type: string
-        tokenization_token:
-          description: Unique identifier for the digital wallet token attempt
-          type: string
-        wallet_decisioning_info:
-          $ref: '#/components/schemas/wallet-decisioning-info'
-      required:
-        - account_token
-        - card_token
-        - created
-        - digital_wallet_token_metadata
-        - issuer_decision
-        - tokenization_channel
-        - tokenization_token
-        - wallet_decisioning_info
-    tokenization-decisioning-request:
-      $id: https://lithic.com/schemas/tokenization/notify-webhooks/tokenization-decisioning-request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: A webhook for tokenization decisioning sent to the customer's responder endpoint
-      allOf:
-        - $ref: '#/components/schemas/tokenization-request-base'
-        - type: object
-          properties:
-            event_type:
-              description: The name of this event
-              enum:
-                - digital_wallet.tokenization_approval_request
-              example: digital_wallet.tokenization_approval_request
-              type: string
-          required:
-            - event_type
-          examples:
-            - account_token: 00000000-0000-0000-0000-000000000002
-              card_token: 00000000-0000-0000-0000-000000000001
-              created: '2023-09-18T12:34:56Z'
-              device:
-                imei: '123456789012345'
-                ip_address: 1.1.1.1
-                location: 37.3860517,-122.0838511
-              digital_wallet_token_metadata:
-                payment_account_info:
-                  account_holder_data:
-                    phone_number: '+123456789012'
-                  pan_unique_reference: pan_unique_ref_1234567890123456789012345678
-                  payment_account_reference: ref_1234567890123456789012
-                  token_unique_reference: token_unique_ref_1234567890123456789012345678
-                payment_app_instance_id: app_instance_123456789012345678901234567890
-                status: Pending
-                token_requestor_id: '12345678901'
-                token_requestor_name: APPLE_PAY
-              event_type: tokenization.approval_request
-              issuer_decision: APPROVED
-              tokenization_channel: DIGITAL_WALLET
-              tokenization_source: PUSH_PROVISION
-              tokenization_token: tok_1234567890abcdef
-              wallet_decisioning_info:
-                account_score: '100'
-                device_score: '100'
-                recommendation_reasons:
-                  - Reason1
-                recommended_decision: Decision1
-    tokenization-decisioning-response:
-      $id: https://lithic.com/schemas/tokenization/decisioning/tokenization-decisioning-response.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: The response payload that a Tokenization Decisioning responder may respond with in response to a request.
-      type: object
-      properties:
-        tokenization_decision:
-          description: The decision for tokenization
-          type: string
-          enum:
-            - APPROVE
-            - AUTHENTICATE
-            - DECLINE
-          example: APPROVE
-        phone_number:
-          description: Phone number of the end user attempting a tokenization. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the accountholder information on file. E.164 format without hyphens. For example, "+12124007676" for a US phone number.
-          type: string
-          example: '+15558675309'
-        email:
-          description: 'Email address of the end user attempting a tokenization to be used for authentication. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the accountholder information on file. Permitted values: Valid email address. For example, "johnny@appleseed.com".'
-          type: string
-          format: email
-          example: test@example.com
-        mobile_application_name:
-          description: Name of the mobile application that the digital wallet will open for the end user to complete authentication. For example, "Wells Fargo".
-          type: string
-          example: Wells Fargo
-      required:
-        - tokenization_decision
-        - phone_number
-        - email
-        - mobile_application_name
-      examples:
-        - tokenization_decision: AUTHENTICATE
-          phone_number: '+15558675309'
-          email: test@example.com
-          mobile_application_name: Wells Fargo
-    rule-stats:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/rule-stats.json
-      title: Auth Rule Rule Performance Statistics
-      type: object
-      properties:
-        version:
-          $ref: '#/components/schemas/auth-rule-version'
-        approved:
-          type: integer
-          description: The number of times the rule has approved an authorization request (or would have approved if the rule is in shadow mode).
-        declined:
-          type: integer
-          description: The number of times the rule has declined an authorization request (or would have declined if the rule is in shadow mode).
-        examples:
-          type: array
-          description: Example authorization request events that would have been approved or declined.
-          items:
-            type: object
-            properties:
-              event_token:
-                type: string
-                format: uuid
-                description: The authorization request event token.
-              timestamp:
-                type: string
-                format: date-time
-                description: The timestamp of the authorization request event.
-              approved:
-                type: boolean
-                description: Whether the rule would have approved the authorization request.
-    performance-report:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/performance-report.json
-      title: Auth Rule Performance Report
-      type: object
-      properties:
-        auth_rule_token:
-          $ref: '#/components/schemas/auth-rule-token'
-        report_token:
-          $ref: '#/components/schemas/report-token'
-        from:
-          description: The start of the time range for the performance report.
-          type: string
-          format: date-time
-        to:
-          description: The end of the time range for the performance report.
-          type: string
-          format: date-time
-        current_version_statistics:
-          oneOf:
-            - type: 'null'
-              description: No active version of the Auth Rule is impacting the Authorization stream.
-            - description: Statistics for the active version of the Auth Rule that is impacting the Authorization stream.
-              $ref: '#/components/schemas/rule-stats'
-        draft_version_statistics:
-          oneOf:
-            - type: 'null'
-              description: No draft version of the Auth Rule is running in shadow mode.
-            - description: Statistics for the draft version of the Auth Rule that is running in shadow mode in the authorization stream.
-              $ref: '#/components/schemas/rule-stats'
-      required:
-        - token
-        - report_token
-        - from
-        - to
-        - current_version_statistics
-        - draft_version_statistics
-    customer-tokenization-decision:
-      $id: https://lithic.com/schemas/tokenization/shared/customer-tokenization-decision.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: Contains the metadata for the customer tokenization decision.
-      type: object
-      properties:
-        latency:
-          description: Time in ms it took for the customer's URL to respond
-          example: '100'
-          type: string
-        outcome:
-          description: The outcome of the customer's decision
-          enum:
-            - APPROVED
-            - DECLINED
-            - ERROR
-            - INVALID_RESPONSE
-            - REQUIRE_ADDITIONAL_AUTHENTICATION
-            - TIMEOUT
-          example: APPROVED
-          type: string
-        responder_url:
-          description: The customer's subscribed URL
-          example: https://example.com
-          type: string
-        response_code:
-          description: The response code that the customer provided
-          example: '123456'
-          type: string
-      required:
-        - outcome
-        - responder_url
-    digital-wallet-tokenization-approval-request:
-      $id: https://lithic.com/schemas/tokenization/notify-webhooks/digital-wallet-tokenization-approval-request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: An event webhook (no responder) to inform that a Tokenization Request was decisioned on.
-      allOf:
-        - $ref: '#/components/schemas/tokenization-request-base'
-        - type: object
-          properties:
-            customer_tokenization_decision:
-              $ref: '#/components/schemas/customer-tokenization-decision'
-            event_type:
-              description: The name of this event
-              enum:
-                - digital_wallet.tokenization_approval_request
-              example: digital_wallet.tokenization_approval_request
-              type: string
-          required:
-            - customer_tokenization_decision
-            - event_type
-          examples:
-            - account_token: 00000000-0000-0000-0000-000000000002
-              card_token: 00000000-0000-0000-0000-000000000001
-              created: '2023-09-18T12:34:56Z'
-              customer_tokenization_decision:
-                latency: '100'
-                outcome: APPROVED
-                responder_url: https://example.com
-                response_code: '123456'
-              device:
-                imei: '123456789012345'
-                ip_address: 1.1.1.1
-                location: 37.3860517,-122.0838511
-              digital_wallet_token_metadata:
-                payment_account_info:
-                  account_holder_data:
-                    phone_number: '+123456789012'
-                  pan_unique_reference: pan_unique_ref_1234567890123456789012345678
-                  payment_account_reference: ref_1234567890123456789012
-                  token_unique_reference: token_unique_ref_1234567890123456789012345678
-                payment_app_instance_id: app_instance_123456789012345678901234567890
-                status: Pending
-                token_requestor_id: '12345678901'
-                token_requestor_name: APPLE_PAY
-              event_type: digital_wallet.tokenization_approval_request
-              issuer_decision: APPROVED
-              tokenization_channel: DIGITAL_WALLET
-              tokenization_source: PUSH_PROVISION
-              tokenization_token: tok_1234567890abcdef
-              wallet_decisioning_info:
-                account_score: '100'
-                device_score: '100'
-                recommendation_reasons:
-                  - Reason1
-                recommended_decision: Decision1
-    external_payment_event_types:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event_types.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Event Types
-      type: string
-      enum:
-        - external_payment.created
-        - external_payment.updated
-    external_payment_response_created_event:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response_created_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Created Event
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/external_payment_response'
-      properties:
-        event_type:
-          $ref: '#/components/schemas/external_payment_event_types'
-    external_payment_response_updated_event:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response_updated_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Updated Event
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/external_payment_response'
-      properties:
-        event_type:
-          $ref: '#/components/schemas/external_payment_event_types'
     statements_created_webhook:
       $id: https://lithic.com/schemas/treasury/statements/statements_created_webhook.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18014,60 +16419,6 @@ components:
             - statements.created
       required:
         - event_type
-    tokenization-approval-request:
-      $id: https://lithic.com/schemas/tokenization/notify-webhooks/tokenization-approval-request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      description: An event webhook (no responder) to inform that a Tokenization Request was decisioned on.
-      allOf:
-        - $ref: '#/components/schemas/tokenization-request-base'
-        - type: object
-          properties:
-            customer_tokenization_decision:
-              $ref: '#/components/schemas/customer-tokenization-decision'
-            event_type:
-              description: The name of this event
-              enum:
-                - tokenization.approval_request
-              example: tokenization.approval_request
-              type: string
-          required:
-            - customer_tokenization_decision
-            - event_type
-          examples:
-            - account_token: 00000000-0000-0000-0000-000000000002
-              card_token: 00000000-0000-0000-0000-000000000001
-              created: '2023-09-18T12:34:56Z'
-              customer_tokenization_decision:
-                latency: '100'
-                outcome: APPROVED
-                responder_url: https://example.com
-                response_code: '123456'
-              device:
-                imei: '123456789012345'
-                ip_address: 1.1.1.1
-                location: 37.3860517,-122.0838511
-              digital_wallet_token_metadata:
-                payment_account_info:
-                  account_holder_data:
-                    phone_number: '+123456789012'
-                  pan_unique_reference: pan_unique_ref_1234567890123456789012345678
-                  payment_account_reference: ref_1234567890123456789012
-                  token_unique_reference: token_unique_ref_1234567890123456789012345678
-                payment_app_instance_id: app_instance_123456789012345678901234567890
-                status: Pending
-                token_requestor_id: '12345678901'
-                token_requestor_name: APPLE_PAY
-              event_type: tokenization.approval_request
-              issuer_decision: APPROVED
-              tokenization_channel: DIGITAL_WALLET
-              tokenization_source: PUSH_PROVISION
-              tokenization_token: tok_1234567890abcdef
-              wallet_decisioning_info:
-                account_score: '100'
-                device_score: '100'
-                recommendation_reasons:
-                  - Reason1
-                recommended_decision: Decision1
   securitySchemes:
     ApiKeyAuth:
       in: header
