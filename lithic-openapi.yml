@@ -16607,6 +16607,7 @@ components:
         - SETTLED
         - DECLINED
         - REVERSED
+        - CANCELED
     external_payment_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
