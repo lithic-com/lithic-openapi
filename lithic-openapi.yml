@@ -1375,6 +1375,25 @@ paths:
       summary: Apply existing authorization rule
       tags:
         - Authorization Rules
+  /v1/auth_rules/{auth_rule_token}/migrate:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      tags:
+        - Authorization Rules
+      summary: Migrate a V1 authorization rule to a V2 authorization rule.
+      description: |
+        Migrates an existing V1 authorization rule to a V2 authorization rule. This will alter the internal structure of the Auth Rule such that it becomes a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
+
+        After a V1 Auth Rule has been migrated, it can no longer be operated on through the /v1/auth_rules/* endpoints. Eventually, Lithic will deprecate the /v1/auth_rules endpoints and migrate all existing V1 Auth Rules to V2 Auth Rules.
+      responses:
+        '200':
+          description: Auth Rule Migrated
+          $ref: '#/components/responses/AuthRule'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules:
     post:
       parameters: []
@@ -9769,6 +9788,13 @@ components:
       schema:
         type: string
       example: v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE= v1,bm9ldHUjKzFob2VudXRob2VodWUzMjRvdWVvdW9ldQo=
+    AuthRuleToken:
+      name: auth_rule_token
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     InstanceToken:
       name: x-instance-uuid
       in: header
@@ -9798,13 +9824,6 @@ components:
       in: query
       name: starting_after
       required: false
-      schema:
-        type: string
-        format: uuid
-    AuthRuleToken:
-      name: auth_rule_token
-      in: path
-      required: true
       schema:
         type: string
         format: uuid
@@ -9882,6 +9901,12 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
+    AuthRule:
+      description: Authorization Rule
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/auth-rule'
     responses-BadRequest:
       description: Bad Request
       content:
@@ -9894,12 +9919,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/schemas-Error'
-    AuthRule:
-      description: Authorization Rule
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/auth-rule'
     exception-responses_responses-BadRequest:
       content:
         application/json:
