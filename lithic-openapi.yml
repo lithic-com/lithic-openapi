@@ -1078,6 +1078,7 @@ paths:
         - Balance
   /v1/auth_rules:
     get:
+      deprecated: true
       description: |
         Return all of the Auth Rules under the program.
       operationId: getAuthRules
@@ -1115,6 +1116,7 @@ paths:
       tags:
         - Authorization Rules
     post:
+      deprecated: true
       description: Creates an authorization rule (Auth Rule) and applies it at the program, account, or card level.
       operationId: postAuthRules
       requestBody:
@@ -1154,6 +1156,7 @@ paths:
         - Authorization Rules
   /v1/auth_rules/remove:
     delete:
+      deprecated: true
       description: Remove an existing authorization rule (Auth Rule) from an program, account, or card-level.
       operationId: deleteAuthRuleRemove
       requestBody:
@@ -1223,6 +1226,7 @@ paths:
         - Authorization Rules
   /v1/auth_rules/{auth_rule_token}:
     get:
+      deprecated: true
       description: |
         Detail the properties and entities (program, accounts, and cards) associated with an existing authorization rule (Auth Rule).
       operationId: getAuthRuleByToken
@@ -1252,6 +1256,7 @@ paths:
       tags:
         - Authorization Rules
     put:
+      deprecated: true
       description: Update the properties associated with an existing authorization rule (Auth Rule).
       operationId: putAuthRuleByToken
       parameters:
@@ -1320,6 +1325,7 @@ paths:
         - Authorization Rules
   /v1/auth_rules/{auth_rule_token}/apply:
     post:
+      deprecated: true
       description: Applies an existing authorization rule (Auth Rule) to an program, account, or card level.
       operationId: postAuthRuleByTokenApply
       parameters:
@@ -1375,6 +1381,25 @@ paths:
       summary: Apply existing authorization rule
       tags:
         - Authorization Rules
+  /v1/auth_rules/{auth_rule_token}/migrate:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      tags:
+        - Authorization Rules
+      summary: Migrate a V1 authorization rule to a V2 authorization rule.
+      description: |
+        Migrates an existing V1 authorization rule to a V2 authorization rule. This will alter the internal structure of the Auth Rule such that it becomes a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
+
+        After a V1 Auth Rule has been migrated, it can no longer be operated on through the /v1/auth_rules/* endpoints. Eventually, Lithic will deprecate the /v1/auth_rules endpoints and migrate all existing V1 Auth Rules to V2 Auth Rules.
+      responses:
+        '200':
+          description: Auth Rule Migrated
+          $ref: '#/components/responses/AuthRule'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules:
     post:
       parameters: []
@@ -6861,6 +6886,20 @@ paths:
                   - acquirer_fee: 0
                     acquirer_reference_number: '12345678987654321234567'
                     amount: -7666
+                    amounts:
+                      cardholder:
+                        amount: 0
+                        conversion_rate: '1.000000'
+                        currency: USD
+                      hold:
+                        amount: -7666
+                        currency: USD
+                      merchant:
+                        amount: 0
+                        currency: USD
+                      settlement:
+                        amount: 0
+                        currency: USD
                     authorization_amount: -7666
                     authorization_code: '123412'
                     avs:
@@ -6901,8 +6940,18 @@ paths:
                     created: '2020-07-15T19:17:22Z'
                     events:
                       - amount: 7666
+                        amounts:
+                          cardholder:
+                            amount: 7666
+                            conversion_rate: '1.000000'
+                            currency: USD
+                          merchant:
+                            amount: 7666
+                            currency: USD
+                          settlement: null
                         created: '2020-07-15T19:17:22Z'
                         detailed_results: []
+                        effective_polarity: DEBIT
                         result: APPROVED
                         token: 6a885bcb-89f6-4fcb-a0ce-7f0233ae20a0
                         type: RETURN
@@ -9745,6 +9794,13 @@ components:
       schema:
         type: string
       example: v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE= v1,bm9ldHUjKzFob2VudXRob2VodWUzMjRvdWVvdW9ldQo=
+    AuthRuleToken:
+      name: auth_rule_token
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     InstanceToken:
       name: x-instance-uuid
       in: header
@@ -9774,13 +9830,6 @@ components:
       in: query
       name: starting_after
       required: false
-      schema:
-        type: string
-        format: uuid
-    AuthRuleToken:
-      name: auth_rule_token
-      in: path
-      required: true
       schema:
         type: string
         format: uuid
@@ -9858,6 +9907,12 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
+    AuthRule:
+      description: Authorization Rule
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/auth-rule'
     responses-BadRequest:
       description: Bad Request
       content:
@@ -9870,12 +9925,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/schemas-Error'
-    AuthRule:
-      description: Authorization Rule
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/auth-rule'
     exception-responses_responses-BadRequest:
       content:
         application/json:
@@ -11340,7 +11389,8 @@ components:
       description: |-
         ISO 4217 currency.  Its enumerants are ISO 4217 currencies except for
         some special currencies like ```XXX``.  Enumerants names are lowercase
-        currency code e.g. :attr:`Currency.eur`, :attr:`Currency.usd`.
+        currency code e.g. :attr:`EUR`, :attr:`USD`.
+      example: USD
       enum:
         - AED
         - AFN
@@ -14331,6 +14381,12 @@ components:
               - VEHICLE_NUMBER_INVALID
             type: string
           type: array
+        effective_polarity:
+          description: Indicates whether the transaction event is a credit or debit to the account.
+          enum:
+            - CREDIT
+            - DEBIT
+          type: string
         result:
           description: |
             `APPROVED` or decline reason.
