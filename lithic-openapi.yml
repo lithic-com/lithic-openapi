@@ -22,11 +22,13 @@ tags:
   - name: Authorization Rules
   - name: Balance
   - name: Card
+  - name: Credit Product
   - name: Dispute
   - name: Event
   - name: External Bank Account
   - name: External Payments
   - name: Financial Account
+  - name: Management Operations
   - name: Payment
   - name: Responder Endpoints
   - name: Settlement Report
@@ -8444,6 +8446,20 @@ webhooks:
                 - acquirer_fee: 0
                   acquirer_reference_number: null
                   amount: 1800
+                  amounts:
+                    cardholder:
+                      amount: 0
+                      conversion_rate: '1.000000'
+                      currency: USD
+                    hold:
+                      amount: -1800
+                      currency: USD
+                    merchant:
+                      amount: 0
+                      currency: USD
+                    settlement:
+                      amount: 0
+                      currency: USD
                   authorization_amount: 1800
                   authorization_code: '071471'
                   card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
@@ -8457,7 +8473,19 @@ webhooks:
                   event_type: card_transaction.updated
                   events:
                     - amount: 1800
+                      amounts:
+                        cardholder:
+                          amount: 1800
+                          conversion_rate: '1.000000'
+                          currency: USD
+                        merchant:
+                          amount: 1800
+                          currency: USD
+                        settlement: null
                       created: '2023-08-03T18:42:30Z'
+                      detailed_results:
+                        - APPROVED
+                      effective_polarity: DEBIT
                       result: APPROVED
                       token: bbbf1e86-322d-11ee-9779-00505685a123
                       type: AUTHORIZATION
