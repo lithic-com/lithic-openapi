@@ -22,11 +22,13 @@ tags:
   - name: Authorization Rules
   - name: Balance
   - name: Card
+  - name: Credit Product
   - name: Dispute
   - name: Event
   - name: External Bank Account
   - name: External Payments
   - name: Financial Account
+  - name: Management Operations
   - name: Payment
   - name: Responder Endpoints
   - name: Settlement Report
@@ -3505,6 +3507,8 @@ paths:
                       - external_payment.updated
                       - financial_account.created
                       - financial_account.updated
+                      - management_operation.created
+                      - management_operation.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
@@ -3662,6 +3666,8 @@ paths:
                       - external_payment.updated
                       - financial_account.created
                       - financial_account.updated
+                      - management_operation.created
+                      - management_operation.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - settlement_report.updated
@@ -3920,6 +3926,8 @@ paths:
                 - external_payment.updated
                 - financial_account.created
                 - financial_account.updated
+                - management_operation.created
+                - management_operation.updated
                 - payment_transaction.created
                 - payment_transaction.updated
                 - settlement_report.updated
@@ -4956,6 +4964,20 @@ paths:
             title: Financial Account Token
             type: string
         - in: query
+          name: business_account_token
+          required: false
+          schema:
+            format: uuid
+            title: Business Account Token
+            type: string
+        - in: query
+          name: account_token
+          required: false
+          schema:
+            format: uuid
+            title: Account Token
+            type: string
+        - in: query
           name: result
           required: false
           schema:
@@ -5662,6 +5684,8 @@ paths:
                     - external_payment.updated
                     - financial_account.created
                     - financial_account.updated
+                    - management_operation.created
+                    - management_operation.updated
                     - payment_transaction.created
                     - payment_transaction.updated
                     - settlement_report.updated
@@ -7117,6 +7141,20 @@ paths:
           schema:
             format: uuid
             type: string
+        - in: query
+          name: business_account_token
+          required: false
+          schema:
+            format: uuid
+            title: Business Account Token
+            type: string
+        - in: query
+          name: account_token
+          required: false
+          schema:
+            format: uuid
+            title: Account Token
+            type: string
         - description: Book transfer result to be returned.
           in: query
           name: result
@@ -7360,6 +7398,13 @@ paths:
           schema:
             format: uuid
             type: string
+        - in: query
+          name: business_account_token
+          required: false
+          schema:
+            format: uuid
+            title: Business Account Token
+            type: string
         - description: External Payment result to be returned.
           in: query
           name: result
@@ -7591,6 +7636,146 @@ paths:
       summary: Reverse external payment
       tags:
         - External Payments
+  /v1/management_operations:
+    get:
+      description: List management operations
+      parameters:
+        - description: Management operation category to be returned.
+          in: query
+          name: category
+          schema:
+            $ref: '#/components/schemas/management_operation_category'
+        - description: Globally unique identifier for the financial account. Accepted type dependent on the program's use case.
+          in: query
+          name: financial_account_token
+          schema:
+            format: uuid
+            type: string
+        - in: query
+          name: business_account_token
+          required: false
+          schema:
+            format: uuid
+            title: Business Account Token
+            type: string
+        - description: Management operation status to be returned.
+          in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/transaction_status'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+      operationId: getManagementOperations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/management_operation_transactions_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List management operations
+      tags:
+        - Management Operations
+    post:
+      description: Create management operation
+      operationId: postManagementOperations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_management_operation_request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/management_operation_transaction'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create management operation
+      tags:
+        - Management Operations
+  /v1/management_operations/{management_operation_token}:
+    get:
+      description: Get management operation
+      parameters:
+        - description: Globally unique identifier for the management operation
+          in: path
+          name: management_operation_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      operationId: getManagementOperation
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/management_operation_transaction'
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get management operation
+      tags:
+        - Management Operations
+  /v1/management_operations/{management_operation_token}/reverse:
+    post:
+      description: Reverse a management operation
+      parameters:
+        - description: Globally unique identifier for the management operation
+          in: path
+          name: management_operation_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      operationId: reverseManagementOperation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/management_operation_action_request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/management_operation_transaction'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Reverse management operation
+      tags:
+        - Management Operations
 webhooks:
   account_holder.created:
     post:
@@ -8303,6 +8488,20 @@ webhooks:
                 - acquirer_fee: 0
                   acquirer_reference_number: null
                   amount: 1800
+                  amounts:
+                    cardholder:
+                      amount: 0
+                      conversion_rate: '1.000000'
+                      currency: USD
+                    hold:
+                      amount: -1800
+                      currency: USD
+                    merchant:
+                      amount: 0
+                      currency: USD
+                    settlement:
+                      amount: 0
+                      currency: USD
                   authorization_amount: 1800
                   authorization_code: '071471'
                   card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
@@ -8316,7 +8515,19 @@ webhooks:
                   event_type: card_transaction.updated
                   events:
                     - amount: 1800
+                      amounts:
+                        cardholder:
+                          amount: 1800
+                          conversion_rate: '1.000000'
+                          currency: USD
+                        merchant:
+                          amount: 1800
+                          currency: USD
+                        settlement: null
                       created: '2023-08-03T18:42:30Z'
+                      detailed_results:
+                        - APPROVED
+                      effective_polarity: DEBIT
                       result: APPROVED
                       token: bbbf1e86-322d-11ee-9779-00505685a123
                       type: AUTHORIZATION
@@ -8908,7 +9119,16 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/external_payment_response_created_event'
+              allOf:
+                - $ref: '#/components/schemas/external_payment_response'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - external_payment.created
+                      example: external_payment.created
+                      type: string
+                  type: object
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
@@ -8922,7 +9142,16 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/external_payment_response_updated_event'
+              allOf:
+                - $ref: '#/components/schemas/external_payment_response'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - external_payment.updated
+                      example: external_payment.updated
+                      type: string
+                  type: object
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
@@ -8973,6 +9202,52 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: financial_account.updated
+      tags:
+        - Event Types
+  management_operation.created:
+    post:
+      description: Occurs when an management operation is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/management_operation_transaction'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - management_operation.created
+                      example: management_operation.created
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: management_operation.created
+      tags:
+        - Event Types
+  management_operation.updated:
+    post:
+      description: Occurs when an management operation is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/management_operation_transaction'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - management_operation.updated
+                      example: management_operation.updated
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: management_operation.updated
       tags:
         - Event Types
   payment_transaction.created:
@@ -11968,6 +12243,8 @@ components:
             - external_payment.updated
             - financial_account.created
             - financial_account.updated
+            - management_operation.created
+            - management_operation.updated
             - payment_transaction.created
             - payment_transaction.updated
             - settlement_report.updated
@@ -12028,6 +12305,8 @@ components:
               - external_payment.updated
               - financial_account.created
               - financial_account.updated
+              - management_operation.created
+              - management_operation.updated
               - payment_transaction.created
               - payment_transaction.updated
               - settlement_report.updated
@@ -16877,6 +17156,195 @@ components:
           format: date
       required:
         - effective_date
+    management_operation_category:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_category.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Category
+      type: string
+      enum:
+        - MANAGEMENT_FEE
+        - MANAGEMENT_DISPUTE
+        - MANAGEMENT_REWARD
+        - MANAGEMENT_ADJUSTMENT
+    management_operation_event_type:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_event_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Event Type
+      type: string
+      enum:
+        - CASH_BACK
+        - CURRENCY_CONVERSION
+        - INTEREST
+        - LATE_PAYMENT
+        - BILLING_ERROR
+        - PROVISIONAL_CREDIT
+        - CASH_BACK_REVERSAL
+        - CURRENCY_CONVERSION_REVERSAL
+        - INTEREST_REVERSAL
+        - LATE_PAYMENT_REVERSAL
+        - BILLING_ERROR_REVERSAL
+        - PROVISIONAL_CREDIT_REVERSAL
+    management_operation_event:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Event
+      type: object
+      properties:
+        amount:
+          type: integer
+        type:
+          $ref: '#/components/schemas/management_operation_event_type'
+        subtype:
+          type: string
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        detailed_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/detailed_results'
+        created:
+          type: string
+          format: date-time
+        token:
+          type: string
+          format: uuid
+        memo:
+          type: string
+        effective_date:
+          type: string
+          format: date
+      required:
+        - amount
+        - type
+        - result
+        - detailed_results
+        - created
+        - token
+        - memo
+        - effective_date
+    management_operation_direction:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_direction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Direction
+      type: string
+      enum:
+        - CREDIT
+        - DEBIT
+    management_operation_transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Transaction
+      type: object
+      properties:
+        token:
+          type: string
+          format: uuid
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        category:
+          $ref: '#/components/schemas/management_operation_category'
+        status:
+          $ref: '#/components/schemas/transaction_status'
+        settled_amount:
+          type: integer
+        pending_amount:
+          type: integer
+        currency:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/management_operation_event'
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        user_defined_id:
+          type: string
+        financial_account_token:
+          type: string
+          format: uuid
+        direction:
+          $ref: '#/components/schemas/management_operation_direction'
+      required:
+        - token
+        - result
+        - category
+        - status
+        - settled_amount
+        - pending_amount
+        - currency
+        - events
+        - created
+        - updated
+        - financial_account_token
+        - direction
+    management_operation_transactions_response:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_transactions_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Transactions Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/management_operation_transaction'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
+    create_management_operation_request:
+      $id: https://lithic.com/schemas/treasury/ledger/create_management_operation_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Create Management Operation Request
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/management_operation_category'
+        event_type:
+          $ref: '#/components/schemas/management_operation_event_type'
+        subtype:
+          type: string
+        financial_account_token:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+        memo:
+          type: string
+        user_defined_id:
+          type: string
+        effective_date:
+          type: string
+          format: date
+        token:
+          type: string
+          format: uuid
+        direction:
+          $ref: '#/components/schemas/management_operation_direction'
+      required:
+        - category
+        - event_type
+        - financial_account_token
+        - amount
+        - effective_date
+        - direction
+    management_operation_action_request:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_action_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Action Request
+      type: object
+      properties:
+        memo:
+          type: string
+        effective_date:
+          type: string
+          format: date
+      required:
+        - effective_date
     asa_request_pos_terminal_pin_capability:
       type: string
       description: Status of whether the POS is able to accept PINs
@@ -18030,34 +18498,6 @@ components:
                 recommendation_reasons:
                   - Reason1
                 recommended_decision: Decision1
-    external_payment_event_types:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event_types.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Event Types
-      type: string
-      enum:
-        - external_payment.created
-        - external_payment.updated
-    external_payment_response_created_event:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response_created_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Created Event
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/external_payment_response'
-      properties:
-        event_type:
-          $ref: '#/components/schemas/external_payment_event_types'
-    external_payment_response_updated_event:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response_updated_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Updated Event
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/external_payment_response'
-      properties:
-        event_type:
-          $ref: '#/components/schemas/external_payment_event_types'
     statements_created_webhook:
       $id: https://lithic.com/schemas/treasury/statements/statements_created_webhook.json
       $schema: https://json-schema.org/draft/2020-12/schema
