@@ -16714,6 +16714,19 @@ components:
         - interest
         - principal
         - fees
+    balance_details:
+      $id: https://lithic.com/schemas/treasury/statements/balance_details.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Balance Details
+      type: object
+      properties:
+        amount:
+          type: integer
+        remaining:
+          type: integer
+      required:
+        - amount
+        - remaining
     loan_tape_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tape_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16753,10 +16766,10 @@ components:
           description: Amount not paid off on previous due dates
           $ref: '#/components/schemas/category_balances'
         balance_due:
-          description: Amount due for the upcoming payment due date. Any amounts not fully paid off on this due date will be considered past due the next day
+          description: Amount due for the prior billing cycle. Any amounts not fully paid off on this due date will be considered past due the next day
           $ref: '#/components/schemas/category_balances'
         balance_next_due:
-          description: Amount due for the next payment due date after the upcoming one. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
+          description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
           $ref: '#/components/schemas/category_balances'
         credit_limit:
           description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
@@ -16774,6 +16787,10 @@ components:
           type: string
         payment_allocation:
           $ref: '#/components/schemas/category_balances'
+        minimum_payment_balance:
+          $ref: '#/components/schemas/balance_details'
+        statement_balance:
+          $ref: '#/components/schemas/balance_details'
       required:
         - token
         - financial_account_token
@@ -16792,6 +16809,8 @@ components:
         - balance_past_due
         - balance_due
         - balance_next_due
+        - minimum_payment_balance
+        - statement_balance
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
