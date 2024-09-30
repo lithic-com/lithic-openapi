@@ -3507,6 +3507,8 @@ paths:
                       - external_payment.updated
                       - financial_account.created
                       - financial_account.updated
+                      - loan_tape.created
+                      - loan_tape.updated
                       - management_operation.created
                       - management_operation.updated
                       - payment_transaction.created
@@ -3666,6 +3668,8 @@ paths:
                       - external_payment.updated
                       - financial_account.created
                       - financial_account.updated
+                      - loan_tape.created
+                      - loan_tape.updated
                       - management_operation.created
                       - management_operation.updated
                       - payment_transaction.created
@@ -3926,6 +3930,8 @@ paths:
                 - external_payment.updated
                 - financial_account.created
                 - financial_account.updated
+                - loan_tape.created
+                - loan_tape.updated
                 - management_operation.created
                 - management_operation.updated
                 - payment_transaction.created
@@ -4951,6 +4957,107 @@ paths:
       summary: List line items for a statement
       tags:
         - Statements
+  /v1/financial_accounts/{financial_account_token}/loan_tapes:
+    get:
+      description: List the loan tapes for a given financial account.
+      operationId: getLoanTapes
+      parameters:
+        - description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+          in: query
+          name: begin
+          required: false
+          schema:
+            description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+            format: date
+            title: Begin
+            type: string
+        - description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+          in: query
+          name: end
+          required: false
+          schema:
+            description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+            format: date
+            title: End
+            type: string
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+            title: Ending Before
+            type: string
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          required: false
+          schema:
+            default: 50
+            description: Page size (for pagination).
+            maximum: 100
+            minimum: 1
+            title: Page Size
+            type: integer
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+            title: Starting After
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loan_tapes_response'
+          description: OK
+      summary: List loan tapes
+      tags:
+        - Statements
+  /v1/financial_accounts/{financial_account_token}/loan_tapes/{loan_tape_token}:
+    get:
+      description: Get a specific loan tape for a given financial account.
+      operationId: getLoanTape
+      parameters:
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Globally unique identifier for loan tape.
+          in: path
+          name: loan_tape_token
+          required: true
+          schema:
+            description: Globally unique identifier for loan tape.
+            title: Loan Tape Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loan_tape_response'
+          description: OK
+      summary: Get loan tape by token
+      tags:
+        - Statements
   /v1/payments:
     get:
       description: List all the payments for the provided search criteria.
@@ -5684,6 +5791,8 @@ paths:
                     - external_payment.updated
                     - financial_account.created
                     - financial_account.updated
+                    - loan_tape.created
+                    - loan_tape.updated
                     - management_operation.created
                     - management_operation.updated
                     - payment_transaction.created
@@ -9204,6 +9313,52 @@ webhooks:
       summary: financial_account.updated
       tags:
         - Event Types
+  loan_tape.created:
+    post:
+      description: Occurs when a loan tape is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/loan_tape_response'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - loan_tape.created
+                      example: loan_tape.created
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: loan_tape.created
+      tags:
+        - Event Types
+  loan_tape.updated:
+    post:
+      description: Occurs when a loan tape is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/loan_tape_response'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - loan_tape.updated
+                      example: loan_tape.updated
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: loan_tape.updated
+      tags:
+        - Event Types
   management_operation.created:
     post:
       description: Occurs when an management operation is created.
@@ -12243,6 +12398,8 @@ components:
             - external_payment.updated
             - financial_account.created
             - financial_account.updated
+            - loan_tape.created
+            - loan_tape.updated
             - management_operation.created
             - management_operation.updated
             - payment_transaction.created
@@ -12305,6 +12462,8 @@ components:
               - external_payment.updated
               - financial_account.created
               - financial_account.updated
+              - loan_tape.created
+              - loan_tape.updated
               - management_operation.created
               - management_operation.updated
               - payment_transaction.created
@@ -15423,42 +15582,13 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Financial Event Type
       type: string
-      description: |-
-        Event types:
-                * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
-                * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
-                * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
-                * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the fed.
-                * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
-                * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
-                * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
-                * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
-                * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
-                * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
-                * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-                * `AUTHORIZATION` - Authorize a card transaction.
-                * `AUTHORIZATION_ADVICE` - Advice on a card transaction.
-                * `AUTHORIZATION_EXPIRY` - Card Authorization has expired and reversed by Lithic.
-                * `AUTHORIZATION_REVERSAL` - Card Authorization was reversed by the merchant.
-                * `BALANCE_INQUIRY` - A card balance inquiry (typically a $0 authorization) has occurred on a card.
-                * `CLEARING` - Card Transaction is settled.
-                * `CORRECTION_DEBIT` - Manual card transaction correction (Debit).
-                * `CORRECTION_CREDIT` - Manual card transaction correction (Credit).
-                * `CREDIT_AUTHORIZATION` - A refund or credit card authorization from a merchant.
-                * `CREDIT_AUTHORIZATION_ADVICE` - A credit card authorization was approved on your behalf by the network.
-                * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit card funds without additional clearing.
-                * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit card funds without additional clearing.
-                * `RETURN` - A card refund has been processed on the transaction.
-                * `RETURN_REVERSAL` - A card refund has been reversed (e.g., when a merchant reverses an incorrect refund).
-                * `TRANSFER` - Successful internal transfer of funds between financial accounts.
-                * `TRANSFER_INSUFFICIENT_FUNDS` - Declined internal transfer of funds due to insufficient balance of the sender.
       enum:
         - ACH_ORIGINATION_CANCELLED
         - ACH_ORIGINATION_INITIATED
         - ACH_ORIGINATION_PROCESSED
-        - ACH_ORIGINATION_SETTLED
         - ACH_ORIGINATION_RELEASED
         - ACH_ORIGINATION_REVIEWED
+        - ACH_ORIGINATION_SETTLED
         - ACH_RECEIPT_PROCESSED
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
@@ -15468,13 +15598,40 @@ components:
         - AUTHORIZATION_EXPIRY
         - AUTHORIZATION_REVERSAL
         - BALANCE_INQUIRY
+        - BILLING_ERROR
+        - CASH_BACK
         - CLEARING
         - CORRECTION_CREDIT
         - CORRECTION_DEBIT
         - CREDIT_AUTHORIZATION
         - CREDIT_AUTHORIZATION_ADVICE
+        - CURRENCY_CONVERSION
+        - DISPUTE_WON
+        - EXTERNAL_ACH_CANCELED
+        - EXTERNAL_ACH_INITIATED
+        - EXTERNAL_ACH_RELEASED
+        - EXTERNAL_ACH_REVERSED
+        - EXTERNAL_ACH_SETTLED
+        - EXTERNAL_CHECK_CANCELED
+        - EXTERNAL_CHECK_INITIATED
+        - EXTERNAL_CHECK_RELEASED
+        - EXTERNAL_CHECK_REVERSED
+        - EXTERNAL_CHECK_SETTLED
+        - EXTERNAL_TRANSFER_CANCELED
+        - EXTERNAL_TRANSFER_INITIATED
+        - EXTERNAL_TRANSFER_RELEASED
+        - EXTERNAL_TRANSFER_REVERSED
+        - EXTERNAL_TRANSFER_SETTLED
+        - EXTERNAL_WIRE_CANCELED
+        - EXTERNAL_WIRE_INITIATED
+        - EXTERNAL_WIRE_RELEASED
+        - EXTERNAL_WIRE_REVERSED
+        - EXTERNAL_WIRE_SETTLED
         - FINANCIAL_AUTHORIZATION
         - FINANCIAL_CREDIT_AUTHORIZATION
+        - INTEREST
+        - LATE_PAYMENT
+        - PROVISIONAL_CREDIT
         - RETURN
         - RETURN_REVERSAL
         - TRANSFER
@@ -16216,18 +16373,25 @@ components:
       properties:
         payments:
           type: integer
+          description: Any funds transfers which affective the balance in cents
         purchases:
           type: integer
+          description: Net card transaction volume less any cash advances in cents
         fees:
           type: integer
+          description: Volume of debit management operation transactions less any interest in cents
         credits:
           type: integer
+          description: Volume of credit management operation transactions less any balance transfers in cents
         interest:
           type: integer
+          description: Interest accrued in cents
         cash_advances:
           type: integer
+          description: ATM and cashback transactions in cents
         balance_transfers:
           type: integer
+          description: Opening balance transferred from previous account in cents
       required:
         - payments
         - purchases
@@ -16256,9 +16420,94 @@ components:
         period_number:
           description: Current overall period number
           type: integer
+        consecutive_minimum_payments_made:
+          description: Number of consecutive minimum payments made
+          type: integer
+        consecutive_minimum_payments_missed:
+          description: Number of consecutive minimum payments missed
+          type: integer
+        consecutive_full_payments_made:
+          description: Number of consecutive full payments made
+          type: integer
+        days_past_due:
+          description: Number of days past due
+          type: integer
+        has_grace:
+          description: Whether the account currently has grace or not
+          type: boolean
       required:
         - period_state
         - period_number
+        - consecutive_minimum_payments_made
+        - consecutive_minimum_payments_missed
+        - consecutive_full_payments_made
+        - days_past_due
+        - has_grace
+    amount_due:
+      $id: https://lithic.com/schemas/treasury/statements/amount_due.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Amount Due
+      type: object
+      properties:
+        amount:
+          description: Payment due at the end of the billing period in cents. Negative amount indicates something is owed. If the amount owed is positive there was a net credit. If auto-collections are enabled this is the amount that will be requested on the payment due date
+          type: integer
+        past_due:
+          description: Amount past due for statement in cents
+          type: integer
+      required:
+        - amount
+        - past_due
+    interest_calculation_method:
+      $id: https://lithic.com/schemas/treasury/statements/interest_calculation_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - DAILY
+        - AVERAGE_DAILY
+      title: Interest Calculation method
+    category_details:
+      $id: https://lithic.com/schemas/treasury/statements/category_details.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Category Details
+      type: object
+      properties:
+        purchases:
+          type: string
+        cash_advances:
+          type: string
+        balance_transfers:
+          type: string
+      required:
+        - purchases
+        - cash_advances
+        - balance_transfers
+    interest_details:
+      $id: https://lithic.com/schemas/treasury/statements/interest_details.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Interest Details
+      type: object
+      properties:
+        prime_rate:
+          type: string
+        interest_calculation_method:
+          $ref: '#/components/schemas/interest_calculation_method'
+        effective_apr:
+          $ref: '#/components/schemas/category_details'
+        interest_for_period:
+          $ref: '#/components/schemas/category_details'
+        daily_balance_amounts:
+          $ref: '#/components/schemas/category_details'
+        minimum_interest_charged:
+          type: integer
+        actual_interest_charged:
+          type: integer
+      required:
+        - interest_calculation_method
+        - effective_apr
+        - interest_for_period
+        - actual_interest_charged
+        - daily_balance_amounts
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16297,22 +16546,16 @@ components:
           description: Number of days in the billing cycle
           type: integer
         credit_limit:
-          description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender.
+          description: This is the maximum credit balance extended by the lender in cents
           type: integer
         available_credit:
-          description: Amount of credit available to spend
+          description: Amount of credit available to spend in cents
           type: integer
         starting_balance:
           description: Balance at the start of the billing period
           type: integer
         ending_balance:
-          description: Balance at the end of the billing period. For charge cards, this should be the same at the statement amount due.
-          type: integer
-        amount_due:
-          description: Payment due at the end of the billing period. Negative amount indicates something is owed. If the amount owed is positive (e.g., there was a net credit), then payment should be returned to the cardholder via ACH.
-          type: integer
-        amount_past_due:
-          description: Payment past due at the end of the billing period.
+          description: Balance at the end of the billing period. For charge cards, this should be the same at the statement amount due in cents
           type: integer
         period_totals:
           $ref: '#/components/schemas/statement_totals'
@@ -16331,6 +16574,10 @@ components:
           type: string
         account_standing:
           $ref: '#/components/schemas/account_standing'
+        amount_due:
+          $ref: '#/components/schemas/amount_due'
+        interest_details:
+          $ref: '#/components/schemas/interest_details'
       required:
         - token
         - financial_account_token
@@ -16343,7 +16590,6 @@ components:
         - starting_balance
         - ending_balance
         - amount_due
-        - amount_past_due
         - period_totals
         - ytd_totals
         - created
@@ -16365,6 +16611,22 @@ components:
       required:
         - data
         - has_more
+    transaction_category:
+      $id: https://lithic.com/schemas/treasury/ledger/transaction_category.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Category
+      type: string
+      enum:
+        - ACH
+        - CARD
+        - EXTERNAL_PAYMENT_ACH
+        - EXTERNAL_PAYMENT_CHECK
+        - EXTERNAL_PAYMENT_TRANSFER
+        - EXTERNAL_PAYMENT_WIRE
+        - MANAGEMENT_ADJUSTMENT
+        - MANAGEMENT_DISPUTE
+        - MANAGEMENT_FEE
+        - MANAGEMENT_REWARD
     statement_line_item_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_line_item_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16386,22 +16648,23 @@ components:
           description: Globally unique identifier for a financial transaction
           type: string
           format: uuid
-        category:
+        financial_transaction_event_token:
+          description: Globally unique identifier for a financial transaction event
           type: string
-          enum:
-            - ACH
-            - CARD
-            - TRANSFER
+          format: uuid
+        category:
+          $ref: '#/components/schemas/transaction_category'
         event_type:
           $ref: '#/components/schemas/financial_event_type'
-        settled_date:
-          description: Date that the transaction settled
+        effective_date:
+          description: Date that the transaction effected the account balance
           type: string
           format: date
         descriptor:
           type: string
         amount:
           type: integer
+          description: Transaction amount in cents
         currency:
           type: string
           description: 3-digit alphabetic ISO 4217 code for the settling currency of the transaction
@@ -16413,9 +16676,10 @@ components:
         - token
         - financial_account_token
         - financial_transaction_token
+        - financial_transaction_event_token
         - category
         - event_type
-        - settled_date
+        - effective_date
         - amount
         - currency
         - created
@@ -16429,6 +16693,115 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/statement_line_item_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
+    category_balances:
+      $id: https://lithic.com/schemas/treasury/statements/category_balances.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Category Balances
+      type: object
+      properties:
+        interest:
+          type: integer
+        principal:
+          type: integer
+        fees:
+          type: integer
+      required:
+        - interest
+        - principal
+        - fees
+    loan_tape_response:
+      $id: https://lithic.com/schemas/treasury/statements/loan_tape_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Loan Tape Response
+      type: object
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for a loan tape
+          title: Loan Tape Token
+        financial_account_token:
+          description: Globally unique identifier for a financial account
+          type: string
+          format: uuid
+        date:
+          description: Date of transactions that this loan tape covers
+          type: string
+          format: date
+        created:
+          description: Timestamp of when the loan tape was created
+          type: string
+          format: date-time
+        updated:
+          description: Timestamp of when the loan tape was updated
+          type: string
+          format: date-time
+        version:
+          description: Version number of the loan tape. This starts at 1
+          type: integer
+        ytd_totals:
+          $ref: '#/components/schemas/statement_totals'
+        period_totals:
+          $ref: '#/components/schemas/statement_totals'
+        day_totals:
+          $ref: '#/components/schemas/statement_totals'
+        balance_past_due:
+          description: Amount not paid off on previous due dates
+          $ref: '#/components/schemas/category_balances'
+        balance_due:
+          description: Amount due for the upcoming payment due date. Any amounts not fully paid off on this due date will be considered past due the next day
+          $ref: '#/components/schemas/category_balances'
+        balance_next_due:
+          description: Amount due for the next payment due date after the upcoming one. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
+          $ref: '#/components/schemas/category_balances'
+        credit_limit:
+          description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
+          type: integer
+        excess_credits:
+          description: Excess credits in the form of provisional credits, payments, or purchase refunds. If positive, the account is in net credit state with no outstanding balances. An overpayment could land an account in this state
+          type: integer
+        account_standing:
+          $ref: '#/components/schemas/account_standing'
+        credit_product_token:
+          description: Globally unique identifier for a credit product
+          type: string
+        tier:
+          description: Interest tier to which this account belongs to
+          type: string
+        payment_allocation:
+          $ref: '#/components/schemas/category_balances'
+      required:
+        - token
+        - financial_account_token
+        - date
+        - created
+        - updated
+        - version
+        - ytd_totals
+        - period_totals
+        - day_totals
+        - credit_limit
+        - excess_credits
+        - account_standing
+        - credit_product_token
+        - payment_allocation
+        - balance_past_due
+        - balance_due
+        - balance_next_due
+    loan_tapes_response:
+      $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Loan Tapes Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/loan_tape_response'
         has_more:
           type: boolean
       required:
