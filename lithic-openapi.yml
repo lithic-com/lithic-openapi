@@ -16619,10 +16619,10 @@ components:
       enum:
         - ACH
         - CARD
-        - EXTERNAL_PAYMENT_ACH
-        - EXTERNAL_PAYMENT_CHECK
-        - EXTERNAL_PAYMENT_TRANSFER
-        - EXTERNAL_PAYMENT_WIRE
+        - EXTERNAL_ACH
+        - EXTERNAL_CHECK
+        - EXTERNAL_TRANSFER
+        - EXTERNAL_WIRE
         - MANAGEMENT_ADJUSTMENT
         - MANAGEMENT_DISPUTE
         - MANAGEMENT_FEE
