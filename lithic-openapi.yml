@@ -16777,6 +16777,9 @@ components:
         credit_limit:
           description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
           type: integer
+        available_credit:
+          description: Amount of credit available to spend in cents
+          type: integer
         excess_credits:
           description: Excess credits in the form of provisional credits, payments, or purchase refunds. If positive, the account is in net credit state with no outstanding balances. An overpayment could land an account in this state
           type: integer
@@ -16815,6 +16818,7 @@ components:
         - minimum_payment_balance
         - previous_statement_balance
         - ending_balance
+        - available_credit
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
