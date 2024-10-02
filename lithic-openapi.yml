@@ -16771,6 +16771,9 @@ components:
         balance_next_due:
           description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
           $ref: '#/components/schemas/category_balances'
+        ending_balance:
+          description: Balance at the end of the day
+          type: integer
         credit_limit:
           description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
           type: integer
@@ -16811,6 +16814,7 @@ components:
         - balance_next_due
         - minimum_payment_balance
         - previous_statement_balance
+        - ending_balance
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
