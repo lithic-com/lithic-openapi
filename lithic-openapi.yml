@@ -16508,6 +16508,14 @@ components:
         - interest_for_period
         - actual_interest_charged
         - daily_balance_amounts
+    statement_type:
+      $id: https://lithic.com/schemas/treasury/statements/statement_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - INITIAL
+        - PERIOD_END
+      title: Statement Type
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16578,6 +16586,8 @@ components:
           $ref: '#/components/schemas/amount_due'
         interest_details:
           $ref: '#/components/schemas/interest_details'
+        statement_type:
+          $ref: '#/components/schemas/statement_type'
       required:
         - token
         - financial_account_token
@@ -16596,6 +16606,7 @@ components:
         - updated
         - credit_product_token
         - account_standing
+        - statement_type
     statements_response:
       $id: https://lithic.com/schemas/treasury/statements/statements_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
