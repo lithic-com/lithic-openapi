@@ -10514,6 +10514,7 @@ components:
             - postal_code
             - state
           type: object
+          deprecated: true
         created:
           description: Timestamp of when the account was created. For accounts created before 2023-05-11, this field will be null.
           format: date-time
