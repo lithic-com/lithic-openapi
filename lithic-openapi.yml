@@ -16789,7 +16789,7 @@ components:
           $ref: '#/components/schemas/category_balances'
         minimum_payment_balance:
           $ref: '#/components/schemas/balance_details'
-        previous_statement_balance:
+        statement_balance:
           $ref: '#/components/schemas/balance_details'
       required:
         - token
@@ -16810,7 +16810,7 @@ components:
         - balance_due
         - balance_next_due
         - minimum_payment_balance
-        - previous_statement_balance
+        - statement_balance
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
