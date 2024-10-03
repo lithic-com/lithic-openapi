@@ -911,8 +911,7 @@ paths:
         - Account
     patch:
       description: |
-        Update account configuration such as spend limits and verification address. Can only be run on accounts that are part of the program managed by this API key.
-
+        Update account configuration such as state or spend limits. Can only be run on accounts that are part of the program managed by this API key.
         Accounts that are in the `PAUSED` state will not be able to transact or create new cards.
       operationId: patchAccountByToken
       parameters:
@@ -955,7 +954,7 @@ paths:
                     - PAUSED
                   type: string
                 verification_address:
-                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules.
+                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Authorization Rules. The field will be removed from the schema in a future release.
                   properties:
                     address1:
                       type: string
@@ -970,6 +969,7 @@ paths:
                     state:
                       type: string
                   type: object
+                  deprecated: true
               type: object
         required: true
       responses:
