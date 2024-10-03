@@ -911,7 +911,8 @@ paths:
         - Account
     patch:
       description: |
-        Update account configuration such as state or spend limits. Can only be run on accounts that are part of the program managed by this API key.
+        Update account configuration such as spend limits and verification address. Can only be run on accounts that are part of the program managed by this API key.
+
         Accounts that are in the `PAUSED` state will not be able to transact or create new cards.
       operationId: patchAccountByToken
       parameters:
@@ -954,7 +955,7 @@ paths:
                     - PAUSED
                   type: string
                 verification_address:
-                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Authorization Rules. The field will be removed from the schema in a future release.
+                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules.
                   properties:
                     address1:
                       type: string
@@ -969,7 +970,6 @@ paths:
                     state:
                       type: string
                   type: object
-                  deprecated: true
               type: object
         required: true
       responses:
@@ -10514,7 +10514,6 @@ components:
             - postal_code
             - state
           type: object
-          deprecated: true
         created:
           description: Timestamp of when the account was created. For accounts created before 2023-05-11, this field will be null.
           format: date-time
@@ -16509,14 +16508,6 @@ components:
         - interest_for_period
         - actual_interest_charged
         - daily_balance_amounts
-    statement_type:
-      $id: https://lithic.com/schemas/treasury/statements/statement_type.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - INITIAL
-        - PERIOD_END
-      title: Statement Type
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16587,8 +16578,6 @@ components:
           $ref: '#/components/schemas/amount_due'
         interest_details:
           $ref: '#/components/schemas/interest_details'
-        statement_type:
-          $ref: '#/components/schemas/statement_type'
       required:
         - token
         - financial_account_token
@@ -16607,7 +16596,6 @@ components:
         - updated
         - credit_product_token
         - account_standing
-        - statement_type
     statements_response:
       $id: https://lithic.com/schemas/treasury/statements/statements_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16783,14 +16771,8 @@ components:
         balance_next_due:
           description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
           $ref: '#/components/schemas/category_balances'
-        ending_balance:
-          description: Balance at the end of the day
-          type: integer
         credit_limit:
           description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
-          type: integer
-        available_credit:
-          description: Amount of credit available to spend in cents
           type: integer
         excess_credits:
           description: Excess credits in the form of provisional credits, payments, or purchase refunds. If positive, the account is in net credit state with no outstanding balances. An overpayment could land an account in this state
@@ -16829,8 +16811,6 @@ components:
         - balance_next_due
         - minimum_payment_balance
         - previous_statement_balance
-        - ending_balance
-        - available_credit
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
