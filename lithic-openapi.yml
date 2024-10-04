@@ -16783,6 +16783,9 @@ components:
         balance_next_due:
           description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
           $ref: '#/components/schemas/category_balances'
+        starting_balance:
+          description: Balance at the start of the day
+          type: integer
         ending_balance:
           description: Balance at the end of the day
           type: integer
@@ -16829,6 +16832,7 @@ components:
         - balance_next_due
         - minimum_payment_balance
         - previous_statement_balance
+        - starting_balance
         - ending_balance
         - available_credit
     loan_tapes_response:
