@@ -16340,6 +16340,8 @@ components:
           description: Tier assigned to the financial account
         financial_account_state:
           $ref: '#/components/schemas/financial-account-state'
+        is_spend_blocked:
+          type: boolean
       required:
         - account_token
         - credit_limit
