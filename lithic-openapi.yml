@@ -398,19 +398,7 @@ paths:
                   status_reasons:
                     description: Reason for the evaluation status.
                     items:
-                      enum:
-                        - ADDRESS_VERIFICATION_FAILURE
-                        - AGE_THRESHOLD_FAILURE
-                        - COMPLETE_VERIFICATION_FAILURE
-                        - DOB_VERIFICATION_FAILURE
-                        - ID_VERIFICATION_FAILURE
-                        - MAX_DOCUMENT_ATTEMPTS
-                        - MAX_RESUBMISSION_ATTEMPTS
-                        - NAME_VERIFICATION_FAILURE
-                        - OTHER_VERIFICATION_FAILURE
-                        - RISK_THRESHOLD_FAILURE
-                        - WATCHLIST_ALERT_FAILURE
-                      type: string
+                      $ref: '#/components/schemas/status-reasons'
                     type: array
                   required_documents:
                     description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
@@ -6310,6 +6298,14 @@ paths:
                   document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
                   status: REJECTED
                   status_reason: DOCUMENT_MISSING_REQUIRED_DATA
+              simulatePartialApprovalReviewRequest:
+                summary: Simulates a partial approval enrollment document upload review request
+                value:
+                  document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
+                  status: PARTIAL_APPROVAL
+                  status_reason: DOCUMENT_MISSING_REQUIRED_DATA
+                  accepted_entity_status_reasons:
+                    - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
             schema:
               $ref: '#/components/schemas/simulate-enrollment-document-review-request'
         required: true
@@ -8107,14 +8103,19 @@ webhooks:
                   document_type: EIN_LETTER
                   entity_token: c5f2d594-d957-4781-8877-fbea31f5944a
                   required_document_uploads:
-                    - created: '2024-08-05 20:48:51.746833'
+                    - accepted_entity_status_reasons: []
+                      created: '2024-08-05 20:48:51.746833'
                       image_type: FRONT
+                      rejected_entity_status_reasons: []
                       status: UPLOADED
                       status_reasons: []
                       token: 9e1d69a1-377b-463a-b991-01b3c81519b6
                       updated: '2024-08-05 21:08:23.635573'
-                    - created: 2024-08-04 001:32:44.113765
+                    - accepted_entity_status_reasons: []
+                      created: 2024-08-04 001:32:44.113765
                       image_type: FRONT
+                      rejected_entity_status_reasons:
+                        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
                       status: REJECTED
                       status_reasons:
                         - DOCUMENT_MISSING_REQUIRED_DATA
@@ -8138,28 +8139,7 @@ webhooks:
                   example: account_holder_document.updated
                   type: string
                 document_type:
-                  description: The type of document that was uploaded
-                  enum:
-                    - EIN_LETTER
-                    - TAX_RETURN
-                    - OPERATING_AGREEMENT
-                    - CERTIFICATE_OF_FORMATION
-                    - DRIVERS_LICENSE
-                    - PASSPORT
-                    - PASSPORT_CARD
-                    - CERTIFICATE_OF_GOOD_STANDING
-                    - ARTICLES_OF_INCORPORATION
-                    - ARTICLES_OF_ORGANIZATION
-                    - BYLAWS
-                    - GOVERNMENT_BUSINESS_LICENSE
-                    - PARTNERSHIP_AGREEMENT
-                    - SS4_FORM
-                    - BANK_STATEMENT
-                    - UTILITY_BILL_STATEMENT
-                    - SSN_CARD
-                    - ITIN_LETTER
-                  example: EIN_LETTER
-                  type: string
+                  $ref: '#/components/schemas/document-type'
                 entity_token:
                   description: The token of the entity that the document belongs to
                   example: c5f2d594-d957-4781-8877-fbea31f5944a
@@ -8181,15 +8161,20 @@ webhooks:
                         type: string
                       status:
                         description: The status of the document upload
-                        enum:
-                          - PENDING_UPLOAD
-                          - UPLOADED
-                          - ACCEPTED
-                          - REJECTED
-                        type: string
+                        $ref: '#/components/schemas/document-upload-status'
                       status_reasons:
                         items:
                           description: If status is REJECTED, status_reasons provides the reasons the document was rejected.
+                          type: string
+                        type: array
+                      accepted_entity_status_reasons:
+                        items:
+                          description: A list of status reasons associated with a KYB account holder that have been satisfied by the document upload
+                          type: string
+                        type: array
+                      rejected_entity_status_reasons:
+                        items:
+                          description: A list of status reasons associated with a KYB account holder that have not been satisfied by the document upload
                           type: string
                         type: array
                       token:
@@ -15152,6 +15137,92 @@ components:
         - entity_token
         - valid_documents
         - status_reasons
+    status-reasons:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
+      title: KYC/KYB Status Reasons
+      description: Status Reasons for KYC/KYB enrollment states
+      type: string
+      enum:
+        - ADDRESS_VERIFICATION_FAILURE
+        - AGE_THRESHOLD_FAILURE
+        - COMPLETE_VERIFICATION_FAILURE
+        - DOB_VERIFICATION_FAILURE
+        - ID_VERIFICATION_FAILURE
+        - MAX_DOCUMENT_ATTEMPTS
+        - MAX_RESUBMISSION_ATTEMPTS
+        - NAME_VERIFICATION_FAILURE
+        - OTHER_VERIFICATION_FAILURE
+        - RISK_THRESHOLD_FAILURE
+        - WATCHLIST_ALERT_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
+        - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
+        - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
+        - PRIMARY_BUSINESS_CMRA_FAILURE
+        - PRIMARY_BUSINESS_WATCHLIST_FAILURE
+        - PRIMARY_BUSINESS_REGISTERED_AGENT_FAILURE
+        - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
+        - CONTROL_PERSON_ID_VERIFICATION_FAILURE
+        - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
+        - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
+    document-type:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-type.json
+      title: Account Holder document types
+      description: Type of documentation to be submitted for verification of an account holder
+      type: string
+      enum:
+        - DRIVERS_LICENSE
+        - PASSPORT
+        - PASSPORT_CARD
+        - EIN_LETTER
+        - TAX_RETURN
+        - OPERATING_AGREEMENT
+        - CERTIFICATE_OF_FORMATION
+        - CERTIFICATE_OF_GOOD_STANDING
+        - ARTICLES_OF_INCORPORATION
+        - ARTICLES_OF_ORGANIZATION
+        - BYLAWS
+        - GOVERNMENT_BUSINESS_LICENSE
+        - PARTNERSHIP_AGREEMENT
+        - SS4_FORM
+        - BANK_STATEMENT
+        - UTILITY_BILL_STATEMENT
+        - SSN_CARD
+        - ITIN_LETTER
+    document-upload-status:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status.json
+      title: Account holder document upload status
+      description: Status of an account holder's document upload.
+      type: string
+      enum:
+        - ACCEPTED
+        - REJECTED
+        - PENDING_UPLOAD
+        - UPLOADED
+        - PARTIAL_APPROVAL
+    document-upload-status-reasons:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status-reasons.json
+      title: Account holder document upload status reasons
+      description: The status reasons for an account holder document upload that is not ACCEPTED
+      type: string
+      enum:
+        - DOCUMENT_MISSING_REQUIRED_DATA
+        - DOCUMENT_UPLOAD_TOO_BLURRY
+        - FILE_SIZE_TOO_LARGE
+        - INVALID_DOCUMENT_TYPE
+        - INVALID_DOCUMENT_UPLOAD
+        - INVALID_ENTITY
+        - DOCUMENT_EXPIRED
+        - DOCUMENT_ISSUED_GREATER_THAN_30_DAYS
+        - DOCUMENT_TYPE_NOT_SUPPORTED
+        - UNKNOWN_FAILURE_REASON
+        - UNKNOWN_ERROR
     document:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document.json
@@ -15181,27 +15252,7 @@ components:
           format: uuid
           description: Globally unique identifier for the account holder.
         document_type:
-          type: string
-          enum:
-            - DRIVERS_LICENSE
-            - PASSPORT
-            - PASSPORT_CARD
-            - EIN_LETTER
-            - TAX_RETURN
-            - OPERATING_AGREEMENT
-            - CERTIFICATE_OF_FORMATION
-            - CERTIFICATE_OF_GOOD_STANDING
-            - ARTICLES_OF_INCORPORATION
-            - ARTICLES_OF_ORGANIZATION
-            - BYLAWS
-            - GOVERNMENT_BUSINESS_LICENSE
-            - PARTNERSHIP_AGREEMENT
-            - SS4_FORM
-            - BANK_STATEMENT
-            - UTILITY_BILL_STATEMENT
-            - SSN_CARD
-            - ITIN_LETTER
-          description: Type of documentation to be submitted for verification.
+          $ref: '#/components/schemas/document-type'
         entity_token:
           type: string
           format: uuid
@@ -15220,25 +15271,12 @@ components:
                   - BACK
                 description: Type of image to upload.
               status:
-                type: string
-                enum:
-                  - ACCEPTED
-                  - REJECTED
-                  - PENDING_UPLOAD
-                  - UPLOADED
-                description: Status of document image upload.
+                $ref: '#/components/schemas/document-upload-status'
               status_reasons:
-                type: array
                 description: Reasons for document image upload status.
+                type: array
                 items:
-                  type: string
-                  enum:
-                    - DOCUMENT_MISSING_REQUIRED_DATA
-                    - DOCUMENT_UPLOAD_TOO_BLURRY
-                    - FILE_SIZE_TOO_LARGE
-                    - INVALID_DOCUMENT_TYPE
-                    - INVALID_DOCUMENT_UPLOAD
-                    - UNKNOWN_ERROR
+                  $ref: '#/components/schemas/document-upload-status-reasons'
               upload_url:
                 type: string
                 description: |-
@@ -15250,12 +15288,34 @@ components:
                 type: string
                 format: uuid
                 description: Globally unique identifier for the document upload.
+              accepted_entity_status_reasons:
+                description: A list of status reasons associated with a KYB account holder that have been satisfied by the document upload
+                type: array
+                items:
+                  type: string
+              rejected_entity_status_reasons:
+                description: A list of status reasons associated with a KYB account holder that have not been satisfied by the document upload
+                type: array
+                items:
+                  type: string
+              created:
+                type: string
+                format: date-time
+                description: When the document upload was created
+              updated:
+                type: string
+                format: date-time
+                description: When the document upload was last updated
             required:
               - image_type
               - status
               - status_reasons
               - upload_url
               - token
+              - created
+              - updated
+              - accepted_entity_status_reasons
+              - rejected_entity_status_reasons
       required:
         - account_holder_token
         - document_type
@@ -17030,24 +17090,6 @@ components:
         - PENDING_DOCUMENT
         - PENDING_RESUBMIT
         - REJECTED
-    status-reasons:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
-      title: KYC/KYB Status Reasons
-      description: Status Reasons for KYC/KYB enrollment states
-      type: string
-      enum:
-        - ADDRESS_VERIFICATION_FAILURE
-        - AGE_THRESHOLD_FAILURE
-        - COMPLETE_VERIFICATION_FAILURE
-        - DOB_VERIFICATION_FAILURE
-        - ID_VERIFICATION_FAILURE
-        - MAX_DOCUMENT_ATTEMPTS
-        - MAX_RESUBMISSION_ATTEMPTS
-        - NAME_VERIFICATION_FAILURE
-        - OTHER_VERIFICATION_FAILURE
-        - RISK_THRESHOLD_FAILURE
-        - WATCHLIST_ALERT_FAILURE
     verification-application:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/verification-application.json
@@ -17330,15 +17372,18 @@ components:
             - UPLOADED
             - ACCEPTED
             - REJECTED
-        status_reasons:
-          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
+            - PARTIAL_APPROVAL
+        status_reason:
+          $ref: '#/components/schemas/document-upload-status-reasons'
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status or `PARTIAL_APPROVAL` status.
+        accepted_entity_status_reasons:
+          description: A list of status reasons associated with a KYB account holder in PENDING_REVIEW
           type: array
           items:
             type: string
-            enum:
-              - DOCUMENT_MISSING_REQUIRED_DATA
-              - DOCUMENT_UPLOAD_TOO_BLURRY
-              - INVALID_DOCUMENT_TYPE
+      required:
+        - document_upload_token
+        - status
     external_payment_category:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
       $schema: https://json-schema.org/draft/2020-12/schema
