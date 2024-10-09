@@ -15242,6 +15242,10 @@ components:
               status_reasons: []
               upload_url: https://lithic-document-verification-uploads.com
               token: e254beee-67db-4d8c-b610-306ee07de886
+              accepted_entity_status_reasons: []
+              rejected_entity_status_reasons: []
+              created: '2024-09-18T12:34:56Z'
+              updated: '2024-09-18T12:34:56Z'
       properties:
         token:
           type: string
