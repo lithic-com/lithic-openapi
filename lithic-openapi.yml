@@ -398,7 +398,19 @@ paths:
                   status_reasons:
                     description: Reason for the evaluation status.
                     items:
-                      $ref: '#/components/schemas/status-reasons'
+                      enum:
+                        - ADDRESS_VERIFICATION_FAILURE
+                        - AGE_THRESHOLD_FAILURE
+                        - COMPLETE_VERIFICATION_FAILURE
+                        - DOB_VERIFICATION_FAILURE
+                        - ID_VERIFICATION_FAILURE
+                        - MAX_DOCUMENT_ATTEMPTS
+                        - MAX_RESUBMISSION_ATTEMPTS
+                        - NAME_VERIFICATION_FAILURE
+                        - OTHER_VERIFICATION_FAILURE
+                        - RISK_THRESHOLD_FAILURE
+                        - WATCHLIST_ALERT_FAILURE
+                      type: string
                     type: array
                   required_documents:
                     description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
@@ -899,7 +911,8 @@ paths:
         - Account
     patch:
       description: |
-        Update account configuration such as state or spend limits. Can only be run on accounts that are part of the program managed by this API key.
+        Update account configuration such as spend limits and verification address. Can only be run on accounts that are part of the program managed by this API key.
+
         Accounts that are in the `PAUSED` state will not be able to transact or create new cards.
       operationId: patchAccountByToken
       parameters:
@@ -942,7 +955,7 @@ paths:
                     - PAUSED
                   type: string
                 verification_address:
-                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Authorization Rules. The field will be removed from the schema in a future release.
+                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules.
                   properties:
                     address1:
                       type: string
@@ -957,7 +970,6 @@ paths:
                     state:
                       type: string
                   type: object
-                  deprecated: true
               type: object
         required: true
       responses:
@@ -6298,14 +6310,6 @@ paths:
                   document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
                   status: REJECTED
                   status_reason: DOCUMENT_MISSING_REQUIRED_DATA
-              simulatePartialApprovalReviewRequest:
-                summary: Simulates a partial approval enrollment document upload review request
-                value:
-                  document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
-                  status: PARTIAL_APPROVAL
-                  status_reason: DOCUMENT_MISSING_REQUIRED_DATA
-                  accepted_entity_status_reasons:
-                    - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
             schema:
               $ref: '#/components/schemas/simulate-enrollment-document-review-request'
         required: true
@@ -8103,19 +8107,14 @@ webhooks:
                   document_type: EIN_LETTER
                   entity_token: c5f2d594-d957-4781-8877-fbea31f5944a
                   required_document_uploads:
-                    - accepted_entity_status_reasons: []
-                      created: '2024-08-05 20:48:51.746833'
+                    - created: '2024-08-05 20:48:51.746833'
                       image_type: FRONT
-                      rejected_entity_status_reasons: []
                       status: UPLOADED
                       status_reasons: []
                       token: 9e1d69a1-377b-463a-b991-01b3c81519b6
                       updated: '2024-08-05 21:08:23.635573'
-                    - accepted_entity_status_reasons: []
-                      created: 2024-08-04 001:32:44.113765
+                    - created: 2024-08-04 001:32:44.113765
                       image_type: FRONT
-                      rejected_entity_status_reasons:
-                        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
                       status: REJECTED
                       status_reasons:
                         - DOCUMENT_MISSING_REQUIRED_DATA
@@ -8139,7 +8138,28 @@ webhooks:
                   example: account_holder_document.updated
                   type: string
                 document_type:
-                  $ref: '#/components/schemas/document-type'
+                  description: The type of document that was uploaded
+                  enum:
+                    - EIN_LETTER
+                    - TAX_RETURN
+                    - OPERATING_AGREEMENT
+                    - CERTIFICATE_OF_FORMATION
+                    - DRIVERS_LICENSE
+                    - PASSPORT
+                    - PASSPORT_CARD
+                    - CERTIFICATE_OF_GOOD_STANDING
+                    - ARTICLES_OF_INCORPORATION
+                    - ARTICLES_OF_ORGANIZATION
+                    - BYLAWS
+                    - GOVERNMENT_BUSINESS_LICENSE
+                    - PARTNERSHIP_AGREEMENT
+                    - SS4_FORM
+                    - BANK_STATEMENT
+                    - UTILITY_BILL_STATEMENT
+                    - SSN_CARD
+                    - ITIN_LETTER
+                  example: EIN_LETTER
+                  type: string
                 entity_token:
                   description: The token of the entity that the document belongs to
                   example: c5f2d594-d957-4781-8877-fbea31f5944a
@@ -8161,20 +8181,15 @@ webhooks:
                         type: string
                       status:
                         description: The status of the document upload
-                        $ref: '#/components/schemas/document-upload-status'
+                        enum:
+                          - PENDING_UPLOAD
+                          - UPLOADED
+                          - ACCEPTED
+                          - REJECTED
+                        type: string
                       status_reasons:
                         items:
                           description: If status is REJECTED, status_reasons provides the reasons the document was rejected.
-                          type: string
-                        type: array
-                      accepted_entity_status_reasons:
-                        items:
-                          description: A list of status reasons associated with a KYB account holder that have been satisfied by the document upload
-                          type: string
-                        type: array
-                      rejected_entity_status_reasons:
-                        items:
-                          description: A list of status reasons associated with a KYB account holder that have not been satisfied by the document upload
                           type: string
                         type: array
                       token:
@@ -10499,7 +10514,6 @@ components:
             - postal_code
             - state
           type: object
-          deprecated: true
         created:
           description: Timestamp of when the account was created. For accounts created before 2023-05-11, this field will be null.
           format: date-time
@@ -15137,92 +15151,6 @@ components:
         - entity_token
         - valid_documents
         - status_reasons
-    status-reasons:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
-      title: KYC/KYB Status Reasons
-      description: Status Reasons for KYC/KYB enrollment states
-      type: string
-      enum:
-        - ADDRESS_VERIFICATION_FAILURE
-        - AGE_THRESHOLD_FAILURE
-        - COMPLETE_VERIFICATION_FAILURE
-        - DOB_VERIFICATION_FAILURE
-        - ID_VERIFICATION_FAILURE
-        - MAX_DOCUMENT_ATTEMPTS
-        - MAX_RESUBMISSION_ATTEMPTS
-        - NAME_VERIFICATION_FAILURE
-        - OTHER_VERIFICATION_FAILURE
-        - RISK_THRESHOLD_FAILURE
-        - WATCHLIST_ALERT_FAILURE
-        - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
-        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
-        - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
-        - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
-        - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
-        - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
-        - PRIMARY_BUSINESS_ENTITY_CMRA_FAILURE
-        - PRIMARY_BUSINESS_ENTITY_WATCHLIST_FAILURE
-        - PRIMARY_BUSINESS_ENTITY_REGISTERED_AGENT_FAILURE
-        - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
-        - CONTROL_PERSON_ID_VERIFICATION_FAILURE
-        - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
-        - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
-    document-type:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-type.json
-      title: Account Holder document types
-      description: Type of documentation to be submitted for verification of an account holder
-      type: string
-      enum:
-        - DRIVERS_LICENSE
-        - PASSPORT
-        - PASSPORT_CARD
-        - EIN_LETTER
-        - TAX_RETURN
-        - OPERATING_AGREEMENT
-        - CERTIFICATE_OF_FORMATION
-        - CERTIFICATE_OF_GOOD_STANDING
-        - ARTICLES_OF_INCORPORATION
-        - ARTICLES_OF_ORGANIZATION
-        - BYLAWS
-        - GOVERNMENT_BUSINESS_LICENSE
-        - PARTNERSHIP_AGREEMENT
-        - SS4_FORM
-        - BANK_STATEMENT
-        - UTILITY_BILL_STATEMENT
-        - SSN_CARD
-        - ITIN_LETTER
-    document-upload-status:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status.json
-      title: Account holder document upload status
-      description: Status of an account holder's document upload.
-      type: string
-      enum:
-        - ACCEPTED
-        - REJECTED
-        - PENDING_UPLOAD
-        - UPLOADED
-        - PARTIAL_APPROVAL
-    document-upload-status-reasons:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status-reasons.json
-      title: Account holder document upload status reasons
-      description: The status reasons for an account holder document upload that is not ACCEPTED
-      type: string
-      enum:
-        - DOCUMENT_MISSING_REQUIRED_DATA
-        - DOCUMENT_UPLOAD_TOO_BLURRY
-        - FILE_SIZE_TOO_LARGE
-        - INVALID_DOCUMENT_TYPE
-        - INVALID_DOCUMENT_UPLOAD
-        - INVALID_ENTITY
-        - DOCUMENT_EXPIRED
-        - DOCUMENT_ISSUED_GREATER_THAN_30_DAYS
-        - DOCUMENT_TYPE_NOT_SUPPORTED
-        - UNKNOWN_FAILURE_REASON
-        - UNKNOWN_ERROR
     document:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document.json
@@ -15242,10 +15170,6 @@ components:
               status_reasons: []
               upload_url: https://lithic-document-verification-uploads.com
               token: e254beee-67db-4d8c-b610-306ee07de886
-              accepted_entity_status_reasons: []
-              rejected_entity_status_reasons: []
-              created: '2024-09-18T12:34:56Z'
-              updated: '2024-09-18T12:34:56Z'
       properties:
         token:
           type: string
@@ -15256,7 +15180,27 @@ components:
           format: uuid
           description: Globally unique identifier for the account holder.
         document_type:
-          $ref: '#/components/schemas/document-type'
+          type: string
+          enum:
+            - DRIVERS_LICENSE
+            - PASSPORT
+            - PASSPORT_CARD
+            - EIN_LETTER
+            - TAX_RETURN
+            - OPERATING_AGREEMENT
+            - CERTIFICATE_OF_FORMATION
+            - CERTIFICATE_OF_GOOD_STANDING
+            - ARTICLES_OF_INCORPORATION
+            - ARTICLES_OF_ORGANIZATION
+            - BYLAWS
+            - GOVERNMENT_BUSINESS_LICENSE
+            - PARTNERSHIP_AGREEMENT
+            - SS4_FORM
+            - BANK_STATEMENT
+            - UTILITY_BILL_STATEMENT
+            - SSN_CARD
+            - ITIN_LETTER
+          description: Type of documentation to be submitted for verification.
         entity_token:
           type: string
           format: uuid
@@ -15275,12 +15219,25 @@ components:
                   - BACK
                 description: Type of image to upload.
               status:
-                $ref: '#/components/schemas/document-upload-status'
+                type: string
+                enum:
+                  - ACCEPTED
+                  - REJECTED
+                  - PENDING_UPLOAD
+                  - UPLOADED
+                description: Status of document image upload.
               status_reasons:
-                description: Reasons for document image upload status.
                 type: array
+                description: Reasons for document image upload status.
                 items:
-                  $ref: '#/components/schemas/document-upload-status-reasons'
+                  type: string
+                  enum:
+                    - DOCUMENT_MISSING_REQUIRED_DATA
+                    - DOCUMENT_UPLOAD_TOO_BLURRY
+                    - FILE_SIZE_TOO_LARGE
+                    - INVALID_DOCUMENT_TYPE
+                    - INVALID_DOCUMENT_UPLOAD
+                    - UNKNOWN_ERROR
               upload_url:
                 type: string
                 description: |-
@@ -15292,34 +15249,12 @@ components:
                 type: string
                 format: uuid
                 description: Globally unique identifier for the document upload.
-              accepted_entity_status_reasons:
-                description: A list of status reasons associated with a KYB account holder that have been satisfied by the document upload
-                type: array
-                items:
-                  type: string
-              rejected_entity_status_reasons:
-                description: A list of status reasons associated with a KYB account holder that have not been satisfied by the document upload
-                type: array
-                items:
-                  type: string
-              created:
-                type: string
-                format: date-time
-                description: When the document upload was created
-              updated:
-                type: string
-                format: date-time
-                description: When the document upload was last updated
             required:
               - image_type
               - status
               - status_reasons
               - upload_url
               - token
-              - created
-              - updated
-              - accepted_entity_status_reasons
-              - rejected_entity_status_reasons
       required:
         - account_holder_token
         - document_type
@@ -16404,8 +16339,6 @@ components:
           description: Tier assigned to the financial account
         financial_account_state:
           $ref: '#/components/schemas/financial-account-state'
-        is_spend_blocked:
-          type: boolean
       required:
         - account_token
         - credit_limit
@@ -16575,14 +16508,6 @@ components:
         - interest_for_period
         - actual_interest_charged
         - daily_balance_amounts
-    statement_type:
-      $id: https://lithic.com/schemas/treasury/statements/statement_type.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - INITIAL
-        - PERIOD_END
-      title: Statement Type
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16653,8 +16578,6 @@ components:
           $ref: '#/components/schemas/amount_due'
         interest_details:
           $ref: '#/components/schemas/interest_details'
-        statement_type:
-          $ref: '#/components/schemas/statement_type'
       required:
         - token
         - financial_account_token
@@ -16673,7 +16596,6 @@ components:
         - updated
         - credit_product_token
         - account_standing
-        - statement_type
     statements_response:
       $id: https://lithic.com/schemas/treasury/statements/statements_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16849,17 +16771,8 @@ components:
         balance_next_due:
           description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
           $ref: '#/components/schemas/category_balances'
-        starting_balance:
-          description: Balance at the start of the day
-          type: integer
-        ending_balance:
-          description: Balance at the end of the day
-          type: integer
         credit_limit:
           description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
-          type: integer
-        available_credit:
-          description: Amount of credit available to spend in cents
           type: integer
         excess_credits:
           description: Excess credits in the form of provisional credits, payments, or purchase refunds. If positive, the account is in net credit state with no outstanding balances. An overpayment could land an account in this state
@@ -16876,7 +16789,7 @@ components:
           $ref: '#/components/schemas/category_balances'
         minimum_payment_balance:
           $ref: '#/components/schemas/balance_details'
-        previous_statement_balance:
+        statement_balance:
           $ref: '#/components/schemas/balance_details'
       required:
         - token
@@ -16897,10 +16810,7 @@ components:
         - balance_due
         - balance_next_due
         - minimum_payment_balance
-        - previous_statement_balance
-        - starting_balance
-        - ending_balance
-        - available_credit
+        - statement_balance
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17069,12 +16979,6 @@ components:
               - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
               - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
               - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
-              - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
-              - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
-              - PRIMARY_BUSINESS_ENTITY_CMRA_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_WATCHLIST_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_REGISTERED_AGENT_FAILURE
               - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
               - CONTROL_PERSON_ID_VERIFICATION_FAILURE
               - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
@@ -17094,6 +16998,24 @@ components:
         - PENDING_DOCUMENT
         - PENDING_RESUBMIT
         - REJECTED
+    status-reasons:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
+      title: KYC/KYB Status Reasons
+      description: Status Reasons for KYC/KYB enrollment states
+      type: string
+      enum:
+        - ADDRESS_VERIFICATION_FAILURE
+        - AGE_THRESHOLD_FAILURE
+        - COMPLETE_VERIFICATION_FAILURE
+        - DOB_VERIFICATION_FAILURE
+        - ID_VERIFICATION_FAILURE
+        - MAX_DOCUMENT_ATTEMPTS
+        - MAX_RESUBMISSION_ATTEMPTS
+        - NAME_VERIFICATION_FAILURE
+        - OTHER_VERIFICATION_FAILURE
+        - RISK_THRESHOLD_FAILURE
+        - WATCHLIST_ALERT_FAILURE
     verification-application:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/verification-application.json
@@ -17376,18 +17298,15 @@ components:
             - UPLOADED
             - ACCEPTED
             - REJECTED
-            - PARTIAL_APPROVAL
-        status_reason:
-          $ref: '#/components/schemas/document-upload-status-reasons'
-          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status or `PARTIAL_APPROVAL` status.
-        accepted_entity_status_reasons:
-          description: A list of status reasons associated with a KYB account holder in PENDING_REVIEW
+        status_reasons:
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
           type: array
           items:
             type: string
-      required:
-        - document_upload_token
-        - status
+            enum:
+              - DOCUMENT_MISSING_REQUIRED_DATA
+              - DOCUMENT_UPLOAD_TOO_BLURRY
+              - INVALID_DOCUMENT_TYPE
     external_payment_category:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
       $schema: https://json-schema.org/draft/2020-12/schema
