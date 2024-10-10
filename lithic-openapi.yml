@@ -6368,6 +6368,7 @@ paths:
                   transaction:
                     amount: 100
                     currency: USD
+                  card_expiry_check: MATCH
             schema:
               properties:
                 merchant:
@@ -6420,6 +6421,14 @@ paths:
                     - amount
                     - currency
                   type: object
+                card_expiry_check:
+                  description: |
+                    When set will use the following values as part of the Simulated Authentication. When not set defaults to MATCH
+                  enum:
+                    - MATCH
+                    - MISMATCH
+                    - NOT_PRESENT
+                  type: string
               required:
                 - merchant
                 - pan
@@ -6431,14 +6440,9 @@ paths:
           content:
             application/json:
               example:
-                debugging_request_id: d31645af-da9e-4952-b7dc-3ffb06618b39
                 token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
               schema:
                 properties:
-                  debugging_request_id:
-                    description: Debugging request ID to share with Lithic Support team.
-                    format: uuid
-                    type: string
                   token:
                     description: A unique token to reference this transaction with later calls to void or clear the authorization.
                     format: uuid
@@ -6454,6 +6458,74 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Simulate 3DS authentication
+      tags:
+        - 3DS
+  /v1/three_ds_decisioning/simulate/challenge:
+    post:
+      description: "Simulates a 3DS authentication challenge request from the payment network as if it came from an ACS. Requires being configured for 3DS Customer Decisioning, and enrolled with Lithic's Challenge solution. "
+      requestBody:
+        content:
+          application/json:
+            example:
+              token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
+            schema:
+              properties:
+                token:
+                  description: A unique token returned as part of a /v1/three_ds_authentication/simulate call that responded with a CHALLENGE_REQUESTED status.
+                  format: uuid
+                  type: string
+                  required:
+                    - token
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
+              schema:
+                properties:
+                  token:
+                    description: A unique token to reference this transaction with later calls to void or clear the authorization. This token is used in /v1/three_ds_decisioning/simulate/challenge_response to Approve or Decline the authentication
+                    format: uuid
+                    type: string
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Simulate 3DS authentication challenge
+      tags:
+        - 3DS
+  /v1/three_ds_decisioning/simulate/challenge_response:
+    post:
+      description: Endpoint for responding to a 3DS Challenge initiated by a call to /v1/three_ds_decisioning/simulate/challenge
+      operationId: postSimulateAuthenticationChallengeResponse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeResponse'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Simulate response to a 3DS authentication challenge
       tags:
         - 3DS
   /v1/three_ds_authentication/{three_ds_authentication_token}:
