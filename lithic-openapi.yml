@@ -17367,6 +17367,7 @@ components:
         - card_token
         - cardholder_authentication
         - created
+        - events
         - merchant_amount
         - merchant_authorization_amount
         - merchant_currency
@@ -18679,7 +18680,8 @@ components:
           required:
             - event_type
       examples:
-        - acquirer_fee: 0
+        - account_token: db3942f0-0627-4887-a190-1ea83b46d091
+          acquirer_fee: 0
           acquirer_reference_number: null
           amount: 1800
           amounts:
@@ -18727,6 +18729,7 @@ components:
               type: AUTHORIZATION
           merchant:
             acceptor_id: '452322000053360'
+            acquiring_insitution_id_code: '333301802529120'
             city: gosq.com
             country: USA
             descriptor: SQ *SOMA EATS
@@ -18740,6 +18743,7 @@ components:
           settled_amount: 0
           status: PENDING
           token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+          updated: '2023-08-03T18:42:30Z'
     customer-tokenization-decision:
       $id: https://lithic.com/schemas/tokenization/shared/customer-tokenization-decision.json
       $schema: https://json-schema.org/draft/2020-12/schema
