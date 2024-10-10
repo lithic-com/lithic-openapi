@@ -1879,7 +1879,7 @@ paths:
                   minLength: 4
                   type: string
                 memo:
-                  description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
+                  description: Friendly name to identify the card.
                   example: New Card
                   type: string
                 pin:
@@ -2142,7 +2142,7 @@ paths:
                   format: uuid
                   type: string
                 memo:
-                  description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
+                  description: Friendly name to identify the card.
                   example: New Card
                   type: string
                 pin:
@@ -11175,7 +11175,7 @@ components:
           minLength: 4
           type: string
         memo:
-          description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
+          description: Friendly name to identify the card.
           example: New Card
           type: string
         pan:
