@@ -15816,6 +15816,29 @@ components:
         - interest
         - principal
         - fees
+    balances:
+      $id: https://lithic.com/schemas/treasury/statements/balances.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Balances
+      type: object
+      properties:
+        past_due:
+          description: Amount not paid off on previous due dates
+          $ref: '#/components/schemas/category_balances'
+        due:
+          description: Amount due for the prior billing cycle. Any amounts not fully paid off on this due date will be considered past due the next day
+          $ref: '#/components/schemas/category_balances'
+        past_statements_due:
+          description: Amount due for the past billing cycles.
+          $ref: '#/components/schemas/category_balances'
+        next_statement_due:
+          description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
+          $ref: '#/components/schemas/category_balances'
+      required:
+        - past_due
+        - due
+        - past_statements_due
+        - next_statement_due
     balance_details:
       $id: https://lithic.com/schemas/treasury/statements/balance_details.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15864,15 +15887,8 @@ components:
           $ref: '#/components/schemas/statement_totals'
         day_totals:
           $ref: '#/components/schemas/statement_totals'
-        balance_past_due:
-          description: Amount not paid off on previous due dates
-          $ref: '#/components/schemas/category_balances'
-        balance_due:
-          description: Amount due for the prior billing cycle. Any amounts not fully paid off on this due date will be considered past due the next day
-          $ref: '#/components/schemas/category_balances'
-        balance_next_due:
-          description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
-          $ref: '#/components/schemas/category_balances'
+        balances:
+          $ref: '#/components/schemas/balances'
         starting_balance:
           description: Balance at the start of the day
           type: integer
@@ -15917,9 +15933,7 @@ components:
         - account_standing
         - credit_product_token
         - payment_allocation
-        - balance_past_due
-        - balance_due
-        - balance_next_due
+        - balances
         - minimum_payment_balance
         - previous_statement_balance
         - starting_balance
