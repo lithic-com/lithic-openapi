@@ -17321,7 +17321,7 @@ components:
               type: AUTHORIZATION
           merchant:
             acceptor_id: '452322000053360'
-            acquiring_insitution_id: '333301802529120'
+            acquiring_institution_id: '333301802529120'
             city: gosq.com
             country: USA
             descriptor: SQ *SOMA EATS
@@ -17422,7 +17422,7 @@ components:
                   type: AUTHORIZATION
               merchant:
                 acceptor_id: '452322000053360'
-                acquiring_insitution_id: '333301802529120'
+                acquiring_institution_id: '333301802529120'
                 city: gosq.com
                 country: USA
                 descriptor: SQ *SOMA EATS
@@ -18809,7 +18809,7 @@ components:
               type: AUTHORIZATION
           merchant:
             acceptor_id: '452322000053360'
-            acquiring_insitution_id: '333301802529120'
+            acquiring_institution_id: '333301802529120'
             city: gosq.com
             country: USA
             descriptor: SQ *SOMA EATS
