@@ -17331,9 +17331,9 @@ components:
           token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
           updated: '2023-08-03T18:42:30Z'
     list_transactions_response:
-      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/card_transaction_updated_event.json
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/list_transactions_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Card Transaction Updated Event
+      title: List Transactions Response
       type: object
       properties:
         data:
