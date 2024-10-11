@@ -1379,13 +1379,13 @@ paths:
         - Authorization Rules
       summary: Migrate a V1 authorization rule to a V2 authorization rule.
       description: |
-        Migrates an existing V1 authorization rule to a V2 authorization rule. This will alter the internal structure of the Auth Rule such that it becomes a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
+        Migrates an existing V1 authorization rule to a V2 authorization rule. Depending on the configuration of the V1 Auth Rule, this will yield one or two V2 authorization rules. This endpoint will alter the internal structure of the Auth Rule such that the resulting rules become a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
 
         After a V1 Auth Rule has been migrated, it can no longer be operated on through the /v1/auth_rules/* endpoints. Eventually, Lithic will deprecate the /v1/auth_rules endpoints and migrate all existing V1 Auth Rules to V2 Auth Rules.
       responses:
         '200':
-          description: Auth Rule Migrated
-          $ref: '#/components/responses/AuthRule'
+          description: Auth Rule(s) Migrated
+          $ref: '#/components/responses/AuthRules'
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
@@ -10201,12 +10201,14 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
-    AuthRule:
-      description: Authorization Rule
+    AuthRules:
+      description: Authorization Rules
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/auth-rule'
+            type: array
+            items:
+              $ref: '#/components/schemas/auth-rule'
     responses-BadRequest:
       description: Bad Request
       content:
@@ -10219,6 +10221,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/schemas-Error'
+    AuthRule:
+      description: Authorization Rule
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/auth-rule'
     exception-responses_responses-BadRequest:
       content:
         application/json:
