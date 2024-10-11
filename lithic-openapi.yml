@@ -17294,6 +17294,8 @@ components:
             liability_shift: NONE
             verification_attempted: NONE
             verification_result: NOT_ATTEMPTED
+            authentication_result: NONE
+            decision_made_by: LITHIC_RULES
           created: '2023-08-03T18:42:30Z'
           events:
             - amount: 1800
@@ -17315,7 +17317,7 @@ components:
               type: AUTHORIZATION
           merchant:
             acceptor_id: '452322000053360'
-            acquiring_insitution_id: '333301802529120'
+            acquiring_institution_id: '333301802529120'
             city: gosq.com
             country: USA
             descriptor: SQ *SOMA EATS
@@ -17330,6 +17332,20 @@ components:
           status: PENDING
           token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
           updated: '2023-08-03T18:42:30Z'
+          pos:
+            entry_mode:
+              card: NOT_PRESENT
+              cardholder: NOT_PRESENT
+              pan: ECOMMERCE
+              pin_entered: false
+            terminal:
+              attended: false
+              card_retention_capable: false
+              on_premise: false
+              operator: UNKNOWN
+              partial_approval_capable: false
+              pin_capability: NOT_CAPABLE
+              type: UNKNOWN
     list_transactions_response:
       $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/list_transactions_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17372,6 +17388,8 @@ components:
                 liability_shift: NONE
                 verification_attempted: NONE
                 verification_result: NOT_ATTEMPTED
+                authentication_result: NONE
+                decision_made_by: LITHIC_RULES
               created: '2023-08-03T18:42:30Z'
               events:
                 - amount: 1800
@@ -17393,7 +17411,7 @@ components:
                   type: AUTHORIZATION
               merchant:
                 acceptor_id: '452322000053360'
-                acquiring_insitution_id: '333301802529120'
+                acquiring_institution_id: '333301802529120'
                 city: gosq.com
                 country: USA
                 descriptor: SQ *SOMA EATS
@@ -17408,6 +17426,20 @@ components:
               status: PENDING
               token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
               updated: '2023-08-03T18:42:30Z'
+              pos:
+                entry_mode:
+                  card: NOT_PRESENT
+                  cardholder: NOT_PRESENT
+                  pan: ECOMMERCE
+                  pin_entered: false
+                terminal:
+                  attended: false
+                  card_retention_capable: false
+                  on_premise: false
+                  operator: UNKNOWN
+                  partial_approval_capable: false
+                  pin_capability: NOT_CAPABLE
+                  type: UNKNOWN
           has_more: false
     external_payment_category:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
