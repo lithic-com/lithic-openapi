@@ -17287,15 +17287,19 @@ components:
               currency: USD
           authorization_amount: 1800
           authorization_code: '071471'
+          avs:
+            zipcode: '95006'
+            address: 123 Evergreen Terrace
           card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
           cardholder_authentication:
+            verification_attempted: OTHER
+            verification_result: SUCCESS
+            liability_shift: 3DS_AUTHENTICATED
             3ds_version: null
-            acquirer_exemption: NONE
-            liability_shift: NONE
-            verification_attempted: NONE
-            verification_result: NOT_ATTEMPTED
-            authentication_result: NONE
-            decision_made_by: LITHIC_RULES
+            acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+            authentication_result: SUCCESS
+            three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
+            decision_made_by: NETWORK
           created: '2023-08-03T18:42:30Z'
           events:
             - amount: 1800
@@ -17317,7 +17321,7 @@ components:
               type: AUTHORIZATION
           merchant:
             acceptor_id: '452322000053360'
-            acquiring_institution_id: '333301802529120'
+            acquiring_insitution_id: '333301802529120'
             city: gosq.com
             country: USA
             descriptor: SQ *SOMA EATS
@@ -17327,11 +17331,7 @@ components:
           merchant_authorization_amount: 1800
           merchant_currency: USD
           network: MASTERCARD
-          result: APPROVED
-          settled_amount: 0
-          status: PENDING
-          token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
-          updated: '2023-08-03T18:42:30Z'
+          network_risk_score: 5
           pos:
             entry_mode:
               card: NOT_PRESENT
@@ -17346,6 +17346,13 @@ components:
               partial_approval_capable: false
               pin_capability: NOT_CAPABLE
               type: UNKNOWN
+          result: APPROVED
+          settled_amount: 0
+          status: PENDING
+          token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+          token_info:
+            wallet_type: APPLE_PAY
+          updated: '2023-08-03T18:42:30Z'
     list_transactions_response:
       $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/list_transactions_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17381,15 +17388,19 @@ components:
                   currency: USD
               authorization_amount: 1800
               authorization_code: '071471'
+              avs:
+                zipcode: '95006'
+                address: 123 Evergreen Terrace
               card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
               cardholder_authentication:
+                verification_attempted: OTHER
+                verification_result: SUCCESS
+                liability_shift: 3DS_AUTHENTICATED
                 3ds_version: null
-                acquirer_exemption: NONE
-                liability_shift: NONE
-                verification_attempted: NONE
-                verification_result: NOT_ATTEMPTED
-                authentication_result: NONE
-                decision_made_by: LITHIC_RULES
+                acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+                authentication_result: SUCCESS
+                three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
+                decision_made_by: NETWORK
               created: '2023-08-03T18:42:30Z'
               events:
                 - amount: 1800
@@ -17411,7 +17422,7 @@ components:
                   type: AUTHORIZATION
               merchant:
                 acceptor_id: '452322000053360'
-                acquiring_institution_id: '333301802529120'
+                acquiring_insitution_id: '333301802529120'
                 city: gosq.com
                 country: USA
                 descriptor: SQ *SOMA EATS
@@ -17421,11 +17432,7 @@ components:
               merchant_authorization_amount: 1800
               merchant_currency: USD
               network: MASTERCARD
-              result: APPROVED
-              settled_amount: 0
-              status: PENDING
-              token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
-              updated: '2023-08-03T18:42:30Z'
+              network_risk_score: 5
               pos:
                 entry_mode:
                   card: NOT_PRESENT
@@ -17440,6 +17447,13 @@ components:
                   partial_approval_capable: false
                   pin_capability: NOT_CAPABLE
                   type: UNKNOWN
+              result: APPROVED
+              settled_amount: 0
+              status: PENDING
+              token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+              token_info:
+                wallet_type: APPLE_PAY
+              updated: '2023-08-03T18:42:30Z'
           has_more: false
     external_payment_category:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
@@ -18760,13 +18774,19 @@ components:
               currency: USD
           authorization_amount: 1800
           authorization_code: '071471'
+          avs:
+            zipcode: '95006'
+            address: 123 Evergreen Terrace
           card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
           cardholder_authentication:
+            verification_attempted: OTHER
+            verification_result: SUCCESS
+            liability_shift: 3DS_AUTHENTICATED
             3ds_version: null
-            acquirer_exemption: NONE
-            liability_shift: NONE
-            verification_attempted: NONE
-            verification_result: NOT_ATTEMPTED
+            acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+            authentication_result: SUCCESS
+            three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
+            decision_made_by: NETWORK
           created: '2023-08-03T18:42:30Z'
           event_type: card_transaction.updated
           events:
@@ -18799,10 +18819,27 @@ components:
           merchant_authorization_amount: 1800
           merchant_currency: USD
           network: MASTERCARD
+          network_risk_score: 5
+          pos:
+            entry_mode:
+              card: NOT_PRESENT
+              cardholder: NOT_PRESENT
+              pan: ECOMMERCE
+              pin_entered: false
+            terminal:
+              attended: false
+              card_retention_capable: false
+              on_premise: false
+              operator: UNKNOWN
+              partial_approval_capable: false
+              pin_capability: NOT_CAPABLE
+              type: UNKNOWN
           result: APPROVED
           settled_amount: 0
           status: PENDING
           token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+          token_info:
+            wallet_type: APPLE_PAY
           updated: '2023-08-03T18:42:30Z'
     customer-tokenization-decision:
       $id: https://lithic.com/schemas/tokenization/shared/customer-tokenization-decision.json
