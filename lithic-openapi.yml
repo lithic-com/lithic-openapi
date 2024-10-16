@@ -3504,7 +3504,6 @@ paths:
                       - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
-                      - transfer_transaction.created
                       - tokenization.approval_request
                       - tokenization.result
                       - tokenization.two_factor_authentication_code
@@ -3665,7 +3664,6 @@ paths:
                       - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
-                      - transfer_transaction.created
                       - tokenization.approval_request
                       - tokenization.result
                       - tokenization.two_factor_authentication_code
@@ -3927,7 +3925,6 @@ paths:
                 - settlement_report.updated
                 - statements.created
                 - three_ds_authentication.created
-                - transfer_transaction.created
                 - tokenization.approval_request
                 - tokenization.result
                 - tokenization.two_factor_authentication_code
@@ -5788,7 +5785,6 @@ paths:
                     - settlement_report.updated
                     - statements.created
                     - three_ds_authentication.created
-                    - transfer_transaction.created
                     - tokenization.approval_request
                     - tokenization.result
                     - tokenization.two_factor_authentication_code
@@ -9782,47 +9778,6 @@ webhooks:
       summary: tokenization.updated
       tags:
         - Event Types
-  transfer_transaction.created:
-    post:
-      description: Occurs when a transfer transaction is created.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/FinancialTransaction'
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - transfer_transaction.created
-                      example: transfer_transaction.created
-                      type: string
-                  type: object
-              examples:
-                - category: TRANSFER
-                  created: '1973-04-04T23:39:00+00:00'
-                  currency: USD
-                  descriptor: Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                  event_type: transfer_transaction.created
-                  events:
-                    - amount: 4103
-                      created: '2023-09-14T12:52:44Z'
-                      result: APPROVED
-                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                      type: TRANSFER
-                  pending_amount: 0
-                  result: APPROVED
-                  settled_amount: 4103
-                  status: SETTLED
-                  token: bee304c3-d93d-42a0-88f4-68dde3251393
-                  updated: '1973-04-04T23:39:00+00:00'
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: transfer_transaction.created
-      tags:
-        - Event Types
   three_ds_decisioning:
     post:
       description: Webhook for Card Programs to decision on 3DS Authentication Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
@@ -11921,7 +11876,6 @@ components:
             - settlement_report.updated
             - statements.created
             - three_ds_authentication.created
-            - transfer_transaction.created
             - tokenization.approval_request
             - tokenization.result
             - tokenization.two_factor_authentication_code
@@ -11985,7 +11939,6 @@ components:
               - settlement_report.updated
               - statements.created
               - three_ds_authentication.created
-              - transfer_transaction.created
               - tokenization.approval_request
               - tokenization.result
               - tokenization.two_factor_authentication_code
