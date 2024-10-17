@@ -398,19 +398,7 @@ paths:
                   status_reasons:
                     description: Reason for the evaluation status.
                     items:
-                      enum:
-                        - ADDRESS_VERIFICATION_FAILURE
-                        - AGE_THRESHOLD_FAILURE
-                        - COMPLETE_VERIFICATION_FAILURE
-                        - DOB_VERIFICATION_FAILURE
-                        - ID_VERIFICATION_FAILURE
-                        - MAX_DOCUMENT_ATTEMPTS
-                        - MAX_RESUBMISSION_ATTEMPTS
-                        - NAME_VERIFICATION_FAILURE
-                        - OTHER_VERIFICATION_FAILURE
-                        - RISK_THRESHOLD_FAILURE
-                        - WATCHLIST_ALERT_FAILURE
-                      type: string
+                      $ref: '#/components/schemas/status-reasons'
                     type: array
                   required_documents:
                     description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
@@ -911,8 +899,7 @@ paths:
         - Account
     patch:
       description: |
-        Update account configuration such as spend limits and verification address. Can only be run on accounts that are part of the program managed by this API key.
-
+        Update account configuration such as state or spend limits. Can only be run on accounts that are part of the program managed by this API key.
         Accounts that are in the `PAUSED` state will not be able to transact or create new cards.
       operationId: patchAccountByToken
       parameters:
@@ -955,7 +942,7 @@ paths:
                     - PAUSED
                   type: string
                 verification_address:
-                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules.
+                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Authorization Rules. The field will be removed from the schema in a future release.
                   properties:
                     address1:
                       type: string
@@ -970,6 +957,7 @@ paths:
                     state:
                       type: string
                   type: object
+                  deprecated: true
               type: object
         required: true
       responses:
@@ -1391,13 +1379,13 @@ paths:
         - Authorization Rules
       summary: Migrate a V1 authorization rule to a V2 authorization rule.
       description: |
-        Migrates an existing V1 authorization rule to a V2 authorization rule. This will alter the internal structure of the Auth Rule such that it becomes a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
+        Migrates an existing V1 authorization rule to a V2 authorization rule. Depending on the configuration of the V1 Auth Rule, this will yield one or two V2 authorization rules. This endpoint will alter the internal structure of the Auth Rule such that the resulting rules become a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
 
         After a V1 Auth Rule has been migrated, it can no longer be operated on through the /v1/auth_rules/* endpoints. Eventually, Lithic will deprecate the /v1/auth_rules endpoints and migrate all existing V1 Auth Rules to V2 Auth Rules.
       responses:
         '200':
-          description: Auth Rule Migrated
-          $ref: '#/components/responses/AuthRule'
+          description: Auth Rule(s) Migrated
+          $ref: '#/components/responses/AuthRules'
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
@@ -1891,7 +1879,7 @@ paths:
                   minLength: 4
                   type: string
                 memo:
-                  description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
+                  description: Friendly name to identify the card.
                   example: New Card
                   type: string
                 pin:
@@ -2154,7 +2142,7 @@ paths:
                   format: uuid
                   type: string
                 memo:
-                  description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
+                  description: Friendly name to identify the card.
                   example: New Card
                   type: string
                 pin:
@@ -6310,6 +6298,14 @@ paths:
                   document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
                   status: REJECTED
                   status_reason: DOCUMENT_MISSING_REQUIRED_DATA
+              simulatePartialApprovalReviewRequest:
+                summary: Simulates a partial approval enrollment document upload review request
+                value:
+                  document_upload_token: 30a8fff6-941f-4143-9b7b-e7ac4cbeb91f
+                  status: PARTIAL_APPROVAL
+                  status_reason: DOCUMENT_MISSING_REQUIRED_DATA
+                  accepted_entity_status_reasons:
+                    - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
             schema:
               $ref: '#/components/schemas/simulate-enrollment-document-review-request'
         required: true
@@ -6372,6 +6368,7 @@ paths:
                   transaction:
                     amount: 100
                     currency: USD
+                  card_expiry_check: MATCH
             schema:
               properties:
                 merchant:
@@ -6424,6 +6421,14 @@ paths:
                     - amount
                     - currency
                   type: object
+                card_expiry_check:
+                  description: |
+                    When set will use the following values as part of the Simulated Authentication. When not set defaults to MATCH
+                  enum:
+                    - MATCH
+                    - MISMATCH
+                    - NOT_PRESENT
+                  type: string
               required:
                 - merchant
                 - pan
@@ -6435,14 +6440,9 @@ paths:
           content:
             application/json:
               example:
-                debugging_request_id: d31645af-da9e-4952-b7dc-3ffb06618b39
                 token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
               schema:
                 properties:
-                  debugging_request_id:
-                    description: Debugging request ID to share with Lithic Support team.
-                    format: uuid
-                    type: string
                   token:
                     description: A unique token to reference this transaction with later calls to void or clear the authorization.
                     format: uuid
@@ -6458,6 +6458,74 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Simulate 3DS authentication
+      tags:
+        - 3DS
+  /v1/three_ds_decisioning/simulate/challenge:
+    post:
+      description: "Simulates a 3DS authentication challenge request from the payment network as if it came from an ACS. Requires being configured for 3DS Customer Decisioning, and enrolled with Lithic's Challenge solution. "
+      requestBody:
+        content:
+          application/json:
+            example:
+              token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
+            schema:
+              properties:
+                token:
+                  description: A unique token returned as part of a /v1/three_ds_authentication/simulate call that responded with a CHALLENGE_REQUESTED status.
+                  format: uuid
+                  type: string
+                  required:
+                    - token
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
+              schema:
+                properties:
+                  token:
+                    description: A unique token to reference this transaction with later calls to void or clear the authorization. This token is used in /v1/three_ds_decisioning/simulate/challenge_response to Approve or Decline the authentication
+                    format: uuid
+                    type: string
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Simulate 3DS authentication challenge
+      tags:
+        - 3DS
+  /v1/three_ds_decisioning/simulate/challenge_response:
+    post:
+      description: Endpoint for responding to a 3DS Challenge initiated by a call to /v1/three_ds_decisioning/simulate/challenge
+      operationId: postSimulateAuthenticationChallengeResponse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeResponse'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Simulate response to a 3DS authentication challenge
       tags:
         - 3DS
   /v1/three_ds_authentication/{three_ds_authentication_token}:
@@ -7014,130 +7082,8 @@ paths:
         '200':
           content:
             application/json:
-              example:
-                data:
-                  - acquirer_fee: 0
-                    acquirer_reference_number: '12345678987654321234567'
-                    amount: -7666
-                    amounts:
-                      cardholder:
-                        amount: 0
-                        conversion_rate: '1.000000'
-                        currency: USD
-                      hold:
-                        amount: -7666
-                        currency: USD
-                      merchant:
-                        amount: 0
-                        currency: USD
-                      settlement:
-                        amount: 0
-                        currency: USD
-                    authorization_amount: -7666
-                    authorization_code: '123412'
-                    avs:
-                      address: 123 Main St
-                      zipcode: '10234'
-                    card:
-                      created: '2020-07-15T17:48:48Z'
-                      cvv: '574'
-                      exp_month: '07'
-                      exp_year: '2026'
-                      funding:
-                        account_name: Sandbox
-                        created: '2020-07-08T17:57:36Z'
-                        last_four: '5263'
-                        nickname: ''
-                        state: ENABLED
-                        token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
-                        type: DEPOSITORY_CHECKING
-                      hostname: ''
-                      last_four: '6749'
-                      memo: card 2
-                      pan: '4111111171826749'
-                      spend_limit: 0
-                      spend_limit_duration: TRANSACTION
-                      state: OPEN
-                      token: 079d1898-65f7-4d66-b0bc-172d2935a5fa
-                      type: VIRTUAL
-                    card_token: df942c4e-9130-4ab5-b067-778a2c55b357
-                    cardholder_authentication:
-                      3ds_version: null
-                      acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
-                      authentication_result: SUCCESS
-                      decision_made_by: NETWORK
-                      liability_shift: 3DS_AUTHENTICATED
-                      three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
-                      verification_attempted: OTHER
-                      verification_result: SUCCESS
-                    created: '2020-07-15T19:17:22Z'
-                    events:
-                      - amount: 7666
-                        amounts:
-                          cardholder:
-                            amount: 7666
-                            conversion_rate: '1.000000'
-                            currency: USD
-                          merchant:
-                            amount: 7666
-                            currency: USD
-                          settlement: null
-                        created: '2020-07-15T19:17:22Z'
-                        detailed_results: []
-                        effective_polarity: DEBIT
-                        result: APPROVED
-                        token: 6a885bcb-89f6-4fcb-a0ce-7f0233ae20a0
-                        type: RETURN
-                    funding:
-                      - amount: -7666
-                        token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
-                        type: DEPOSITORY_CHECKING
-                    merchant:
-                      acceptor_id: '174030075991'
-                      city: NEW YORK
-                      country: USA
-                      descriptor: Sample Return
-                      mcc: '5812'
-                      state: NY
-                    merchant_amount: -7666
-                    merchant_authorization_amount: -7666
-                    merchant_currency: USD
-                    network: VISA
-                    network_risk_score: 0
-                    pos:
-                      entry_mode:
-                        card: NOT_PRESENT
-                        cardholder: PREAUTHORIZED
-                        pan: CONTACTLESS
-                        pin_entered: true
-                      terminal:
-                        attended: true
-                        card_retention_capable: true
-                        on_premise: true
-                        operator: ADMINISTRATIVE
-                        partial_approval_capable: true
-                        pin_capability: UNSPECIFIED
-                        type: ECR
-                    result: APPROVED
-                    settled_amount: -7666
-                    status: SETTLED
-                    token: 9b4c99b1-2e90-4e24-b54b-90dc8af4695b
-                    token_info:
-                      wallet_type: APPLE_PAY
-                has_more: false
               schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/Transaction'
-                    type: array
-                  has_more:
-                    description: Indicates whether there are more transactions to be retrieved.
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-                type: object
+                $ref: '#/components/schemas/list_transactions_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -7162,7 +7108,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Transaction'
+                $ref: '#/components/schemas/card_transaction'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -8107,14 +8053,19 @@ webhooks:
                   document_type: EIN_LETTER
                   entity_token: c5f2d594-d957-4781-8877-fbea31f5944a
                   required_document_uploads:
-                    - created: '2024-08-05 20:48:51.746833'
+                    - accepted_entity_status_reasons: []
+                      created: '2024-08-05 20:48:51.746833'
                       image_type: FRONT
+                      rejected_entity_status_reasons: []
                       status: UPLOADED
                       status_reasons: []
                       token: 9e1d69a1-377b-463a-b991-01b3c81519b6
                       updated: '2024-08-05 21:08:23.635573'
-                    - created: 2024-08-04 001:32:44.113765
+                    - accepted_entity_status_reasons: []
+                      created: 2024-08-04 001:32:44.113765
                       image_type: FRONT
+                      rejected_entity_status_reasons:
+                        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
                       status: REJECTED
                       status_reasons:
                         - DOCUMENT_MISSING_REQUIRED_DATA
@@ -8138,28 +8089,7 @@ webhooks:
                   example: account_holder_document.updated
                   type: string
                 document_type:
-                  description: The type of document that was uploaded
-                  enum:
-                    - EIN_LETTER
-                    - TAX_RETURN
-                    - OPERATING_AGREEMENT
-                    - CERTIFICATE_OF_FORMATION
-                    - DRIVERS_LICENSE
-                    - PASSPORT
-                    - PASSPORT_CARD
-                    - CERTIFICATE_OF_GOOD_STANDING
-                    - ARTICLES_OF_INCORPORATION
-                    - ARTICLES_OF_ORGANIZATION
-                    - BYLAWS
-                    - GOVERNMENT_BUSINESS_LICENSE
-                    - PARTNERSHIP_AGREEMENT
-                    - SS4_FORM
-                    - BANK_STATEMENT
-                    - UTILITY_BILL_STATEMENT
-                    - SSN_CARD
-                    - ITIN_LETTER
-                  example: EIN_LETTER
-                  type: string
+                  $ref: '#/components/schemas/document-type'
                 entity_token:
                   description: The token of the entity that the document belongs to
                   example: c5f2d594-d957-4781-8877-fbea31f5944a
@@ -8181,15 +8111,20 @@ webhooks:
                         type: string
                       status:
                         description: The status of the document upload
-                        enum:
-                          - PENDING_UPLOAD
-                          - UPLOADED
-                          - ACCEPTED
-                          - REJECTED
-                        type: string
+                        $ref: '#/components/schemas/document-upload-status'
                       status_reasons:
                         items:
                           description: If status is REJECTED, status_reasons provides the reasons the document was rejected.
+                          type: string
+                        type: array
+                      accepted_entity_status_reasons:
+                        items:
+                          description: A list of status reasons associated with a KYB account holder that have been satisfied by the document upload
+                          type: string
+                        type: array
+                      rejected_entity_status_reasons:
+                        items:
+                          description: A list of status reasons associated with a KYB account holder that have not been satisfied by the document upload
                           type: string
                         type: array
                       token:
@@ -8583,78 +8518,7 @@ webhooks:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/Transaction'
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - card_transaction.updated
-                      example: card_transaction.updated
-                      type: string
-                  type: object
-              examples:
-                - acquirer_fee: 0
-                  acquirer_reference_number: null
-                  amount: 1800
-                  amounts:
-                    cardholder:
-                      amount: 0
-                      conversion_rate: '1.000000'
-                      currency: USD
-                    hold:
-                      amount: -1800
-                      currency: USD
-                    merchant:
-                      amount: 0
-                      currency: USD
-                    settlement:
-                      amount: 0
-                      currency: USD
-                  authorization_amount: 1800
-                  authorization_code: '071471'
-                  card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
-                  cardholder_authentication:
-                    3ds_version: null
-                    acquirer_exemption: NONE
-                    liability_shift: NONE
-                    verification_attempted: NONE
-                    verification_result: NOT_ATTEMPTED
-                  created: '2023-08-03T18:42:30Z'
-                  event_type: card_transaction.updated
-                  events:
-                    - amount: 1800
-                      amounts:
-                        cardholder:
-                          amount: 1800
-                          conversion_rate: '1.000000'
-                          currency: USD
-                        merchant:
-                          amount: 1800
-                          currency: USD
-                        settlement: null
-                      created: '2023-08-03T18:42:30Z'
-                      detailed_results:
-                        - APPROVED
-                      effective_polarity: DEBIT
-                      result: APPROVED
-                      token: bbbf1e86-322d-11ee-9779-00505685a123
-                      type: AUTHORIZATION
-                  merchant:
-                    acceptor_id: '452322000053360'
-                    city: gosq.com
-                    country: USA
-                    descriptor: SQ *SOMA EATS
-                    mcc: '5812'
-                    state: CA
-                  merchant_amount: 1800
-                  merchant_authorization_amount: 1800
-                  merchant_currency: USD
-                  network: MASTERCARD
-                  result: APPROVED
-                  settled_amount: 0
-                  status: PENDING
-                  token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+              $ref: '#/components/schemas/card_transaction_updated_event'
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
@@ -10337,12 +10201,14 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
-    AuthRule:
-      description: Authorization Rule
+    AuthRules:
+      description: Authorization Rules
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/auth-rule'
+            type: array
+            items:
+              $ref: '#/components/schemas/auth-rule'
     responses-BadRequest:
       description: Bad Request
       content:
@@ -10355,6 +10221,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/schemas-Error'
+    AuthRule:
+      description: Authorization Rule
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/auth-rule'
     exception-responses_responses-BadRequest:
       content:
         application/json:
@@ -10514,6 +10386,7 @@ components:
             - postal_code
             - state
           type: object
+          deprecated: true
         created:
           description: Timestamp of when the account was created. For accounts created before 2023-05-11, this field will be null.
           format: date-time
@@ -11310,7 +11183,7 @@ components:
           minLength: 4
           type: string
         memo:
-          description: Friendly name to identify the card. We recommend against using this field to store JSON data as it can cause unexpected behavior.
+          description: Friendly name to identify the card.
           example: New Card
           type: string
         pan:
@@ -11539,176 +11412,6 @@ components:
       required:
         - available_spend_limit
       type: object
-    CardholderAuthentication:
-      oneOf:
-        - type: 'null'
-        - type: object
-          properties:
-            3ds_version:
-              description: |
-                3-D Secure Protocol version. Possible enum values:
-                * `1`: 3-D Secure Protocol version 1.x applied to the transaction.
-                * `2`: 3-D Secure Protocol version 2.x applied to the transaction.
-                * `null`: 3-D Secure was not used for the transaction
-              example: '2'
-              type:
-                - string
-                - 'null'
-            acquirer_exemption:
-              description: |
-                Exemption applied by the ACS to authenticate the transaction without requesting a challenge. Possible enum values:
-                * `AUTHENTICATION_OUTAGE_EXCEPTION`: Authentication Outage Exception exemption.
-                * `LOW_VALUE`: Low Value Payment exemption.
-                * `MERCHANT_INITIATED_TRANSACTION`: Merchant Initiated Transaction (3RI).
-                * `NONE`: No exemption applied.
-                * `RECURRING_PAYMENT`: Recurring Payment exemption.
-                * `SECURE_CORPORATE_PAYMENT`: Secure Corporate Payment exemption.
-                * `STRONG_CUSTOMER_AUTHENTICATION_DELEGATION`: Strong Customer Authentication Delegation exemption.
-                * `TRANSACTION_RISK_ANALYSIS`: Acquirer Low-Fraud and Transaction Risk Analysis exemption.
-
-                Maps to the 3-D Secure `transChallengeExemption` field.
-              enum:
-                - AUTHENTICATION_OUTAGE_EXCEPTION
-                - LOW_VALUE
-                - MERCHANT_INITIATED_TRANSACTION
-                - NONE
-                - RECURRING_PAYMENT
-                - SECURE_CORPORATE_PAYMENT
-                - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
-                - TRANSACTION_RISK_ANALYSIS
-              example: NONE
-              type: string
-            authentication_result:
-              description: |
-                Outcome of the 3DS authentication process. Possible enum values:
-                * `SUCCESS`: 3DS authentication was successful and the transaction is considered authenticated.
-                * `DECLINE`: 3DS authentication was attempted but was unsuccessful — i.e., the issuer declined to authenticate the cardholder; note that Lithic populates this value on a best-effort basis based on common data across the 3DS authentication and ASA data elements.
-                * `ATTEMPTS`: 3DS authentication was attempted but full authentication did not occur. A proof of attempted authenticated is provided by the merchant.
-                * `NONE`: 3DS authentication was not performed on the transaction.
-              enum:
-                - ATTEMPTS
-                - DECLINE
-                - NONE
-                - SUCCESS
-              example: SUCCESS
-              type: string
-            decision_made_by:
-              description: |
-                Indicator for which party made the 3DS authentication decision. Possible enum values:
-                * `NETWORK`: A networks tand-in service decided on the outcome; for token authentications (as indicated in the `liability_shift` attribute), this is the default value
-                * `LITHIC_DEFAULT`: A default decision was made by Lithic, without running a rules-based authentication; this value will be set on card programs that do not participate in one of our two 3DS product tiers
-                * `LITHIC_RULES`: A rules-based authentication was conducted by Lithic and Lithic decided on the outcome
-                * `CUSTOMER_ENDPOINT`: Lithic customer decided on the outcome based on a real-time request sent to a configured endpoint
-                * `UNKNOWN`: Data on which party decided is unavailable
-              enum:
-                - CUSTOMER_ENDPOINT
-                - LITHIC_DEFAULT
-                - LITHIC_RULES
-                - NETWORK
-                - UNKNOWN
-              example: LITHIC_RULES
-              type: string
-            liability_shift:
-              description: |
-                Indicates whether chargeback liability shift applies to the transaction. Possible enum values:
-                * `3DS_AUTHENTICATED`: The transaction was fully authenticated through a 3-D Secure flow, chargeback liability shift applies.
-                * `ACQUIRER_EXEMPTION`: The acquirer utilised an exemption to bypass Strong Customer Authentication (`transStatus = N`, or `transStatus = I`). Liability remains with the acquirer and in this case the `acquirer_exemption` field is expected to be not `NONE`.
-                * `NONE`: Chargeback liability shift has not shifted to the issuer, i.e. the merchant is liable.
-                * `TOKEN_AUTHENTICATED`: The transaction was a tokenized payment with validated cryptography, possibly recurring. Chargeback liability shift to the issuer applies.
-              enum:
-                - 3DS_AUTHENTICATED
-                - ACQUIRER_EXEMPTION
-                - NONE
-                - TOKEN_AUTHENTICATED
-              type: string
-            three_ds_authentication_token:
-              description: Unique identifier you can use to match a given 3DS authentication and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
-              example: a6e372d0-b40a-43eb-b0d1-4e1aebef5875
-              format: uuid
-              type: string
-            verification_attempted:
-              description: |
-                Verification attempted values:
-                * `APP_LOGIN`: Out-of-band login verification was attempted by the ACS.
-                * `BIOMETRIC`: Out-of-band biometric verification was attempted by the ACS.
-                * `NONE`: No cardholder verification was attempted by the Access Control Server (e.g. frictionless 3-D Secure flow, no 3-D Secure, or stand-in Risk Based Analysis).
-                * `OTHER`: Other method was used by the ACS to verify the cardholder (e.g. Mastercard Identity Check Express, recurring transactions, etc.)
-                * `OTP`: One-time password verification was attempted by the ACS.
-              enum:
-                - APP_LOGIN
-                - BIOMETRIC
-                - NONE
-                - OTHER
-                - OTP
-              example: NONE
-              type: string
-            verification_result:
-              description: |
-                This field partially maps to the `transStatus` field in the [EMVCo 3-D Secure specification](https://www.emvco.com/emv-technologies/3d-secure/) and Mastercard SPA2 AAV leading indicators.
-
-                Verification result values:
-                * `CANCELLED`: Authentication/Account verification could not be performed, `transStatus = U`.
-                * `FAILED`: Transaction was not authenticated. `transStatus = N`, note: the utilization of exemptions could also result in `transStatus = N`, inspect the `acquirer_exemption` field for more information.
-                * `FRICTIONLESS`: Attempts processing performed, the transaction was not authenticated, but a proof of attempted authentication/verification is provided. `transStatus = A` and the leading AAV indicator was one of {`kE`, `kF`, `kQ`}.
-                * `NOT_ATTEMPTED`: A 3-D Secure flow was not applied to this transaction. Leading AAV indicator was one of {`kN`, `kX`} or no AAV was provided for the transaction.
-                * `REJECTED`: Authentication/Account Verification rejected; `transStatus = R`. Issuer is rejecting authentication/verification and requests that authorization not be attempted.
-                * `SUCCESS`: Authentication verification successful. `transStatus = Y` and leading AAV indicator for the transaction was one of {`kA`, `kB`, `kC`, `kD`, `kO`, `kP`, `kR`, `kS`}.
-
-                Note that the following `transStatus` values are not represented by this field:
-                * `C`: Challenge Required
-                * `D`: Challenge Required; decoupled authentication confirmed
-                * `I`: Informational only
-                * `S`: Challenge using Secure Payment Confirmation (SPC)
-              enum:
-                - CANCELLED
-                - FAILED
-                - FRICTIONLESS
-                - NOT_ATTEMPTED
-                - REJECTED
-                - SUCCESS
-              example: FRICTIONLESS
-              type: string
-          required:
-            - 3ds_version
-            - acquirer_exemption
-            - authentication_result
-            - decision_made_by
-            - liability_shift
-            - three_ds_authentication_token
-            - verification_attempted
-            - verification_result
-    CardholderAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        conversion_rate:
-          title: Conversion Rate
-          type: string
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - conversion_rate
-        - currency
-      title: CardholderAggregateAmount
-      type: object
-    CardholderEventAmounts:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        conversion_rate:
-          title: Conversion Rate
-          type: string
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - conversion_rate
-        - currency
-      title: CardholderEventAmounts
-      type: object
     Carrier:
       properties:
         qr_code_url:
@@ -11815,195 +11518,6 @@ components:
         - type
       title: CreatePaymentRequest
       type: object
-    Currency:
-      description: |-
-        ISO 4217 currency.  Its enumerants are ISO 4217 currencies except for
-        some special currencies like ```XXX``.  Enumerants names are lowercase
-        currency code e.g. :attr:`EUR`, :attr:`USD`.
-      example: USD
-      enum:
-        - AED
-        - AFN
-        - ALL
-        - AMD
-        - ANG
-        - AOA
-        - ARS
-        - AUD
-        - AWG
-        - AZN
-        - BAM
-        - BBD
-        - BDT
-        - BGN
-        - BHD
-        - BIF
-        - BMD
-        - BND
-        - BOB
-        - BOV
-        - BRL
-        - BSD
-        - BTN
-        - BWP
-        - BYN
-        - BZD
-        - CAD
-        - CDF
-        - CHE
-        - CHF
-        - CHW
-        - CLF
-        - CLP
-        - CNY
-        - COP
-        - COU
-        - CRC
-        - CUC
-        - CUP
-        - CVE
-        - CZK
-        - DJF
-        - DKK
-        - DOP
-        - DZD
-        - EGP
-        - ERN
-        - ETB
-        - EUR
-        - FJD
-        - FKP
-        - GBP
-        - GEL
-        - GHS
-        - GIP
-        - GMD
-        - GNF
-        - GTQ
-        - GYD
-        - HKD
-        - HNL
-        - HRK
-        - HTG
-        - HUF
-        - IDR
-        - ILS
-        - INR
-        - IQD
-        - IRR
-        - ISK
-        - JMD
-        - JOD
-        - JPY
-        - KES
-        - KGS
-        - KHR
-        - KMF
-        - KPW
-        - KRW
-        - KWD
-        - KYD
-        - KZT
-        - LAK
-        - LBP
-        - LKR
-        - LRD
-        - LSL
-        - LYD
-        - MAD
-        - MDL
-        - MGA
-        - MKD
-        - MMK
-        - MNT
-        - MOP
-        - MRU
-        - MUR
-        - MVR
-        - MWK
-        - MXN
-        - MXV
-        - MYR
-        - MZN
-        - NAD
-        - NGN
-        - NIO
-        - NOK
-        - NPR
-        - NZD
-        - OMR
-        - PAB
-        - PEN
-        - PGK
-        - PHP
-        - PKR
-        - PLN
-        - PYG
-        - QAR
-        - RON
-        - RSD
-        - RUB
-        - RWF
-        - SAR
-        - SBD
-        - SCR
-        - SDG
-        - SEK
-        - SGD
-        - SHP
-        - SLE
-        - SLL
-        - SOS
-        - SRD
-        - SSP
-        - STN
-        - SVC
-        - SYP
-        - SZL
-        - THB
-        - TJS
-        - TMT
-        - TND
-        - TOP
-        - TRY
-        - TTD
-        - TWD
-        - TZS
-        - UAH
-        - UGX
-        - USD
-        - USN
-        - UYI
-        - UYU
-        - UYW
-        - UZS
-        - VED
-        - VES
-        - VND
-        - VUV
-        - WST
-        - XAF
-        - XAG
-        - XAU
-        - XBA
-        - XBB
-        - XBC
-        - XBD
-        - XCD
-        - XDR
-        - XOF
-        - XPD
-        - XPF
-        - XPT
-        - XSU
-        - XTS
-        - XUA
-        - XXX
-        - YER
-        - ZAR
-        - ZMW
-        - ZWL
-      title: Currency
     DigitalCardArt:
       properties:
         card_program_token:
@@ -12957,18 +12471,6 @@ components:
         - token
         - type
       type: object
-    HoldAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: HoldAggregateAmount
-      type: object
     Individual:
       properties:
         address:
@@ -13188,68 +12690,6 @@ components:
             - phone_number
           type: object
       description: Individuals associated with a KYC application.
-    Merchant:
-      properties:
-        acceptor_id:
-          description: Unique identifier to identify the payment card acceptor.
-          example: '333301802529120'
-          type: string
-        city:
-          description: City of card acceptor.
-          example: NEW YORK
-          maxLength: 255
-          minLength: 1
-          type: string
-        country:
-          description: Uppercase country of card acceptor (see ISO 8583 specs).
-          example: USA
-          maxLength: 3
-          minLength: 3
-          type: string
-        descriptor:
-          description: Short description of card acceptor.
-          example: COFFEE SHOP
-          maxLength: 25
-          minLength: 1
-          type: string
-        mcc:
-          description: |
-            Merchant category code (MCC). A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
-          example: '5812'
-          maxLength: 4
-          minLength: 4
-          type: string
-        state:
-          description: Geographic state of card acceptor (see ISO 8583 specs).
-          example: NY
-          maxLength: 2
-          minLength: 2
-          type: string
-      type: object
-    MerchantAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: MerchantAggregateAmount
-      type: object
-    MerchantEventAmounts:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: MerchantEventAmounts
-      type: object
     MessageAttempt:
       description: A subscription to specific event types.
       properties:
@@ -13479,34 +12919,6 @@ components:
               $ref: '#/components/schemas/Balance'
           type: object
       title: PostPaymentResponse
-    SettlementAggregateAmount:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - currency
-      title: SettlementAggregateAmount
-      type: object
-    SettlementEventAmounts:
-      properties:
-        amount:
-          title: Amount
-          type: integer
-        conversion_rate:
-          title: Conversion Rate
-          type: string
-        currency:
-          $ref: '#/components/schemas/Currency'
-      required:
-        - amount
-        - conversion_rate
-        - currency
-      title: SettlementEventAmounts
-      type: object
     SettlementDetail:
       properties:
         account_token:
@@ -14412,522 +13824,6 @@ components:
             - TOKENIZATION_ELIGIBILITY_CHECK
             - TOKENIZATION_UPDATED
           type: string
-    Transaction:
-      properties:
-        acquirer_fee:
-          description: Fee assessed by the merchant and paid for by the cardholder in the smallest unit of the currency. Will be zero if no fee is assessed. Rebates may be transmitted as a negative value to indicate credited fees.
-          example: 0
-          type:
-            - integer
-            - 'null'
-        acquirer_reference_number:
-          description: |
-            Unique identifier assigned to a transaction by the acquirer that can be used in dispute and chargeback filing.
-          example: '12345678987654321234567'
-          maxLength: 23
-          minLength: 23
-          type:
-            - string
-            - 'null'
-        amount:
-          description: Authorization amount of the transaction (in cents), including any acquirer fees. This may change over time, and will represent the settled amount once the transaction is settled.
-          example: 1500
-          type: integer
-        amounts:
-          $ref: '#/components/schemas/TransactionAggregateAmounts'
-        authorization_amount:
-          description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
-          example: 1500
-          type:
-            - integer
-            - 'null'
-        authorization_code:
-          description: A fixed-width 6-digit numeric identifier that can be used to identify a transaction with networks.
-          example: '123456'
-          maxLength: 6
-          minLength: 6
-          type:
-            - string
-            - 'null'
-        avs:
-          properties:
-            address:
-              description: Cardholder address
-              type: string
-            zipcode:
-              description: Cardholder ZIP code
-              type: string
-          type:
-            - object
-            - 'null'
-        card_token:
-          description: Token for the card used in this transaction.
-          example: 19c22c47-7a75-43ee-9891-595419830f7e
-          format: uuid
-          type: string
-        cardholder_authentication:
-          $ref: '#/components/schemas/CardholderAuthentication'
-        created:
-          description: Date and time when the transaction first occurred. UTC time zone.
-          example: '2023-09-26T21:14:28.637Z'
-          format: date-time
-          type: string
-        events:
-          description: A list of all events that have modified this transaction.
-          items:
-            $ref: '#/components/schemas/TransactionEvent'
-          type: array
-        merchant:
-          $ref: '#/components/schemas/Merchant'
-        merchant_amount:
-          description: Analogous to the "amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
-          example: 1500
-          type:
-            - integer
-            - 'null'
-        merchant_authorization_amount:
-          description: Analogous to the "authorization_amount" property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
-          example: 1500
-          type:
-            - integer
-            - 'null'
-        merchant_currency:
-          description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
-          example: USD
-          type: string
-        network:
-          description: |
-            Card network of the authorization. Can be `INTERLINK`, `MAESTRO`, `MASTERCARD`, `VISA`, or `UNKNOWN`. Value is `UNKNOWN` when Lithic cannot determine the network code from the upstream provider.
-          enum:
-            - INTERLINK
-            - MAESTRO
-            - MASTERCARD
-            - UNKNOWN
-            - VISA
-          example: MASTERCARD
-          type:
-            - string
-            - 'null'
-        network_risk_score:
-          description: |
-            Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
-
-            A score may not be available for all authorizations, and where it is not, this field will be set to null.
-          type:
-            - integer
-            - 'null'
-        pos:
-          properties:
-            entry_mode:
-              properties:
-                card:
-                  description: Card status
-                  enum:
-                    - NOT_PRESENT
-                    - PREAUTHORIZED
-                    - PRESENT
-                    - UNKNOWN
-                  type: string
-                cardholder:
-                  description: Cardholder Presence status
-                  enum:
-                    - DEFERRED_BILLING
-                    - ELECTRONIC_ORDER
-                    - INSTALLMENT
-                    - MAIL_ORDER
-                    - NOT_PRESENT
-                    - PREAUTHORIZED
-                    - PRESENT
-                    - REOCCURRING
-                    - TELEPHONE_ORDER
-                    - UNKNOWN
-                  type: string
-                pan:
-                  description: Method of entry for the PAN
-                  enum:
-                    - AUTO_ENTRY
-                    - BAR_CODE
-                    - CONTACTLESS
-                    - CREDENTIAL_ON_FILE
-                    - ECOMMERCE
-                    - ERROR_KEYED
-                    - ERROR_MAGNETIC_STRIPE
-                    - ICC
-                    - KEY_ENTERED
-                    - MAGNETIC_STRIPE
-                    - MANUAL
-                    - OCR
-                    - SECURE_CARDLESS
-                    - UNKNOWN
-                    - UNSPECIFIED
-                  type: string
-                pin_entered:
-                  description: True if the PIN was entered
-                  type: boolean
-              required:
-                - card
-                - cardholder
-                - pan
-                - pin_entered
-              type: object
-            terminal:
-              properties:
-                attended:
-                  description: True if a clerk is present at the sale.
-                  type: boolean
-                card_retention_capable:
-                  description: |
-                    True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.
-                  type: boolean
-                on_premise:
-                  description: True if the sale was made at the place of business (vs. mobile).
-                  type: boolean
-                operator:
-                  description: The person that is designed to swipe the card
-                  enum:
-                    - ADMINISTRATIVE
-                    - CARDHOLDER
-                    - CARD_ACCEPTOR
-                    - UNKNOWN
-                  type: string
-                pin_capability:
-                  description: Status of whether the POS is able to accept PINs
-                  enum:
-                    - CAPABLE
-                    - INOPERATIVE
-                    - NOT_CAPABLE
-                    - UNSPECIFIED
-                  type: string
-                type:
-                  description: POS Type
-                  enum:
-                    - ADMINISTRATIVE
-                    - ATM
-                    - AUTHORIZATION
-                    - COUPON_MACHINE
-                    - DIAL_TERMINAL
-                    - ECOMMERCE
-                    - ECR
-                    - FUEL_MACHINE
-                    - HOME_TERMINAL
-                    - MICR
-                    - OFF_PREMISE
-                    - PAYMENT
-                    - PDA
-                    - PHONE
-                    - POINT
-                    - POS_TERMINAL
-                    - PUBLIC_UTILITY
-                    - SELF_SERVICE
-                    - TELEVISION
-                    - TELLER
-                    - TRAVELERS_CHECK_MACHINE
-                    - UNKNOWN
-                    - VENDING
-                    - VOICE
-                  type: string
-              required:
-                - attended
-                - card_retention_capable
-                - on_premise
-                - operator
-                - pin_capability
-                - type
-              type: object
-          required:
-            - entry_mode
-            - terminal
-          type:
-            - object
-            - 'null'
-        result:
-          description: |
-            `APPROVED` or decline reason. See Event result types
-          enum:
-            - APPROVED
-            - BANK_CONNECTION_ERROR
-            - BANK_NOT_VERIFIED
-            - CARD_CLOSED
-            - CARD_PAUSED
-            - DECLINED
-            - FRAUD_ADVICE
-            - INACTIVE_ACCOUNT
-            - INCORRECT_PIN
-            - INSUFFICIENT_FUNDS
-            - INVALID_CARD_DETAILS
-            - MERCHANT_BLACKLIST
-            - SINGLE_USE_RECHARGED
-            - SWITCH_INOPERATIVE_ADVICE
-            - UNAUTHORIZED_MERCHANT
-            - UNKNOWN_HOST_TIMEOUT
-            - USER_TRANSACTION_LIMIT
-          example: APPROVED
-          type: string
-        settled_amount:
-          description: Amount of the transaction that has been settled (in cents), including any acquirer fees. This may change over time.
-          example: 1500
-          type: integer
-        status:
-          description: |
-            Status types:
-            * `DECLINED` - The transaction was declined.
-            * `EXPIRED` - Lithic reversed the authorization as it has passed its expiration time.
-            * `PENDING` - Authorization is pending completion from the merchant.
-            * `SETTLED` - The transaction is complete.
-            * `VOIDED` - The merchant has voided the previously pending authorization.
-          enum:
-            - DECLINED
-            - EXPIRED
-            - PENDING
-            - SETTLED
-            - VOIDED
-          example: SETTLED
-          type: string
-        token:
-          description: Globally unique identifier.
-          format: uuid
-          type: string
-        token_info:
-          properties:
-            wallet_type:
-              description: Source of the token
-              enum:
-                - APPLE_PAY
-                - GOOGLE_PAY
-                - MASTERPASS
-                - MERCHANT
-                - OTHER
-                - SAMSUNG_PAY
-              type: string
-          type:
-            - object
-            - 'null'
-        updated:
-          description: Date and time when the transaction last updated. UTC time zone.
-          example: '2023-09-26T21:14:28.637Z'
-          format: date-time
-          type: string
-      required:
-        - acquirer_fee
-        - acquirer_reference_number
-        - amount
-        - amounts
-        - authorization_amount
-        - authorization_code
-        - avs
-        - card_token
-        - created
-        - events
-        - merchant
-        - merchant_amount
-        - merchant_authorization_amount
-        - merchant_currency
-        - network
-        - network_risk_score
-        - pos
-        - result
-        - settled_amount
-        - status
-        - token
-        - token_info
-        - updated
-      type: object
-    TransactionAggregateAmounts:
-      properties:
-        cardholder:
-          $ref: '#/components/schemas/CardholderAggregateAmount'
-        hold:
-          $ref: '#/components/schemas/HoldAggregateAmount'
-        merchant:
-          $ref: '#/components/schemas/MerchantAggregateAmount'
-        settlement:
-          $ref: '#/components/schemas/SettlementAggregateAmount'
-      required:
-        - cardholder
-        - hold
-        - merchant
-        - settlement
-      title: TransactionAggregateAmounts
-      type: object
-    TransactionEvent:
-      description: A single card transaction may include multiple events that affect the transaction state and lifecycle.
-      properties:
-        amount:
-          description: Amount of the transaction event (in cents), including any acquirer fees.
-          example: 1500
-          type: integer
-        amounts:
-          $ref: '#/components/schemas/TransactionEventAmounts'
-        created:
-          description: RFC 3339 date and time this event entered the system. UTC time zone.
-          example: '2023-09-26T21:14:28.637Z'
-          format: date-time
-          type: string
-        detailed_results:
-          items:
-            enum:
-              - ACCOUNT_DAILY_SPEND_LIMIT_EXCEEDED
-              - ACCOUNT_DELINQUENT
-              - ACCOUNT_INACTIVE
-              - ACCOUNT_LIFETIME_SPEND_LIMIT_EXCEEDED
-              - ACCOUNT_MONTHLY_SPEND_LIMIT_EXCEEDED
-              - ACCOUNT_UNDER_REVIEW
-              - ADDRESS_INCORRECT
-              - APPROVED
-              - AUTH_RULE_ALLOWED_COUNTRY
-              - AUTH_RULE_ALLOWED_MCC
-              - AUTH_RULE_BLOCKED_COUNTRY
-              - AUTH_RULE_BLOCKED_MCC
-              - CARD_CLOSED
-              - CARD_CRYPTOGRAM_VALIDATION_FAILURE
-              - CARD_EXPIRED
-              - CARD_EXPIRY_DATE_INCORRECT
-              - CARD_INVALID
-              - CARD_NOT_ACTIVATED
-              - CARD_PAUSED
-              - CARD_PIN_INCORRECT
-              - CARD_RESTRICTED
-              - CARD_SECURITY_CODE_INCORRECT
-              - CARD_SPEND_LIMIT_EXCEEDED
-              - CONTACT_CARD_ISSUER
-              - CUSTOMER_ASA_TIMEOUT
-              - CUSTOM_ASA_RESULT
-              - DECLINED
-              - DO_NOT_HONOR
-              - DRIVER_NUMBER_INVALID
-              - FORMAT_ERROR
-              - INSUFFICIENT_FUNDING_SOURCE_BALANCE
-              - INSUFFICIENT_FUNDS
-              - LITHIC_SYSTEM_ERROR
-              - LITHIC_SYSTEM_RATE_LIMIT
-              - MALFORMED_ASA_RESPONSE
-              - MERCHANT_INVALID
-              - MERCHANT_LOCKED_CARD_ATTEMPTED_ELSEWHERE
-              - MERCHANT_NOT_PERMITTED
-              - OVER_REVERSAL_ATTEMPTED
-              - PROGRAM_CARD_SPEND_LIMIT_EXCEEDED
-              - PROGRAM_SUSPENDED
-              - PROGRAM_USAGE_RESTRICTION
-              - REVERSAL_UNMATCHED
-              - SECURITY_VIOLATION
-              - SINGLE_USE_CARD_REATTEMPTED
-              - TRANSACTION_INVALID
-              - TRANSACTION_NOT_PERMITTED_TO_ACQUIRER_OR_TERMINAL
-              - TRANSACTION_NOT_PERMITTED_TO_ISSUER_OR_CARDHOLDER
-              - TRANSACTION_PREVIOUSLY_COMPLETED
-              - UNAUTHORIZED_MERCHANT
-              - VEHICLE_NUMBER_INVALID
-            type: string
-          type: array
-        effective_polarity:
-          description: Indicates whether the transaction event is a credit or debit to the account.
-          enum:
-            - CREDIT
-            - DEBIT
-          type: string
-        result:
-          description: |
-            `APPROVED` or decline reason.
-
-            Result types:
-            * `ACCOUNT_STATE_TRANSACTION_FAIL` - Contact [support@lithic.com](mailto:support@lithic.com).
-            * `APPROVED` - Transaction is approved.
-            * `BANK_CONNECTION_ERROR` - Please reconnect a funding source.
-            * `BANK_NOT_VERIFIED` - Please confirm the funding source.
-            * `CARD_CLOSED` - Card state was closed at the time of authorization.
-            * `CARD_PAUSED` - Card state was paused at the time of authorization.
-            * `FRAUD_ADVICE` - Transaction declined due to risk.
-            * `INACTIVE_ACCOUNT` - Account is inactive. Contact [support@lithic.com](mailto:support@lithic.com).
-            * `INCORRECT_PIN` - PIN verification failed.
-            * `INVALID_CARD_DETAILS` - Incorrect CVV or expiry date.
-            * `INSUFFICIENT_FUNDS` - Please ensure the funding source is connected and up to date.
-            * `MERCHANT_BLACKLIST` - This merchant is disallowed on the platform.
-            * `SINGLE_USE_RECHARGED` - Single use card attempted multiple times.
-            * `SWITCH_INOPERATIVE_ADVICE` - Network error, re-attempt the transaction.
-            * `UNAUTHORIZED_MERCHANT` - Merchant locked card attempted at different merchant.
-            * `UNKNOWN_HOST_TIMEOUT` - Network error, re-attempt the transaction.
-            * `USER_TRANSACTION_LIMIT` - User-set spend limit exceeded.
-          enum:
-            - APPROVED
-            - BANK_CONNECTION_ERROR
-            - BANK_NOT_VERIFIED
-            - CARD_CLOSED
-            - CARD_PAUSED
-            - DECLINED
-            - FRAUD_ADVICE
-            - INACTIVE_ACCOUNT
-            - INCORRECT_PIN
-            - INSUFFICIENT_FUNDS
-            - INVALID_CARD_DETAILS
-            - MERCHANT_BLACKLIST
-            - SINGLE_USE_RECHARGED
-            - SWITCH_INOPERATIVE_ADVICE
-            - UNAUTHORIZED_MERCHANT
-            - UNKNOWN_HOST_TIMEOUT
-            - USER_TRANSACTION_LIMIT
-          example: APPROVED
-          type: string
-        token:
-          description: Globally unique identifier.
-          example: 0c2adae9-f535-4505-8c35-421dad9bd0b6
-          format: uuid
-          type: string
-        type:
-          description: |
-            Event types:
-            * `AUTHORIZATION` - Authorize a transaction.
-            * `AUTHORIZATION_ADVICE` - Advice on a transaction.
-            * `AUTHORIZATION_EXPIRY` - Authorization has expired and reversed by Lithic.
-            * `AUTHORIZATION_REVERSAL` - Authorization was reversed by the merchant.
-            * `BALANCE_INQUIRY` - A balance inquiry (typically a $0 authorization) has occurred on a card.
-            * `CLEARING` - Transaction is settled.
-            * `CORRECTION_DEBIT` - Manual transaction correction (Debit).
-            * `CORRECTION_CREDIT` - Manual transaction correction (Credit).
-            * `CREDIT_AUTHORIZATION` - A refund or credit authorization from a merchant.
-            * `CREDIT_AUTHORIZATION_ADVICE` - A credit authorization was approved on your behalf by the network.
-            * `FINANCIAL_AUTHORIZATION` -  A request from a merchant to debit funds without additional clearing.
-            * `FINANCIAL_CREDIT_AUTHORIZATION` - A request from a merchant to refund or credit funds without additional clearing.
-            * `RETURN` - A refund has been processed on the transaction.
-            * `RETURN_REVERSAL` - A refund has been reversed (e.g., when a merchant reverses an incorrect refund).
-          enum:
-            - AUTHORIZATION
-            - AUTHORIZATION_ADVICE
-            - AUTHORIZATION_EXPIRY
-            - AUTHORIZATION_REVERSAL
-            - BALANCE_INQUIRY
-            - CLEARING
-            - CORRECTION_CREDIT
-            - CORRECTION_DEBIT
-            - CREDIT_AUTHORIZATION
-            - CREDIT_AUTHORIZATION_ADVICE
-            - FINANCIAL_AUTHORIZATION
-            - FINANCIAL_CREDIT_AUTHORIZATION
-            - RETURN
-            - RETURN_REVERSAL
-            - VOID
-          type: string
-      required:
-        - amount
-        - amounts
-        - created
-        - detailed_results
-        - result
-        - token
-        - type
-      type: object
-    TransactionEventAmounts:
-      properties:
-        cardholder:
-          $ref: '#/components/schemas/CardholderEventAmounts'
-        merchant:
-          $ref: '#/components/schemas/MerchantEventAmounts'
-        settlement:
-          $ref: '#/components/schemas/SettlementEventAmounts'
-      required:
-        - cardholder
-        - merchant
-      title: TransactionEventAmounts
-      type: object
     Transfer:
       properties:
         category:
@@ -15151,6 +14047,92 @@ components:
         - entity_token
         - valid_documents
         - status_reasons
+    status-reasons:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
+      title: KYC/KYB Status Reasons
+      description: Status Reasons for KYC/KYB enrollment states
+      type: string
+      enum:
+        - ADDRESS_VERIFICATION_FAILURE
+        - AGE_THRESHOLD_FAILURE
+        - COMPLETE_VERIFICATION_FAILURE
+        - DOB_VERIFICATION_FAILURE
+        - ID_VERIFICATION_FAILURE
+        - MAX_DOCUMENT_ATTEMPTS
+        - MAX_RESUBMISSION_ATTEMPTS
+        - NAME_VERIFICATION_FAILURE
+        - OTHER_VERIFICATION_FAILURE
+        - RISK_THRESHOLD_FAILURE
+        - WATCHLIST_ALERT_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
+        - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
+        - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
+        - PRIMARY_BUSINESS_ENTITY_CMRA_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_WATCHLIST_FAILURE
+        - PRIMARY_BUSINESS_ENTITY_REGISTERED_AGENT_FAILURE
+        - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
+        - CONTROL_PERSON_ID_VERIFICATION_FAILURE
+        - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
+        - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
+    document-type:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-type.json
+      title: Account Holder document types
+      description: Type of documentation to be submitted for verification of an account holder
+      type: string
+      enum:
+        - DRIVERS_LICENSE
+        - PASSPORT
+        - PASSPORT_CARD
+        - EIN_LETTER
+        - TAX_RETURN
+        - OPERATING_AGREEMENT
+        - CERTIFICATE_OF_FORMATION
+        - CERTIFICATE_OF_GOOD_STANDING
+        - ARTICLES_OF_INCORPORATION
+        - ARTICLES_OF_ORGANIZATION
+        - BYLAWS
+        - GOVERNMENT_BUSINESS_LICENSE
+        - PARTNERSHIP_AGREEMENT
+        - SS4_FORM
+        - BANK_STATEMENT
+        - UTILITY_BILL_STATEMENT
+        - SSN_CARD
+        - ITIN_LETTER
+    document-upload-status:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status.json
+      title: Account holder document upload status
+      description: Status of an account holder's document upload.
+      type: string
+      enum:
+        - ACCEPTED
+        - REJECTED
+        - PENDING_UPLOAD
+        - UPLOADED
+        - PARTIAL_APPROVAL
+    document-upload-status-reasons:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status-reasons.json
+      title: Account holder document upload status reasons
+      description: The status reasons for an account holder document upload that is not ACCEPTED
+      type: string
+      enum:
+        - DOCUMENT_MISSING_REQUIRED_DATA
+        - DOCUMENT_UPLOAD_TOO_BLURRY
+        - FILE_SIZE_TOO_LARGE
+        - INVALID_DOCUMENT_TYPE
+        - INVALID_DOCUMENT_UPLOAD
+        - INVALID_ENTITY
+        - DOCUMENT_EXPIRED
+        - DOCUMENT_ISSUED_GREATER_THAN_30_DAYS
+        - DOCUMENT_TYPE_NOT_SUPPORTED
+        - UNKNOWN_FAILURE_REASON
+        - UNKNOWN_ERROR
     document:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document.json
@@ -15170,6 +14152,10 @@ components:
               status_reasons: []
               upload_url: https://lithic-document-verification-uploads.com
               token: e254beee-67db-4d8c-b610-306ee07de886
+              accepted_entity_status_reasons: []
+              rejected_entity_status_reasons: []
+              created: '2024-09-18T12:34:56Z'
+              updated: '2024-09-18T12:34:56Z'
       properties:
         token:
           type: string
@@ -15180,27 +14166,7 @@ components:
           format: uuid
           description: Globally unique identifier for the account holder.
         document_type:
-          type: string
-          enum:
-            - DRIVERS_LICENSE
-            - PASSPORT
-            - PASSPORT_CARD
-            - EIN_LETTER
-            - TAX_RETURN
-            - OPERATING_AGREEMENT
-            - CERTIFICATE_OF_FORMATION
-            - CERTIFICATE_OF_GOOD_STANDING
-            - ARTICLES_OF_INCORPORATION
-            - ARTICLES_OF_ORGANIZATION
-            - BYLAWS
-            - GOVERNMENT_BUSINESS_LICENSE
-            - PARTNERSHIP_AGREEMENT
-            - SS4_FORM
-            - BANK_STATEMENT
-            - UTILITY_BILL_STATEMENT
-            - SSN_CARD
-            - ITIN_LETTER
-          description: Type of documentation to be submitted for verification.
+          $ref: '#/components/schemas/document-type'
         entity_token:
           type: string
           format: uuid
@@ -15219,25 +14185,12 @@ components:
                   - BACK
                 description: Type of image to upload.
               status:
-                type: string
-                enum:
-                  - ACCEPTED
-                  - REJECTED
-                  - PENDING_UPLOAD
-                  - UPLOADED
-                description: Status of document image upload.
+                $ref: '#/components/schemas/document-upload-status'
               status_reasons:
-                type: array
                 description: Reasons for document image upload status.
+                type: array
                 items:
-                  type: string
-                  enum:
-                    - DOCUMENT_MISSING_REQUIRED_DATA
-                    - DOCUMENT_UPLOAD_TOO_BLURRY
-                    - FILE_SIZE_TOO_LARGE
-                    - INVALID_DOCUMENT_TYPE
-                    - INVALID_DOCUMENT_UPLOAD
-                    - UNKNOWN_ERROR
+                  $ref: '#/components/schemas/document-upload-status-reasons'
               upload_url:
                 type: string
                 description: |-
@@ -15249,12 +14202,34 @@ components:
                 type: string
                 format: uuid
                 description: Globally unique identifier for the document upload.
+              accepted_entity_status_reasons:
+                description: A list of status reasons associated with a KYB account holder that have been satisfied by the document upload
+                type: array
+                items:
+                  type: string
+              rejected_entity_status_reasons:
+                description: A list of status reasons associated with a KYB account holder that have not been satisfied by the document upload
+                type: array
+                items:
+                  type: string
+              created:
+                type: string
+                format: date-time
+                description: When the document upload was created
+              updated:
+                type: string
+                format: date-time
+                description: When the document upload was last updated
             required:
               - image_type
               - status
               - status_reasons
               - upload_url
               - token
+              - created
+              - updated
+              - accepted_entity_status_reasons
+              - rejected_entity_status_reasons
       required:
         - account_holder_token
         - document_type
@@ -16339,6 +15314,8 @@ components:
           description: Tier assigned to the financial account
         financial_account_state:
           $ref: '#/components/schemas/financial-account-state'
+        is_spend_blocked:
+          type: boolean
       required:
         - account_token
         - credit_limit
@@ -16508,6 +15485,14 @@ components:
         - interest_for_period
         - actual_interest_charged
         - daily_balance_amounts
+    statement_type:
+      $id: https://lithic.com/schemas/treasury/statements/statement_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - INITIAL
+        - PERIOD_END
+      title: Statement Type
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16578,6 +15563,8 @@ components:
           $ref: '#/components/schemas/amount_due'
         interest_details:
           $ref: '#/components/schemas/interest_details'
+        statement_type:
+          $ref: '#/components/schemas/statement_type'
       required:
         - token
         - financial_account_token
@@ -16596,6 +15583,7 @@ components:
         - updated
         - credit_product_token
         - account_standing
+        - statement_type
     statements_response:
       $id: https://lithic.com/schemas/treasury/statements/statements_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16714,6 +15702,29 @@ components:
         - interest
         - principal
         - fees
+    balances:
+      $id: https://lithic.com/schemas/treasury/statements/balances.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Balances
+      type: object
+      properties:
+        past_due:
+          description: Amount not paid off on previous due dates
+          $ref: '#/components/schemas/category_balances'
+        due:
+          description: Amount due for the prior billing cycle. Any amounts not fully paid off on this due date will be considered past due the next day
+          $ref: '#/components/schemas/category_balances'
+        past_statements_due:
+          description: Amount due for the past billing cycles.
+          $ref: '#/components/schemas/category_balances'
+        next_statement_due:
+          description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
+          $ref: '#/components/schemas/category_balances'
+      required:
+        - past_due
+        - due
+        - past_statements_due
+        - next_statement_due
     balance_details:
       $id: https://lithic.com/schemas/treasury/statements/balance_details.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16762,17 +15773,19 @@ components:
           $ref: '#/components/schemas/statement_totals'
         day_totals:
           $ref: '#/components/schemas/statement_totals'
-        balance_past_due:
-          description: Amount not paid off on previous due dates
-          $ref: '#/components/schemas/category_balances'
-        balance_due:
-          description: Amount due for the prior billing cycle. Any amounts not fully paid off on this due date will be considered past due the next day
-          $ref: '#/components/schemas/category_balances'
-        balance_next_due:
-          description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
-          $ref: '#/components/schemas/category_balances'
+        balances:
+          $ref: '#/components/schemas/balances'
+        starting_balance:
+          description: Balance at the start of the day
+          type: integer
+        ending_balance:
+          description: Balance at the end of the day
+          type: integer
         credit_limit:
           description: For prepay accounts, this is the minimum prepay balance that must be maintained. For charge card accounts, this is the maximum credit balance extended by a lender
+          type: integer
+        available_credit:
+          description: Amount of credit available to spend in cents
           type: integer
         excess_credits:
           description: Excess credits in the form of provisional credits, payments, or purchase refunds. If positive, the account is in net credit state with no outstanding balances. An overpayment could land an account in this state
@@ -16789,7 +15802,7 @@ components:
           $ref: '#/components/schemas/category_balances'
         minimum_payment_balance:
           $ref: '#/components/schemas/balance_details'
-        statement_balance:
+        previous_statement_balance:
           $ref: '#/components/schemas/balance_details'
       required:
         - token
@@ -16806,11 +15819,12 @@ components:
         - account_standing
         - credit_product_token
         - payment_allocation
-        - balance_past_due
-        - balance_due
-        - balance_next_due
+        - balances
         - minimum_payment_balance
-        - statement_balance
+        - previous_statement_balance
+        - starting_balance
+        - ending_balance
+        - available_credit
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16979,6 +15993,12 @@ components:
               - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
               - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
               - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
+              - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
+              - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
+              - PRIMARY_BUSINESS_ENTITY_CMRA_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_WATCHLIST_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_REGISTERED_AGENT_FAILURE
               - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
               - CONTROL_PERSON_ID_VERIFICATION_FAILURE
               - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
@@ -16998,24 +16018,6 @@ components:
         - PENDING_DOCUMENT
         - PENDING_RESUBMIT
         - REJECTED
-    status-reasons:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status-reasons.json
-      title: KYC/KYB Status Reasons
-      description: Status Reasons for KYC/KYB enrollment states
-      type: string
-      enum:
-        - ADDRESS_VERIFICATION_FAILURE
-        - AGE_THRESHOLD_FAILURE
-        - COMPLETE_VERIFICATION_FAILURE
-        - DOB_VERIFICATION_FAILURE
-        - ID_VERIFICATION_FAILURE
-        - MAX_DOCUMENT_ATTEMPTS
-        - MAX_RESUBMISSION_ATTEMPTS
-        - NAME_VERIFICATION_FAILURE
-        - OTHER_VERIFICATION_FAILURE
-        - RISK_THRESHOLD_FAILURE
-        - WATCHLIST_ALERT_FAILURE
     verification-application:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/verification-application.json
@@ -17298,15 +16300,1161 @@ components:
             - UPLOADED
             - ACCEPTED
             - REJECTED
-        status_reasons:
-          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
+            - PARTIAL_APPROVAL
+        status_reason:
+          $ref: '#/components/schemas/document-upload-status-reasons'
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status or `PARTIAL_APPROVAL` status.
+        accepted_entity_status_reasons:
+          description: A list of status reasons associated with a KYB account holder in PENDING_REVIEW
           type: array
           items:
             type: string
-            enum:
-              - DOCUMENT_MISSING_REQUIRED_DATA
-              - DOCUMENT_UPLOAD_TOO_BLURRY
-              - INVALID_DOCUMENT_TYPE
+      required:
+        - document_upload_token
+        - status
+    currency:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/currency.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      description: ISO 4217 currency.  Its enumerants are ISO 4217 currencies except for some special currencies like ``XXX``.  Enumerants names are lowercase currency code e.g. `EUR`, `USD`.
+      example: USD
+      title: Currency
+      type: string
+      enum:
+        - AED
+        - AFN
+        - ALL
+        - AMD
+        - ANG
+        - AOA
+        - ARS
+        - AUD
+        - AWG
+        - AZN
+        - BAM
+        - BBD
+        - BDT
+        - BGN
+        - BHD
+        - BIF
+        - BMD
+        - BND
+        - BOB
+        - BOV
+        - BRL
+        - BSD
+        - BTN
+        - BWP
+        - BYN
+        - BZD
+        - CAD
+        - CDF
+        - CHE
+        - CHF
+        - CHW
+        - CLF
+        - CLP
+        - CNY
+        - COP
+        - COU
+        - CRC
+        - CUC
+        - CUP
+        - CVE
+        - CZK
+        - DJF
+        - DKK
+        - DOP
+        - DZD
+        - EGP
+        - ERN
+        - ETB
+        - EUR
+        - FJD
+        - FKP
+        - GBP
+        - GEL
+        - GHS
+        - GIP
+        - GMD
+        - GNF
+        - GTQ
+        - GYD
+        - HKD
+        - HNL
+        - HRK
+        - HTG
+        - HUF
+        - IDR
+        - ILS
+        - INR
+        - IQD
+        - IRR
+        - ISK
+        - JMD
+        - JOD
+        - JPY
+        - KES
+        - KGS
+        - KHR
+        - KMF
+        - KPW
+        - KRW
+        - KWD
+        - KYD
+        - KZT
+        - LAK
+        - LBP
+        - LKR
+        - LRD
+        - LSL
+        - LYD
+        - MAD
+        - MDL
+        - MGA
+        - MKD
+        - MMK
+        - MNT
+        - MOP
+        - MRU
+        - MUR
+        - MVR
+        - MWK
+        - MXN
+        - MXV
+        - MYR
+        - MZN
+        - NAD
+        - NGN
+        - NIO
+        - NOK
+        - NPR
+        - NZD
+        - OMR
+        - PAB
+        - PEN
+        - PGK
+        - PHP
+        - PKR
+        - PLN
+        - PYG
+        - QAR
+        - RON
+        - RSD
+        - RUB
+        - RWF
+        - SAR
+        - SBD
+        - SCR
+        - SDG
+        - SEK
+        - SGD
+        - SHP
+        - SLE
+        - SLL
+        - SOS
+        - SRD
+        - SSP
+        - STN
+        - SVC
+        - SYP
+        - SZL
+        - THB
+        - TJS
+        - TMT
+        - TND
+        - TOP
+        - TRY
+        - TTD
+        - TWD
+        - TZS
+        - UAH
+        - UGX
+        - USD
+        - USN
+        - UYI
+        - UYU
+        - UYW
+        - UZS
+        - VED
+        - VES
+        - VND
+        - VUV
+        - WST
+        - XAF
+        - XAG
+        - XAU
+        - XBA
+        - XBB
+        - XBC
+        - XBD
+        - XCD
+        - XDR
+        - XOF
+        - XPD
+        - XPF
+        - XPT
+        - XSU
+        - XTS
+        - XUA
+        - XXX
+        - YER
+        - ZAR
+        - ZMW
+        - ZWL
+    transaction_amounts:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/transaction_amounts.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Amounts
+      type: object
+      properties:
+        cardholder:
+          properties:
+            amount:
+              description: The aggregate settled amount in the cardholder's local currency.
+              type: integer
+              example: -1000
+            conversion_rate:
+              description: The conversion rate used to convert the merchant amount to the cardholder amount.
+              type: string
+              example: '1.000000'
+            currency:
+              $ref: '#/components/schemas/currency'
+          type: object
+          required:
+            - amount
+            - conversion_rate
+            - currency
+        hold:
+          properties:
+            amount:
+              description: The aggregate pending amount in the anticipated settlement currency.
+              type: integer
+              example: 0
+            currency:
+              $ref: '#/components/schemas/currency'
+          type: object
+          required:
+            - amount
+            - currency
+        merchant:
+          properties:
+            amount:
+              description: The aggregate settled amount in the merchant's local currency.
+              type: integer
+              example: -1000
+            currency:
+              $ref: '#/components/schemas/currency'
+          type: object
+          required:
+            - amount
+            - currency
+        settlement:
+          properties:
+            amount:
+              description: The aggregate settled amount in the settlement currency.
+              type: integer
+              example: -1000
+            currency:
+              $ref: '#/components/schemas/currency'
+          type: object
+          required:
+            - amount
+            - currency
+      required:
+        - cardholder
+        - hold
+        - merchant
+        - settlement
+    avs:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/avs.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Address Verification Service
+      type: object
+      properties:
+        address:
+          description: Cardholder address
+          type: string
+        zipcode:
+          description: Cardholder ZIP code
+          type: string
+      required:
+        - address
+        - zipcode
+    cardholder_authentication:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/cardholder_authentication.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Cardholder Authentication
+      type: object
+      properties:
+        3ds_version:
+          oneOf:
+            - type: 'null'
+              description: 3DS version not available
+            - type: string
+              example: '2'
+              description: The 3DS version used for the authentication
+        acquirer_exemption:
+          description: Whether an acquirer exemption applied to the transaction.
+          enum:
+            - AUTHENTICATION_OUTAGE_EXCEPTION
+            - LOW_VALUE
+            - MERCHANT_INITIATED_TRANSACTION
+            - NONE
+            - RECURRING_PAYMENT
+            - SECURE_CORPORATE_PAYMENT
+            - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
+            - TRANSACTION_RISK_ANALYSIS
+          example: NONE
+          type: string
+        authentication_result:
+          description: Indicates what the outcome of the 3DS authentication process is.
+          enum:
+            - ATTEMPTS
+            - DECLINE
+            - NONE
+            - SUCCESS
+          example: SUCCESS
+          type: string
+        decision_made_by:
+          description: Indicates which party made the 3DS authentication decision.
+          enum:
+            - CUSTOMER_ENDPOINT
+            - LITHIC_DEFAULT
+            - LITHIC_RULES
+            - NETWORK
+            - UNKNOWN
+          example: LITHIC_RULES
+          type: string
+        liability_shift:
+          description: |+
+            Indicates whether chargeback liability shift applies to the transaction. Possible enum values:
+
+                * `3DS_AUTHENTICATED`: The transaction was fully authenticated through a 3-D Secure flow, chargeback liability shift applies.
+
+                * `ACQUIRER_EXEMPTION`: The acquirer utilised an exemption to bypass Strong Customer Authentication (`transStatus = N`, or `transStatus = I`). Liability remains with the acquirer and in this case the `acquirer_exemption` field is expected to be not `NONE`.
+
+                * `NONE`: Chargeback liability shift has not shifted to the issuer, i.e. the merchant is liable.
+
+               * `TOKEN_AUTHENTICATED`: The transaction was a tokenized payment with validated cryptography, possibly recurring. Chargeback liability shift to the issuer applies.
+
+          enum:
+            - 3DS_AUTHENTICATED
+            - ACQUIRER_EXEMPTION
+            - NONE
+            - TOKEN_AUTHENTICATED
+          type: string
+        three_ds_authentication_token:
+          oneOf:
+            - type: 'null'
+              description: 3DS authentication token not available.
+            - type: string
+              example: a6e372d0-b40a-43eb-b0d1-4e1aebef5875
+              format: uuid
+              description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
+        verification_attempted:
+          description: Indicates whether a 3DS challenge flow was used, and if so, what the verification method was. (deprecated, use `authentication_result`)
+          enum:
+            - NONE
+            - OTHER
+          example: NONE
+          type: string
+        verification_result:
+          description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
+          enum:
+            - CANCELLED
+            - FAILED
+            - FRICTIONLESS
+            - NOT_ATTEMPTED
+            - REJECTED
+            - SUCCESS
+          example: FRICTIONLESS
+          type: string
+      required:
+        - 3ds_version
+        - acquirer_exemption
+        - authentication_result
+        - decision_made_by
+        - liability_shift
+        - three_ds_authentication_token
+        - verification_attempted
+        - verification_result
+    transaction_event_amounts:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/transaction_event_amounts.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Event Amounts
+      type: object
+      properties:
+        cardholder:
+          type: object
+          properties:
+            amount:
+              description: The amount in the cardholder's local currency.
+              type: integer
+              example: 1000
+            conversion_rate:
+              description: The conversion rate used to convert the merchant amount to the cardholder amount.
+              type: string
+              example: '1.000000'
+            currency:
+              $ref: '#/components/schemas/currency'
+          required:
+            - amount
+            - conversion_rate
+            - currency
+        merchant:
+          type: object
+          properties:
+            amount:
+              description: The amount in the merchant's local currency.
+              type: integer
+              example: 1000
+            currency:
+              $ref: '#/components/schemas/currency'
+          required:
+            - amount
+            - currency
+        settlement:
+          type:
+            - object
+            - 'null'
+          properties:
+            amount:
+              description: The amount in the settlement currency.
+              type: integer
+              example: 1000
+            conversion_rate:
+              description: Conversion rate used to convert the merchant amount to the settlement amount.
+              type: string
+              example: '1.000000'
+            currency:
+              $ref: '#/components/schemas/currency'
+          required:
+            - amount
+            - conversion_rate
+            - currency
+      required:
+        - cardholder
+        - merchant
+        - settlement
+    detailed_result:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/detailed_result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      example: APPROVED
+      title: Detailed Result
+      type: string
+      enum:
+        - ACCOUNT_DAILY_SPEND_LIMIT_EXCEEDED
+        - ACCOUNT_DELINQUENT
+        - ACCOUNT_INACTIVE
+        - ACCOUNT_LIFETIME_SPEND_LIMIT_EXCEEDED
+        - ACCOUNT_MONTHLY_SPEND_LIMIT_EXCEEDED
+        - ACCOUNT_UNDER_REVIEW
+        - ADDRESS_INCORRECT
+        - APPROVED
+        - AUTH_RULE_ALLOWED_COUNTRY
+        - AUTH_RULE_ALLOWED_MCC
+        - AUTH_RULE_BLOCKED_COUNTRY
+        - AUTH_RULE_BLOCKED_MCC
+        - CARD_CLOSED
+        - CARD_CRYPTOGRAM_VALIDATION_FAILURE
+        - CARD_EXPIRED
+        - CARD_EXPIRY_DATE_INCORRECT
+        - CARD_INVALID
+        - CARD_NOT_ACTIVATED
+        - CARD_PAUSED
+        - CARD_PIN_INCORRECT
+        - CARD_RESTRICTED
+        - CARD_SECURITY_CODE_INCORRECT
+        - CARD_SPEND_LIMIT_EXCEEDED
+        - CONTACT_CARD_ISSUER
+        - CUSTOMER_ASA_TIMEOUT
+        - CUSTOM_ASA_RESULT
+        - DECLINED
+        - DO_NOT_HONOR
+        - DRIVER_NUMBER_INVALID
+        - FORMAT_ERROR
+        - INSUFFICIENT_FUNDING_SOURCE_BALANCE
+        - INSUFFICIENT_FUNDS
+        - LITHIC_SYSTEM_ERROR
+        - LITHIC_SYSTEM_RATE_LIMIT
+        - MALFORMED_ASA_RESPONSE
+        - MERCHANT_INVALID
+        - MERCHANT_LOCKED_CARD_ATTEMPTED_ELSEWHERE
+        - MERCHANT_NOT_PERMITTED
+        - OVER_REVERSAL_ATTEMPTED
+        - PROGRAM_CARD_SPEND_LIMIT_EXCEEDED
+        - PROGRAM_SUSPENDED
+        - PROGRAM_USAGE_RESTRICTION
+        - REVERSAL_UNMATCHED
+        - SECURITY_VIOLATION
+        - SINGLE_USE_CARD_REATTEMPTED
+        - TRANSACTION_INVALID
+        - TRANSACTION_NOT_PERMITTED_TO_ACQUIRER_OR_TERMINAL
+        - TRANSACTION_NOT_PERMITTED_TO_ISSUER_OR_CARDHOLDER
+        - TRANSACTION_PREVIOUSLY_COMPLETED
+        - UNAUTHORIZED_MERCHANT
+        - VEHICLE_NUMBER_INVALID
+    transaction_event:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/avs.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Event
+      type: object
+      properties:
+        amount:
+          description: Amount of the transaction event (in cents), including any acquirer fees.
+          example: 1000
+          type: integer
+        amounts:
+          $ref: '#/components/schemas/transaction_event_amounts'
+        created:
+          description: RFC 3339 date and time this event entered the system. UTC time zone.
+          example: '2023-09-26T21:14:28.637Z'
+          format: date-time
+          type: string
+        detailed_results:
+          items:
+            $ref: '#/components/schemas/detailed_result'
+          type: array
+        effective_polarity:
+          description: Indicates whether the transaction event is a credit or debit to the account.
+          example: DEBIT
+          enum:
+            - CREDIT
+            - DEBIT
+          type: string
+        result:
+          description: Result of the transaction.
+          enum:
+            - ACCOUNT_STATE_TRANSACTION_FAIL
+            - APPROVED
+            - BANK_CONNECTION_ERROR
+            - BANK_NOT_VERIFIED
+            - CARD_CLOSED
+            - CARD_PAUSED
+            - FRAUD_ADVICE
+            - INACTIVE_ACCOUNT
+            - INCORRECT_PIN
+            - INVALID_CARD_DETAILS
+            - INSUFFICIENT_FUNDS
+            - MERCHANT_BLACKLIST
+            - SINGLE_USE_RECHARGED
+            - SWITCH_INOPERATIVE_ADVICE
+            - UNAUTHORIZED_MERCHANT
+            - UNKNOWN_HOST_TIMEOUT
+            - USER_TRANSACTION_LIMIT
+          example: APPROVED
+          type: string
+        token:
+          description: Transaction event identifier.
+          example: 0c2adae9-f535-4505-8c35-421dad9bd0b6
+          format: uuid
+          type: string
+        type:
+          description: Type of transaction event
+          example: CLEARING
+          enum:
+            - AUTHORIZATION
+            - AUTHORIZATION_ADVICE
+            - AUTHORIZATION_EXPIRY
+            - AUTHORIZATION_REVERSAL
+            - BALANCE_INQUIRY
+            - CLEARING
+            - CORRECTION_CREDIT
+            - CORRECTION_DEBIT
+            - CREDIT_AUTHORIZATION
+            - CREDIT_AUTHORIZATION_ADVICE
+            - FINANCIAL_AUTHORIZATION
+            - FINANCIAL_CREDIT_AUTHORIZATION
+            - RETURN
+            - RETURN_REVERSAL
+          type: string
+      required:
+        - amount
+        - amounts
+        - created
+        - detailed_results
+        - effective_polarity
+        - result
+        - token
+        - type
+    merchant:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/merchant.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Merchant
+      type: object
+      properties:
+        acceptor_id:
+          description: Unique alphanumeric identifier for the payment card acceptor (merchant).
+          example: '333301802529120'
+          type: string
+        acquiring_institution_id:
+          description: Unique numeric identifier of the acquiring institution.
+          example: '191231'
+          type: string
+        city:
+          description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
+          example: NEW YORK
+          type: string
+        country:
+          description: 'Country or entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.'
+          example: USA
+          type: string
+        descriptor:
+          description: Short description of card acceptor.
+          example: COFFEE SHOP
+          type: string
+        mcc:
+          description: Merchant category code (MCC). A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
+          example: '5812'
+          type: string
+        state:
+          description: Geographic state of card acceptor.
+          example: NY
+          type: string
+      required:
+        - acceptor_id
+        - acquiring_institution_id
+        - city
+        - country
+        - descriptor
+        - mcc
+        - state
+    merchant_currency:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/merchant_currency.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Merchant Currency
+      description: 3-digit alphabetic ISO 4217 code for the local currency of the transaction.
+      example: USD
+      type: string
+    network_risk_score:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/network_risk_score.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Risk Score
+      type:
+        - integer
+        - 'null'
+      description: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+    pos_entry_mode:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/pos_entry_mode.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Point of Sale Entry Mode
+      type: object
+      properties:
+        card:
+          type: string
+          enum:
+            - NOT_PRESENT
+            - PREAUTHORIZED
+            - PRESENT
+            - UNKNOWN
+          description: Card presence indicator
+        cardholder:
+          type: string
+          enum:
+            - DEFERRED_BILLING
+            - ELECTRONIC_ORDER
+            - INSTALLMENT
+            - MAIL_ORDER
+            - NOT_PRESENT
+            - PREAUTHORIZED
+            - PRESENT
+            - REOCCURRING
+            - TELEPHONE_ORDER
+            - UNKNOWN
+          description: Cardholder presence indicator
+        pan:
+          type: string
+          enum:
+            - AUTO_ENTRY
+            - BAR_CODE
+            - CONTACTLESS
+            - CREDENTIAL_ON_FILE
+            - ECOMMERCE
+            - ERROR_KEYED
+            - ERROR_MAGNETIC_STRIPE
+            - ICC
+            - KEY_ENTERED
+            - MAGNETIC_STRIPE
+            - MANUAL
+            - OCR
+            - SECURE_CARDLESS
+            - UNKNOWN
+            - UNSPECIFIED
+          description: Method of entry for the PAN
+        pin_entered:
+          type: boolean
+          description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
+      required:
+        - card
+        - cardholder
+        - pan
+        - pin_entered
+    pos_terminal:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/pos_terminal.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Point of Sale Terminal
+      type: object
+      properties:
+        attended:
+          description: True if a clerk is present at the sale.
+          type: boolean
+        card_retention_capable:
+          description: True if the terminal is capable of retaining the card.
+          type: boolean
+        on_premise:
+          description: True if the sale was made at the place of business (vs. mobile).
+          type: boolean
+        operator:
+          description: The person that is designated to swipe the card
+          enum:
+            - ADMINISTRATIVE
+            - CARDHOLDER
+            - CARD_ACCEPTOR
+            - UNKNOWN
+          type: string
+        partial_approval_capable:
+          type: boolean
+          description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
+        pin_capability:
+          description: Status of whether the POS is able to accept PINs
+          enum:
+            - CAPABLE
+            - INOPERATIVE
+            - NOT_CAPABLE
+            - UNSPECIFIED
+          type: string
+        type:
+          description: POS Type
+          enum:
+            - ADMINISTRATIVE
+            - ATM
+            - AUTHORIZATION
+            - COUPON_MACHINE
+            - DIAL_TERMINAL
+            - ECOMMERCE
+            - ECR
+            - FUEL_MACHINE
+            - HOME_TERMINAL
+            - MICR
+            - OFF_PREMISE
+            - PAYMENT
+            - PDA
+            - PHONE
+            - POINT
+            - POS_TERMINAL
+            - PUBLIC_UTILITY
+            - SELF_SERVICE
+            - TELEVISION
+            - TELLER
+            - TRAVELERS_CHECK_MACHINE
+            - VENDING
+            - VOICE
+            - UNKNOWN
+          type: string
+      required:
+        - attended
+        - card_retention_capable
+        - on_premise
+        - operator
+        - partial_approval_capable
+        - pin_capability
+        - type
+    pos:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/pos.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Point of Sale
+      type: object
+      properties:
+        entry_mode:
+          $ref: '#/components/schemas/pos_entry_mode'
+        terminal:
+          $ref: '#/components/schemas/pos_terminal'
+      required:
+        - entry_mode
+        - terminal
+    token_info:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/token_info.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Token Info
+      type:
+        - object
+        - 'null'
+      properties:
+        wallet_type:
+          description: The wallet_type field will indicate the source of the token. Possible token sources include digital wallets (Apple, Google, or Samsung Pay), merchant tokenization, and “other” sources like in-flight commerce. Masterpass is not currently supported and is included for future use.
+          enum:
+            - APPLE_PAY
+            - GOOGLE_PAY
+            - MASTERPASS
+            - MERCHANT
+            - OTHER
+            - SAMSUNG_PAY
+          type: string
+      required:
+        - wallet_type
+    card_transaction:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Card Transaction
+      type: object
+      properties:
+        acquirer_fee:
+          description: Fee assessed by the merchant and paid for by the cardholder in the smallest unit of the currency. Will be zero if no fee is assessed. Rebates may be transmitted as a negative value to indicate credited fees.
+          example: 0
+          type:
+            - integer
+            - 'null'
+        acquirer_reference_number:
+          description: Unique identifier assigned to a transaction by the acquirer that can be used in dispute and chargeback filing.
+          example: '12345678987654321234567'
+          maxLength: 23
+          minLength: 23
+          type:
+            - string
+            - 'null'
+        account_token:
+          description: The token for the account associated with this transaction.
+          example: bd5e5649-1be8-4117-9bc5-3268258d1417
+          format: uuid
+          type: string
+        amount:
+          description: Authorization amount of the transaction (in cents), including any acquirer fees. This may change over time, and will represent the settled amount once the transaction is settled.
+          example: 1000
+          type: integer
+        amounts:
+          $ref: '#/components/schemas/transaction_amounts'
+        authorization_amount:
+          description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
+          example: 1000
+          type:
+            - integer
+            - 'null'
+        authorization_code:
+          description: A fixed-width 6-digit numeric identifier that can be used to identify a transaction with networks.
+          example: '123456'
+          maxLength: 6
+          minLength: 6
+          type:
+            - string
+            - 'null'
+        avs:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/avs'
+        card_token:
+          description: Token for the card used in this transaction.
+          example: 19c22c47-7a75-43ee-9891-595419830f7e
+          format: uuid
+          type: string
+        cardholder_authentication:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/cardholder_authentication'
+        created:
+          description: Date and time when the transaction first occurred. UTC time zone.
+          example: '2023-09-26T21:14:28.637Z'
+          format: date-time
+          type: string
+        events:
+          items:
+            $ref: '#/components/schemas/transaction_event'
+          type: array
+        merchant:
+          $ref: '#/components/schemas/merchant'
+        merchant_amount:
+          description: Analogous to the 'amount' property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+          example: 1000
+          type:
+            - integer
+            - 'null'
+        merchant_authorization_amount:
+          description: Analogous to the 'authorization_amount' property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+          example: 1000
+          type:
+            - integer
+            - 'null'
+        merchant_currency:
+          $ref: '#/components/schemas/merchant_currency'
+        network:
+          description: Card network of the authorization. Can be `INTERLINK`, `MAESTRO`, `MASTERCARD`, `VISA`, or `UNKNOWN`. Value is `UNKNOWN` when Lithic cannot determine the network code from the upstream provider.
+          enum:
+            - INTERLINK
+            - MAESTRO
+            - MASTERCARD
+            - UNKNOWN
+            - VISA
+          example: MASTERCARD
+          type:
+            - string
+            - 'null'
+        network_risk_score:
+          $ref: '#/components/schemas/network_risk_score'
+        result:
+          description: '`APPROVED` or decline reason. See Event result types'
+          enum:
+            - APPROVED
+            - BANK_CONNECTION_ERROR
+            - BANK_NOT_VERIFIED
+            - CARD_CLOSED
+            - CARD_PAUSED
+            - DECLINED
+            - FRAUD_ADVICE
+            - INACTIVE_ACCOUNT
+            - INCORRECT_PIN
+            - INSUFFICIENT_FUNDS
+            - INVALID_CARD_DETAILS
+            - MERCHANT_BLACKLIST
+            - SINGLE_USE_RECHARGED
+            - SWITCH_INOPERATIVE_ADVICE
+            - UNAUTHORIZED_MERCHANT
+            - UNKNOWN_HOST_TIMEOUT
+            - USER_TRANSACTION_LIMIT
+          example: APPROVED
+          type: string
+        pos:
+          $ref: '#/components/schemas/pos'
+        settled_amount:
+          title: Settled Amount
+          description: Amount of the transaction that has been settled (in cents), including any acquirer fees. This may change over time.
+          type: integer
+          example: 1000
+        status:
+          description: Status of the transaction.
+          enum:
+            - DECLINED
+            - EXPIRED
+            - PENDING
+            - SETTLED
+            - VOIDED
+          example: SETTLED
+          type: string
+        token:
+          description: Globally unique identifier.
+          format: uuid
+          type: string
+        token_info:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/token_info'
+        updated:
+          description: Date and time when the transaction last updated. UTC time zone.
+          example: '2023-09-26T21:14:28.637Z'
+          format: date-time
+          type: string
+      required:
+        - acquirer_fee
+        - acquirer_reference_number
+        - account_token
+        - amount
+        - amounts
+        - authorization_amount
+        - authorization_code
+        - avs
+        - card_token
+        - cardholder_authentication
+        - created
+        - merchant_amount
+        - merchant_authorization_amount
+        - merchant_currency
+        - merchant
+        - network
+        - network_risk_score
+        - result
+        - pos
+        - settled_amount
+        - status
+        - token
+        - token_info
+        - updated
+      examples:
+        - account_token: db3942f0-0627-4887-a190-1ea83b46d091
+          acquirer_fee: 0
+          acquirer_reference_number: null
+          amount: 1800
+          amounts:
+            cardholder:
+              amount: 0
+              conversion_rate: '1.000000'
+              currency: USD
+            hold:
+              amount: -1800
+              currency: USD
+            merchant:
+              amount: 0
+              currency: USD
+            settlement:
+              amount: 0
+              currency: USD
+          authorization_amount: 1800
+          authorization_code: '071471'
+          avs:
+            zipcode: '95006'
+            address: 123 Evergreen Terrace
+          card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
+          cardholder_authentication:
+            verification_attempted: OTHER
+            verification_result: SUCCESS
+            liability_shift: 3DS_AUTHENTICATED
+            3ds_version: null
+            acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+            authentication_result: SUCCESS
+            three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
+            decision_made_by: NETWORK
+          created: '2023-08-03T18:42:30Z'
+          events:
+            - amount: 1800
+              amounts:
+                cardholder:
+                  amount: 1800
+                  conversion_rate: '1.000000'
+                  currency: USD
+                merchant:
+                  amount: 1800
+                  currency: USD
+                settlement: null
+              created: '2023-08-03T18:42:30Z'
+              detailed_results:
+                - APPROVED
+              effective_polarity: DEBIT
+              result: APPROVED
+              token: bbbf1e86-322d-11ee-9779-00505685a123
+              type: AUTHORIZATION
+          merchant:
+            acceptor_id: '452322000053360'
+            acquiring_institution_id: '333301802529120'
+            city: gosq.com
+            country: USA
+            descriptor: SQ *SOMA EATS
+            mcc: '5812'
+            state: CA
+          merchant_amount: 1800
+          merchant_authorization_amount: 1800
+          merchant_currency: USD
+          network: MASTERCARD
+          network_risk_score: 5
+          pos:
+            entry_mode:
+              card: NOT_PRESENT
+              cardholder: NOT_PRESENT
+              pan: ECOMMERCE
+              pin_entered: false
+            terminal:
+              attended: false
+              card_retention_capable: false
+              on_premise: false
+              operator: UNKNOWN
+              partial_approval_capable: false
+              pin_capability: NOT_CAPABLE
+              type: UNKNOWN
+          result: APPROVED
+          settled_amount: 0
+          status: PENDING
+          token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+          token_info:
+            wallet_type: APPLE_PAY
+          updated: '2023-08-03T18:42:30Z'
+    list_transactions_response:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/list_transactions_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: List Transactions Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/card_transaction'
+        has_more:
+          description: Indicates whether there are more transactions to be retrieved.
+          type: boolean
+      examples:
+        - data:
+            - account_token: db3942f0-0627-4887-a190-1ea83b46d091
+              acquirer_fee: 0
+              acquirer_reference_number: null
+              amount: 1800
+              amounts:
+                cardholder:
+                  amount: 0
+                  conversion_rate: '1.000000'
+                  currency: USD
+                hold:
+                  amount: -1800
+                  currency: USD
+                merchant:
+                  amount: 0
+                  currency: USD
+                settlement:
+                  amount: 0
+                  currency: USD
+              authorization_amount: 1800
+              authorization_code: '071471'
+              avs:
+                zipcode: '95006'
+                address: 123 Evergreen Terrace
+              card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
+              cardholder_authentication:
+                verification_attempted: OTHER
+                verification_result: SUCCESS
+                liability_shift: 3DS_AUTHENTICATED
+                3ds_version: null
+                acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+                authentication_result: SUCCESS
+                three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
+                decision_made_by: NETWORK
+              created: '2023-08-03T18:42:30Z'
+              events:
+                - amount: 1800
+                  amounts:
+                    cardholder:
+                      amount: 1800
+                      conversion_rate: '1.000000'
+                      currency: USD
+                    merchant:
+                      amount: 1800
+                      currency: USD
+                    settlement: null
+                  created: '2023-08-03T18:42:30Z'
+                  detailed_results:
+                    - APPROVED
+                  effective_polarity: DEBIT
+                  result: APPROVED
+                  token: bbbf1e86-322d-11ee-9779-00505685a123
+                  type: AUTHORIZATION
+              merchant:
+                acceptor_id: '452322000053360'
+                acquiring_institution_id: '333301802529120'
+                city: gosq.com
+                country: USA
+                descriptor: SQ *SOMA EATS
+                mcc: '5812'
+                state: CA
+              merchant_amount: 1800
+              merchant_authorization_amount: 1800
+              merchant_currency: USD
+              network: MASTERCARD
+              network_risk_score: 5
+              pos:
+                entry_mode:
+                  card: NOT_PRESENT
+                  cardholder: NOT_PRESENT
+                  pan: ECOMMERCE
+                  pin_entered: false
+                terminal:
+                  attended: false
+                  card_retention_capable: false
+                  on_premise: false
+                  operator: UNKNOWN
+                  partial_approval_capable: false
+                  pin_capability: NOT_CAPABLE
+                  type: UNKNOWN
+              result: APPROVED
+              settled_amount: 0
+              status: PENDING
+              token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+              token_info:
+                wallet_type: APPLE_PAY
+              updated: '2023-08-03T18:42:30Z'
+          has_more: false
     external_payment_category:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17737,42 +17885,6 @@ components:
           format: date
       required:
         - effective_date
-    asa_request_pos_terminal_pin_capability:
-      type: string
-      description: Status of whether the POS is able to accept PINs
-      enum:
-        - CAPABLE
-        - INOPERATIVE
-        - NOT_CAPABLE
-        - UNSPECIFIED
-    asa_request_pos_terminal_type:
-      type: string
-      description: POS type
-      enum:
-        - ATM
-        - AUTHORIZATION
-        - COUPON_MACHINE
-        - DIAL_TERMINAL
-        - ECOMMERCE
-        - ECR
-        - FUEL_MACHINE
-        - HOME_TERMINAL
-        - MICR
-        - OFF_PREMISE
-        - PAYMENT
-        - PDA
-        - PHONE
-        - POINT
-        - POS_TERMINAL
-        - SELF_SERVICE
-        - TELEVISION
-        - TELLER
-        - TRAVELERS_CHECK_MACHINE
-        - VENDING
-        - VOICE
-        - ADMINISTRATIVE
-        - PUBLIC_UTILITY
-        - UNKNOWN
     card-type:
       $id: https://lithic.com/schemas/authorization/card/card-type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17784,41 +17896,6 @@ components:
         - PHYSICAL
         - DIGITAL_WALLET
         - VIRTUAL
-    asa_request_merchant:
-      description: Merchant object in ASA
-      type: object
-      properties:
-        acceptor_id:
-          description: Unique alphanumeric identifier for the payment card acceptor (merchant).
-          type: string
-        acquiring_institution_id:
-          description: Unique numeric identifier of the acquiring institution.
-          type: string
-        city:
-          description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
-          type: string
-        country:
-          description: 'Country or entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.'
-          type: string
-        descriptor:
-          description: Short description of card acceptor.
-          type: string
-        mcc:
-          description: Merchant Category Code (MCC)
-          type: string
-        state:
-          description: Geographic state of card acceptor
-          type: string
-    asa_request_avs:
-      description: Contains address validation (AVS) information collected by the merchant to be verified by the issuer.
-      type: object
-      properties:
-        address:
-          description: Address Line
-          type: string
-        zipcode:
-          description: ZIP Code, typically 5 digits.
-          type: string
     asa_request_card:
       description: Card object in ASA
       type: object
@@ -17972,34 +18049,6 @@ components:
         pin_entered:
           type: boolean
           description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
-    asa_request_pos_terminal:
-      description: POS > Terminal object in ASA
-      type: object
-      properties:
-        attended:
-          type: boolean
-          description: True if a clerk is present at the sale.
-        card_retention_capable:
-          type: boolean
-          description: True if the terminal is capable of retaining the card.
-        on_premise:
-          type: boolean
-          description: True if the sale was made at the place of business (vs. mobile).
-        operator:
-          type: string
-          description: The person that is designated to swipe the card
-          enum:
-            - CARDHOLDER
-            - CARD_ACCEPTOR
-            - ADMINISTRATIVE
-            - UNKNOWN
-        partial_approval_capable:
-          type: boolean
-          description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
-        pin_capability:
-          $ref: '#/components/schemas/asa_request_pos_terminal_pin_capability'
-        type:
-          $ref: '#/components/schemas/asa_request_pos_terminal_type'
     asa_request_status:
       type: string
       description: The type of authorization request that this request is for. Note that `CREDIT_AUTHORIZATION` and `FINANCIAL_CREDIT_AUTHORIZATION` is only available to users with credit decisioning via ASA enabled.
@@ -18045,9 +18094,9 @@ components:
       type: object
       properties:
         merchant:
-          $ref: '#/components/schemas/asa_request_merchant'
+          $ref: '#/components/schemas/merchant'
         avs:
-          $ref: '#/components/schemas/asa_request_avs'
+          $ref: '#/components/schemas/avs'
         card:
           $ref: '#/components/schemas/asa_request_card'
         cardholder_authentication:
@@ -18061,7 +18110,7 @@ components:
             entry_mode:
               $ref: '#/components/schemas/asa_request_pos_entry_mode'
             terminal:
-              $ref: '#/components/schemas/asa_request_pos_terminal'
+              $ref: '#/components/schemas/pos_terminal'
         amount:
           type: number
           description: Authorization amount of the transaction (in cents), including any acquirer fees. The contents of this field are identical to `authorization_amount`.
@@ -18084,19 +18133,7 @@ components:
           type: number
           description: Deprecated, use `cash_amount`.
         token_info:
-          type: object
-          description: Will be present if the transaction is tokenized, and absent for a physical or virtual non-tokenized transaction.
-          properties:
-            wallet_type:
-              type: string
-              description: The wallet_type field will indicate the source of the token. Possible token sources include digital wallets (Apple, Google, or Samsung Pay), merchant tokenization, and “other” sources like in-flight commerce. Masterpass is not currently supported and is included for future use.
-              enum:
-                - MASTERPASS
-                - APPLE_PAY
-                - GOOGLE_PAY
-                - SAMSUNG_PAY
-                - MERCHANT
-                - OTHER
+          $ref: '#/components/schemas/token_info'
         ttl:
           description: 'Deprecated: approximate time-to-live for the authorization.'
           type: string
@@ -18112,8 +18149,7 @@ components:
           type: number
           description: The amount that the merchant will receive, denominated in `merchant_currency` and in the smallest currency unit. Note the amount includes `acquirer_fee`, similar to `authorization_amount`. It will be different from `authorization_amount` if the merchant is taking payment in a different currency.
         merchant_currency:
-          type: string
-          description: ISO 4217 alpha 3 code for the currency of the transaction.
+          $ref: '#/components/schemas/merchant_currency'
         network:
           type: string
           description: Card network of the authorization.
@@ -18124,11 +18160,7 @@ components:
             - VISA
             - UNKNOWN
         network_risk_score:
-          oneOf:
-            - type: 'null'
-              description: Network risk score not available.
-            - type: number
-              description: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+          $ref: '#/components/schemas/network_risk_score'
         settled_amount:
           type: number
           description: Amount (in cents) of the transaction that has been settled, including any acquirer fees
@@ -18157,77 +18189,6 @@ components:
             - FINANCIAL_AUTHORIZATION
             - FINANCIAL_CREDIT_AUTHORIZATION
             - BALANCE_INQUIRY
-        asa_request_pos_terminal_type:
-          type: string
-          description: POS type
-          enum:
-            - ATM
-            - AUTHORIZATION
-            - COUPON_MACHINE
-            - DIAL_TERMINAL
-            - ECOMMERCE
-            - ECR
-            - FUEL_MACHINE
-            - HOME_TERMINAL
-            - MICR
-            - OFF_PREMISE
-            - PAYMENT
-            - PDA
-            - PHONE
-            - POINT
-            - POS_TERMINAL
-            - SELF_SERVICE
-            - TELEVISION
-            - TELLER
-            - TRAVELERS_CHECK_MACHINE
-            - VENDING
-            - VOICE
-            - ADMINISTRATIVE
-            - PUBLIC_UTILITY
-            - UNKNOWN
-        asa_request_pos_terminal_pin_capability:
-          type: string
-          description: Status of whether the POS is able to accept PINs
-          enum:
-            - CAPABLE
-            - INOPERATIVE
-            - NOT_CAPABLE
-            - UNSPECIFIED
-        asa_request_merchant:
-          description: Merchant object in ASA
-          type: object
-          properties:
-            acceptor_id:
-              description: Unique alphanumeric identifier for the payment card acceptor (merchant).
-              type: string
-            acquiring_institution_id:
-              description: Unique numeric identifier of the acquiring institution.
-              type: string
-            city:
-              description: City of card acceptor. Note that in many cases, particularly in card-not-present transactions, merchants may send through a phone number or URL in this field.
-              type: string
-            country:
-              description: 'Country or entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.'
-              type: string
-            descriptor:
-              description: Short description of card acceptor.
-              type: string
-            mcc:
-              description: Merchant Category Code (MCC)
-              type: string
-            state:
-              description: Geographic state of card acceptor
-              type: string
-        asa_request_avs:
-          description: Contains address validation (AVS) information collected by the merchant to be verified by the issuer.
-          type: object
-          properties:
-            address:
-              description: Address Line
-              type: string
-            zipcode:
-              description: ZIP Code, typically 5 digits.
-              type: string
         asa_request_pos_entry_mode:
           description: POS > Entry Mode object in ASA
           type: object
@@ -18275,34 +18236,6 @@ components:
             pin_entered:
               type: boolean
               description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
-        asa_request_pos_terminal:
-          description: POS > Terminal object in ASA
-          type: object
-          properties:
-            attended:
-              type: boolean
-              description: True if a clerk is present at the sale.
-            card_retention_capable:
-              type: boolean
-              description: True if the terminal is capable of retaining the card.
-            on_premise:
-              type: boolean
-              description: True if the sale was made at the place of business (vs. mobile).
-            operator:
-              type: string
-              description: The person that is designated to swipe the card
-              enum:
-                - CARDHOLDER
-                - CARD_ACCEPTOR
-                - ADMINISTRATIVE
-                - UNKNOWN
-            partial_approval_capable:
-              type: boolean
-              description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
-            pin_capability:
-              $ref: '#/components/schemas/asa_request_pos_terminal_pin_capability'
-            type:
-              $ref: '#/components/schemas/asa_request_pos_terminal_type'
         asa_request_fleet_info:
           description: Optional Object containing information if the Card is a part of a Fleet managed program
           type: object
@@ -18804,6 +18737,110 @@ components:
         - to
         - current_version_statistics
         - draft_version_statistics
+    card_transaction_updated_event:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/card_transaction_updated_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Card Transaction Updated Event
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/card_transaction'
+        - type: object
+          properties:
+            event_type:
+              description: The type of event that occurred.
+              enum:
+                - card_transaction.updated
+              type: string
+          required:
+            - event_type
+      examples:
+        - account_token: db3942f0-0627-4887-a190-1ea83b46d091
+          acquirer_fee: 0
+          acquirer_reference_number: null
+          amount: 1800
+          amounts:
+            cardholder:
+              amount: 0
+              conversion_rate: '1.000000'
+              currency: USD
+            hold:
+              amount: -1800
+              currency: USD
+            merchant:
+              amount: 0
+              currency: USD
+            settlement:
+              amount: 0
+              currency: USD
+          authorization_amount: 1800
+          authorization_code: '071471'
+          avs:
+            zipcode: '95006'
+            address: 123 Evergreen Terrace
+          card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
+          cardholder_authentication:
+            verification_attempted: OTHER
+            verification_result: SUCCESS
+            liability_shift: 3DS_AUTHENTICATED
+            3ds_version: null
+            acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
+            authentication_result: SUCCESS
+            three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
+            decision_made_by: NETWORK
+          created: '2023-08-03T18:42:30Z'
+          event_type: card_transaction.updated
+          events:
+            - amount: 1800
+              amounts:
+                cardholder:
+                  amount: 1800
+                  conversion_rate: '1.000000'
+                  currency: USD
+                merchant:
+                  amount: 1800
+                  currency: USD
+                settlement: null
+              created: '2023-08-03T18:42:30Z'
+              detailed_results:
+                - APPROVED
+              effective_polarity: DEBIT
+              result: APPROVED
+              token: bbbf1e86-322d-11ee-9779-00505685a123
+              type: AUTHORIZATION
+          merchant:
+            acceptor_id: '452322000053360'
+            acquiring_institution_id: '333301802529120'
+            city: gosq.com
+            country: USA
+            descriptor: SQ *SOMA EATS
+            mcc: '5812'
+            state: CA
+          merchant_amount: 1800
+          merchant_authorization_amount: 1800
+          merchant_currency: USD
+          network: MASTERCARD
+          network_risk_score: 5
+          pos:
+            entry_mode:
+              card: NOT_PRESENT
+              cardholder: NOT_PRESENT
+              pan: ECOMMERCE
+              pin_entered: false
+            terminal:
+              attended: false
+              card_retention_capable: false
+              on_premise: false
+              operator: UNKNOWN
+              partial_approval_capable: false
+              pin_capability: NOT_CAPABLE
+              type: UNKNOWN
+          result: APPROVED
+          settled_amount: 0
+          status: PENDING
+          token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
+          token_info:
+            wallet_type: APPLE_PAY
+          updated: '2023-08-03T18:42:30Z'
     customer-tokenization-decision:
       $id: https://lithic.com/schemas/tokenization/shared/customer-tokenization-decision.json
       $schema: https://json-schema.org/draft/2020-12/schema
