@@ -3504,7 +3504,6 @@ paths:
                       - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
-                      - transfer_transaction.created
                       - tokenization.approval_request
                       - tokenization.result
                       - tokenization.two_factor_authentication_code
@@ -3665,7 +3664,6 @@ paths:
                       - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
-                      - transfer_transaction.created
                       - tokenization.approval_request
                       - tokenization.result
                       - tokenization.two_factor_authentication_code
@@ -3927,7 +3925,6 @@ paths:
                 - settlement_report.updated
                 - statements.created
                 - three_ds_authentication.created
-                - transfer_transaction.created
                 - tokenization.approval_request
                 - tokenization.result
                 - tokenization.two_factor_authentication_code
@@ -5788,7 +5785,6 @@ paths:
                     - settlement_report.updated
                     - statements.created
                     - three_ds_authentication.created
-                    - transfer_transaction.created
                     - tokenization.approval_request
                     - tokenization.result
                     - tokenization.two_factor_authentication_code
@@ -9782,47 +9778,6 @@ webhooks:
       summary: tokenization.updated
       tags:
         - Event Types
-  transfer_transaction.created:
-    post:
-      description: Occurs when a transfer transaction is created.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/FinancialTransaction'
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - transfer_transaction.created
-                      example: transfer_transaction.created
-                      type: string
-                  type: object
-              examples:
-                - category: TRANSFER
-                  created: '1973-04-04T23:39:00+00:00'
-                  currency: USD
-                  descriptor: Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                  event_type: transfer_transaction.created
-                  events:
-                    - amount: 4103
-                      created: '2023-09-14T12:52:44Z'
-                      result: APPROVED
-                      token: f274f723-b156-5b15-a96d-5ba8d5241b09
-                      type: TRANSFER
-                  pending_amount: 0
-                  result: APPROVED
-                  settled_amount: 4103
-                  status: SETTLED
-                  token: bee304c3-d93d-42a0-88f4-68dde3251393
-                  updated: '1973-04-04T23:39:00+00:00'
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: transfer_transaction.created
-      tags:
-        - Event Types
   three_ds_decisioning:
     post:
       description: Webhook for Card Programs to decision on 3DS Authentication Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
@@ -11921,7 +11876,6 @@ components:
             - settlement_report.updated
             - statements.created
             - three_ds_authentication.created
-            - transfer_transaction.created
             - tokenization.approval_request
             - tokenization.result
             - tokenization.two_factor_authentication_code
@@ -11985,7 +11939,6 @@ components:
               - settlement_report.updated
               - statements.created
               - three_ds_authentication.created
-              - transfer_transaction.created
               - tokenization.approval_request
               - tokenization.result
               - tokenization.two_factor_authentication_code
@@ -14574,13 +14527,16 @@ components:
         - AUTHORIZATION_REVERSAL
         - BALANCE_INQUIRY
         - BILLING_ERROR
+        - BILLING_ERROR_REVERSAL
         - CASH_BACK
+        - CASH_BACK_REVERSAL
         - CLEARING
         - CORRECTION_CREDIT
         - CORRECTION_DEBIT
         - CREDIT_AUTHORIZATION
         - CREDIT_AUTHORIZATION_ADVICE
         - CURRENCY_CONVERSION
+        - CURRENCY_CONVERSION_REVERSAL
         - DISPUTE_WON
         - EXTERNAL_ACH_CANCELED
         - EXTERNAL_ACH_INITIATED
@@ -14605,8 +14561,11 @@ components:
         - FINANCIAL_AUTHORIZATION
         - FINANCIAL_CREDIT_AUTHORIZATION
         - INTEREST
+        - INTEREST_REVERSAL
         - LATE_PAYMENT
+        - LATE_PAYMENT_REVERSAL
         - PROVISIONAL_CREDIT
+        - PROVISIONAL_CREDIT_REVERSAL
         - RETURN
         - RETURN_REVERSAL
         - TRANSFER
@@ -15466,7 +15425,9 @@ components:
       type: object
       properties:
         prime_rate:
-          type: string
+          type:
+            - string
+            - 'null'
         interest_calculation_method:
           $ref: '#/components/schemas/interest_calculation_method'
         effective_apr:
@@ -15476,10 +15437,15 @@ components:
         daily_balance_amounts:
           $ref: '#/components/schemas/category_details'
         minimum_interest_charged:
-          type: integer
+          type:
+            - integer
+            - 'null'
         actual_interest_charged:
-          type: integer
+          type:
+            - integer
+            - 'null'
       required:
+        - prime_rate
         - interest_calculation_method
         - effective_apr
         - interest_for_period
@@ -15562,7 +15528,9 @@ components:
         amount_due:
           $ref: '#/components/schemas/amount_due'
         interest_details:
-          $ref: '#/components/schemas/interest_details'
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/interest_details'
         statement_type:
           $ref: '#/components/schemas/statement_type'
       required:
@@ -15804,6 +15772,10 @@ components:
           $ref: '#/components/schemas/balance_details'
         previous_statement_balance:
           $ref: '#/components/schemas/balance_details'
+        interest_details:
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/interest_details'
       required:
         - token
         - financial_account_token
@@ -15825,6 +15797,7 @@ components:
         - starting_balance
         - ending_balance
         - available_credit
+        - interest_details
     loan_tapes_response:
       $id: https://lithic.com/schemas/treasury/statements/loan_tapes_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16044,6 +16017,11 @@ components:
           type: string
           format: date-time
           description: Timestamp of when the application was last updated.
+      required:
+        - created
+        - status
+        - status_reasons
+        - updated
     address-2:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/api-shared/2024-01-15/address.json
