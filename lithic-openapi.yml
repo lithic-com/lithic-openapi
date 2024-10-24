@@ -16776,6 +16776,36 @@ components:
         - TRANSACTION_PREVIOUSLY_COMPLETED
         - UNAUTHORIZED_MERCHANT
         - VEHICLE_NUMBER_INVALID
+    decline_result:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/decline_result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      example: APPROVED
+      title: Result of the transaction
+      type: string
+      enum:
+        - ACCOUNT_STATE_TRANSACTION_FAIL
+        - APPROVED
+        - BANK_CONNECTION_ERROR
+        - BANK_NOT_VERIFIED
+        - CARD_CLOSED
+        - CARD_PAUSED
+        - DECLINED
+        - FRAUD_ADVICE
+        - IGNORED_TTL_EXPIRY
+        - INACTIVE_ACCOUNT
+        - INCORRECT_PIN
+        - INVALID_CARD_DETAILS
+        - INSUFFICIENT_FUNDS
+        - INSUFFICIENT_FUNDS_PRELOAD
+        - INVALID_TRANSACTION
+        - MERCHANT_BLACKLIST
+        - ORIGINAL_NOT_FOUND
+        - PREVIOUSLY_COMPLETED
+        - SINGLE_USE_RECHARGED
+        - SWITCH_INOPERATIVE_ADVICE
+        - UNAUTHORIZED_MERCHANT
+        - UNKNOWN_HOST_TIMEOUT
+        - USER_TRANSACTION_LIMIT
     transaction_event:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/avs.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16805,33 +16835,7 @@ components:
             - DEBIT
           type: string
         result:
-          description: Result of the transaction.
-          enum:
-            - ACCOUNT_STATE_TRANSACTION_FAIL
-            - APPROVED
-            - BANK_CONNECTION_ERROR
-            - BANK_NOT_VERIFIED
-            - CARD_CLOSED
-            - CARD_PAUSED
-            - DECLINED
-            - FRAUD_ADVICE
-            - IGNORED_TTL_EXPIRY
-            - INACTIVE_ACCOUNT
-            - INCORRECT_PIN
-            - INVALID_CARD_DETAILS
-            - INSUFFICIENT_FUNDS
-            - INSUFFICIENT_FUNDS_PRELOAD
-            - INVALID_TRANSACTION
-            - MERCHANT_BLACKLIST
-            - ORIGINAL_NOT_FOUND
-            - PREVIOUSLY_COMPLETED
-            - SINGLE_USE_RECHARGED
-            - SWITCH_INOPERATIVE_ADVICE
-            - UNAUTHORIZED_MERCHANT
-            - UNKNOWN_HOST_TIMEOUT
-            - USER_TRANSACTION_LIMIT
-          example: APPROVED
-          type: string
+          $ref: '#/components/schemas/decline_result'
         token:
           description: Transaction event identifier.
           example: 0c2adae9-f535-4505-8c35-421dad9bd0b6
@@ -17178,33 +17182,7 @@ components:
         network_risk_score:
           $ref: '#/components/schemas/network_risk_score'
         result:
-          description: '`APPROVED` or decline reason. See Event result types'
-          enum:
-            - ACCOUNT_STATE_TRANSACTION_FAIL
-            - APPROVED
-            - BANK_CONNECTION_ERROR
-            - BANK_NOT_VERIFIED
-            - CARD_CLOSED
-            - CARD_PAUSED
-            - DECLINED
-            - FRAUD_ADVICE
-            - IGNORED_TTL_EXPIRY
-            - INACTIVE_ACCOUNT
-            - INCORRECT_PIN
-            - INVALID_CARD_DETAILS
-            - INSUFFICIENT_FUNDS
-            - INSUFFICIENT_FUNDS_PRELOAD
-            - INVALID_TRANSACTION
-            - MERCHANT_BLACKLIST
-            - ORIGINAL_NOT_FOUND
-            - PREVIOUSLY_COMPLETED
-            - SINGLE_USE_RECHARGED
-            - SWITCH_INOPERATIVE_ADVICE
-            - UNAUTHORIZED_MERCHANT
-            - UNKNOWN_HOST_TIMEOUT
-            - USER_TRANSACTION_LIMIT
-          example: APPROVED
-          type: string
+          $ref: '#/components/schemas/decline_result'
         pos:
           $ref: '#/components/schemas/pos'
         settled_amount:
