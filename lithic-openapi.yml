@@ -9804,6 +9804,9 @@ webhooks:
                       * `APPROVE` - Approve the 3DS Transaction and proceed to Authorization
                       * `DECLINE` - Decline the 3DS Transaction ending the transaction
                       * `CHALLENGE_REQUESTED` - Conditional Approval for the 3DS Transaction where a follow-up Challenge will be triggered to further authenticate the Cardholder
+                  oob_url:
+                    type: string
+                    description: URL which may be used in the presentation of a 3DS Challenge UI to the cardholder. This value will be used by the ACS as the OOB App URL. When applicable, this URL may be used for automatic app switching or rendered directly as an element in the Challenge UI. This value is only used with CHALLENGE_REQUESTED decision.
                 required:
                   - three_ds_authentication_decision
       tags:
