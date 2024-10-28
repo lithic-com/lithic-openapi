@@ -14253,18 +14253,35 @@ components:
             type: object
             properties:
               attribute:
-                type: string
                 description: The attribute to target
-                enum:
-                  - MCC
-                  - COUNTRY
-                  - CURRENCY
-                  - MERCHANT_ID
-                  - DESCRIPTOR
-                  - LIABILITY_SHIFT
-                  - PAN_ENTRY_MODE
-                  - TRANSACTION_AMOUNT
-                  - RISK_SCORE
+                anyOf:
+                  - type: string
+                    const: MCC
+                    description: A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
+                  - type: string
+                    const: COUNTRY
+                    description: 'Country of entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.'
+                  - type: string
+                    const: CURRENCY
+                    description: 3-digit alphabetic ISO 4217 code for the merchant currency of the transaction.
+                  - type: string
+                    const: MERCHANT_ID
+                    description: Unique alphanumeric identifier for the payment card acceptor (merchant).
+                  - type: string
+                    const: DESCRIPTOR
+                    description: Short description of card acceptor.
+                  - type: string
+                    const: LIABILITY_SHIFT
+                    description: Indicates whether chargeback liability shift to the issuer applies to the transaction. Valid values are `NONE`, `3DS_AUTHENTICATED`, or `TOKEN_AUTHENTICATED`.
+                  - type: string
+                    const: PAN_ENTRY_MODE
+                    description: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, `CREDENTIAL_ON_FILE`, or `ECOMMERCE`.
+                  - type: string
+                    const: TRANSACTION_AMOUNT
+                    description: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
+                  - type: string
+                    const: RISK_SCORE
+                    description: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
               operation:
                 type: string
                 description: The operation to apply to the attribute
