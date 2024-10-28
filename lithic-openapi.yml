@@ -7045,7 +7045,7 @@ paths:
   /v1/transactions:
     get:
       description: |
-        List card transactions.
+        List card transactions. All amounts are in the smallest unit of their respective currency (e.g., cents for USD) and inclusive of any acquirer fees.
       operationId: getTransactions
       parameters:
         - description: |
@@ -7095,7 +7095,7 @@ paths:
   /v1/transactions/{transaction_token}:
     get:
       description: |
-        Get specific card transaction.
+        Get a specific card transaction. All amounts are in the smallest unit of their respective currency (e.g., cents for USD).
       operationId: getTransactionByToken
       parameters:
         - $ref: '#/components/parameters/transactionToken'
@@ -16508,11 +16508,11 @@ components:
         cardholder:
           properties:
             amount:
-              description: The aggregate settled amount in the cardholder's local currency.
+              description: The aggregate settled amount in the cardholder billing currency.
               type: integer
               example: -1000
             conversion_rate:
-              description: The conversion rate used to convert the merchant amount to the cardholder amount.
+              description: The conversion rate used to convert the merchant amount to the cardholder billing amount.
               type: string
               example: '1.000000'
             currency:
@@ -16525,7 +16525,7 @@ components:
         hold:
           properties:
             amount:
-              description: The aggregate pending amount in the anticipated settlement currency.
+              description: The aggregate authorization amount of the transaction in the anticipated settlement currency.
               type: integer
               example: 0
             currency:
@@ -16537,7 +16537,7 @@ components:
         merchant:
           properties:
             amount:
-              description: The aggregate settled amount in the merchant's local currency.
+              description: The aggregate settled amount in the merchant currency.
               type: integer
               example: -1000
             currency:
@@ -16686,11 +16686,11 @@ components:
           type: object
           properties:
             amount:
-              description: The amount in the cardholder's local currency.
+              description: The amount in the cardholder billing currency.
               type: integer
               example: 1000
             conversion_rate:
-              description: The conversion rate used to convert the merchant amount to the cardholder amount.
+              description: The conversion rate used to convert the merchant amount to the cardholder billing amount.
               type: string
               example: '1.000000'
             currency:
@@ -16703,7 +16703,7 @@ components:
           type: object
           properties:
             amount:
-              description: The amount in the merchant's local currency.
+              description: The amount in the merchant currency.
               type: integer
               example: 1000
             currency:
@@ -16717,7 +16717,7 @@ components:
             - 'null'
           properties:
             amount:
-              description: The amount in the settlement currency.
+              description: Amount of the event, if it is financial, in the settlement currency.
               type: integer
               example: 1000
             conversion_rate:
@@ -16830,7 +16830,7 @@ components:
       type: object
       properties:
         amount:
-          description: Amount of the transaction event (in cents), including any acquirer fees.
+          description: Amount of the event in the settlement currency.
           example: 1000
           type: integer
         amounts:
@@ -17127,13 +17127,13 @@ components:
           format: uuid
           type: string
         amount:
-          description: Authorization amount of the transaction (in cents), including any acquirer fees. This may change over time, and will represent the settled amount once the transaction is settled.
+          description: When the transaction is pending, this represents the authorization amount of the transaction in the anticipated settlement currency. Once the transaction has settled, this field represents the settled amount in the settlement currency.
           example: 1000
           type: integer
         amounts:
           $ref: '#/components/schemas/transaction_amounts'
         authorization_amount:
-          description: Authorization amount (in cents) of the transaction, including any acquirer fees. This amount always represents the amount authorized for the transaction, unaffected by settlement.
+          description: The authorization amount of the transaction in the anticipated settlement currency.
           example: 1000
           type:
             - integer
@@ -17171,13 +17171,13 @@ components:
         merchant:
           $ref: '#/components/schemas/merchant'
         merchant_amount:
-          description: Analogous to the 'amount' property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+          description: Analogous to the 'amount', but in the merchant currency.
           example: 1000
           type:
             - integer
             - 'null'
         merchant_authorization_amount:
-          description: Analogous to the 'authorization_amount' property, but will represent the amount in the transaction's local currency (smallest unit), including any acquirer fees.
+          description: Analogous to the 'authorization_amount', but in the merchant currency.
           example: 1000
           type:
             - integer
@@ -17204,7 +17204,7 @@ components:
           $ref: '#/components/schemas/pos'
         settled_amount:
           title: Settled Amount
-          description: Amount of the transaction that has been settled (in cents), including any acquirer fees. This may change over time.
+          description: The settled amount of the transaction in the settlement currency.
           type: integer
           example: 1000
         status:
