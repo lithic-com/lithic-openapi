@@ -15165,6 +15165,16 @@ components:
         - PENDING
         - CURRENT
         - DELINQUENT
+        - CHARGED_OFF
+    charged-off-reason:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account/2024-01-15/charged-off-reason.json
+      title: Charged Off Reason
+      description: Reason for the financial account being marked as Charged Off
+      type: string
+      enum:
+        - DELINQUENT
+        - FRAUD
     financial-account-credit-config:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config.json
@@ -15194,6 +15204,8 @@ components:
           description: Tier assigned to the financial account
         financial_account_state:
           $ref: '#/components/schemas/financial-account-state'
+        charged_off_reason:
+          $ref: '#/components/schemas/charged-off-reason'
       required:
         - credit_limit
         - external_bank_account_token
