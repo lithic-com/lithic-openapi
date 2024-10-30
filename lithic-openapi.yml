@@ -4650,6 +4650,27 @@ paths:
       summary: Get balances
       tags:
         - Balance
+  /v1/financial_accounts/{financial_account_token}/charge_off:
+    patch:
+      description: Update issuing account state to charged off
+      operationId: chargeOffAccount
+      summary: Charge off issuing account
+      tags:
+        - Financial Account
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/charge-off-account-request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/financial-account-credit-config-response'
   /v1/financial_accounts/{financial_account_token}/credit_configuration:
     get:
       description: Get an Account's credit configuration
@@ -15202,15 +15223,24 @@ components:
             - string
             - 'null'
           description: Tier assigned to the financial account
+        is_spend_blocked:
+          type: boolean
         financial_account_state:
-          $ref: '#/components/schemas/financial-account-state'
+          anyOf:
+            - $ref: '#/components/schemas/financial-account-state'
+            - type: 'null'
         charged_off_reason:
-          $ref: '#/components/schemas/charged-off-reason'
+          anyOf:
+            - $ref: '#/components/schemas/charged-off-reason'
+            - type: 'null'
       required:
         - credit_limit
         - external_bank_account_token
         - credit_product_token
         - tier
+        - financial_account_state
+        - charged_off_reason
+        - is_spend_blocked
     financial-account-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-response.json
@@ -15278,6 +15308,18 @@ components:
       required:
         - data
         - has_more
+    charge-off-account-request:
+      $id: https://lithic.com/schemas/treasury/ledger/charge_off_account_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Charge off account request
+      type: object
+      properties:
+        reason:
+          $ref: '#/components/schemas/charged-off-reason'
+      required:
+        - reason
+      examples:
+        - reason: FRAUD
     financial-account-credit-config-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-response.json
@@ -15312,9 +15354,16 @@ components:
           $ref: '#/components/schemas/financial-account-state'
         is_spend_blocked:
           type: boolean
+        charged_off_reason:
+          anyOf:
+            - $ref: '#/components/schemas/charged-off-reason'
+            - type: 'null'
       required:
         - account_token
+        - is_spend_blocked
+        - charged_off_reason
         - credit_limit
+        - financial_account_state
         - external_bank_account_token
         - credit_product_token
         - tier
