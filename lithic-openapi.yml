@@ -4651,7 +4651,7 @@ paths:
       tags:
         - Balance
   /v1/financial_accounts/{financial_account_token}/charge_off:
-    patch:
+    post:
       description: Update issuing account state to charged off
       operationId: chargeOffAccount
       summary: Charge off issuing account
