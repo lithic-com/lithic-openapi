@@ -1066,6 +1066,330 @@ paths:
       summary: List aggregate balances
       tags:
         - Balance
+  /v1/auth_rules:
+    get:
+      deprecated: true
+      description: |
+        Return all of the Auth Rules under the program.
+      operationId: getAuthRules
+      parameters:
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/AuthRule'
+                    type: array
+                  has_more:
+                    description: Indicates whether there are more Auth Rules to be retrieved.
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List authorization rule(s)
+      tags:
+        - Authorization Rules
+    post:
+      deprecated: true
+      description: Creates an authorization rule (Auth Rule) and applies it at the program, account, or card level.
+      operationId: postAuthRules
+      requestBody:
+        content:
+          application/json:
+            examples:
+              authRule:
+                summary: Create an authorization rule at the program level
+                value:
+                  allowed_countries:
+                    - CAN
+                    - USA
+                  allowed_mcc:
+                    - '3000'
+                  program_level: true
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/AuthRuleRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthRule'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create authorization rule
+      tags:
+        - Authorization Rules
+  /v1/auth_rules/remove:
+    delete:
+      deprecated: true
+      description: Remove an existing authorization rule (Auth Rule) from an program, account, or card-level.
+      operationId: deleteAuthRuleRemove
+      requestBody:
+        content:
+          application/json:
+            examples:
+              removeAuthRule:
+                summary: Remove an authorization rule from program level
+                value:
+                  program_level: false
+            schema:
+              properties:
+                account_tokens:
+                  description: |
+                    Array of account_token(s) identifying the accounts that the Auth Rule applies to.
+                    Note that only this field or `card_tokens` can be provided for a given Auth Rule.
+                  format: uuid
+                  items:
+                    type: string
+                  type: array
+                card_tokens:
+                  description: |
+                    Array of card_token(s) identifying the cards that the Auth Rule applies to.
+                    Note that only this field or `account_tokens` can be provided for a given Auth Rule.
+                  format: uuid
+                  items:
+                    type: string
+                  type: array
+                program_level:
+                  description: Boolean indicating whether the Auth Rule is applied at the program level.
+                  type: boolean
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  account_tokens:
+                    example:
+                      - ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1
+                    items:
+                      type: string
+                    type: array
+                  card_tokens:
+                    example:
+                      - ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1
+                    items:
+                      type: string
+                    type: array
+                  program_level:
+                    example: false
+                    type: boolean
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Remove authorization rule
+      tags:
+        - Authorization Rules
+  /v1/auth_rules/{auth_rule_token}:
+    get:
+      deprecated: true
+      description: |
+        Detail the properties and entities (program, accounts, and cards) associated with an existing authorization rule (Auth Rule).
+      operationId: getAuthRuleByToken
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/AuthRule'
+                    type: array
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get authorization rule by token
+      tags:
+        - Authorization Rules
+    put:
+      deprecated: true
+      description: Update the properties associated with an existing authorization rule (Auth Rule).
+      operationId: putAuthRuleByToken
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              authRule:
+                summary: Update an existing authorization rule
+                value:
+                  allowed_countries:
+                    - USA
+                  allowed_mcc:
+                    - '3000'
+                    - '3001'
+            schema:
+              properties:
+                allowed_countries:
+                  description: |
+                    Array of country codes for which the Auth Rule will permit transactions.
+                    Note that only this field or `blocked_countries` can be used for a given Auth Rule.
+                  items:
+                    type: string
+                  type: array
+                allowed_mcc:
+                  description: |
+                    Array of merchant category codes for which the Auth Rule will permit transactions.
+                    Note that only this field or `blocked_mcc` can be used for a given Auth Rule.
+                  items:
+                    type: string
+                  type: array
+                blocked_countries:
+                  description: |
+                    Array of country codes for which the Auth Rule will automatically decline transactions.
+                    Note that only this field or `allowed_countries` can be used for a given Auth Rule.
+                  items:
+                    type: string
+                  type: array
+                blocked_mcc:
+                  description: |
+                    Array of merchant category codes for which the Auth Rule will automatically decline transactions.
+                    Note that only this field or `allowed_mcc` can be used for a given Auth Rule.
+                  items:
+                    type: string
+                  type: array
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthRule'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Update authorization rule
+      tags:
+        - Authorization Rules
+  /v1/auth_rules/{auth_rule_token}/apply:
+    post:
+      deprecated: true
+      description: Applies an existing authorization rule (Auth Rule) to an program, account, or card level.
+      operationId: postAuthRuleByTokenApply
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              applyAuthRule:
+                summary: Apply an existing authorization rule at the card level
+                value:
+                  card_tokens:
+                    - 1336a403-2447-4b36-a009-6fbb852ee675
+                    - df942c4e-9130-4ab5-b067-778a2c55b357
+            schema:
+              properties:
+                account_tokens:
+                  description: |
+                    Array of account_token(s) identifying the accounts that the Auth Rule applies to.
+                    Note that only this field or `card_tokens` can be provided for a given Auth Rule.
+                  format: uuid
+                  items:
+                    type: string
+                  type: array
+                card_tokens:
+                  description: |
+                    Array of card_token(s) identifying the cards that the Auth Rule applies to.
+                    Note that only this field or `account_tokens` can be provided for a given Auth Rule.
+                  format: uuid
+                  items:
+                    type: string
+                  type: array
+                program_level:
+                  description: Boolean indicating whether the Auth Rule is applied at the program level.
+                  type: boolean
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthRule'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Apply existing authorization rule
+      tags:
+        - Authorization Rules
+  /v1/auth_rules/{auth_rule_token}/migrate:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      tags:
+        - Authorization Rules
+      summary: Migrate a V1 authorization rule to a V2 authorization rule.
+      description: |
+        Migrates an existing V1 authorization rule to a V2 authorization rule. Depending on the configuration of the V1 Auth Rule, this will yield one or two V2 authorization rules. This endpoint will alter the internal structure of the Auth Rule such that the resulting rules become a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
+
+        After a V1 Auth Rule has been migrated, it can no longer be operated on through the /v1/auth_rules/* endpoints. Eventually, Lithic will deprecate the /v1/auth_rules endpoints and migrate all existing V1 Auth Rules to V2 Auth Rules.
+      responses:
+        '200':
+          description: Auth Rule(s) Migrated
+          $ref: '#/components/responses/AuthRules'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules:
     post:
       parameters: []
@@ -4327,7 +4651,7 @@ paths:
       tags:
         - Balance
   /v1/financial_accounts/{financial_account_token}/charge_off:
-    post:
+    patch:
       description: Update issuing account state to charged off
       operationId: chargeOffAccount
       summary: Charge off issuing account
@@ -9753,6 +10077,13 @@ components:
       schema:
         type: string
       example: v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE= v1,bm9ldHUjKzFob2VudXRob2VodWUzMjRvdWVvdW9ldQo=
+    AuthRuleToken:
+      name: auth_rule_token
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     InstanceToken:
       name: x-instance-uuid
       in: header
@@ -9782,13 +10113,6 @@ components:
       in: query
       name: starting_after
       required: false
-      schema:
-        type: string
-        format: uuid
-    AuthRuleToken:
-      name: auth_rule_token
-      in: path
-      required: true
       schema:
         type: string
         format: uuid
@@ -9866,6 +10190,14 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
+    AuthRules:
+      description: Authorization Rules
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/auth-rule'
     responses-BadRequest:
       description: Bad Request
       content:
