@@ -14086,6 +14086,38 @@ components:
       type: integer
       description: The version of the rule, this is incremented whenever the rule's parameters change.
       readOnly: true
+    current-version:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/current-version.json
+      title: Auth Rule Current Version
+      anyOf:
+        - type: 'null'
+          description: No current version.
+        - type: object
+          properties:
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
+            version:
+              $ref: '#/components/schemas/auth-rule-version'
+          required:
+            - parameters
+            - version
+    draft-version:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/draft-version.json
+      title: Auth Rule Draft Version
+      anyOf:
+        - type: 'null'
+          description: No draft version.
+        - type: object
+          properties:
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
+            version:
+              $ref: '#/components/schemas/auth-rule-version'
+          required:
+            - parameters
+            - version
     auth-rule:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
@@ -14105,31 +14137,9 @@ components:
         type:
           $ref: '#/components/schemas/auth-rule-type'
         current_version:
-          anyOf:
-            - type: 'null'
-              description: No current version.
-            - type: object
-              properties:
-                parameters:
-                  $ref: '#/components/schemas/auth-rule-parameters'
-                version:
-                  $ref: '#/components/schemas/auth-rule-version'
-              required:
-                - parameters
-                - version
+          $ref: '#/components/schemas/current-version'
         draft_version:
-          anyOf:
-            - type: 'null'
-              description: No draft version.
-            - type: object
-              properties:
-                parameters:
-                  $ref: '#/components/schemas/auth-rule-parameters'
-                version:
-                  $ref: '#/components/schemas/auth-rule-version'
-              required:
-                - parameters
-                - version
+          $ref: '#/components/schemas/draft-version'
       required:
         - token
         - state
