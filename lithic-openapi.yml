@@ -1320,12 +1320,18 @@ paths:
         - Auth Stream Access (ASA)
   /v1/balances:
     get:
-      description: Get the balances for a program or a given end-user account
+      description: Get the balances for a program, business, or a given end-user account
       operationId: getBalances
       parameters:
         - description: List balances for all financial accounts of a given account_token.
           in: query
           name: account_token
+          schema:
+            format: uuid
+            type: string
+        - description: List balances for all financial accounts of a given business_account_token.
+          in: query
+          name: business_account_token
           schema:
             format: uuid
             type: string
