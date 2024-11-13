@@ -4112,14 +4112,14 @@ paths:
       summary: Retry external bank account via prenote
       tags:
         - External Bank Account
-  /v1/credit_products/{credit_product_id}/extended_credit:
+  /v1/credit_products/{credit_product_token}/extended_credit:
     get:
       description: Get the extended credit for a given credit product under a program
       operationId: getExtendedCredit
       parameters:
-        - description: Credit Product ID
+        - description: Credit Product Token
           in: path
-          name: credit_product_id
+          name: credit_product_token
           required: true
           schema:
             type: string
@@ -4139,6 +4139,65 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Get extended credit
+      tags:
+        - Credit Product
+  /v1/credit_products/{credit_product_token}/prime_rates:
+    get:
+      operationId: getPrimeRates
+      parameters:
+        - description: Globally unique identifier for credit products.
+          in: path
+          name: credit_product_token
+          required: true
+          schema:
+            description: Globally unique identifier for credit products.
+            title: Credit Product Token
+            type: string
+        - in: query
+          name: starting_after
+          required: false
+          schema:
+            type: string
+            format: date
+          description: The effective date that the prime rate starts after
+        - in: query
+          name: ending_before
+          required: false
+          schema:
+            type: string
+            format: date
+          description: The effective date that the prime rates ends before
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/prime_rates_response'
+          description: Successful Response
+      summary: Get Credit Product Prime Rates
+      tags:
+        - Credit Product
+    post:
+      operationId: createPrimeRates
+      parameters:
+        - description: Globally unique identifier for credit products.
+          in: path
+          name: credit_product_token
+          required: true
+          schema:
+            description: Globally unique identifier for credit products.
+            title: Credit Product Token
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/interest_rate'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+      summary: Post Credit Product Prime Rate
       tags:
         - Credit Product
   /v1/financial_accounts:
@@ -14263,6 +14322,7 @@ components:
         - BALANCE_INQUIRY
         - BILLING_ERROR
         - BILLING_ERROR_REVERSAL
+        - CARD_TO_CARD
         - CASH_BACK
         - CASH_BACK_REVERSAL
         - CLEARING
@@ -14846,6 +14906,39 @@ components:
           type: integer
       required:
         - credit_extended
+    interest_rate:
+      $id: https://lithic.com/schemas/internal/treasury/credit-product/interest_rate.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Interest Rate
+      type: object
+      properties:
+        effective_date:
+          type: string
+          format: date
+          description: Date the rate goes into effect
+        rate:
+          type: string
+          description: The rate in decimal format
+      required:
+        - effective_date
+        - rate
+    prime_rates_response:
+      $id: https://lithic.com/schemas/internal/treasury/credit-product/prime_rates_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Prime Rates Response
+      type: object
+      properties:
+        data:
+          description: List of prime rates
+          type: array
+          items:
+            $ref: '#/components/schemas/interest_rate'
+        has_more:
+          description: Whether there are more prime rates
+          type: boolean
+      required:
+        - data
+        - has_more
     instance-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/instance-financial-account-type.json
@@ -15349,6 +15442,7 @@ components:
       type: string
       enum:
         - ACH
+        - BALANCE_OR_FUNDING
         - CARD
         - EXTERNAL_ACH
         - EXTERNAL_CHECK
