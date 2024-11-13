@@ -9590,7 +9590,7 @@ webhooks:
         - 3DS
   three_ds_authentication.challenge:
     post:
-      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder
+      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder. After a cardholder challenge is successfully completed, the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an app_requestor_url for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
       summary: three_ds_authentication.challenge
       requestBody:
         content:
@@ -12985,6 +12985,10 @@ components:
           description: ISO-8601 time at which the challenge expires
           type: string
           format: date-time
+        app_requestor_url:
+          description: Fully qualified app URL of the merchant app. This should be used to redirect the cardholder back to the merchant app after completing an app-based challenge. This URL will only be populated if the 3DS Requestor App is provided to the 3DS SDK.
+          type: string
+          example: https://appname.com
       required:
         - challenge_method_type
         - start_time
