@@ -1683,6 +1683,7 @@ paths:
                 last_four: '4142'
                 memo: New Card
                 pan: '4111111289144142'
+                replacement_for: null
                 spend_limit: 1000
                 spend_limit_duration: TRANSACTION
                 state: OPEN
@@ -1910,6 +1911,7 @@ paths:
                 pan: '4111111289144142'
                 spend_limit: 100
                 spend_limit_duration: FOREVER
+                replacement_for: null
                 state: OPEN
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: VIRTUAL
@@ -8149,7 +8151,9 @@ webhooks:
                   description: The token of the card that was replaced, if the new card is a replacement card.
                   example: 00000000-0000-0000-0000-000000000000
                   format: uuid
-                  type: string
+                  type:
+                    - string
+                    - 'null'
               required:
                 - card_token
                 - event_type
@@ -10868,6 +10872,13 @@ components:
           example: 5e9483eb-8103-4e16-9794-2106111b2eca
           format: uuid
           type: string
+        replacement_for:
+          description: If the card is a replacement for another card, the globally unique identifier for the card that was replaced.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          format: uuid
+          type:
+            - string
+            - 'null'
         cardholder_currency:
           description: 3-digit alphabetic ISO 4217 code for the currency of the cardholder.
           example: USD
