@@ -1645,15 +1645,11 @@ paths:
                     * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
                     * `SINGLE_USE` - Card is closed upon first successful authorization.
                     * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-                    * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
-                    * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
                   enum:
                     - MERCHANT_LOCKED
                     - PHYSICAL
                     - SINGLE_USE
                     - VIRTUAL
-                    - UNLOCKED
-                    - DIGITAL_WALLET
                   type: string
               required:
                 - type
@@ -1683,7 +1679,6 @@ paths:
                 last_four: '4142'
                 memo: New Card
                 pan: '4111111289144142'
-                replacement_for: null
                 spend_limit: 1000
                 spend_limit_duration: TRANSACTION
                 state: OPEN
@@ -1911,7 +1906,6 @@ paths:
                 pan: '4111111289144142'
                 spend_limit: 100
                 spend_limit_duration: FOREVER
-                replacement_for: null
                 state: OPEN
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: VIRTUAL
@@ -5192,7 +5186,7 @@ paths:
   /v1/simulate/authorization_advice:
     post:
       description: |
-        Simulates an authorization advice from the card network as if it came from a merchant acquirer. An authorization advice changes the pending amount of the transaction.
+        Simulates an authorization advice request from the payment network as if it came from a merchant acquirer. An authorization advice request changes the amount of the transaction.
       operationId: postSimulateAuthorizationAdvice
       requestBody:
         content:
@@ -5212,7 +5206,7 @@ paths:
                   minimum: 0
                   type: integer
                 token:
-                  description: The transaction token returned from the /v1/simulate/authorize. response.
+                  description: The transaction token returned from the /v1/simulate/authorize response.
                   format: uuid
                   type: string
               required:
@@ -5253,8 +5247,7 @@ paths:
   /v1/simulate/authorize:
     post:
       description: |
-        Simulates an authorization request from the card network as if it came from a merchant acquirer.
-        If you are configured for ASA, simulating authorizations requires your ASA client to be set up properly, i.e. be able to respond to the ASA request with a valid JSON. For users that are not configured for ASA, a daily transaction limit of $5000 USD is applied by default. You can update this limit via the [update account](https://docs.lithic.com/reference/patchaccountbytoken) endpoint.
+        Simulates an authorization request from the payment network as if it came from a merchant acquirer. If you're configured for ASA, simulating auths requires your ASA client to be set up properly (respond with a valid JSON to the ASA request). For users that are not configured for ASA, a daily transaction limit of $5000 USD is applied by default. This limit can be modified via the [update account](https://docs.lithic.com/reference/patchaccountbytoken) endpoint.
       operationId: postSimulateAuthorize
       requestBody:
         content:
@@ -5283,7 +5276,7 @@ paths:
             schema:
               properties:
                 amount:
-                  description: Amount (in cents) to authorize. For credit authorizations and financial credit authorizations, any value entered will be converted into a negative amount in the simulated transaction. For example, entering 100 in this field will result in a -100 amount in the transaction. For balance inquiries, this field must be set to 0.
+                  description: Amount (in cents) to authorize. For credit authorizations and financial credit authorizations, any value entered will be converted into a negative amount in the simulated transaction. For example, entering 100 in this field will appear as a -100 amount in the transaction. For balance inquiries, this field must be set to 0.
                   minimum: 0
                   type: integer
                 descriptor:
@@ -5328,8 +5321,8 @@ paths:
                   description: |
                     Type of event to simulate.
                     * `AUTHORIZATION` is a dual message purchase authorization, meaning a subsequent clearing step is required to settle the transaction.
-                    * `BALANCE_INQUIRY` is a $0 authorization requesting the balance held on the card, and is most often observed when a cardholder requests to view a card's balance at an ATM.
-                    * `CREDIT_AUTHORIZATION` is a dual message request from a merchant to authorize a refund, meaning a subsequent clearing step is required to settle the transaction.
+                    * `BALANCE_INQUIRY` is a $0 authorization that includes a request for the balance held on the card, and is most typically seen when a cardholder requests to view a card's balance at an ATM.
+                    * `CREDIT_AUTHORIZATION` is a dual message request from a merchant to authorize a refund or credit, meaning a subsequent clearing step is required to settle the transaction.
                     * `FINANCIAL_AUTHORIZATION` is a single message request from a merchant to debit funds immediately (such as an ATM withdrawal), and no subsequent clearing is required to settle the transaction.
                     * `FINANCIAL_CREDIT_AUTHORIZATION` is a single message request from a merchant to credit funds immediately, and no subsequent clearing is required to settle the transaction.
                   enum:
@@ -5379,16 +5372,16 @@ paths:
   /v1/simulate/clearing:
     post:
       description: |
-        Clears an existing authorization, either debit or credit. After this event, the transaction transitions from `PENDING` to `SETTLED` status.
+        Clears an existing authorization. After this event, the transaction is no longer pending.
 
-        If `amount` is not set, the full amount of the transaction will be cleared. Transactions that have already cleared, either partially or fully, cannot be cleared again using this endpoint.
+        If no `amount` is supplied to this endpoint, the amount of the transaction will be captured. Any transaction that has any amount completed at all do not have access to this behavior.
       operationId: postSimulateClearing
       requestBody:
         content:
           application/json:
             examples:
               simulateClear:
-                summary: Simulate clearing a transaction
+                summary: Simulate settling a transaction
                 value:
                   amount: 0
                   token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
@@ -5396,9 +5389,9 @@ paths:
               properties:
                 amount:
                   description: |
-                    Amount (in cents) to clear. Typically this will match the amount in the original authorization, but can be higher or lower. The sign of this amount will automatically match the sign of the original authorization's amount. For example, entering 100 in this field will result in a -100 amount in the transaction, if the original authorization is a credit authorization.
+                    Amount (in cents) to complete. Typically this will match the original authorization, but may be more or less.
 
-                    If `amount` is not set, the full amount of the transaction will be cleared. Transactions that have already cleared, either partially or fully, cannot be cleared again using this endpoint.
+                    If no amount is supplied to this endpoint, the amount of the transaction will be captured. Any transaction that has any amount completed at all do not have access to this behavior.
                   type: integer
                 token:
                   description: The transaction token returned from the /v1/simulate/authorize response.
@@ -5432,21 +5425,21 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-      summary: Simulate clearing
+      summary: Simulate clearing transaction
       tags:
         - Transaction
   /v1/simulate/credit_authorization_advice:
     post:
       description: |
-        Simulates a credit authorization advice from the card network.
-        This message indicates that the network approved a credit authorization on your behalf.
+        Simulates a credit authorization advice message from the payment network.
+        This message indicates that a credit authorization was approved on your behalf by the network.
       operationId: postSimulateCreditAuthorizationAdvice
       requestBody:
         content:
           application/json:
             examples:
               simulateCreditAuthorizationAdvice:
-                summary: Simulate a credit authorization advice
+                summary: Simulate a credit authorization advice message
                 value:
                   amount: 3831
                   descriptor: COFFEE SHOP
@@ -5711,7 +5704,7 @@ paths:
   /v1/simulate/return:
     post:
       description: |
-        Returns, or refunds, an amount back to a card. Returns simulated via this endpoint clear immediately, without prior authorization, and result in a `SETTLED` transaction status.
+        Returns (aka refunds) an amount back to a card. Returns are cleared immediately and do not spend time in a `PENDING` state.
       operationId: postSimulateReturn
       requestBody:
         content:
@@ -5778,7 +5771,7 @@ paths:
   /v1/simulate/return_reversal:
     post:
       description: |
-        Reverses a return, i.e. a credit transaction with a `SETTLED` status. Returns can be financial credit authorizations, or credit authorizations that have cleared.
+        Voids a settled credit transaction – i.e., a transaction with a negative amount and `SETTLED` status. These can be credit authorizations that have already cleared or financial credit authorizations.
       operationId: postSimulateReturnReversal
       requestBody:
         content:
@@ -5940,7 +5933,7 @@ paths:
   /v1/simulate/void:
     post:
       description: |
-        Voids a pending authorization. If `amount` is not set, the full amount will be voided. Can be used on partially voided transactions but not partially cleared transactions. _Simulating an authorization expiry on credit authorizations or credit authorization advice is not currently supported but will be added soon._
+        Voids an existing, uncleared (aka pending) authorization. If amount is not sent the full amount will be voided. Cannot be used on partially completed transactions, but can be used on partially voided transactions. _Note that simulating an authorization expiry on credit authorizations or credit authorization advice is not currently supported but will be added soon._
       operationId: postSimulateVoid
       requestBody:
         content:
@@ -5961,7 +5954,7 @@ paths:
             schema:
               properties:
                 amount:
-                  description: Amount (in cents) to void. Typically this will match the amount in the original authorization, but can be less.
+                  description: Amount (in cents) to void. Typically this will match the original authorization, but may be less.
                   minimum: 0
                   type: integer
                 token:
@@ -6006,7 +5999,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-      summary: Simulate void
+      summary: Simulate void transaction
       tags:
         - Transaction
   /v1/simulate/account_holders/enrollment_review:
@@ -8151,9 +8144,7 @@ webhooks:
                   description: The token of the card that was replaced, if the new card is a replacement card.
                   example: 00000000-0000-0000-0000-000000000000
                   format: uuid
-                  type:
-                    - string
-                    - 'null'
+                  type: string
               required:
                 - card_token
                 - event_type
@@ -10872,13 +10863,6 @@ components:
           example: 5e9483eb-8103-4e16-9794-2106111b2eca
           format: uuid
           type: string
-        replacement_for:
-          description: If the card is a replacement for another card, the globally unique identifier for the card that was replaced.
-          example: 5e9483eb-8103-4e16-9794-2106111b2eca
-          format: uuid
-          type:
-            - string
-            - 'null'
         cardholder_currency:
           description: 3-digit alphabetic ISO 4217 code for the currency of the cardholder.
           example: USD
@@ -10999,15 +10983,11 @@ components:
             * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
             * `SINGLE_USE` - Card is closed upon first successful authorization.
             * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-            * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
-            * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
           enum:
             - MERCHANT_LOCKED
             - PHYSICAL
             - SINGLE_USE
             - VIRTUAL
-            - UNLOCKED
-            - DIGITAL_WALLET
           type: string
       required:
         - account_token
