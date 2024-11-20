@@ -14009,6 +14009,7 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-token.json
       title: Auth Rule Token
+      description: Auth Rule Token
       type: string
       format: uuid
       readOnly: true
@@ -18674,6 +18675,7 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-token.json
       title: Auth Rule Backtest Token
+      description: Auth Rule Backtest Token
       type: string
       format: uuid
       readOnly: true
@@ -18704,10 +18706,12 @@ components:
             current_version:
               anyOf:
                 - type: 'null'
+                  description: No results available for the current version.
                 - $ref: '#/components/schemas/rule-stats'
             draft_version:
               anyOf:
                 - type: 'null'
+                  description: No results available for the draft version.
                 - $ref: '#/components/schemas/rule-stats'
       required:
         - backtest_token
