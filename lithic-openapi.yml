@@ -1066,330 +1066,6 @@ paths:
       summary: List aggregate balances
       tags:
         - Balance
-  /v1/auth_rules:
-    get:
-      deprecated: true
-      description: |
-        Return all of the Auth Rules under the program.
-      operationId: getAuthRules
-      parameters:
-        - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
-        - $ref: '#/components/parameters/startingAfter'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AuthRule'
-                    type: array
-                  has_more:
-                    description: Indicates whether there are more Auth Rules to be retrieved.
-                    type: boolean
-                required:
-                  - data
-                  - has_more
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: List authorization rule(s)
-      tags:
-        - Authorization Rules
-    post:
-      deprecated: true
-      description: Creates an authorization rule (Auth Rule) and applies it at the program, account, or card level.
-      operationId: postAuthRules
-      requestBody:
-        content:
-          application/json:
-            examples:
-              authRule:
-                summary: Create an authorization rule at the program level
-                value:
-                  allowed_countries:
-                    - CAN
-                    - USA
-                  allowed_mcc:
-                    - '3000'
-                  program_level: true
-            schema:
-              oneOf:
-                - $ref: '#/components/schemas/AuthRuleRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthRule'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Create authorization rule
-      tags:
-        - Authorization Rules
-  /v1/auth_rules/remove:
-    delete:
-      deprecated: true
-      description: Remove an existing authorization rule (Auth Rule) from an program, account, or card-level.
-      operationId: deleteAuthRuleRemove
-      requestBody:
-        content:
-          application/json:
-            examples:
-              removeAuthRule:
-                summary: Remove an authorization rule from program level
-                value:
-                  program_level: false
-            schema:
-              properties:
-                account_tokens:
-                  description: |
-                    Array of account_token(s) identifying the accounts that the Auth Rule applies to.
-                    Note that only this field or `card_tokens` can be provided for a given Auth Rule.
-                  format: uuid
-                  items:
-                    type: string
-                  type: array
-                card_tokens:
-                  description: |
-                    Array of card_token(s) identifying the cards that the Auth Rule applies to.
-                    Note that only this field or `account_tokens` can be provided for a given Auth Rule.
-                  format: uuid
-                  items:
-                    type: string
-                  type: array
-                program_level:
-                  description: Boolean indicating whether the Auth Rule is applied at the program level.
-                  type: boolean
-              type: object
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties:
-                  account_tokens:
-                    example:
-                      - ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1
-                    items:
-                      type: string
-                    type: array
-                  card_tokens:
-                    example:
-                      - ecbd1d58-0299-48b3-84da-6ed7f5bf9ec1
-                    items:
-                      type: string
-                    type: array
-                  program_level:
-                    example: false
-                    type: boolean
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Remove authorization rule
-      tags:
-        - Authorization Rules
-  /v1/auth_rules/{auth_rule_token}:
-    get:
-      deprecated: true
-      description: |
-        Detail the properties and entities (program, accounts, and cards) associated with an existing authorization rule (Auth Rule).
-      operationId: getAuthRuleByToken
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AuthRule'
-                    type: array
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Get authorization rule by token
-      tags:
-        - Authorization Rules
-    put:
-      deprecated: true
-      description: Update the properties associated with an existing authorization rule (Auth Rule).
-      operationId: putAuthRuleByToken
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      requestBody:
-        content:
-          application/json:
-            examples:
-              authRule:
-                summary: Update an existing authorization rule
-                value:
-                  allowed_countries:
-                    - USA
-                  allowed_mcc:
-                    - '3000'
-                    - '3001'
-            schema:
-              properties:
-                allowed_countries:
-                  description: |
-                    Array of country codes for which the Auth Rule will permit transactions.
-                    Note that only this field or `blocked_countries` can be used for a given Auth Rule.
-                  items:
-                    type: string
-                  type: array
-                allowed_mcc:
-                  description: |
-                    Array of merchant category codes for which the Auth Rule will permit transactions.
-                    Note that only this field or `blocked_mcc` can be used for a given Auth Rule.
-                  items:
-                    type: string
-                  type: array
-                blocked_countries:
-                  description: |
-                    Array of country codes for which the Auth Rule will automatically decline transactions.
-                    Note that only this field or `allowed_countries` can be used for a given Auth Rule.
-                  items:
-                    type: string
-                  type: array
-                blocked_mcc:
-                  description: |
-                    Array of merchant category codes for which the Auth Rule will automatically decline transactions.
-                    Note that only this field or `allowed_mcc` can be used for a given Auth Rule.
-                  items:
-                    type: string
-                  type: array
-              type: object
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthRule'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Update authorization rule
-      tags:
-        - Authorization Rules
-  /v1/auth_rules/{auth_rule_token}/apply:
-    post:
-      deprecated: true
-      description: Applies an existing authorization rule (Auth Rule) to an program, account, or card level.
-      operationId: postAuthRuleByTokenApply
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      requestBody:
-        content:
-          application/json:
-            examples:
-              applyAuthRule:
-                summary: Apply an existing authorization rule at the card level
-                value:
-                  card_tokens:
-                    - 1336a403-2447-4b36-a009-6fbb852ee675
-                    - df942c4e-9130-4ab5-b067-778a2c55b357
-            schema:
-              properties:
-                account_tokens:
-                  description: |
-                    Array of account_token(s) identifying the accounts that the Auth Rule applies to.
-                    Note that only this field or `card_tokens` can be provided for a given Auth Rule.
-                  format: uuid
-                  items:
-                    type: string
-                  type: array
-                card_tokens:
-                  description: |
-                    Array of card_token(s) identifying the cards that the Auth Rule applies to.
-                    Note that only this field or `account_tokens` can be provided for a given Auth Rule.
-                  format: uuid
-                  items:
-                    type: string
-                  type: array
-                program_level:
-                  description: Boolean indicating whether the Auth Rule is applied at the program level.
-                  type: boolean
-              type: object
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthRule'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Apply existing authorization rule
-      tags:
-        - Authorization Rules
-  /v1/auth_rules/{auth_rule_token}/migrate:
-    post:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Migrate a V1 authorization rule to a V2 authorization rule.
-      description: |
-        Migrates an existing V1 authorization rule to a V2 authorization rule. Depending on the configuration of the V1 Auth Rule, this will yield one or two V2 authorization rules. This endpoint will alter the internal structure of the Auth Rule such that the resulting rules become a V2 Authorization Rule that can be operated on through the /v2/auth_rules endpoints.
-
-        After a V1 Auth Rule has been migrated, it can no longer be operated on through the /v1/auth_rules/* endpoints. Eventually, Lithic will deprecate the /v1/auth_rules endpoints and migrate all existing V1 Auth Rules to V2 Auth Rules.
-      responses:
-        '200':
-          description: Auth Rule(s) Migrated
-          $ref: '#/components/responses/AuthRules'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules:
     post:
       parameters: []
@@ -1644,12 +1320,18 @@ paths:
         - Auth Stream Access (ASA)
   /v1/balances:
     get:
-      description: Get the balances for a program or a given end-user account
+      description: Get the balances for a program, business, or a given end-user account
       operationId: getBalances
       parameters:
         - description: List balances for all financial accounts of a given account_token.
           in: query
           name: account_token
+          schema:
+            format: uuid
+            type: string
+        - description: List balances for all financial accounts of a given business_account_token.
+          in: query
+          name: business_account_token
           schema:
             format: uuid
             type: string
@@ -1904,6 +1586,11 @@ paths:
                   example: 00000000-0000-0000-1000-000000000000
                   format: uuid
                   type: string
+                replacement_account_token:
+                  description: Restricted field limited to select use cases. Lithic will reach out directly if this field should be used. Globally unique identifier for the replacement card's account. If this field is specified, `replacement_for` must also be specified. If `replacement_for` is specified and this field is omitted, the replacement card's account will be inferred from the card being replaced.
+                  example: 00000000-0000-0000-2000-000000000000
+                  format: uuid
+                  type: string
                 shipping_address:
                   $ref: '#/components/schemas/ShippingAddress'
                 shipping_method:
@@ -1958,11 +1645,15 @@ paths:
                     * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
                     * `SINGLE_USE` - Card is closed upon first successful authorization.
                     * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
+                    * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
+                    * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
                   enum:
                     - MERCHANT_LOCKED
                     - PHYSICAL
                     - SINGLE_USE
                     - VIRTUAL
+                    - UNLOCKED
+                    - DIGITAL_WALLET
                   type: string
               required:
                 - type
@@ -1992,6 +1683,7 @@ paths:
                 last_four: '4142'
                 memo: New Card
                 pan: '4111111289144142'
+                replacement_for: null
                 spend_limit: 1000
                 spend_limit_duration: TRANSACTION
                 state: OPEN
@@ -2219,6 +1911,7 @@ paths:
                 pan: '4111111289144142'
                 spend_limit: 100
                 spend_limit_duration: FOREVER
+                replacement_for: null
                 state: OPEN
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: VIRTUAL
@@ -4425,14 +4118,14 @@ paths:
       summary: Retry external bank account via prenote
       tags:
         - External Bank Account
-  /v1/credit_products/{credit_product_id}/extended_credit:
+  /v1/credit_products/{credit_product_token}/extended_credit:
     get:
       description: Get the extended credit for a given credit product under a program
       operationId: getExtendedCredit
       parameters:
-        - description: Credit Product ID
+        - description: Credit Product Token
           in: path
-          name: credit_product_id
+          name: credit_product_token
           required: true
           schema:
             type: string
@@ -4452,6 +4145,65 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Get extended credit
+      tags:
+        - Credit Product
+  /v1/credit_products/{credit_product_token}/prime_rates:
+    get:
+      operationId: getPrimeRates
+      parameters:
+        - description: Globally unique identifier for credit products.
+          in: path
+          name: credit_product_token
+          required: true
+          schema:
+            description: Globally unique identifier for credit products.
+            title: Credit Product Token
+            type: string
+        - in: query
+          name: starting_after
+          required: false
+          schema:
+            type: string
+            format: date
+          description: The effective date that the prime rate starts after
+        - in: query
+          name: ending_before
+          required: false
+          schema:
+            type: string
+            format: date
+          description: The effective date that the prime rates ends before
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/prime_rates_response'
+          description: Successful Response
+      summary: Get Credit Product Prime Rates
+      tags:
+        - Credit Product
+    post:
+      operationId: createPrimeRates
+      parameters:
+        - description: Globally unique identifier for credit products.
+          in: path
+          name: credit_product_token
+          required: true
+          schema:
+            description: Globally unique identifier for credit products.
+            title: Credit Product Token
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/interest_rate'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+      summary: Post Credit Product Prime Rate
       tags:
         - Credit Product
   /v1/financial_accounts:
@@ -4651,7 +4403,7 @@ paths:
       tags:
         - Balance
   /v1/financial_accounts/{financial_account_token}/charge_off:
-    patch:
+    post:
       description: Update issuing account state to charged off
       operationId: chargeOffAccount
       summary: Charge off issuing account
@@ -5440,7 +5192,7 @@ paths:
   /v1/simulate/authorization_advice:
     post:
       description: |
-        Simulates an authorization advice request from the payment network as if it came from a merchant acquirer. An authorization advice request changes the amount of the transaction.
+        Simulates an authorization advice from the card network as if it came from a merchant acquirer. An authorization advice changes the pending amount of the transaction.
       operationId: postSimulateAuthorizationAdvice
       requestBody:
         content:
@@ -5460,7 +5212,7 @@ paths:
                   minimum: 0
                   type: integer
                 token:
-                  description: The transaction token returned from the /v1/simulate/authorize response.
+                  description: The transaction token returned from the /v1/simulate/authorize. response.
                   format: uuid
                   type: string
               required:
@@ -5501,7 +5253,8 @@ paths:
   /v1/simulate/authorize:
     post:
       description: |
-        Simulates an authorization request from the payment network as if it came from a merchant acquirer. If you're configured for ASA, simulating auths requires your ASA client to be set up properly (respond with a valid JSON to the ASA request). For users that are not configured for ASA, a daily transaction limit of $5000 USD is applied by default. This limit can be modified via the [update account](https://docs.lithic.com/reference/patchaccountbytoken) endpoint.
+        Simulates an authorization request from the card network as if it came from a merchant acquirer.
+        If you are configured for ASA, simulating authorizations requires your ASA client to be set up properly, i.e. be able to respond to the ASA request with a valid JSON. For users that are not configured for ASA, a daily transaction limit of $5000 USD is applied by default. You can update this limit via the [update account](https://docs.lithic.com/reference/patchaccountbytoken) endpoint.
       operationId: postSimulateAuthorize
       requestBody:
         content:
@@ -5530,7 +5283,7 @@ paths:
             schema:
               properties:
                 amount:
-                  description: Amount (in cents) to authorize. For credit authorizations and financial credit authorizations, any value entered will be converted into a negative amount in the simulated transaction. For example, entering 100 in this field will appear as a -100 amount in the transaction. For balance inquiries, this field must be set to 0.
+                  description: Amount (in cents) to authorize. For credit authorizations and financial credit authorizations, any value entered will be converted into a negative amount in the simulated transaction. For example, entering 100 in this field will result in a -100 amount in the transaction. For balance inquiries, this field must be set to 0.
                   minimum: 0
                   type: integer
                 descriptor:
@@ -5575,8 +5328,8 @@ paths:
                   description: |
                     Type of event to simulate.
                     * `AUTHORIZATION` is a dual message purchase authorization, meaning a subsequent clearing step is required to settle the transaction.
-                    * `BALANCE_INQUIRY` is a $0 authorization that includes a request for the balance held on the card, and is most typically seen when a cardholder requests to view a card's balance at an ATM.
-                    * `CREDIT_AUTHORIZATION` is a dual message request from a merchant to authorize a refund or credit, meaning a subsequent clearing step is required to settle the transaction.
+                    * `BALANCE_INQUIRY` is a $0 authorization requesting the balance held on the card, and is most often observed when a cardholder requests to view a card's balance at an ATM.
+                    * `CREDIT_AUTHORIZATION` is a dual message request from a merchant to authorize a refund, meaning a subsequent clearing step is required to settle the transaction.
                     * `FINANCIAL_AUTHORIZATION` is a single message request from a merchant to debit funds immediately (such as an ATM withdrawal), and no subsequent clearing is required to settle the transaction.
                     * `FINANCIAL_CREDIT_AUTHORIZATION` is a single message request from a merchant to credit funds immediately, and no subsequent clearing is required to settle the transaction.
                   enum:
@@ -5626,16 +5379,16 @@ paths:
   /v1/simulate/clearing:
     post:
       description: |
-        Clears an existing authorization. After this event, the transaction is no longer pending.
+        Clears an existing authorization, either debit or credit. After this event, the transaction transitions from `PENDING` to `SETTLED` status.
 
-        If no `amount` is supplied to this endpoint, the amount of the transaction will be captured. Any transaction that has any amount completed at all do not have access to this behavior.
+        If `amount` is not set, the full amount of the transaction will be cleared. Transactions that have already cleared, either partially or fully, cannot be cleared again using this endpoint.
       operationId: postSimulateClearing
       requestBody:
         content:
           application/json:
             examples:
               simulateClear:
-                summary: Simulate settling a transaction
+                summary: Simulate clearing a transaction
                 value:
                   amount: 0
                   token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
@@ -5643,9 +5396,9 @@ paths:
               properties:
                 amount:
                   description: |
-                    Amount (in cents) to complete. Typically this will match the original authorization, but may be more or less.
+                    Amount (in cents) to clear. Typically this will match the amount in the original authorization, but can be higher or lower. The sign of this amount will automatically match the sign of the original authorization's amount. For example, entering 100 in this field will result in a -100 amount in the transaction, if the original authorization is a credit authorization.
 
-                    If no amount is supplied to this endpoint, the amount of the transaction will be captured. Any transaction that has any amount completed at all do not have access to this behavior.
+                    If `amount` is not set, the full amount of the transaction will be cleared. Transactions that have already cleared, either partially or fully, cannot be cleared again using this endpoint.
                   type: integer
                 token:
                   description: The transaction token returned from the /v1/simulate/authorize response.
@@ -5679,21 +5432,21 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-      summary: Simulate clearing transaction
+      summary: Simulate clearing
       tags:
         - Transaction
   /v1/simulate/credit_authorization_advice:
     post:
       description: |
-        Simulates a credit authorization advice message from the payment network.
-        This message indicates that a credit authorization was approved on your behalf by the network.
+        Simulates a credit authorization advice from the card network.
+        This message indicates that the network approved a credit authorization on your behalf.
       operationId: postSimulateCreditAuthorizationAdvice
       requestBody:
         content:
           application/json:
             examples:
               simulateCreditAuthorizationAdvice:
-                summary: Simulate a credit authorization advice message
+                summary: Simulate a credit authorization advice
                 value:
                   amount: 3831
                   descriptor: COFFEE SHOP
@@ -5958,7 +5711,7 @@ paths:
   /v1/simulate/return:
     post:
       description: |
-        Returns (aka refunds) an amount back to a card. Returns are cleared immediately and do not spend time in a `PENDING` state.
+        Returns, or refunds, an amount back to a card. Returns simulated via this endpoint clear immediately, without prior authorization, and result in a `SETTLED` transaction status.
       operationId: postSimulateReturn
       requestBody:
         content:
@@ -6025,7 +5778,7 @@ paths:
   /v1/simulate/return_reversal:
     post:
       description: |
-        Voids a settled credit transaction – i.e., a transaction with a negative amount and `SETTLED` status. These can be credit authorizations that have already cleared or financial credit authorizations.
+        Reverses a return, i.e. a credit transaction with a `SETTLED` status. Returns can be financial credit authorizations, or credit authorizations that have cleared.
       operationId: postSimulateReturnReversal
       requestBody:
         content:
@@ -6187,7 +5940,7 @@ paths:
   /v1/simulate/void:
     post:
       description: |
-        Voids an existing, uncleared (aka pending) authorization. If amount is not sent the full amount will be voided. Cannot be used on partially completed transactions, but can be used on partially voided transactions. _Note that simulating an authorization expiry on credit authorizations or credit authorization advice is not currently supported but will be added soon._
+        Voids a pending authorization. If `amount` is not set, the full amount will be voided. Can be used on partially voided transactions but not partially cleared transactions. _Simulating an authorization expiry on credit authorizations or credit authorization advice is not currently supported but will be added soon._
       operationId: postSimulateVoid
       requestBody:
         content:
@@ -6208,7 +5961,7 @@ paths:
             schema:
               properties:
                 amount:
-                  description: Amount (in cents) to void. Typically this will match the original authorization, but may be less.
+                  description: Amount (in cents) to void. Typically this will match the amount in the original authorization, but can be less.
                   minimum: 0
                   type: integer
                 token:
@@ -6253,7 +6006,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-      summary: Simulate void transaction
+      summary: Simulate void
       tags:
         - Transaction
   /v1/simulate/account_holders/enrollment_review:
@@ -8229,7 +7982,24 @@ webhooks:
           application/json:
             schema:
               $ref: '#/components/schemas/performance-report'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
       summary: auth_rules.performance_report.created
+      tags:
+        - Event Types
+  auth_rules.backtest_report.created:
+    post:
+      description: Authorization Rules backtest report created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/backtest-report'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: auth_rules.backtest_report.created
       tags:
         - Event Types
   balance.updated:
@@ -8267,6 +8037,9 @@ webhooks:
                 - data
                 - event_type
               type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
       summary: balance.updated
       tags:
         - Event Types
@@ -8398,7 +8171,9 @@ webhooks:
                   description: The token of the card that was replaced, if the new card is a replacement card.
                   example: 00000000-0000-0000-0000-000000000000
                   format: uuid
-                  type: string
+                  type:
+                    - string
+                    - 'null'
               required:
                 - card_token
                 - event_type
@@ -9844,7 +9619,7 @@ webhooks:
         - 3DS
   three_ds_authentication.challenge:
     post:
-      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder
+      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder. After a cardholder challenge is successfully completed, the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an app_requestor_url for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
       summary: three_ds_authentication.challenge
       requestBody:
         content:
@@ -10077,13 +9852,6 @@ components:
       schema:
         type: string
       example: v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE= v1,bm9ldHUjKzFob2VudXRob2VodWUzMjRvdWVvdW9ldQo=
-    AuthRuleToken:
-      name: auth_rule_token
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
     InstanceToken:
       name: x-instance-uuid
       in: header
@@ -10113,6 +9881,13 @@ components:
       in: query
       name: starting_after
       required: false
+      schema:
+        type: string
+        format: uuid
+    AuthRuleToken:
+      name: auth_rule_token
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -10190,14 +9965,6 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
-    AuthRules:
-      description: Authorization Rules
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/auth-rule'
     responses-BadRequest:
       description: Bad Request
       content:
@@ -11125,6 +10892,13 @@ components:
           example: 5e9483eb-8103-4e16-9794-2106111b2eca
           format: uuid
           type: string
+        replacement_for:
+          description: If the card is a replacement for another card, the globally unique identifier for the card that was replaced.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          format: uuid
+          type:
+            - string
+            - 'null'
         cardholder_currency:
           description: 3-digit alphabetic ISO 4217 code for the currency of the cardholder.
           example: USD
@@ -11245,11 +11019,15 @@ components:
             * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
             * `SINGLE_USE` - Card is closed upon first successful authorization.
             * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
+            * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
+            * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
           enum:
             - MERCHANT_LOCKED
             - PHYSICAL
             - SINGLE_USE
             - VIRTUAL
+            - UNLOCKED
+            - DIGITAL_WALLET
           type: string
       required:
         - account_token
@@ -13247,6 +13025,10 @@ components:
           description: ISO-8601 time at which the challenge expires
           type: string
           format: date-time
+        app_requestor_url:
+          description: Fully qualified app URL of the merchant app. This should be used to redirect the cardholder back to the merchant app after completing an app-based challenge. This URL will only be populated if the 3DS Requestor App is provided to the 3DS SDK.
+          type: string
+          example: https://appname.com
       required:
         - challenge_method_type
         - start_time
@@ -13317,7 +13099,7 @@ components:
                   description: |
                     Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk.
                   type:
-                    - number
+                    - integer
                     - 'null'
             - type: 'null'
         app:
@@ -13545,13 +13327,13 @@ components:
                   description: |
                     In prepaid or gift card purchase transactions, purchase amount total in major units (e.g., a purchase of USD $205.10 would be 205). Maps to EMV 3DS field giftCardAmount.
                   type:
-                    - number
+                    - integer
                     - 'null'
                 gift_card_count:
                   description: |
                     In prepaid or gift card purchase transactions, count of individual prepaid or gift cards/codes purchased. Maps to EMV 3DS field giftCardCount.
                   type:
-                    - number
+                    - integer
                     - 'null'
                 gift_card_currency:
                   description: |
@@ -14322,7 +14104,8 @@ components:
                 anyOf:
                   - type: string
                     description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - type: number
+                  - type: integer
+                    format: int64
                     description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
                   - type: array
                     items:
@@ -14343,7 +14126,7 @@ components:
             - ACCOUNT
         period:
           anyOf:
-            - type: number
+            - type: integer
               description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds.
               minimum: 10
               maximum: 2678400
@@ -14383,14 +14166,18 @@ components:
           anyOf:
             - type: 'null'
               description: No velocity limit on amount is applied to the transaction.
-            - type: number
+            - type: integer
+              format: int64
+              minimum: 0
               description: The maximum amount of spend velocity allowed in the period in minor units (the smallest unit of a currency, e.g. cents for USD). Transactions exceeding this limit will be declined.
               example: 10000
         limit_count:
           anyOf:
             - type: 'null'
               description: No limit on the number of velocity impacting events is applied.
-            - type: number
+            - type: integer
+              format: int64
+              minimum: 0
               description: |-
                 The number of spend velocity impacting transactions may not exceed this limit in the period. Transactions exceeding this limit will be declined.
                 A spend velocity impacting transaction is a transaction that has been authorized, and optionally settled, or a force post (a transaction that settled without prior authorization).
@@ -14413,6 +14200,38 @@ components:
       type: integer
       description: The version of the rule, this is incremented whenever the rule's parameters change.
       readOnly: true
+    current-version:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/current-version.json
+      title: Auth Rule Current Version
+      anyOf:
+        - type: 'null'
+          description: No current version.
+        - type: object
+          properties:
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
+            version:
+              $ref: '#/components/schemas/auth-rule-version'
+          required:
+            - parameters
+            - version
+    draft-version:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/draft-version.json
+      title: Auth Rule Draft Version
+      anyOf:
+        - type: 'null'
+          description: No draft version.
+        - type: object
+          properties:
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
+            version:
+              $ref: '#/components/schemas/auth-rule-version'
+          required:
+            - parameters
+            - version
     auth-rule:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
@@ -14432,31 +14251,9 @@ components:
         type:
           $ref: '#/components/schemas/auth-rule-type'
         current_version:
-          anyOf:
-            - type: 'null'
-              description: No current version.
-            - type: object
-              properties:
-                parameters:
-                  $ref: '#/components/schemas/auth-rule-parameters'
-                version:
-                  $ref: '#/components/schemas/auth-rule-version'
-              required:
-                - parameters
-                - version
+          $ref: '#/components/schemas/current-version'
         draft_version:
-          anyOf:
-            - type: 'null'
-              description: No draft version.
-            - type: object
-              properties:
-                parameters:
-                  $ref: '#/components/schemas/auth-rule-parameters'
-                version:
-                  $ref: '#/components/schemas/auth-rule-version'
-              required:
-                - parameters
-                - version
+          $ref: '#/components/schemas/draft-version'
       required:
         - token
         - state
@@ -14574,6 +14371,7 @@ components:
         - BALANCE_INQUIRY
         - BILLING_ERROR
         - BILLING_ERROR_REVERSAL
+        - CARD_TO_CARD
         - CASH_BACK
         - CASH_BACK_REVERSAL
         - CLEARING
@@ -15157,6 +14955,39 @@ components:
           type: integer
       required:
         - credit_extended
+    interest_rate:
+      $id: https://lithic.com/schemas/internal/treasury/credit-product/interest_rate.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Interest Rate
+      type: object
+      properties:
+        effective_date:
+          type: string
+          format: date
+          description: Date the rate goes into effect
+        rate:
+          type: string
+          description: The rate in decimal format
+      required:
+        - effective_date
+        - rate
+    prime_rates_response:
+      $id: https://lithic.com/schemas/internal/treasury/credit-product/prime_rates_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Prime Rates Response
+      type: object
+      properties:
+        data:
+          description: List of prime rates
+          type: array
+          items:
+            $ref: '#/components/schemas/interest_rate'
+        has_more:
+          description: Whether there are more prime rates
+          type: boolean
+      required:
+        - data
+        - has_more
     instance-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/instance-financial-account-type.json
@@ -15660,6 +15491,7 @@ components:
       type: string
       enum:
         - ACH
+        - BALANCE_OR_FUNDING
         - CARD
         - EXTERNAL_ACH
         - EXTERNAL_CHECK
@@ -17969,7 +17801,8 @@ components:
             Amount (in cents) to limit approved authorizations. Purchase requests above the spend limit will be declined (refunds and credits will be approved).
 
             Note that while spend limits are enforced based on authorized and settled volume on a card, they are not recommended to be used for balance or reconciliation-level accuracy. Spend limits also cannot block force posted charges (i.e., when a merchant sends a clearing message without a prior authorization).
-          type: number
+          type: integer
+          format: int64
         spend_limit_duration:
           description: Note that to support recurring monthly payments, which can occur on different day every month, the time window we consider for MONTHLY velocity starts 6 days after the current calendar date one month prior.
           type: string
@@ -18142,6 +17975,9 @@ components:
             - NO_PROMPT
             - VEHICLE_NUMBER
             - DRIVER_NUMBER
+      required:
+        - fleet_restriction_code
+        - fleet_prompt_code
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18167,25 +18003,30 @@ components:
             terminal:
               $ref: '#/components/schemas/pos_terminal'
         amount:
-          type: number
+          type: integer
+          format: int64
           description: Authorization amount of the transaction (in cents), including any acquirer fees. The contents of this field are identical to `authorization_amount`.
         acquirer_fee:
-          type: number
+          type: integer
+          format: int64
           description: Fee (in cents) assessed by the merchant and paid for by the cardholder. Will be zero if no fee is assessed. Rebates may be transmitted as a negative value to indicate credited fees.
         authorization_amount:
-          type: number
+          type: integer
+          format: int64
           description: The base transaction amount (in cents) plus the acquirer fee field. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
         cardholder_currency:
           type: string
           description: ISO 4217 alpha 3 code for cardholder's billing currency.
         cash_amount:
-          type: number
+          type: integer
+          format: int64
           description: |-
             The portion of the transaction requested as cash back by the cardholder, and does not include any acquirer fees. The amount field includes the purchase amount, the requested cash back amount, and any acquirer fees.
 
             If no cash back was requested, the value of this field will be 0, and the field will always be present.
         cashback:
-          type: number
+          type: integer
+          format: int64
           description: Deprecated, use `cash_amount`.
         token_info:
           $ref: '#/components/schemas/token_info'
@@ -18201,7 +18042,8 @@ components:
           format: date-time
           description: Date and time when the transaction first occurred in UTC.
         merchant_amount:
-          type: number
+          type: integer
+          format: int64
           description: The amount that the merchant will receive, denominated in `merchant_currency` and in the smallest currency unit. Note the amount includes `acquirer_fee`, similar to `authorization_amount`. It will be different from `authorization_amount` if the merchant is taking payment in a different currency.
         merchant_currency:
           $ref: '#/components/schemas/merchant_currency'
@@ -18217,7 +18059,8 @@ components:
         network_risk_score:
           $ref: '#/components/schemas/network_risk_score'
         settled_amount:
-          type: number
+          type: integer
+          format: int64
           description: Amount (in cents) of the transaction that has been settled, including any acquirer fees
         status:
           $ref: '#/components/schemas/asa_request_status'
@@ -18234,6 +18077,33 @@ components:
             - type: 'null'
               description: Transaction is not associated with a fleet program
             - $ref: '#/components/schemas/asa_request_fleet_info'
+        events:
+          description: A list of all events that have modified this transaction. Note that this will always be an empty array in all authorization requests originated by Lithic.
+          type: array
+          maxItems: 0
+          deprecated: true
+        funding:
+          description: A list of objects that describe how this transaction was funded, with the amount represented in cents. Note that this will always be an empty array in all authorization requests originated by Lithic.
+          type: array
+          maxItems: 0
+          deprecated: true
+      required:
+        - acquirer_fee
+        - amount
+        - authorization_amount
+        - avs
+        - card
+        - cardholder_currency
+        - cash_amount
+        - created
+        - events
+        - funding
+        - merchant
+        - merchant_amount
+        - merchant_currency
+        - settled_amount
+        - status
+        - token
       $defs:
         asa_request_status:
           type: string
@@ -18320,6 +18190,9 @@ components:
                 - NO_PROMPT
                 - VEHICLE_NUMBER
                 - DRIVER_NUMBER
+          required:
+            - fleet_restriction_code
+            - fleet_prompt_code
         asa_request_cardholder_authentication:
           description: Cardholder Authentication object in ASA
           type: object
@@ -18403,7 +18276,8 @@ components:
                 Amount (in cents) to limit approved authorizations. Purchase requests above the spend limit will be declined (refunds and credits will be approved).
 
                 Note that while spend limits are enforced based on authorized and settled volume on a card, they are not recommended to be used for balance or reconciliation-level accuracy. Spend limits also cannot block force posted charges (i.e., when a merchant sends a clearing message without a prior authorization).
-              type: number
+              type: integer
+              format: int64
             spend_limit_duration:
               description: Note that to support recurring monthly payments, which can occur on different day every month, the time window we consider for MONTHLY velocity starts 6 days after the current calendar date one month prior.
               type: string
@@ -18449,8 +18323,10 @@ components:
         token:
           type: string
           description: The transaction token from the ASA request.
+          format: uuid
         approved_amount:
-          type: number
+          type: integer
+          format: int64
           description: 'The amount approved for the transaction. Note that setting this implies a partial approval. This property should not be present if the intention is to fully approve the transaction. See: https://docs.lithic.com/docs/partial-approval#partial-approval'
         avs_result:
           description: The ASA responder may return an address verification (AVS) match indicator for evaluation by the acquirer. The merchant can choose whether to proceed with the transaction in the case of an approval with AVS failure. When they do not, this typically appears as a subsequent AUTHORIZATION_REVERSAL event following the AUTHORIZATION. Note that AVS data submitted by merchants can be variable in quality, and we recommend card programs exercise adjust their decisioning logic accordingly.
@@ -18466,12 +18342,14 @@ components:
           properties:
             amount:
               oneOf:
-                - type: number
+                - type: integer
+                  format: int64
                   description: The balance held on the card.
                 - type: 'null'
             available:
               oneOf:
-                - type: number
+                - type: integer
+                  format: int64
                   description: The balance available for the cardholder to spend. This is calculated as the settled amount minus any pending authorizations on the card.
                 - type: 'null'
       required:
@@ -18792,6 +18670,56 @@ components:
         - to
         - current_version_statistics
         - draft_version_statistics
+    backtest-token:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-token.json
+      title: Auth Rule Backtest Token
+      type: string
+      format: uuid
+      readOnly: true
+    backtest-results:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
+      title: Authorization Rules Backtest Results
+      type: object
+      properties:
+        backtest_token:
+          $ref: '#/components/schemas/backtest-token'
+        simulation_parameters:
+          type: object
+          properties:
+            auth_rule_token:
+              $ref: '#/components/schemas/auth-rule-token'
+            start:
+              type: string
+              format: date-time
+              description: The start time of the simulation.
+            end:
+              type: string
+              format: date-time
+              description: The end time of the simulation.
+        results:
+          type: object
+          properties:
+            current_version:
+              anyOf:
+                - type: 'null'
+                - $ref: '#/components/schemas/rule-stats'
+            draft_version:
+              anyOf:
+                - type: 'null'
+                - $ref: '#/components/schemas/rule-stats'
+      required:
+        - backtest_token
+        - simulation_parameters
+        - results
+    backtest-report:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-report.json
+      title: Authorization Rules Backtest Report
+      description: Webhook payload for the auth_rules.backtest_report.created event.
+      allOf:
+        - $ref: '#/components/schemas/backtest-results'
     card_transaction_updated_event:
       $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/card_transaction_updated_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
