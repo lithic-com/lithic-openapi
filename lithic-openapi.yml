@@ -1645,8 +1645,8 @@ paths:
                     * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
                     * `SINGLE_USE` - Card is closed upon first successful authorization.
                     * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-                    * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
-                    * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
+                    * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.
+                    * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.
                   enum:
                     - MERCHANT_LOCKED
                     - PHYSICAL
@@ -11019,8 +11019,8 @@ components:
             * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
             * `SINGLE_USE` - Card is closed upon first successful authorization.
             * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-            * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
-            * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRUTAL cards, please use VIRTUAL instead.
+            * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.
+            * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.
           enum:
             - MERCHANT_LOCKED
             - PHYSICAL
