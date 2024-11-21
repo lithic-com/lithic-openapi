@@ -14012,7 +14012,6 @@ components:
       description: Auth Rule Token
       type: string
       format: uuid
-      readOnly: true
     auth-rule-state:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-state.json
@@ -14348,7 +14347,6 @@ components:
       title: Auth Rule Performance Report Token
       type: string
       format: uuid
-      readOnly: true
     financial_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18678,7 +18676,6 @@ components:
       description: Auth Rule Backtest Token
       type: string
       format: uuid
-      readOnly: true
     backtest-results:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
