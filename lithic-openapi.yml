@@ -16405,11 +16405,11 @@ components:
         cardholder:
           properties:
             amount:
-              description: The aggregate settled amount in the cardholder billing currency.
+              description: The estimated settled amount of the transaction in the cardholder billing currency.
               type: integer
               example: -1000
             conversion_rate:
-              description: The conversion rate used to convert the merchant amount to the cardholder billing amount.
+              description: The exchange rate used to convert the merchant amount to the cardholder billing amount.
               type: string
               example: '1.000000'
             currency:
@@ -16422,7 +16422,7 @@ components:
         hold:
           properties:
             amount:
-              description: The aggregate authorization amount of the transaction in the anticipated settlement currency.
+              description: The pending amount of the transaction in the anticipated settlement currency.
               type: integer
               example: 0
             currency:
@@ -16434,7 +16434,7 @@ components:
         merchant:
           properties:
             amount:
-              description: The aggregate settled amount in the merchant currency.
+              description: The settled amount of the transaction in the merchant currency.
               type: integer
               example: -1000
             currency:
@@ -16446,7 +16446,7 @@ components:
         settlement:
           properties:
             amount:
-              description: The aggregate settled amount in the settlement currency.
+              description: The settled amount of the transaction in the settlement currency.
               type: integer
               example: -1000
             currency:
@@ -16583,11 +16583,11 @@ components:
           type: object
           properties:
             amount:
-              description: The amount in the cardholder billing currency.
+              description: Amount of the event in the cardholder billing currency.
               type: integer
               example: 1000
             conversion_rate:
-              description: The conversion rate used to convert the merchant amount to the cardholder billing amount.
+              description: Exchange rate used to convert the merchant amount to the cardholder billing amount.
               type: string
               example: '1.000000'
             currency:
@@ -16600,7 +16600,7 @@ components:
           type: object
           properties:
             amount:
-              description: The amount in the merchant currency.
+              description: Amount of the event in the merchant currency.
               type: integer
               example: 1000
             currency:
@@ -16614,11 +16614,11 @@ components:
             - 'null'
           properties:
             amount:
-              description: Amount of the event, if it is financial, in the settlement currency.
+              description: Amount of the event, if it is financial, in the settlement currency. Non-financial events do not contain this amount because they do not move funds.
               type: integer
               example: 1000
             conversion_rate:
-              description: Conversion rate used to convert the merchant amount to the settlement amount.
+              description: Exchange rate used to convert the merchant amount to the settlement amount.
               type: string
               example: '1.000000'
             currency:
@@ -17027,6 +17027,7 @@ components:
           description: When the transaction is pending, this represents the authorization amount of the transaction in the anticipated settlement currency. Once the transaction has settled, this field represents the settled amount in the settlement currency.
           example: 1000
           type: integer
+          deprecated: true
         amounts:
           $ref: '#/components/schemas/transaction_amounts'
         authorization_amount:
@@ -17035,6 +17036,7 @@ components:
           type:
             - integer
             - 'null'
+          deprecated: true
         authorization_code:
           description: A fixed-width 6-digit numeric identifier that can be used to identify a transaction with networks.
           example: '123456'
@@ -17073,12 +17075,14 @@ components:
           type:
             - integer
             - 'null'
+          deprecated: true
         merchant_authorization_amount:
           description: Analogous to the 'authorization_amount', but in the merchant currency.
           example: 1000
           type:
             - integer
             - 'null'
+          deprecated: true
         merchant_currency:
           $ref: '#/components/schemas/merchant_currency'
         network:
@@ -17104,6 +17108,7 @@ components:
           description: The settled amount of the transaction in the settlement currency.
           type: integer
           example: 1000
+          deprecated: true
         status:
           description: Status of the transaction.
           enum:
