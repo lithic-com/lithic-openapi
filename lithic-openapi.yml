@@ -1279,6 +1279,68 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
         '422':
           description: Returned when the request was syntactically correct, but could not be processed
+  /v2/auth_rules/{auth_rule_token}/backtests:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      tags:
+        - Authorization Rules
+      summary: Request a backtest for an authorization rule
+      description: |
+        Initiates a request to asynchronously generate a backtest for an authorization rule. During backtesting, both the active version (if one exists) and the draft version of the Authorization Rule are evaluated by replaying historical transaction data against the rule's conditions. This process allows customers to simulate and understand the effects of proposed rule changes before deployment.
+        The generated backtest report provides detailed results showing whether the draft version of the Auth Rule would have approved or declined historical transactions which were processed during the backtest period. These reports help evaluate how changes to rule configurations might affect overall transaction approval rates.
+
+        The generated backtest report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.backtest_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
+        It is also possible to request backtest reports on-demand through the `/v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}` endpoint.
+
+        Lithic currently supports backtesting for `CONDITIONAL_BLOCK` rules. Backtesting for `VELOCITY_LIMIT`` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
+        If a historical transaction does not feature the required inputs to evaluate the rule, then it will not be included in the final backtest report.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/backtest-request'
+      responses:
+        '200':
+          description: Backtest request received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backtest_token:
+                    $ref: '#/components/schemas/backtest-token'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+        - $ref: '#/components/parameters/backtestToken'
+      tags:
+        - Authorization Rules
+      summary: Retrieve the backtest results for an authorization rule
+      description: |
+        Returns the backtest results of an authorization rule (if available).
+
+        Backtesting is an asynchronous process that requires time to complete. If a customer retrieves the backtest results using this endpoint before the report is fully generated, the response will return null for `results.current_version` and `results.draft_version`. Customers are advised to wait for the backtest creation process to complete (as indicated by the webhook event auth_rules.backtest_report.created) before retrieving results from this endpoint.
+
+        Backtesting is an asynchronous process, while the backtest is being processed, results will not be available which will cause `results.current_version` and `results.draft_version` objects to contain `null`.
+        The entries in `results` will also always represent the configuration of the rule at the time requests are made to this endpoint. For example, the results for `current_version` in the served backtest report will be consistent with which version of the rule is currently activated in the Auth Stream, regardless of which version of the rule was active in the Auth Stream at the time a backtest is requested.
+      responses:
+        '200':
+          description: Backtest results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/backtest-results'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
   /v1/auth_stream/secret:
     get:
       description: |
@@ -9667,11 +9729,23 @@ components:
     authRuleToken:
       description: Globally unique identifier for the Auth Rule.
       examples:
-        accountHolderTokenExample:
+        authRuleTokenExample:
           summary: A sample authorization rule token
           value: 50ca12c3-ae11-513b-20e0-e55421f8b2ab
       in: path
       name: auth_rule_token
+      required: true
+      schema:
+        format: uuid
+        type: string
+    backtestToken:
+      description: Globally unique identifier for an Auth Rule backtest.
+      examples:
+        backtestTokenExample:
+          summary: A sample backtest token
+          value: 8aacdcf3-3109-4355-9841-46b5d55ed220
+      in: path
+      name: auth_rule_backtest_token
       required: true
       schema:
         format: uuid
@@ -9886,6 +9960,13 @@ components:
         format: uuid
     AuthRuleToken:
       name: auth_rule_token
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AuthRuleBacktestToken:
+      name: auth_rule_backtest_token
       in: path
       required: true
       schema:
@@ -14347,6 +14428,96 @@ components:
       title: Auth Rule Performance Report Token
       type: string
       format: uuid
+    backtest-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-request.json
+      title: Auth Rules Backtest Request Parameters
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: The start time of the backtest.
+        end:
+          type: string
+          format: date-time
+          description: The end time of the backtest.
+    backtest-token:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-token.json
+      title: Auth Rule Backtest Token
+      description: Auth Rule Backtest Token
+      type: string
+      format: uuid
+    rule-stats:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/rule-stats.json
+      title: Auth Rule Performance Statistics
+      type: object
+      properties:
+        version:
+          $ref: '#/components/schemas/auth-rule-version'
+        approved:
+          type: integer
+          description: The total number of historical transactions approved by this rule during the backtest period, or the number of transactions that would have been approved if the rule was evaluated in shadow mode.
+        declined:
+          type: integer
+          description: The total number of historical transactions declined by this rule during the backtest period, or the number of transactions that would have been declined if the rule was evaluated in shadow mode.
+        examples:
+          type: array
+          description: Example authorization request events that would have been approved or declined.
+          items:
+            type: object
+            properties:
+              event_token:
+                type: string
+                format: uuid
+                description: The authorization request event token.
+              timestamp:
+                type: string
+                format: date-time
+                description: The timestamp of the authorization request event.
+              approved:
+                type: boolean
+                description: Whether the rule would have approved the authorization request.
+    backtest-results:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
+      title: Authorization Rules Backtest Results
+      type: object
+      properties:
+        backtest_token:
+          $ref: '#/components/schemas/backtest-token'
+        simulation_parameters:
+          type: object
+          properties:
+            auth_rule_token:
+              $ref: '#/components/schemas/auth-rule-token'
+            start:
+              type: string
+              format: date-time
+              description: The start time of the simulation.
+            end:
+              type: string
+              format: date-time
+              description: The end time of the simulation.
+        results:
+          type: object
+          properties:
+            current_version:
+              anyOf:
+                - type: 'null'
+                  description: No results available for the current version.
+                - $ref: '#/components/schemas/rule-stats'
+            draft_version:
+              anyOf:
+                - type: 'null'
+                  description: No results available for the draft version.
+                - $ref: '#/components/schemas/rule-stats'
+      required:
+        - backtest_token
+        - simulation_parameters
+        - results
     financial_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18606,37 +18777,6 @@ components:
           phone_number: '+15558675309'
           email: test@example.com
           mobile_application_name: Wells Fargo
-    rule-stats:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/rule-stats.json
-      title: Auth Rule Rule Performance Statistics
-      type: object
-      properties:
-        version:
-          $ref: '#/components/schemas/auth-rule-version'
-        approved:
-          type: integer
-          description: The number of times the rule has approved an authorization request (or would have approved if the rule is in shadow mode).
-        declined:
-          type: integer
-          description: The number of times the rule has declined an authorization request (or would have declined if the rule is in shadow mode).
-        examples:
-          type: array
-          description: Example authorization request events that would have been approved or declined.
-          items:
-            type: object
-            properties:
-              event_token:
-                type: string
-                format: uuid
-                description: The authorization request event token.
-              timestamp:
-                type: string
-                format: date-time
-                description: The timestamp of the authorization request event.
-              approved:
-                type: boolean
-                description: Whether the rule would have approved the authorization request.
     performance-report:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/performance-report.json
@@ -18674,51 +18814,6 @@ components:
         - to
         - current_version_statistics
         - draft_version_statistics
-    backtest-token:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-token.json
-      title: Auth Rule Backtest Token
-      description: Auth Rule Backtest Token
-      type: string
-      format: uuid
-    backtest-results:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
-      title: Authorization Rules Backtest Results
-      type: object
-      properties:
-        backtest_token:
-          $ref: '#/components/schemas/backtest-token'
-        simulation_parameters:
-          type: object
-          properties:
-            auth_rule_token:
-              $ref: '#/components/schemas/auth-rule-token'
-            start:
-              type: string
-              format: date-time
-              description: The start time of the simulation.
-            end:
-              type: string
-              format: date-time
-              description: The end time of the simulation.
-        results:
-          type: object
-          properties:
-            current_version:
-              anyOf:
-                - type: 'null'
-                  description: No results available for the current version.
-                - $ref: '#/components/schemas/rule-stats'
-            draft_version:
-              anyOf:
-                - type: 'null'
-                  description: No results available for the draft version.
-                - $ref: '#/components/schemas/rule-stats'
-      required:
-        - backtest_token
-        - simulation_parameters
-        - results
     backtest-report:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-report.json
