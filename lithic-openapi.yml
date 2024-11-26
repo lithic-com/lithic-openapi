@@ -12804,6 +12804,10 @@ components:
           items:
             type: string
           type: array
+        fee_description:
+          description: Network's description of a fee, only present on records with type `FEE`.
+          example: 'INTERCHANGE COMPLIANCE ADJUSTMENT FOR : 11/12/24'
+          type: string
         institution:
           description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
           example: '00001'
