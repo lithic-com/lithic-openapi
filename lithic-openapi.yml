@@ -16865,6 +16865,35 @@ components:
         - TRANSACTION_PREVIOUSLY_COMPLETED
         - UNAUTHORIZED_MERCHANT
         - VEHICLE_NUMBER_INVALID
+    rule_result:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/rule_result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Detailed Rule Result
+      type: object
+      properties:
+        auth_rule_token:
+          description: The Auth Rule Token associated with the rule from which the decline originated. If this is set to null, then the decline was not associated with a customer-configured Auth Rule. This may happen in cases where a transaction is declined due to a Lithic-configured security or compliance rule, for example.
+          oneOf:
+            - type: 'null'
+            - type: string
+              format: uuid
+        result:
+          $ref: '#/components/schemas/detailed_result'
+        name:
+          description: The name for the rule, if any was configured.
+          oneOf:
+            - type: 'null'
+            - type: string
+        explanation:
+          description: A human-readable explanation outlining the motivation for the rule's decline.
+          oneOf:
+            - type: 'null'
+            - type: string
+      required:
+        - auth_rule_token
+        - explanation
+        - name
+        - result
     decline_result:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/decline_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16915,6 +16944,10 @@ components:
         detailed_results:
           items:
             $ref: '#/components/schemas/detailed_result'
+          type: array
+        rule_results:
+          items:
+            $ref: '#/components/schemas/rule_result'
           type: array
         effective_polarity:
           description: Indicates whether the transaction event is a credit or debit to the account.
