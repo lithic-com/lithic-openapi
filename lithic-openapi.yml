@@ -14332,6 +14332,15 @@ components:
           required:
             - parameters
             - version
+    auth-rule-name:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-name.json
+      title: Auth Rule Name
+      description: Auth Rule Name
+      anyOf:
+        - type: 'null'
+        - type: string
+          maxLength: 1024
     auth-rule:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
@@ -14356,6 +14365,8 @@ components:
           $ref: '#/components/schemas/current-version'
         draft_version:
           $ref: '#/components/schemas/draft-version'
+        name:
+          $ref: '#/components/schemas/auth-rule-name'
       required:
         - token
         - state
@@ -14365,6 +14376,7 @@ components:
         - type
         - current_version
         - draft_version
+        - name
     schemas-Error:
       type: object
       properties:
@@ -14384,6 +14396,8 @@ components:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
           required:
             - account_tokens
         - properties:
@@ -14393,6 +14407,8 @@ components:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
           required:
             - card_tokens
         - properties:
@@ -14404,6 +14420,8 @@ components:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
           required:
             - program_level
       required:
@@ -14422,6 +14440,8 @@ components:
             Note that only deactivating an Auth Rule through this endpoint is supported at this time. If you need to (re-)activate an Auth Rule the /promote endpoint should be used to promote a draft to the currently active version.
           type: string
           const: INACTIVE
+        name:
+          $ref: '#/components/schemas/auth-rule-name'
     apply-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/apply-auth-rule-request.json
