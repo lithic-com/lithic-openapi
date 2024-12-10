@@ -5385,6 +5385,12 @@ paths:
                     Partial approval is when part of a transaction is approved and another
                     payment must be used for the remainder.
                   type: boolean
+                pin:
+                  description: Simulate entering a PIN. If omitted, PIN check will not be performed.
+                  example: '1234'
+                  maxLength: 12
+                  minLength: 4
+                  type: string
                 status:
                   default: AUTHORIZATION
                   description: |
