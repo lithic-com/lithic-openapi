@@ -14127,6 +14127,15 @@ components:
       items:
         type: string
         format: uuid
+    excluded-card-tokens:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/excluded-card-tokens.json
+      title: Auth Rule Excluded Card Tokens
+      description: Card tokens to which the Auth Rule does not apply.
+      type: array
+      items:
+        type: string
+        format: uuid
     account-tokens:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/account-tokens.json
@@ -14337,6 +14346,8 @@ components:
           $ref: '#/components/schemas/program-level'
         card_tokens:
           $ref: '#/components/schemas/card-tokens'
+        excluded_card_tokens:
+          $ref: '#/components/schemas/excluded-card-tokens'
         account_tokens:
           $ref: '#/components/schemas/account-tokens'
         type:
@@ -14387,6 +14398,8 @@ components:
         - properties:
             program_level:
               $ref: '#/components/schemas/program-level'
+            excluded_card_tokens:
+              $ref: '#/components/schemas/excluded-card-tokens'
             type:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
@@ -14430,6 +14443,8 @@ components:
           properties:
             program_level:
               $ref: '#/components/schemas/program-level'
+            excluded_card_tokens:
+              $ref: '#/components/schemas/excluded-card-tokens'
           required:
             - program_level
     report-token:
