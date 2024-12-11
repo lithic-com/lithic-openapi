@@ -2441,7 +2441,7 @@ paths:
     post:
       description: |-
         Convert a virtual card into a physical card and manufacture it.
-        Customer must supply relevant fields for physical card creation including `product_id`, `carrier` and `shipping_address`.
+        Customer must supply relevant fields for physical card creation including `product_id`, `carrier`, `shipping_method`, and `shipping_address`.
         The card token will be unchanged.  The card's type will be altered to `PHYSICAL`.
         The card will be set to state `PENDING_FULFILLMENT` and fulfilled at next fulfillment cycle.
         Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in a state of either `OPEN` or `PAUSED` to be converted.
@@ -2474,18 +2474,6 @@ paths:
                 carrier:
                   $ref: '#/components/schemas/Carrier'
                   description: If omitted, the previous carrier will be used.
-                exp_month:
-                  description: Two digit (MM) expiry month. If neither `exp_month` nor `exp_year` is provided, an expiration date six years in the future will be generated.
-                  example: '06'
-                  maxLength: 2
-                  minLength: 2
-                  type: string
-                exp_year:
-                  description: Four digit (yyyy) expiry year. If neither `exp_month` nor `exp_year` is provided, an expiration date six years in the future will be generated.
-                  example: '2027'
-                  maxLength: 4
-                  minLength: 4
-                  type: string
                 product_id:
                   description: |
                     Specifies the configuration (e.g. physical card art) that the card should be manufactured with, and only applies to cards of type `PHYSICAL`. This must be configured with Lithic before use.
