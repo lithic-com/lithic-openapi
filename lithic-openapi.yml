@@ -74,7 +74,7 @@ paths:
           schema:
             type: string
         - description: Phone number of the account holder. The query must be an exact match.
-          example: 5555555555
+          example: '+15555555555'
           in: query
           name: phone_number
           schema:
@@ -102,7 +102,7 @@ paths:
                         created: '2024-01-11T19:50:36.105448'
                         email: john@appleseed.com
                         exemption_type: AUTHORIZED_USER
-                        external_id: '5555555555'
+                        external_id: '+15555555555'
                         individual:
                           address:
                             address1: 123 Main Street
@@ -114,9 +114,9 @@ paths:
                           email: john@appleseed.com
                           first_name: John
                           last_name: Appleseed
-                          phone_number: '5555555555'
+                          phone_number: '+15555555555'
                           entity_token: 49c978db-20c4-46d8-9db4-b0ef28c03533
-                        phone_number: '5555555555'
+                        phone_number: '+15555555555'
                         status: ACCEPTED
                         token: b68b7424-aa69-4cbc-a946-30d90181b621
                         user_type: INDIVIDUAL
@@ -138,7 +138,7 @@ paths:
                             legal_business_name: Busy Business, Inc.
                             parent_company: Example company
                             phone_numbers:
-                              - '5555555555'
+                              - '+15555555555'
                             entity_token: d89185ca-1fad-4f33-905c-416b4270a5d4
                         business_account_token: 00000000-0000-0000-0000-000000000000
                         business_entity:
@@ -153,7 +153,7 @@ paths:
                           legal_business_name: Busy Business, Inc.
                           parent_company: Example company
                           phone_numbers:
-                            - '5555555555'
+                            - '+15555555555'
                           entity_token: f360a3c0-24e6-4852-ae82-27916a5c4e86
                         control_person:
                           address:
@@ -166,7 +166,7 @@ paths:
                           email: john@busybusiness.com
                           first_name: John
                           last_name: Appleseed
-                          phone_number: '5555555555'
+                          phone_number: '+15555555555'
                           entity_token: 9d657ba0-7c8a-4946-a596-f99d978a4137
                         created: '2024-01-11T19:50:36.105449'
                         exemption_type: AUTHORIZED_USER
@@ -228,7 +228,7 @@ paths:
                       incorporation_state: NV
                       legal_business_name: Majority Holdings LLC
                       phone_numbers:
-                        - '+12124007676'
+                        - '+15555555555'
                   beneficial_owner_individuals:
                     - address:
                         address1: 300 Normal Forest Way
@@ -257,7 +257,7 @@ paths:
                     incorporation_state: DE
                     legal_business_name: Busy Business, Inc.
                     phone_numbers:
-                      - '+12124007676'
+                      - '+15555555555'
                   control_person:
                     address:
                       address1: 451 New Forest Way
@@ -293,7 +293,7 @@ paths:
                   first_name: Tom
                   kyc_exemption_type: AUTHORIZED_USER
                   last_name: Bombadil
-                  phone_number: '+12124007676'
+                  phone_number: '+15555555555'
                   workflow: KYC_EXEMPT
               kycRequest:
                 summary: Create an account holder with KYC workflow
@@ -310,7 +310,7 @@ paths:
                     first_name: Tom
                     government_id: 111-23-1412
                     last_name: Bombadil
-                    phone_number: '+12124007676'
+                    phone_number: '+15555555555'
                   tos_timestamp: '2022-03-08 08:00:00'
                   workflow: KYC_ADVANCED
             schema:
@@ -462,10 +462,10 @@ paths:
                       email: john@appleseed.com
                       first_name: John
                       last_name: Appleseed
-                      phone_number: '5555555555'
+                      phone_number: '+15555555555'
                       entity_token: fd771a07-c5c2-42f3-a53c-a6c79c6c0d07
                     email: john@appleseed.com
-                    phone_number: '5555555555'
+                    phone_number: '+15555555555'
                     status: ACCEPTED
                 kybBasicPendingReview:
                   summary: Pending review submission for a KYB_BASIC account_holder
@@ -511,7 +511,7 @@ paths:
                       legal_business_name: Busy Business, Inc.
                       parent_company: Example company
                       phone_numbers:
-                        - '5555555555'
+                        - '+15555555555'
                       entity_token: 05cc03c9-dea6-4d17-a11e-0f3ea57d51a5
                     control_person:
                       address:
@@ -524,7 +524,7 @@ paths:
                       email: john@appleseed.com
                       first_name: John
                       last_name: Appleseed
-                      phone_number: '5555555555'
+                      phone_number: '+15555555555'
                       entity_token: fd771a07-c5c2-42f3-a53c-a6c79c6c0d07
                     beneficial_owner_entities:
                       - address:
@@ -538,7 +538,7 @@ paths:
                         legal_business_name: Busy Business, Inc.
                         parent_company: Example company
                         phone_numbers:
-                          - '5555555555'
+                          - '+15555555555'
                         entity_token: 2b3cdab5-c866-408f-85bc-e707015ee409
               schema:
                 $ref: '#/components/schemas/AccountHolder'
@@ -7924,7 +7924,7 @@ webhooks:
                   type: string
                 phone_number:
                   description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
-                  example: '15555555555'
+                  example: '+15555555555'
                   type: string
                 token:
                   description: The token of the account_holder that was created.
@@ -8769,7 +8769,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   authentication_code: 123456
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
@@ -8796,7 +8796,7 @@ webhooks:
                       description: |-
                         The location where the user wants to receive the authentication code.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -8856,7 +8856,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
                   event_type: digital_wallet.tokenization_two_factor_authentication_code_sent
@@ -8882,7 +8882,7 @@ webhooks:
                       description: |-
                         The location to which the authentication code was sent.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -9574,7 +9574,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   authentication_code: 123456
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
@@ -9601,7 +9601,7 @@ webhooks:
                       description: |-
                         The location where the user wants to receive the authentication code.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -9658,7 +9658,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
                   event_type: tokenization.two_factor_authentication_code_sent
@@ -9684,7 +9684,7 @@ webhooks:
                       description: |-
                         The location to which the authentication code was sent.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -10269,7 +10269,7 @@ components:
               type: string
             phone_number:
               description: Phone number of the individual.
-              example: '+12124007676'
+              example: '+15555555555'
               type: string
             token:
               description: Globally unique identifier for the account holder.
@@ -10426,7 +10426,7 @@ components:
               Use individual.phone_number when user_type == "INDIVIDUAL".
             >
             Primary email of Account Holder.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
         exemption_type:
           description: The type of KYC exemption for a KYC-Exempt Account Holder.
@@ -10453,7 +10453,7 @@ components:
               Use individual.phone_number when user_type == "INDIVIDUAL".
             >
             Primary phone of Account Holder, entered in E.164 format.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
         status:
           description: |
@@ -10632,7 +10632,7 @@ components:
           type: string
         phone_number:
           description: Individual's phone number, entered in E.164 format.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
         entity_token:
           description: Globally unique identifier for the entity.
@@ -10672,7 +10672,7 @@ components:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
             description: Business phone number, entered in E.164 format.
-            example: '+12124007676'
+            example: '+15555555555'
             type: string
           minItems: 1
           type: array
@@ -11087,7 +11087,7 @@ components:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
             description: Business phone number, entered in E.164 format.
-            example: '+12124007676'
+            example: '+15555555555'
             type: string
           minItems: 1
           type: array
@@ -12496,7 +12496,7 @@ components:
         phone_number:
           description: |
             Individual's phone number, entered in E.164 format.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
       type: object
     LineItem:
@@ -13180,7 +13180,7 @@ components:
           type: string
         phone_number:
           description: Cardholder's phone number in E.164 format to be contacted for expedited shipping process purposes. Required if `shipping_method` is `EXPEDITED`.
-          example: '+12124007676'
+          example: '+15555555555'
           maxLength: 16
           minLength: 8
           type: string
