@@ -14633,6 +14633,8 @@ components:
         - RETURN_REVERSAL
         - TRANSFER
         - TRANSFER_INSUFFICIENT_FUNDS
+        - RETURNED_PAYMENT
+        - RETURNED_PAYMENT_REVERSAL
     searchable_account_types:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/searchable_account_types.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17868,6 +17870,8 @@ components:
         - LATE_PAYMENT_REVERSAL
         - BILLING_ERROR_REVERSAL
         - PROVISIONAL_CREDIT_REVERSAL
+        - RETURNED_PAYMENT
+        - RETURNED_PAYMENT_REVERSAL
     management_operation_event:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
