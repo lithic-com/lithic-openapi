@@ -17241,11 +17241,9 @@ components:
         - amount
         - amounts
         - created
-        - network_info
         - detailed_results
         - effective_polarity
         - result
-        - rule_results
         - token
         - type
     merchant:
