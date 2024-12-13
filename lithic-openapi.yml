@@ -16994,6 +16994,70 @@ components:
         - cardholder
         - merchant
         - settlement
+    network_info:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/network_info.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Information
+      oneOf:
+        - type: 'null'
+        - type: object
+      description: |-
+        Information provided by the card network in each event. This includes common identifiers shared between you, Lithic, the card network and in some cases the acquirer. These identifiers often link together events within the same transaction lifecycle and can be used to locate a particular transaction, such as during processing of disputes. Not all fields are available in all events, and the presence of these fields is dependent on the card network and the event type.
+
+        Now available in sandbox, and available in production on December 17th, 2024.
+      properties:
+        acquirer:
+          properties:
+            acquirer_reference_number:
+              description: Identifier assigned by the acquirer, applicable to dual-message transactions only. The acquirer reference number (ARN) is only populated once a transaction has been cleared, and it is not available in all transactions (such as automated fuel dispenser transactions). A single transaction can contain multiple ARNs if the merchant sends multiple clearings.
+              oneOf:
+                - type: 'null'
+                - type: string
+            retrieval_reference_number:
+              description: Identifier assigned by the acquirer.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - acquirer_reference_number
+            - retrieval_reference_number
+        mastercard:
+          properties:
+            banknet_reference_number:
+              description: Identifier assigned by Mastercard.
+              oneOf:
+                - type: 'null'
+                - type: string
+            switch_serial_number:
+              description: Identifier assigned by Mastercard, applicable to single-message transactions only.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - banknet_reference_number
+            - switch_serial_number
+        visa:
+          properties:
+            transaction_id:
+              description: Identifier assigned by Visa.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - transaction_id
+      required:
+        - acquirer
+        - mastercard
+        - visa
     detailed_result:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/detailed_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17058,6 +17122,7 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Detailed Rule Result
       type: object
+      description: Available in production on December 17th, 2024.
       properties:
         auth_rule_token:
           description: The Auth Rule Token associated with the rule from which the decline originated. If this is set to null, then the decline was not associated with a customer-configured Auth Rule. This may happen in cases where a transaction is declined due to a Lithic-configured security or compliance rule, for example.
@@ -17129,6 +17194,8 @@ components:
           example: '2023-09-26T21:14:28.637Z'
           format: date-time
           type: string
+        network_info:
+          $ref: '#/components/schemas/network_info'
         detailed_results:
           items:
             $ref: '#/components/schemas/detailed_result'
@@ -17174,9 +17241,11 @@ components:
         - amount
         - amounts
         - created
+        - network_info
         - detailed_results
         - effective_polarity
         - result
+        - rule_results
         - token
         - type
     merchant:
@@ -17414,6 +17483,7 @@ components:
           type:
             - string
             - 'null'
+          deprecated: true
         account_token:
           description: The token for the account associated with this transaction.
           example: bd5e5649-1be8-4117-9bc5-3268258d1417
@@ -17603,7 +17673,16 @@ components:
               detailed_results:
                 - APPROVED
               effective_polarity: DEBIT
+              network_info:
+                acquirer:
+                  acquirer_reference_number: null
+                  retrieval_reference_number: '064386558597'
+                mastercard:
+                  banknet_reference_number: U1HSCJ
+                  switch_serial_number: null
+                visa: null
               result: APPROVED
+              rule_results: []
               token: bbbf1e86-322d-11ee-9779-00505685a123
               type: AUTHORIZATION
           merchant:
@@ -17704,7 +17783,16 @@ components:
                   detailed_results:
                     - APPROVED
                   effective_polarity: DEBIT
+                  network_info:
+                    acquirer:
+                      acquirer_reference_number: null
+                      retrieval_reference_number: '064386558597'
+                    mastercard:
+                      banknet_reference_number: U1HSCJ
+                      switch_serial_number: null
+                    visa: null
                   result: APPROVED
+                  rule_results: []
                   token: bbbf1e86-322d-11ee-9779-00505685a123
                   type: AUTHORIZATION
               merchant:
@@ -19115,7 +19203,16 @@ components:
               detailed_results:
                 - APPROVED
               effective_polarity: DEBIT
+              network_info:
+                acquirer:
+                  acquirer_reference_number: null
+                  retrieval_reference_number: '064386558597'
+                mastercard:
+                  banknet_reference_number: U1HSCJ
+                  switch_serial_number: null
+                visa: null
               result: APPROVED
+              rule_results: []
               token: bbbf1e86-322d-11ee-9779-00505685a123
               type: AUTHORIZATION
           merchant:
