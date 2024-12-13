@@ -1570,7 +1570,7 @@ paths:
         - Card
     post:
       description: |
-        Create a new virtual or physical card. Parameters `pin`, `shipping_address`, and `product_id` only apply to physical cards.
+        Create a new virtual or physical card. Parameters `shipping_address` and `product_id` only apply to physical cards.
       operationId: postCards
       requestBody:
         content:
@@ -1637,14 +1637,14 @@ paths:
                   example: New Card
                   type: string
                 pin:
-                  description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block).
+                  description: Encrypted PIN block (in base64). Applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block).
                   type: string
                 product_id:
                   description: Only applicable to cards of type `PHYSICAL`. This must be configured with Lithic before use. Specifies the configuration (i.e., physical card art) that the card should be manufactured with.
                   example: '1'
                   type: string
                 replacement_for:
-                  description: Only applicable to cards of type `PHYSICAL`. Globally unique identifier for the card that this physical card will replace.
+                  description: Globally unique identifier for the card that this card will replace. If the card type is `PHYSICAL` it will be replaced by a `PHYSICAL` card. If the card type is `VIRTUAL` it will be replaced by a `VIRTUAL` card.
                   example: 00000000-0000-0000-1000-000000000000
                   format: uuid
                   type: string
@@ -1881,7 +1881,7 @@ paths:
         - Card
     patch:
       description: |
-        Update the specified properties of the card. Unsupplied properties will remain unchanged. `pin` parameter only applies to physical cards.
+        Update the specified properties of the card. Unsupplied properties will remain unchanged.
 
         *Note: setting a card to a `CLOSED` state is a final action that cannot be undone.*
       operationId: patchCardByToken
@@ -2215,9 +2215,9 @@ paths:
         - Card
   /v1/cards/{card_token}/reissue:
     post:
-      description: |
-        Initiate print and shipment of a duplicate physical card.
-
+      description: |-
+        Initiate print and shipment of a duplicate physical card (e.g. card is physically damaged).  The PAN, expiry, and CVC2 will remain the same and the original card can continue to be used until the new card is activated.
+        A card can be reissued a maximum of 8 times.
         Only applies to cards of type `PHYSICAL`.
       operationId: postCardReissue
       parameters:
@@ -2320,10 +2320,9 @@ paths:
         - Card
   /v1/cards/{card_token}/renew:
     post:
-      description: |
-        Initiate print and shipment of a renewed physical card.
-
-        Only applies to cards of type `PHYSICAL`.
+      description: |-
+        Creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
+        Applies to card types `PHYSICAL` and `VIRTUAL`.
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2434,7 +2433,7 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-      summary: Renew physical card
+      summary: Renew a card
       tags:
         - Card
   /v1/cards/{card_token}/convert_physical:
@@ -3010,7 +3009,7 @@ paths:
       description: |
         Handling full card PANs and CVV codes requires that you comply with the Payment Card Industry Data Security Standards (PCI DSS). Some clients choose to reduce their compliance obligations by leveraging our embedded card UI solution documented below.
 
-        In this setup, PANs and CVV codes are presented to the end-user via a card UI that we provide, optionally styled in the customer's branding using a specified css stylesheet. A user's browser makes the request directly to api.lithic.com, so card PANs and CVVs never touch the API customer's servers while full card data is displayed to their end-users. The response contains an HTML document. This means that the url for the request can be inserted straight into the `src` attribute of an iframe.
+        In this setup, PANs and CVV codes are presented to the end-user via a card UI that we provide, optionally styled in the customer's branding using a specified css stylesheet. A user's browser makes the request directly to api.lithic.com, so card PANs and CVVs never touch the API customer's servers while full card data is displayed to their end-users. The response contains an HTML document (see Embedded Card UI or Changelog for upcoming changes in January). This means that the url for the request can be inserted straight into the `src` attribute of an iframe.
 
         ```html
         <iframe id="card-iframe"
@@ -11222,7 +11221,7 @@ components:
             * `OPEN` - Card will approve authorizations (if they match card and account parameters).
             * `PAUSED` - Card will decline authorizations, but can be resumed at a later time.
             * `PENDING_FULFILLMENT` - The initial state for cards of type `PHYSICAL`. The card is provisioned pending manufacturing and fulfillment. Cards in this state can accept authorizations for e-commerce purchases, but not for "Card Present" purchases where the physical card itself is present.
-            * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION` . Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions. API clients should update the card's state to `OPEN` only after the cardholder confirms receipt of the card.
+            * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION` . Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions or can be added to mobile wallets. API clients should update the card's state to `OPEN` only after the cardholder confirms receipt of the card.
 
             In sandbox, the same daily batch fulfillment occurs, but no cards are actually manufactured.
           enum:
