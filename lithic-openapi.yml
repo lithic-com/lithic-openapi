@@ -312,7 +312,7 @@ paths:
                     last_name: Bombadil
                     phone_number: '+15555555555'
                   tos_timestamp: '2022-03-08 08:00:00'
-                  workflow: KYC_ADVANCED
+                  workflow: KYC_BASIC
             schema:
               oneOf:
                 - $ref: '#/components/schemas/Kyb'
@@ -386,7 +386,6 @@ paths:
                       KYC and KYB evaluation states.
 
                       Note:
-                      * `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `KYC_ADVANCED` workflow.
                       * `PENDING_REVIEW` is only applicable for the `KYB_BASIC` workflow.
                     enum:
                       - ACCEPTED
@@ -401,7 +400,7 @@ paths:
                       $ref: '#/components/schemas/status-reasons'
                     type: array
                   required_documents:
-                    description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
+                    description: Only present for "KYB_BASIC" workflow. A list of documents required for the account holder to be approved.
                     type: array
                     items:
                       $ref: '#/components/schemas/required-document'
@@ -744,76 +743,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Get account holder document upload status
-      tags:
-        - Account Holder
-  /v1/account_holders/{account_holder_token}/resubmit:
-    post:
-      description: |
-        Resubmit a KYC submission. This endpoint should be used in cases where a KYC submission returned a `PENDING_RESUBMIT` result,
-        meaning one or more critical KYC fields may have been mis-entered and the individual's identity has not yet been successfully verified.
-        This step must be completed in order to proceed with the KYC evaluation.
-
-        Two resubmission attempts are permitted via this endpoint before a `REJECTED` status is returned and the account creation process is ended.
-      operationId: postAccountHolderResubmit
-      parameters:
-        - $ref: '#/components/parameters/accountHolderTokenPath'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                individual:
-                  $ref: '#/components/schemas/KycIndividual'
-                  description: Information on individual for whom the account is being opened and KYC is being re-run.
-                tos_timestamp:
-                  description: An RFC 3339 timestamp indicating when the account holder accepted the applicable legal agreements (e.g., cardholder terms) as agreed upon during API customer's implementation with Lithic.
-                  example: '2022-03-08 08:00:00'
-                  type: string
-                workflow:
-                  default: KYC_ADVANCED
-                  enum:
-                    - KYC_ADVANCED
-                  type: string
-              required:
-                - individual
-                - tos_timestamp
-                - workflow
-              type: object
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                acceptedEvaluationResponse:
-                  summary: Accepted KYC evaluation response
-                  value:
-                    account_token: b68b7424-aa69-4cbc-a946-30d90181b621
-                    status: ACCEPTED
-                    status_reasons: []
-                    token: 12345678-aa69-4cbc-a946-30d90181b621
-                maxSubmissions:
-                  summary: KYC rejected for too many resubmissions
-                  value:
-                    account_token: b68b7424-aa69-4cbc-a946-30d90181b621
-                    status: REJECTED
-                    status_reasons:
-                      - MAX_RESUBMISSION_ATTEMPTS
-                    token: 12345678-aa69-4cbc-a946-30d90181b621
-              schema:
-                $ref: '#/components/schemas/AccountHolder'
-          description: OK
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Resubmit account holder information
       tags:
         - Account Holder
   /v1/accounts:
@@ -2217,8 +2146,7 @@ paths:
     post:
       description: |-
         Initiate print and shipment of a duplicate physical card (e.g. card is physically damaged).  The PAN, expiry, and CVC2 will remain the same and the original card can continue to be used until the new card is activated.
-        A card can be reissued a maximum of 8 times.
-        Only applies to cards of type `PHYSICAL`.
+        Only applies to cards of type `PHYSICAL`.  A card can be replaced or renewed a total of 8 times.
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2322,7 +2250,7 @@ paths:
     post:
       description: |-
         Creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
-        Applies to card types `PHYSICAL` and `VIRTUAL`.
+        Applies to card types `PHYSICAL` and `VIRTUAL`.  A card can be replaced or renewed a total of 8 times.
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -6185,7 +6113,7 @@ paths:
   /v1/simulate/account_holders/enrollment_review:
     post:
       summary: Simulate an account holder's enrollment review
-      description: ' Simulates an enrollment review for an account holder. This endpoint is only applicable for workflows that may required intervention such as `KYB_BASIC` or `KYC_ADVANCED`. '
+      description: ' Simulates an enrollment review for an account holder. This endpoint is only applicable for workflows that may required intervention such as `KYB_BASIC`. '
       operationId: simulateAccountHolderEnrollmentReview
       requestBody:
         content:
@@ -10461,7 +10389,6 @@ components:
             KYC and KYB evaluation states.
 
             Note:
-            * `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `KYC_ADVANCED` workflow.
             * `PENDING_REVIEW` is only applicable for the `KYB_BASIC` workflow.
           enum:
             - ACCEPTED
@@ -10504,7 +10431,7 @@ components:
           $ref: '#/components/schemas/AccountHolderVerificationApplication'
           description: Information about the most recent identity verification attempt
         required_documents:
-          description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
+          description: Only present for "KYB_BASIC" workflow. A list of documents required for the account holder to be approved.
           type: array
           items:
             $ref: '#/components/schemas/required-document'
@@ -10699,7 +10626,6 @@ components:
             KYC and KYB evaluation states.
 
             Note:
-            * `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `KYC_ADVANCED` workflow.
             * `PENDING_REVIEW` is only applicable for the `KYB_BASIC` workflow.
           enum:
             - ACCEPTED
@@ -12616,7 +12542,6 @@ components:
         workflow:
           description: Specifies the type of KYC workflow to run.
           enum:
-            - KYC_ADVANCED
             - KYC_BASIC
             - KYC_BYO
           type: string
@@ -17000,10 +16925,7 @@ components:
       oneOf:
         - type: 'null'
         - type: object
-      description: |-
-        Information provided by the card network in each event. This includes common identifiers shared between you, Lithic, the card network and in some cases the acquirer. These identifiers often link together events within the same transaction lifecycle and can be used to locate a particular transaction, such as during processing of disputes. Not all fields are available in all events, and the presence of these fields is dependent on the card network and the event type.
-
-        Now available in sandbox, and available in production on December 17th, 2024.
+      description: Information provided by the card network in each event. This includes common identifiers shared between you, Lithic, the card network and in some cases the acquirer. These identifiers often link together events within the same transaction lifecycle and can be used to locate a particular transaction, such as during processing of disputes. Not all fields are available in all events, and the presence of these fields is dependent on the card network and the event type.
       properties:
         acquirer:
           properties:
@@ -17121,7 +17043,6 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Detailed Rule Result
       type: object
-      description: Available in production on December 17th, 2024.
       properties:
         auth_rule_token:
           description: The Auth Rule Token associated with the rule from which the decline originated. If this is set to null, then the decline was not associated with a customer-configured Auth Rule. This may happen in cases where a transaction is declined due to a Lithic-configured security or compliance rule, for example.
@@ -17130,6 +17051,7 @@ components:
             - type: string
               format: uuid
         result:
+          description: The detailed_result associated with this rule's decline.
           $ref: '#/components/schemas/detailed_result'
         name:
           description: The name for the rule, if any was configured.
@@ -17245,6 +17167,8 @@ components:
         - result
         - token
         - type
+        - rule_results
+        - network_info
     merchant:
       $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/merchant.json
       $schema: https://json-schema.org/draft/2020-12/schema
