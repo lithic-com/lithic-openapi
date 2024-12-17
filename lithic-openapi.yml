@@ -74,7 +74,7 @@ paths:
           schema:
             type: string
         - description: Phone number of the account holder. The query must be an exact match.
-          example: 5555555555
+          example: '+15555555555'
           in: query
           name: phone_number
           schema:
@@ -102,7 +102,7 @@ paths:
                         created: '2024-01-11T19:50:36.105448'
                         email: john@appleseed.com
                         exemption_type: AUTHORIZED_USER
-                        external_id: '5555555555'
+                        external_id: '+15555555555'
                         individual:
                           address:
                             address1: 123 Main Street
@@ -114,9 +114,9 @@ paths:
                           email: john@appleseed.com
                           first_name: John
                           last_name: Appleseed
-                          phone_number: '5555555555'
+                          phone_number: '+15555555555'
                           entity_token: 49c978db-20c4-46d8-9db4-b0ef28c03533
-                        phone_number: '5555555555'
+                        phone_number: '+15555555555'
                         status: ACCEPTED
                         token: b68b7424-aa69-4cbc-a946-30d90181b621
                         user_type: INDIVIDUAL
@@ -138,7 +138,7 @@ paths:
                             legal_business_name: Busy Business, Inc.
                             parent_company: Example company
                             phone_numbers:
-                              - '5555555555'
+                              - '+15555555555'
                             entity_token: d89185ca-1fad-4f33-905c-416b4270a5d4
                         business_account_token: 00000000-0000-0000-0000-000000000000
                         business_entity:
@@ -153,7 +153,7 @@ paths:
                           legal_business_name: Busy Business, Inc.
                           parent_company: Example company
                           phone_numbers:
-                            - '5555555555'
+                            - '+15555555555'
                           entity_token: f360a3c0-24e6-4852-ae82-27916a5c4e86
                         control_person:
                           address:
@@ -166,7 +166,7 @@ paths:
                           email: john@busybusiness.com
                           first_name: John
                           last_name: Appleseed
-                          phone_number: '5555555555'
+                          phone_number: '+15555555555'
                           entity_token: 9d657ba0-7c8a-4946-a596-f99d978a4137
                         created: '2024-01-11T19:50:36.105449'
                         exemption_type: AUTHORIZED_USER
@@ -228,7 +228,7 @@ paths:
                       incorporation_state: NV
                       legal_business_name: Majority Holdings LLC
                       phone_numbers:
-                        - '+12124007676'
+                        - '+15555555555'
                   beneficial_owner_individuals:
                     - address:
                         address1: 300 Normal Forest Way
@@ -257,7 +257,7 @@ paths:
                     incorporation_state: DE
                     legal_business_name: Busy Business, Inc.
                     phone_numbers:
-                      - '+12124007676'
+                      - '+15555555555'
                   control_person:
                     address:
                       address1: 451 New Forest Way
@@ -293,7 +293,7 @@ paths:
                   first_name: Tom
                   kyc_exemption_type: AUTHORIZED_USER
                   last_name: Bombadil
-                  phone_number: '+12124007676'
+                  phone_number: '+15555555555'
                   workflow: KYC_EXEMPT
               kycRequest:
                 summary: Create an account holder with KYC workflow
@@ -310,7 +310,7 @@ paths:
                     first_name: Tom
                     government_id: 111-23-1412
                     last_name: Bombadil
-                    phone_number: '+12124007676'
+                    phone_number: '+15555555555'
                   tos_timestamp: '2022-03-08 08:00:00'
                   workflow: KYC_ADVANCED
             schema:
@@ -462,10 +462,10 @@ paths:
                       email: john@appleseed.com
                       first_name: John
                       last_name: Appleseed
-                      phone_number: '5555555555'
+                      phone_number: '+15555555555'
                       entity_token: fd771a07-c5c2-42f3-a53c-a6c79c6c0d07
                     email: john@appleseed.com
-                    phone_number: '5555555555'
+                    phone_number: '+15555555555'
                     status: ACCEPTED
                 kybBasicPendingReview:
                   summary: Pending review submission for a KYB_BASIC account_holder
@@ -511,7 +511,7 @@ paths:
                       legal_business_name: Busy Business, Inc.
                       parent_company: Example company
                       phone_numbers:
-                        - '5555555555'
+                        - '+15555555555'
                       entity_token: 05cc03c9-dea6-4d17-a11e-0f3ea57d51a5
                     control_person:
                       address:
@@ -524,7 +524,7 @@ paths:
                       email: john@appleseed.com
                       first_name: John
                       last_name: Appleseed
-                      phone_number: '5555555555'
+                      phone_number: '+15555555555'
                       entity_token: fd771a07-c5c2-42f3-a53c-a6c79c6c0d07
                     beneficial_owner_entities:
                       - address:
@@ -538,7 +538,7 @@ paths:
                         legal_business_name: Busy Business, Inc.
                         parent_company: Example company
                         phone_numbers:
-                          - '5555555555'
+                          - '+15555555555'
                         entity_token: 2b3cdab5-c866-408f-85bc-e707015ee409
               schema:
                 $ref: '#/components/schemas/AccountHolder'
@@ -1570,7 +1570,7 @@ paths:
         - Card
     post:
       description: |
-        Create a new virtual or physical card. Parameters `pin`, `shipping_address`, and `product_id` only apply to physical cards.
+        Create a new virtual or physical card. Parameters `shipping_address` and `product_id` only apply to physical cards.
       operationId: postCards
       requestBody:
         content:
@@ -1637,14 +1637,14 @@ paths:
                   example: New Card
                   type: string
                 pin:
-                  description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block).
+                  description: Encrypted PIN block (in base64). Applies to cards of type `PHYSICAL` and `VIRTUAL`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block).
                   type: string
                 product_id:
                   description: Only applicable to cards of type `PHYSICAL`. This must be configured with Lithic before use. Specifies the configuration (i.e., physical card art) that the card should be manufactured with.
                   example: '1'
                   type: string
                 replacement_for:
-                  description: Only applicable to cards of type `PHYSICAL`. Globally unique identifier for the card that this physical card will replace.
+                  description: Globally unique identifier for the card that this card will replace. If the card type is `PHYSICAL` it will be replaced by a `PHYSICAL` card. If the card type is `VIRTUAL` it will be replaced by a `VIRTUAL` card.
                   example: 00000000-0000-0000-1000-000000000000
                   format: uuid
                   type: string
@@ -1881,7 +1881,7 @@ paths:
         - Card
     patch:
       description: |
-        Update the specified properties of the card. Unsupplied properties will remain unchanged. `pin` parameter only applies to physical cards.
+        Update the specified properties of the card. Unsupplied properties will remain unchanged.
 
         *Note: setting a card to a `CLOSED` state is a final action that cannot be undone.*
       operationId: patchCardByToken
@@ -2215,9 +2215,9 @@ paths:
         - Card
   /v1/cards/{card_token}/reissue:
     post:
-      description: |
-        Initiate print and shipment of a duplicate physical card.
-
+      description: |-
+        Initiate print and shipment of a duplicate physical card (e.g. card is physically damaged).  The PAN, expiry, and CVC2 will remain the same and the original card can continue to be used until the new card is activated.
+        A card can be reissued a maximum of 8 times.
         Only applies to cards of type `PHYSICAL`.
       operationId: postCardReissue
       parameters:
@@ -2320,10 +2320,9 @@ paths:
         - Card
   /v1/cards/{card_token}/renew:
     post:
-      description: |
-        Initiate print and shipment of a renewed physical card.
-
-        Only applies to cards of type `PHYSICAL`.
+      description: |-
+        Creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
+        Applies to card types `PHYSICAL` and `VIRTUAL`.
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2434,7 +2433,109 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
-      summary: Renew physical card
+      summary: Renew a card
+      tags:
+        - Card
+  /v1/cards/{card_token}/convert_physical:
+    post:
+      description: |-
+        Convert a virtual card into a physical card and manufacture it.
+        Customer must supply relevant fields for physical card creation including `product_id`, `carrier`, `shipping_method`, and `shipping_address`.
+        The card token will be unchanged.  The card's type will be altered to `PHYSICAL`.
+        The card will be set to state `PENDING_FULFILLMENT` and fulfilled at next fulfillment cycle.
+        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in a state of either `OPEN` or `PAUSED` to be converted.
+        Only applies to cards of type `VIRTUAL` (or existing cards with deprecated types of `DIGITAL_WALLET` and `UNLOCKED`).
+      operationId: postConvertPhysical
+      parameters:
+        - $ref: '#/components/parameters/cardToken'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              convertPhysicalAddress:
+                summary: Convert virtual card to physical card
+                value:
+                  carrier:
+                    qr_code_url: https://lithic.com/activate-card/1
+                  product_id: '100'
+                  shipping_address:
+                    address1: 5 Broad Street
+                    address2: Unit 5A
+                    city: NEW YORK
+                    country: USA
+                    first_name: Janet
+                    last_name: Yellen
+                    postal_code: '10001'
+                    state: NY
+                  shipping_method: STANDARD
+            schema:
+              properties:
+                carrier:
+                  $ref: '#/components/schemas/Carrier'
+                  description: If omitted, the previous carrier will be used.
+                product_id:
+                  description: |
+                    Specifies the configuration (e.g. physical card art) that the card should be manufactured with, and only applies to cards of type `PHYSICAL`. This must be configured with Lithic before use.
+                  type: string
+                shipping_address:
+                  $ref: '#/components/schemas/ShippingAddress'
+                  description: The shipping address this card will be sent to.
+                shipping_method:
+                  description: |
+                    Shipping method for the card. Use of options besides `STANDARD` require additional permissions.
+                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
+                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                  enum:
+                    - 2-DAY
+                    - EXPEDITED
+                    - EXPRESS
+                    - PRIORITY
+                    - STANDARD
+                    - STANDARD_WITH_TRACKING
+                  type: string
+              required:
+                - shipping_address
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_token: f3f4918c-dee9-464d-a819-4aa42901d624
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
+                cardholder_currency: USD
+                created: '2021-06-28T22:53:15Z'
+                cvv: '742'
+                exp_month: '05'
+                exp_year: '2027'
+                hostname: ''
+                last_four: '4938'
+                memo: Updated Name
+                pan: '4111111289144142'
+                spend_limit: 100
+                spend_limit_duration: FOREVER
+                state: OPEN
+                token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
+                type: PHYSICAL
+              schema:
+                $ref: '#/components/schemas/Card'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Convert virtual to physical card
       tags:
         - Card
   /v1/cards/{card_token}/spend_limits:
@@ -2908,7 +3009,7 @@ paths:
       description: |
         Handling full card PANs and CVV codes requires that you comply with the Payment Card Industry Data Security Standards (PCI DSS). Some clients choose to reduce their compliance obligations by leveraging our embedded card UI solution documented below.
 
-        In this setup, PANs and CVV codes are presented to the end-user via a card UI that we provide, optionally styled in the customer's branding using a specified css stylesheet. A user's browser makes the request directly to api.lithic.com, so card PANs and CVVs never touch the API customer's servers while full card data is displayed to their end-users. The response contains an HTML document. This means that the url for the request can be inserted straight into the `src` attribute of an iframe.
+        In this setup, PANs and CVV codes are presented to the end-user via a card UI that we provide, optionally styled in the customer's branding using a specified css stylesheet. A user's browser makes the request directly to api.lithic.com, so card PANs and CVVs never touch the API customer's servers while full card data is displayed to their end-users. The response contains an HTML document (see Embedded Card UI or Changelog for upcoming changes in January). This means that the url for the request can be inserted straight into the `src` attribute of an iframe.
 
         ```html
         <iframe id="card-iframe"
@@ -3245,6 +3346,7 @@ paths:
                       - card.created
                       - card.renewed
                       - card.reissued
+                      - card.converted
                       - card.shipped
                       - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
@@ -3405,6 +3507,7 @@ paths:
                       - card.created
                       - card.renewed
                       - card.reissued
+                      - card.converted
                       - card.shipped
                       - card_transaction.updated
                       - digital_wallet.tokenization_approval_request
@@ -3666,6 +3769,7 @@ paths:
                 - card.created
                 - card.renewed
                 - card.reissued
+                - card.converted
                 - card.shipped
                 - card_transaction.updated
                 - digital_wallet.tokenization_approval_request
@@ -5385,6 +5489,12 @@ paths:
                     Partial approval is when part of a transaction is approved and another
                     payment must be used for the remainder.
                   type: boolean
+                pin:
+                  description: Simulate entering a PIN. If omitted, PIN check will not be performed.
+                  example: '1234'
+                  maxLength: 12
+                  minLength: 4
+                  type: string
                 status:
                   default: AUTHORIZATION
                   description: |
@@ -5607,6 +5717,7 @@ paths:
                     - card.created
                     - card.renewed
                     - card.reissued
+                    - card.converted
                     - card.shipped
                     - card_transaction.updated
                     - digital_wallet.tokenization_approval_request
@@ -7812,7 +7923,7 @@ webhooks:
                   type: string
                 phone_number:
                   description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
-                  example: '15555555555'
+                  example: '+15555555555'
                   type: string
                 token:
                   description: The token of the account_holder that was created.
@@ -8246,6 +8357,38 @@ webhooks:
       summary: card.created
       tags:
         - Event Types
+  card.converted:
+    post:
+      description: Occurs when a card is converted from virtual to physical cards.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              examples:
+                - card_token: 00000000-0000-0000-0000-000000000001
+                - event_type: card.converted
+              properties:
+                card_token:
+                  description: The token of the card that was created.
+                  example: 00000000-0000-0000-0000-000000000001
+                  format: uuid
+                  type: string
+                event_type:
+                  description: The type of event that occurred.
+                  enum:
+                    - card.converted
+                  example: card.converted
+                  type: string
+              required:
+                - card_token
+                - event_type
+              type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: card.converted
+      tags:
+        - Event Types
   card.renewed:
     post:
       description: Occurs when a card is renewed.
@@ -8625,7 +8768,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   authentication_code: 123456
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
@@ -8652,7 +8795,7 @@ webhooks:
                       description: |-
                         The location where the user wants to receive the authentication code.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -8712,7 +8855,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
                   event_type: digital_wallet.tokenization_two_factor_authentication_code_sent
@@ -8738,7 +8881,7 @@ webhooks:
                       description: |-
                         The location to which the authentication code was sent.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -9430,7 +9573,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   authentication_code: 123456
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
@@ -9457,7 +9600,7 @@ webhooks:
                       description: |-
                         The location where the user wants to receive the authentication code.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -9514,7 +9657,7 @@ webhooks:
                 - account_token: 00000000-0000-0000-0000-000000000002
                   activation_method:
                     type: TEXT_TO_CARDHOLDER_NUMBER
-                    value: 5555555555
+                    value: 15555555555
                   card_token: 00000000-0000-0000-0000-000000000001
                   created: '2020-01-01T00:00:00Z'
                   event_type: tokenization.two_factor_authentication_code_sent
@@ -9540,7 +9683,7 @@ webhooks:
                       description: |-
                         The location to which the authentication code was sent.
                         The format depends on the ActivationMethod.Type field. If Type is Email, the Value will be the email address. If the Type is Sms, the Value will be the phone number.
-                      example: '5555555555'
+                      example: '+15555555555'
                       type: string
                   required:
                     - type
@@ -10125,7 +10268,7 @@ components:
               type: string
             phone_number:
               description: Phone number of the individual.
-              example: '+12124007676'
+              example: '+15555555555'
               type: string
             token:
               description: Globally unique identifier for the account holder.
@@ -10282,7 +10425,7 @@ components:
               Use individual.phone_number when user_type == "INDIVIDUAL".
             >
             Primary email of Account Holder.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
         exemption_type:
           description: The type of KYC exemption for a KYC-Exempt Account Holder.
@@ -10309,7 +10452,7 @@ components:
               Use individual.phone_number when user_type == "INDIVIDUAL".
             >
             Primary phone of Account Holder, entered in E.164 format.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
         status:
           description: |
@@ -10488,7 +10631,7 @@ components:
           type: string
         phone_number:
           description: Individual's phone number, entered in E.164 format.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
         entity_token:
           description: Globally unique identifier for the entity.
@@ -10528,7 +10671,7 @@ components:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
             description: Business phone number, entered in E.164 format.
-            example: '+12124007676'
+            example: '+15555555555'
             type: string
           minItems: 1
           type: array
@@ -10943,7 +11086,7 @@ components:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
             description: Business phone number, entered in E.164 format.
-            example: '+12124007676'
+            example: '+15555555555'
             type: string
           minItems: 1
           type: array
@@ -11078,7 +11221,7 @@ components:
             * `OPEN` - Card will approve authorizations (if they match card and account parameters).
             * `PAUSED` - Card will decline authorizations, but can be resumed at a later time.
             * `PENDING_FULFILLMENT` - The initial state for cards of type `PHYSICAL`. The card is provisioned pending manufacturing and fulfillment. Cards in this state can accept authorizations for e-commerce purchases, but not for "Card Present" purchases where the physical card itself is present.
-            * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION` . Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions. API clients should update the card's state to `OPEN` only after the cardholder confirms receipt of the card.
+            * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION` . Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions or can be added to mobile wallets. API clients should update the card's state to `OPEN` only after the cardholder confirms receipt of the card.
 
             In sandbox, the same daily batch fulfillment occurs, but no cards are actually manufactured.
           enum:
@@ -11728,6 +11871,7 @@ components:
             * `card.renewed` - Notification that a card has been renewed.
             * `card.reissued` - Notification that a card has been reissued.
             * `card.shipped` - Physical card shipment notification. See https://docs.lithic.com/docs/cards#physical-card-shipped-webhook.
+            * `card.converted` - Notification that a virtual card has been converted to a physical card.
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
@@ -11745,6 +11889,7 @@ components:
             - card.created
             - card.renewed
             - card.reissued
+            - card.converted
             - card.shipped
             - card_transaction.updated
             - digital_wallet.tokenization_approval_request
@@ -11808,6 +11953,7 @@ components:
               - card.created
               - card.renewed
               - card.reissued
+              - card.converted
               - card.shipped
               - card_transaction.updated
               - digital_wallet.tokenization_approval_request
@@ -12349,7 +12495,7 @@ components:
         phone_number:
           description: |
             Individual's phone number, entered in E.164 format.
-          example: '+12124007676'
+          example: '+15555555555'
           type: string
       type: object
     LineItem:
@@ -13033,7 +13179,7 @@ components:
           type: string
         phone_number:
           description: Cardholder's phone number in E.164 format to be contacted for expedited shipping process purposes. Required if `shipping_method` is `EXPEDITED`.
-          example: '+12124007676'
+          example: '+15555555555'
           maxLength: 16
           minLength: 8
           type: string
@@ -14121,6 +14267,15 @@ components:
       items:
         type: string
         format: uuid
+    excluded-card-tokens:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/excluded-card-tokens.json
+      title: Auth Rule Excluded Card Tokens
+      description: Card tokens to which the Auth Rule does not apply.
+      type: array
+      items:
+        type: string
+        format: uuid
     account-tokens:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/account-tokens.json
@@ -14165,6 +14320,8 @@ components:
                   * `PAN_ENTRY_MODE`: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, `CREDENTIAL_ON_FILE`, or `ECOMMERCE`.
                   * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
                   * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+                  * `CARD_TRANSACTION_COUNT_1H`: The number of transactions on the card in the trailing hour up and until the authorization.
+                  * `CARD_TRANSACTION_COUNT_24H`: The number of transactions on the card in the trailing 24 hours up and until the authorization.
                 enum:
                   - MCC
                   - COUNTRY
@@ -14175,6 +14332,8 @@ components:
                   - PAN_ENTRY_MODE
                   - TRANSACTION_AMOUNT
                   - RISK_SCORE
+                  - CARD_TRANSACTION_COUNT_1H
+                  - CARD_TRANSACTION_COUNT_24H
               operation:
                 type: string
                 description: The operation to apply to the attribute
@@ -14317,6 +14476,15 @@ components:
           required:
             - parameters
             - version
+    auth-rule-name:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-name.json
+      title: Auth Rule Name
+      description: Auth Rule Name
+      anyOf:
+        - type: 'null'
+        - type: string
+          maxLength: 1024
     auth-rule:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
@@ -14331,6 +14499,8 @@ components:
           $ref: '#/components/schemas/program-level'
         card_tokens:
           $ref: '#/components/schemas/card-tokens'
+        excluded_card_tokens:
+          $ref: '#/components/schemas/excluded-card-tokens'
         account_tokens:
           $ref: '#/components/schemas/account-tokens'
         type:
@@ -14339,6 +14509,8 @@ components:
           $ref: '#/components/schemas/current-version'
         draft_version:
           $ref: '#/components/schemas/draft-version'
+        name:
+          $ref: '#/components/schemas/auth-rule-name'
       required:
         - token
         - state
@@ -14348,6 +14520,7 @@ components:
         - type
         - current_version
         - draft_version
+        - name
     schemas-Error:
       type: object
       properties:
@@ -14367,6 +14540,8 @@ components:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
           required:
             - account_tokens
         - properties:
@@ -14376,15 +14551,21 @@ components:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
           required:
             - card_tokens
         - properties:
             program_level:
               $ref: '#/components/schemas/program-level'
+            excluded_card_tokens:
+              $ref: '#/components/schemas/excluded-card-tokens'
             type:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
           required:
             - program_level
       required:
@@ -14403,6 +14584,8 @@ components:
             Note that only deactivating an Auth Rule through this endpoint is supported at this time. If you need to (re-)activate an Auth Rule the /promote endpoint should be used to promote a draft to the currently active version.
           type: string
           const: INACTIVE
+        name:
+          $ref: '#/components/schemas/auth-rule-name'
     apply-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/apply-auth-rule-request.json
@@ -14424,6 +14607,8 @@ components:
           properties:
             program_level:
               $ref: '#/components/schemas/program-level'
+            excluded_card_tokens:
+              $ref: '#/components/schemas/excluded-card-tokens'
           required:
             - program_level
     report-token:
@@ -14588,6 +14773,8 @@ components:
         - RETURN_REVERSAL
         - TRANSFER
         - TRANSFER_INSUFFICIENT_FUNDS
+        - RETURNED_PAYMENT
+        - RETURNED_PAYMENT_REVERSAL
     searchable_account_types:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/searchable_account_types.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16806,6 +16993,70 @@ components:
         - cardholder
         - merchant
         - settlement
+    network_info:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/network_info.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Information
+      oneOf:
+        - type: 'null'
+        - type: object
+      description: |-
+        Information provided by the card network in each event. This includes common identifiers shared between you, Lithic, the card network and in some cases the acquirer. These identifiers often link together events within the same transaction lifecycle and can be used to locate a particular transaction, such as during processing of disputes. Not all fields are available in all events, and the presence of these fields is dependent on the card network and the event type.
+
+        Now available in sandbox, and available in production on December 17th, 2024.
+      properties:
+        acquirer:
+          properties:
+            acquirer_reference_number:
+              description: Identifier assigned by the acquirer, applicable to dual-message transactions only. The acquirer reference number (ARN) is only populated once a transaction has been cleared, and it is not available in all transactions (such as automated fuel dispenser transactions). A single transaction can contain multiple ARNs if the merchant sends multiple clearings.
+              oneOf:
+                - type: 'null'
+                - type: string
+            retrieval_reference_number:
+              description: Identifier assigned by the acquirer.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - acquirer_reference_number
+            - retrieval_reference_number
+        mastercard:
+          properties:
+            banknet_reference_number:
+              description: Identifier assigned by Mastercard.
+              oneOf:
+                - type: 'null'
+                - type: string
+            switch_serial_number:
+              description: Identifier assigned by Mastercard, applicable to single-message transactions only.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - banknet_reference_number
+            - switch_serial_number
+        visa:
+          properties:
+            transaction_id:
+              description: Identifier assigned by Visa.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - transaction_id
+      required:
+        - acquirer
+        - mastercard
+        - visa
     detailed_result:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/detailed_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16865,6 +17116,36 @@ components:
         - TRANSACTION_PREVIOUSLY_COMPLETED
         - UNAUTHORIZED_MERCHANT
         - VEHICLE_NUMBER_INVALID
+    rule_result:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/rule_result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Detailed Rule Result
+      type: object
+      description: Available in production on December 17th, 2024.
+      properties:
+        auth_rule_token:
+          description: The Auth Rule Token associated with the rule from which the decline originated. If this is set to null, then the decline was not associated with a customer-configured Auth Rule. This may happen in cases where a transaction is declined due to a Lithic-configured security or compliance rule, for example.
+          oneOf:
+            - type: 'null'
+            - type: string
+              format: uuid
+        result:
+          $ref: '#/components/schemas/detailed_result'
+        name:
+          description: The name for the rule, if any was configured.
+          oneOf:
+            - type: 'null'
+            - type: string
+        explanation:
+          description: A human-readable explanation outlining the motivation for the rule's decline.
+          oneOf:
+            - type: 'null'
+            - type: string
+      required:
+        - auth_rule_token
+        - explanation
+        - name
+        - result
     decline_result:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/decline_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16912,9 +17193,15 @@ components:
           example: '2023-09-26T21:14:28.637Z'
           format: date-time
           type: string
+        network_info:
+          $ref: '#/components/schemas/network_info'
         detailed_results:
           items:
             $ref: '#/components/schemas/detailed_result'
+          type: array
+        rule_results:
+          items:
+            $ref: '#/components/schemas/rule_result'
           type: array
         effective_polarity:
           description: Indicates whether the transaction event is a credit or debit to the account.
@@ -17193,6 +17480,7 @@ components:
           type:
             - string
             - 'null'
+          deprecated: true
         account_token:
           description: The token for the account associated with this transaction.
           example: bd5e5649-1be8-4117-9bc5-3268258d1417
@@ -17382,7 +17670,16 @@ components:
               detailed_results:
                 - APPROVED
               effective_polarity: DEBIT
+              network_info:
+                acquirer:
+                  acquirer_reference_number: null
+                  retrieval_reference_number: '064386558597'
+                mastercard:
+                  banknet_reference_number: U1HSCJ
+                  switch_serial_number: null
+                visa: null
               result: APPROVED
+              rule_results: []
               token: bbbf1e86-322d-11ee-9779-00505685a123
               type: AUTHORIZATION
           merchant:
@@ -17483,7 +17780,16 @@ components:
                   detailed_results:
                     - APPROVED
                   effective_polarity: DEBIT
+                  network_info:
+                    acquirer:
+                      acquirer_reference_number: null
+                      retrieval_reference_number: '064386558597'
+                    mastercard:
+                      banknet_reference_number: U1HSCJ
+                      switch_serial_number: null
+                    visa: null
                   result: APPROVED
+                  rule_results: []
                   token: bbbf1e86-322d-11ee-9779-00505685a123
                   type: AUTHORIZATION
               merchant:
@@ -17790,6 +18096,8 @@ components:
         - LATE_PAYMENT_REVERSAL
         - BILLING_ERROR_REVERSAL
         - PROVISIONAL_CREDIT_REVERSAL
+        - RETURNED_PAYMENT
+        - RETURNED_PAYMENT_REVERSAL
     management_operation_event:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18892,7 +19200,16 @@ components:
               detailed_results:
                 - APPROVED
               effective_polarity: DEBIT
+              network_info:
+                acquirer:
+                  acquirer_reference_number: null
+                  retrieval_reference_number: '064386558597'
+                mastercard:
+                  banknet_reference_number: U1HSCJ
+                  switch_serial_number: null
+                visa: null
               result: APPROVED
+              rule_results: []
               token: bbbf1e86-322d-11ee-9779-00505685a123
               type: AUTHORIZATION
           merchant:
