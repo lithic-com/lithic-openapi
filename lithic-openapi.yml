@@ -202,7 +202,7 @@ paths:
         - Account Holder
     post:
       description: |-
-        Run an individual or business's information through the Customer Identification Program (CIP).
+        Create an account holder and initiate the appropriate onboarding workflow.  Account holders and accounts have a 1:1 relationship. When an account holder is successfully created an associated account is also created.
         All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the enrollment is under review or further action will be needed to complete the account enrollment process.
         This endpoint can only be used on accounts that are part of the program that the calling API key manages.
       operationId: postAccountHolders
@@ -272,7 +272,7 @@ paths:
                     government_id: 111-23-1412
                     last_name: Timothy
                     nationality: US
-                    phone_number: '+12024008176'
+                    phone_number: '+15555555555'
                     title: CEO
                   kyb_passed_timestamp: '2022-03-08T08:00:00Z'
                   nature_of_business: Software company selling solutions to the restaurant industry
@@ -847,21 +847,21 @@ paths:
                 daily_spend_limit:
                   default: 125000
                   description: |
-                    Amount (in cents) for the account's daily spend limit.
+                    Amount (in cents) for the account's daily spend limit (e.g. 100000 would be a $1,000 limit).
                     By default the daily spend limit is set to $1,250.
                   minimum: 0
                   type: integer
                 lifetime_spend_limit:
                   default: 0
                   description: |
-                    Amount (in cents) for the account's lifetime spend limit. Once this limit is reached, no transactions will be accepted on any card created for this account until the limit is updated.
+                    Amount (in cents) for the account's lifetime spend limit (e.g. 100000 would be a $1,000 limit). Once this limit is reached, no transactions will be accepted on any card created for this account until the limit is updated.
                     Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the account limit. This behavior differs from the daily spend limit and the monthly spend limit.
                   minimum: 0
                   type: integer
                 monthly_spend_limit:
                   default: 500000
                   description: |
-                    Amount (in cents) for the account's monthly spend limit.
+                    Amount (in cents) for the account's monthly spend limit (e.g. 100000 would be a $1,000 limit).
                     By default the monthly spend limit is set to $5,000.
                   minimum: 0
                   type: integer
@@ -1603,7 +1603,7 @@ paths:
                     - STANDARD_WITH_TRACKING
                   type: string
                 spend_limit:
-                  description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
+                  description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
                   minimum: 0
                   type: integer
@@ -1848,7 +1848,7 @@ paths:
                     - OK
                   type: string
                 spend_limit:
-                  description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
+                  description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
                   type: integer
                 spend_limit_duration:
@@ -2372,7 +2372,7 @@ paths:
         Customer must supply relevant fields for physical card creation including `product_id`, `carrier`, `shipping_method`, and `shipping_address`.
         The card token will be unchanged.  The card's type will be altered to `PHYSICAL`.
         The card will be set to state `PENDING_FULFILLMENT` and fulfilled at next fulfillment cycle.
-        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in a state of either `OPEN` or `PAUSED` to be converted.
+        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in an `OPEN` state to be converted.
         Only applies to cards of type `VIRTUAL` (or existing cards with deprecated types of `DIGITAL_WALLET` and `UNLOCKED`).
       operationId: postConvertPhysical
       parameters:
@@ -10663,7 +10663,7 @@ components:
         available_spend_limit:
           properties:
             daily:
-              description: The available spend limit (in cents) relative to the daily limit configured on the Account.
+              description: The available spend limit (in cents) relative to the daily limit configured on the Account (e.g. 100000 would be a $1,000 limit).
               example: 100000
               type: integer
             lifetime:
@@ -11126,7 +11126,7 @@ components:
           example: '1'
           type: string
         spend_limit:
-          description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined.
+          description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined.
           example: 1000
           type: integer
         spend_limit_duration:
@@ -11286,7 +11286,7 @@ components:
         available_spend_limit:
           properties:
             annually:
-              description: The available spend limit (in cents) relative to the annual limit configured on the Card.
+              description: The available spend limit (in cents) relative to the annual limit configured on the Card (e.g. 100000 would be a $1,000 limit).
               example: 200000
               type: integer
             forever:
@@ -12580,7 +12580,7 @@ components:
           description: The KYC Exempt user's last name
           type: string
         phone_number:
-          description: The KYC Exempt user's phone number
+          description: The KYC Exempt user's phone number, entered in E.164 format.
           type: string
         workflow:
           description: Specifies the workflow type. This must be 'KYC_EXEMPT'
