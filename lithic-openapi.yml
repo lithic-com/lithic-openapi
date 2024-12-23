@@ -684,6 +684,7 @@ paths:
                     - UTILITY_BILL_STATEMENT
                     - SSN_CARD
                     - ITIN_LETTER
+                    - FINCEN_BOI_REPORT
                   type: string
                 entity_token:
                   description: Globally unique identifier for the entity.
@@ -10481,6 +10482,7 @@ components:
             - UTILITY_BILL_STATEMENT
             - SSN_CARD
             - ITIN_LETTER
+            - FINCEN_BOI_REPORT
           type: string
         entity_token:
           description: Globally unique identifier for the entity.
@@ -14028,6 +14030,7 @@ components:
         - UTILITY_BILL_STATEMENT
         - SSN_CARD
         - ITIN_LETTER
+        - FINCEN_BOI_REPORT
     document-upload-status:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status.json
