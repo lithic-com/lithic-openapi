@@ -6955,6 +6955,12 @@ paths:
               - APPROVED
               - DECLINED
             type: string
+        - in: query
+          description: Filters for transactions using transaction status field.
+          name: status
+          required: false
+          schema:
+            $ref: '#/components/schemas/card_transaction_status_filter'
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/endingBefore'
@@ -16497,6 +16503,17 @@ components:
       required:
         - document_upload_token
         - status
+    card_transaction_status_filter:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction_status_filter.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Card Transaction Status Filter
+      type: string
+      enum:
+        - PENDING
+        - VOIDED
+        - SETTLED
+        - DECLINED
+        - EXPIRED
     currency:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/currency.json
       $schema: https://json-schema.org/draft/2020-12/schema
