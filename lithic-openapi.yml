@@ -6016,7 +6016,8 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 tokenization_channel: DIGITAL_WALLET
                 token_requestor_name: APPLE_PAY
-                token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                dpan: 5489123487251234
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6612,6 +6613,7 @@ paths:
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                    dpan: 5489123487251234
                     updated_at: '2023-08-28T15:57:14.578051'
                 has_more: false
               schema:
@@ -6666,6 +6668,7 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                dpan: 5489123487251234
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6908,6 +6911,7 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                dpan: 5489123487251234
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -8887,7 +8891,8 @@ webhooks:
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
-                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                    dpan: 5489123487251234
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -9686,7 +9691,8 @@ webhooks:
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
-                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                    dpan: 5489123487251234
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -13702,6 +13708,11 @@ components:
         token_unique_reference:
           description: The network's unique reference for the tokenization.
           type: string
+        dpan:
+          description: The network's dynamic pan for the tokenized transaction.
+          type:
+            - string
+            - 'null'
         tokenization_channel:
           description: The channel through which the tokenization was made.
           enum:
@@ -13720,6 +13731,7 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
+        - dpan
         - tokenization_channel
         - updated_at
       type: object
