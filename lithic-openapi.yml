@@ -13709,7 +13709,7 @@ components:
           description: The network's unique reference for the tokenization.
           type: string
         dpan:
-          description: The dynamic pan assigned to the token by the network.
+          description: The network's dynamic pan for the tokenized transaction.
           type:
             - string
             - 'null'
