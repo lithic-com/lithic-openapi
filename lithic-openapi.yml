@@ -6018,6 +6018,7 @@ paths:
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                 dpan: 5489123487251234
+                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6614,6 +6615,7 @@ paths:
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                     dpan: 5489123487251234
+                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-08-28T15:57:14.578051'
                 has_more: false
               schema:
@@ -6669,6 +6671,7 @@ paths:
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                 dpan: 5489123487251234
+                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6912,6 +6915,7 @@ paths:
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                 dpan: 5489123487251234
+                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -8893,6 +8897,7 @@ webhooks:
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                     dpan: 5489123487251234
+                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -9693,6 +9698,7 @@ webhooks:
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                     dpan: 5489123487251234
+                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -13709,7 +13715,12 @@ components:
           description: The network's unique reference for the tokenization.
           type: string
         dpan:
-          description: The network's dynamic pan for the tokenized transaction.
+          description: The dynamic pan assigned to the token by the network.
+          type:
+            - string
+            - 'null'
+        payment_account_reference_id:
+          description: The network's unique reference for the card that is tokenized.
           type:
             - string
             - 'null'
