@@ -13602,6 +13602,25 @@ components:
             Globally unique identifier for the 3DS authentication.
           format: uuid
           type: string
+        three_ds_requestor_challenge_indicator:
+          description: |
+            Indicates whether a challenge is requested for this transaction
+            * `NO_PREFERENCE` - No Preference
+            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
+            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
+            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
+            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
+            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
+            * `OTHER` - Other indicators not captured by above. These are rarely used
+          enum:
+            - NO_PREFERENCE
+            - NO_CHALLENGE_REQUESTED
+            - CHALLENGE_PREFERENCE
+            - CHALLENGE_MANDATE
+            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
+            - DATA_SHARE_ONLY
+            - OTHER
+          type: string
         transaction:
           description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
           oneOf:
@@ -13656,6 +13675,7 @@ components:
         - decision_made_by
         - merchant
         - message_category
+        - three_ds_requestor_challenge_indicator
         - token
       type: object
     Tokenization:
