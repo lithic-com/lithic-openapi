@@ -202,7 +202,7 @@ paths:
         - Account Holder
     post:
       description: |-
-        Run an individual or business's information through the Customer Identification Program (CIP).
+        Create an account holder and initiate the appropriate onboarding workflow.  Account holders and accounts have a 1:1 relationship. When an account holder is successfully created an associated account is also created.
         All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the enrollment is under review or further action will be needed to complete the account enrollment process.
         This endpoint can only be used on accounts that are part of the program that the calling API key manages.
       operationId: postAccountHolders
@@ -272,7 +272,7 @@ paths:
                     government_id: 111-23-1412
                     last_name: Timothy
                     nationality: US
-                    phone_number: '+12024008176'
+                    phone_number: '+15555555555'
                     title: CEO
                   kyb_passed_timestamp: '2022-03-08T08:00:00Z'
                   nature_of_business: Software company selling solutions to the restaurant industry
@@ -684,6 +684,7 @@ paths:
                     - UTILITY_BILL_STATEMENT
                     - SSN_CARD
                     - ITIN_LETTER
+                    - FINCEN_BOI_REPORT
                   type: string
                 entity_token:
                   description: Globally unique identifier for the entity.
@@ -846,21 +847,21 @@ paths:
                 daily_spend_limit:
                   default: 125000
                   description: |
-                    Amount (in cents) for the account's daily spend limit.
+                    Amount (in cents) for the account's daily spend limit (e.g. 100000 would be a $1,000 limit).
                     By default the daily spend limit is set to $1,250.
                   minimum: 0
                   type: integer
                 lifetime_spend_limit:
                   default: 0
                   description: |
-                    Amount (in cents) for the account's lifetime spend limit. Once this limit is reached, no transactions will be accepted on any card created for this account until the limit is updated.
+                    Amount (in cents) for the account's lifetime spend limit (e.g. 100000 would be a $1,000 limit). Once this limit is reached, no transactions will be accepted on any card created for this account until the limit is updated.
                     Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the account limit. This behavior differs from the daily spend limit and the monthly spend limit.
                   minimum: 0
                   type: integer
                 monthly_spend_limit:
                   default: 500000
                   description: |
-                    Amount (in cents) for the account's monthly spend limit.
+                    Amount (in cents) for the account's monthly spend limit (e.g. 100000 would be a $1,000 limit).
                     By default the monthly spend limit is set to $5,000.
                   minimum: 0
                   type: integer
@@ -1602,7 +1603,7 @@ paths:
                     - STANDARD_WITH_TRACKING
                   type: string
                 spend_limit:
-                  description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
+                  description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
                   minimum: 0
                   type: integer
@@ -1847,7 +1848,7 @@ paths:
                     - OK
                   type: string
                 spend_limit:
-                  description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
+                  description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
                   type: integer
                 spend_limit_duration:
@@ -2371,7 +2372,7 @@ paths:
         Customer must supply relevant fields for physical card creation including `product_id`, `carrier`, `shipping_method`, and `shipping_address`.
         The card token will be unchanged.  The card's type will be altered to `PHYSICAL`.
         The card will be set to state `PENDING_FULFILLMENT` and fulfilled at next fulfillment cycle.
-        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in a state of either `OPEN` or `PAUSED` to be converted.
+        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in an `OPEN` state to be converted.
         Only applies to cards of type `VIRTUAL` (or existing cards with deprecated types of `DIGITAL_WALLET` and `UNLOCKED`).
       operationId: postConvertPhysical
       parameters:
@@ -6015,7 +6016,9 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 tokenization_channel: DIGITAL_WALLET
                 token_requestor_name: APPLE_PAY
-                token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                dpan: 5489123487251234
+                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6611,6 +6614,8 @@ paths:
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                    dpan: 5489123487251234
+                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-08-28T15:57:14.578051'
                 has_more: false
               schema:
@@ -6665,6 +6670,8 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                dpan: 5489123487251234
+                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6907,6 +6914,8 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                dpan: 5489123487251234
+                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6954,6 +6963,12 @@ paths:
               - APPROVED
               - DECLINED
             type: string
+        - in: query
+          description: Filters for transactions using transaction status field.
+          name: status
+          required: false
+          schema:
+            $ref: '#/components/schemas/card_transaction_status_filter'
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/endingBefore'
@@ -8880,7 +8895,9 @@ webhooks:
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
-                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                    dpan: 5489123487251234
+                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -9679,7 +9696,9 @@ webhooks:
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
-                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
+                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
+                    dpan: 5489123487251234
+                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -10481,6 +10500,7 @@ components:
             - UTILITY_BILL_STATEMENT
             - SSN_CARD
             - ITIN_LETTER
+            - FINCEN_BOI_REPORT
           type: string
         entity_token:
           description: Globally unique identifier for the entity.
@@ -10661,7 +10681,7 @@ components:
         available_spend_limit:
           properties:
             daily:
-              description: The available spend limit (in cents) relative to the daily limit configured on the Account.
+              description: The available spend limit (in cents) relative to the daily limit configured on the Account (e.g. 100000 would be a $1,000 limit).
               example: 100000
               type: integer
             lifetime:
@@ -11124,7 +11144,7 @@ components:
           example: '1'
           type: string
         spend_limit:
-          description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined.
+          description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined.
           example: 1000
           type: integer
         spend_limit_duration:
@@ -11284,7 +11304,7 @@ components:
         available_spend_limit:
           properties:
             annually:
-              description: The available spend limit (in cents) relative to the annual limit configured on the Card.
+              description: The available spend limit (in cents) relative to the annual limit configured on the Card (e.g. 100000 would be a $1,000 limit).
               example: 200000
               type: integer
             forever:
@@ -12578,7 +12598,7 @@ components:
           description: The KYC Exempt user's last name
           type: string
         phone_number:
-          description: The KYC Exempt user's phone number
+          description: The KYC Exempt user's phone number, entered in E.164 format.
           type: string
         workflow:
           description: Specifies the workflow type. This must be 'KYC_EXEMPT'
@@ -13582,6 +13602,25 @@ components:
             Globally unique identifier for the 3DS authentication.
           format: uuid
           type: string
+        three_ds_requestor_challenge_indicator:
+          description: |
+            Indicates whether a challenge is requested for this transaction
+            * `NO_PREFERENCE` - No Preference
+            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
+            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
+            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
+            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
+            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
+            * `OTHER` - Other indicators not captured by above. These are rarely used
+          enum:
+            - NO_PREFERENCE
+            - NO_CHALLENGE_REQUESTED
+            - CHALLENGE_PREFERENCE
+            - CHALLENGE_MANDATE
+            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
+            - DATA_SHARE_ONLY
+            - OTHER
+          type: string
         transaction:
           description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
           oneOf:
@@ -13636,6 +13675,7 @@ components:
         - decision_made_by
         - merchant
         - message_category
+        - three_ds_requestor_challenge_indicator
         - token
       type: object
     Tokenization:
@@ -13694,6 +13734,16 @@ components:
         token_unique_reference:
           description: The network's unique reference for the tokenization.
           type: string
+        dpan:
+          description: The dynamic pan assigned to the token by the network.
+          type:
+            - string
+            - 'null'
+        payment_account_reference_id:
+          description: The network's unique reference for the card that is tokenized.
+          type:
+            - string
+            - 'null'
         tokenization_channel:
           description: The channel through which the tokenization was made.
           enum:
@@ -13712,6 +13762,7 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
+        - dpan
         - tokenization_channel
         - updated_at
       type: object
@@ -14028,6 +14079,7 @@ components:
         - UTILITY_BILL_STATEMENT
         - SSN_CARD
         - ITIN_LETTER
+        - FINCEN_BOI_REPORT
     document-upload-status:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status.json
@@ -16494,6 +16546,17 @@ components:
       required:
         - document_upload_token
         - status
+    card_transaction_status_filter:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction_status_filter.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Card Transaction Status Filter
+      type: string
+      enum:
+        - PENDING
+        - VOIDED
+        - SETTLED
+        - DECLINED
+        - EXPIRED
     currency:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/currency.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17108,6 +17171,7 @@ components:
           description: Amount of the event in the settlement currency.
           example: 1000
           type: integer
+          deprecated: true
         amounts:
           $ref: '#/components/schemas/transaction_event_amounts'
         created:
