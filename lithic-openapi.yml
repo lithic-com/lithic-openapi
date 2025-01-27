@@ -1001,7 +1001,7 @@ paths:
       parameters: []
       tags:
         - Authorization Rules
-      summary: Create a new V2 authorization rule
+      summary: Create a new rule
       description: Creates a new V2 authorization rule in draft mode
       requestBody:
         required: true
@@ -1041,7 +1041,7 @@ paths:
           required: false
       tags:
         - Authorization Rules
-      summary: List V2 authorization rules
+      summary: List rules
       description: Lists V2 authorization rules
       responses:
         '200':
@@ -1071,8 +1071,8 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Fetch a V2 authorization rule
-      description: Fetches an authorization rule by its token
+      summary: Fetch a rule
+      description: Fetches a V2 authorization rule by its token
       responses:
         '200':
           $ref: '#/components/responses/AuthRule'
@@ -1085,8 +1085,11 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Updates a V2 authorization rule
-      description: Updates an authorization rule's properties
+      summary: Update a rule
+      description: |
+        Updates a V2 authorization rule's properties
+
+        If `account_tokens`, `card_tokens`, `program_level`, or `excluded_card_tokens` is provided, this will replace existing associations with the provided list of entities.
       requestBody:
         required: true
         content:
@@ -1101,17 +1104,32 @@ paths:
           $ref: '#/components/responses/responses-BadRequest'
         '404':
           $ref: '#/components/responses/responses-NotFound'
-  /v2/auth_rules/{auth_rule_token}/apply:
-    post:
+    delete:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Apply a V2 authorization rule
+      summary: Delete a rule
+      description: Deletes a V2 authorization rule
+      responses:
+        '204':
+          description: Auth Rule Deleted
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v2/auth_rules/{auth_rule_token}/apply:
+    post:
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+      tags:
+        - Authorization Rules
+      summary: Apply a rule
       description: |
-        Associates an authorization rules with a card program, the provided account(s) or card(s).
+        Associates a V2 authorization rule with a card program, the provided account(s) or card(s).
 
-        This endpoint will replace any existing associations with the provided list of entities.
+        Prefer using the `PATCH` method for this operation.
       requestBody:
         required: true
         content:
@@ -1131,9 +1149,9 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Draft a new V2 authorization rule version
+      summary: Draft a new rule version
       description: |
-        Creates a new draft version of an authorization rules that will be ran in shadow mode.
+        Creates a new draft version of a rule that will be ran in shadow mode.
 
         This can also be utilized to reset the draft parameters, causing a draft version to no longer be ran in shadow mode.
       requestBody:
@@ -1145,7 +1163,8 @@ paths:
               properties:
                 parameters:
                   anyOf:
-                    - type: 'null'
+                    - title: Null (delete draft)
+                      type: 'null'
                       description: Resets the drafts parameters, causing a draft version to no longer be ran in shadow mode.
                     - $ref: '#/components/schemas/auth-rule-parameters'
       responses:
@@ -1161,8 +1180,8 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Promote draft authorization rule
-      description: Promotes a draft version of an authorization rule to the currently active version such that it is enforced in the authorization stream.
+      summary: Promote a rule version
+      description: Promotes the draft version of an authorization rule to the currently active version such that it is enforced in the authorization stream.
       responses:
         '200':
           $ref: '#/components/responses/AuthRule'
@@ -1176,7 +1195,7 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Request authorization rule performance report
+      summary: Request a performance report
       description: |
         Requests a performance report of an authorization rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
         The generated report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.performance_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
@@ -1215,7 +1234,7 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Request a backtest for an authorization rule
+      summary: Request a backtest
       description: |
         Initiates a request to asynchronously generate a backtest for an authorization rule. During backtesting, both the active version (if one exists) and the draft version of the Authorization Rule are evaluated by replaying historical transaction data against the rule's conditions. This process allows customers to simulate and understand the effects of proposed rule changes before deployment.
         The generated backtest report provides detailed results showing whether the draft version of the Auth Rule would have approved or declined historical transactions which were processed during the backtest period. These reports help evaluate how changes to rule configurations might affect overall transaction approval rates.
@@ -1252,7 +1271,7 @@ paths:
         - $ref: '#/components/parameters/backtestToken'
       tags:
         - Authorization Rules
-      summary: Retrieve the backtest results for an authorization rule
+      summary: Retrieve backtest results
       description: |
         Returns the backtest results of an authorization rule (if available).
 
@@ -14223,7 +14242,7 @@ components:
     auth-rule-state:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-state.json
-      title: Auth Rule Version 2 State
+      title: Auth Rule State
       type: string
       description: The state of the Auth Rule
       enum:
@@ -14265,7 +14284,7 @@ components:
     auth-rule-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-type.json
-      title: Auth Rule Version 2 Types
+      title: Auth Rule Types
       type: string
       enum:
         - CONDITIONAL_BLOCK
@@ -14274,7 +14293,7 @@ components:
     conditional-block-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-block-parameters.json
-      title: Conditional Block Rule Parameters
+      title: Conditional Block Parameters
       type: object
       properties:
         conditions:
@@ -14323,12 +14342,15 @@ components:
                   - IS_LESS_THAN
               value:
                 anyOf:
-                  - type: string
+                  - title: Regex
+                    type: string
                     description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - type: integer
+                  - title: Number
+                    type: integer
                     format: int64
                     description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
-                  - type: array
+                  - title: List of Strings
+                    type: array
                     items:
                       type: string
                     description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
@@ -14337,7 +14359,7 @@ components:
     velocity-limit-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-parameters.json
-      title: Velocity Limit Rule Parameters
+      title: Velocity Limit Parameters
       type: object
       properties:
         scope:
@@ -14347,11 +14369,13 @@ components:
             - ACCOUNT
         period:
           anyOf:
-            - type: integer
-              description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds.
+            - title: Trailing Window
+              type: integer
+              description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
               minimum: 10
               maximum: 2678400
-            - type: string
+            - title: Fixed Window
+              type: string
               enum:
                 - DAY
                 - MONTH
@@ -14365,9 +14389,11 @@ components:
           properties:
             include_mccs:
               anyOf:
-                - type: 'null'
+                - title: Null (include all MCCs)
+                  type: 'null'
                   description: Include all MCCs into the velocity computation.
-                - type: array
+                - title: List of MCCs
+                  type: array
                   items:
                     type: string
                     pattern: ^[0-9]{4}$
@@ -14375,9 +14401,11 @@ components:
                   description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
             include_countries:
               anyOf:
-                - type: 'null'
+                - title: Null (include all countries)
+                  type: 'null'
                   description: Include all countries into the velocity computation.
-                - type: array
+                - title: List of Country Codes
+                  type: array
                   items:
                     type: string
                     pattern: ^[A-Z]{3}$
@@ -14385,18 +14413,22 @@ components:
                   description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
         limit_amount:
           anyOf:
-            - type: 'null'
+            - title: Null (no amount limit)
+              type: 'null'
               description: No velocity limit on amount is applied to the transaction.
-            - type: integer
+            - title: Limit
+              type: integer
               format: int64
               minimum: 0
               description: The maximum amount of spend velocity allowed in the period in minor units (the smallest unit of a currency, e.g. cents for USD). Transactions exceeding this limit will be declined.
               example: 10000
         limit_count:
           anyOf:
-            - type: 'null'
+            - title: Null (no limit)
+              type: 'null'
               description: No limit on the number of velocity impacting events is applied.
-            - type: integer
+            - title: Limit
+              type: integer
               format: int64
               minimum: 0
               description: |-
@@ -14409,8 +14441,8 @@ components:
     auth-rule-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-parameters.json
-      title: Auth Rule Version 2 Parameters
-      description: Parameters for the current version of the Auth Rule
+      title: Auth Rule Parameters
+      description: Parameters for the Auth Rule
       anyOf:
         - $ref: '#/components/schemas/conditional-block-parameters'
         - $ref: '#/components/schemas/velocity-limit-parameters'
@@ -14465,7 +14497,7 @@ components:
     auth-rule:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
-      title: Auth Rule Version 2
+      title: Auth Rule
       type: object
       properties:
         token:
@@ -14507,10 +14539,11 @@ components:
     create-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/create-auth-rule-request.json
-      title: Auth Rule Version 2 Parameters
+      title: Auth Rule Parameters
       type: object
       oneOf:
-        - properties:
+        - title: Account Level Rule
+          properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
             type:
@@ -14521,7 +14554,8 @@ components:
               $ref: '#/components/schemas/auth-rule-name'
           required:
             - account_tokens
-        - properties:
+        - title: Card Level Rule
+          properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
             type:
@@ -14532,7 +14566,8 @@ components:
               $ref: '#/components/schemas/auth-rule-name'
           required:
             - card_tokens
-        - properties:
+        - title: Program Level Rule
+          properties:
             program_level:
               $ref: '#/components/schemas/program-level'
             excluded_card_tokens:
@@ -14551,7 +14586,7 @@ components:
     patch-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/patch-auth-rule-request.json
-      title: Auth Rule Version 2 Patch Request
+      title: Auth Rule Patch Request
       type: object
       properties:
         state:
@@ -14563,24 +14598,45 @@ components:
           const: INACTIVE
         name:
           $ref: '#/components/schemas/auth-rule-name'
+      anyOf:
+        - title: Account Level Rule
+          type: object
+          properties:
+            account_tokens:
+              $ref: '#/components/schemas/account-tokens'
+        - title: Card Level Rule
+          type: object
+          properties:
+            card_tokens:
+              $ref: '#/components/schemas/card-tokens'
+        - title: Program Level Rule
+          type: object
+          properties:
+            program_level:
+              $ref: '#/components/schemas/program-level'
+            excluded_card_tokens:
+              $ref: '#/components/schemas/excluded-card-tokens'
     apply-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/apply-auth-rule-request.json
-      title: Auth Rule Apply Version 2 Parameters
+      title: Auth Rule Apply Parameters
       anyOf:
-        - type: object
+        - title: Account Level Rule
+          type: object
           properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
           required:
             - account_tokens
-        - type: object
+        - title: Card Level Rule
+          type: object
           properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
           required:
             - card_tokens
-        - type: object
+        - title: Program Level Rule
+          type: object
           properties:
             program_level:
               $ref: '#/components/schemas/program-level'
@@ -14649,7 +14705,7 @@ components:
     backtest-results:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
-      title: Authorization Rules Backtest Results
+      title: Auth Rules Backtest Results
       type: object
       properties:
         backtest_token:
@@ -19132,7 +19188,7 @@ components:
     backtest-report:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-report.json
-      title: Authorization Rules Backtest Report
+      title: Auth Rules Backtest Report
       description: Webhook payload for the auth_rules.backtest_report.created event.
       allOf:
         - $ref: '#/components/schemas/backtest-results'
