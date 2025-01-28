@@ -241,7 +241,7 @@ paths:
                       first_name: Timmy
                       government_id: 211-23-1412
                       last_name: Turner
-                      phone_number: '+12024007611'
+                      phone_number: '+15555555555'
                   business_entity:
                     address:
                       address1: 123 Old Forest Way
@@ -16396,7 +16396,7 @@ components:
           description: Individual's last name, as it appears on government-issued identity documents.
         phone_number:
           type: string
-          example: '+12124007676'
+          example: '+15555555555'
           description: Individual's phone number, entered in E.164 format.
         government_id:
           type: string
@@ -16430,7 +16430,7 @@ components:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
             description: Business phone number, entered in E.164 format.
-            example: '+12124007676'
+            example: '+15555555555'
             type: string
           minItems: 1
           type: array
@@ -19173,7 +19173,7 @@ components:
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
-                    phone_number: '+123456789012'
+                    phone_number: '+15555555555'
                   pan_unique_reference: pan_unique_ref_1234567890123456789012345678
                   payment_account_reference: ref_1234567890123456789012
                   token_unique_reference: token_unique_ref_1234567890123456789012345678
@@ -19207,11 +19207,11 @@ components:
             - DECLINE
           example: APPROVE
         phone_number:
-          description: Phone number of the end user attempting a tokenization. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the accountholder information on file. E.164 format without hyphens. For example, "+12124007676" for a US phone number.
+          description: Phone number of the end user attempting a tokenization. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the account holder information on file. E.164 format without hyphens. For example, "+15555555555" for a US phone number.
           type: string
-          example: '+15558675309'
+          example: '15555555555'
         email:
-          description: 'Email address of the end user attempting a tokenization to be used for authentication. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the accountholder information on file. Permitted values: Valid email address. For example, "johnny@appleseed.com".'
+          description: 'Email address of the end user attempting a tokenization to be used for authentication. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the account holder information on file. Permitted values: Valid email address. For example, "johnny@appleseed.com".'
           type: string
           format: email
           example: test@example.com
@@ -19226,7 +19226,7 @@ components:
         - mobile_application_name
       examples:
         - tokenization_decision: AUTHENTICATE
-          phone_number: '+15558675309'
+          phone_number: '+15555555555'
           email: test@example.com
           mobile_application_name: Wells Fargo
     performance-report:
@@ -19453,7 +19453,7 @@ components:
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
-                    phone_number: '+123456789012'
+                    phone_number: '+15555555555'
                   pan_unique_reference: pan_unique_ref_1234567890123456789012345678
                   payment_account_reference: ref_1234567890123456789012
                   token_unique_reference: token_unique_ref_1234567890123456789012345678
@@ -19521,7 +19521,7 @@ components:
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
-                    phone_number: '+123456789012'
+                    phone_number: '+15555555555'
                   pan_unique_reference: pan_unique_ref_1234567890123456789012345678
                   payment_account_reference: ref_1234567890123456789012
                   token_unique_reference: token_unique_ref_1234567890123456789012345678
