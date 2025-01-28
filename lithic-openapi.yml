@@ -17067,7 +17067,7 @@ components:
         mastercard:
           properties:
             banknet_reference_number:
-              description: Identifier assigned by Mastercard.
+              description: Identifier assigned by Mastercard. Guaranteed by Mastercard to be unique for any transaction within a specific financial network on any processing day.
               oneOf:
                 - type: 'null'
                 - type: string
@@ -17077,12 +17077,12 @@ components:
                 - type: 'null'
                 - type: string
             original_banknet_reference_number:
-              description: '[Available on January 28th] Identifier assigned by Mastercard. Matches the `banknet_reference_number` of a prior related event. May be populated in authorization reversals, incremental authorizations (authorization requests that augment a previously authorized amount), automated fuel dispenser authorization advices and clearings, and financial authorizations. If the original banknet reference number contains all zeroes, then no actual reference number could be found by the network or acquirer. If Mastercard converts a transaction from dual-message to single-message, such as for certain ATM transactions, it will populate the original banknet reference number in the resulting financial authorization with the banknet reference number of the initial authorization, which Lithic does not receive.'
+              description: Identifier assigned by Mastercard. Matches the `banknet_reference_number` of a prior related event. May be populated in authorization reversals, incremental authorizations (authorization requests that augment a previously authorized amount), automated fuel dispenser authorization advices and clearings, and financial authorizations. If the original banknet reference number contains all zeroes, then no actual reference number could be found by the network or acquirer. If Mastercard converts a transaction from dual-message to single-message, such as for certain ATM transactions, it will populate the original banknet reference number in the resulting financial authorization with the banknet reference number of the initial authorization, which Lithic does not receive.
               oneOf:
                 - type: 'null'
                 - type: string
             original_switch_serial_number:
-              description: '[Available on January 28th] Identifier assigned by Mastercard. Matches the `switch_serial_number` of a prior related event. May be populated in returns and return reversals. Applicable to single-message transactions only.'
+              description: Identifier assigned by Mastercard. Matches the `switch_serial_number` of a prior related event. May be populated in returns and return reversals. Applicable to single-message transactions only.
               oneOf:
                 - type: 'null'
                 - type: string
@@ -17092,15 +17092,17 @@ components:
           required:
             - banknet_reference_number
             - switch_serial_number
+            - original_banknet_reference_number
+            - original_switch_serial_number
         visa:
           properties:
             transaction_id:
-              description: Identifier assigned by Visa.
+              description: Identifier assigned by Visa to link original messages to subsequent messages. Guaranteed by Visa to be unique for each original authorization and financial authorization.
               oneOf:
                 - type: 'null'
                 - type: string
             original_transaction_id:
-              description: '[Available on January 28th] Identifier assigned by Visa. Matches the `transaction_id` of a prior related event. May be populated in incremental authorizations (authorization requests that augment a previously authorized amount), authorization advices, financial authorizations, and clearings.'
+              description: Identifier assigned by Visa. Matches the `transaction_id` of a prior related event. May be populated in incremental authorizations (authorization requests that augment a previously authorized amount), authorization advices, financial authorizations, and clearings.
               oneOf:
                 - type: 'null'
                 - type: string
@@ -17109,6 +17111,7 @@ components:
             - type: object
           required:
             - transaction_id
+            - original_transaction_id
       required:
         - acquirer
         - mastercard
