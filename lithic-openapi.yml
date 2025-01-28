@@ -18483,6 +18483,84 @@ components:
         pin_entered:
           type: boolean
           description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
+    asa_pos_terminal:
+      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/pos_terminal.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Point of Sale Terminal
+      type: object
+      properties:
+        acceptor_terminal_id:
+          description: Uniquely identifies a terminal at the card acceptor location of acquiring institutions or merchant POS Systems
+          type:
+            - string
+            - 'null'
+          minLength: 8
+          maxLength: 8
+          pattern: ^[a-zA-Z0-9]*$
+        attended:
+          description: True if a clerk is present at the sale.
+          type: boolean
+        card_retention_capable:
+          description: True if the terminal is capable of retaining the card.
+          type: boolean
+        on_premise:
+          description: True if the sale was made at the place of business (vs. mobile).
+          type: boolean
+        operator:
+          description: The person that is designated to swipe the card
+          enum:
+            - ADMINISTRATIVE
+            - CARDHOLDER
+            - CARD_ACCEPTOR
+            - UNKNOWN
+          type: string
+        partial_approval_capable:
+          type: boolean
+          description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
+        pin_capability:
+          description: Status of whether the POS is able to accept PINs
+          enum:
+            - CAPABLE
+            - INOPERATIVE
+            - NOT_CAPABLE
+            - UNSPECIFIED
+          type: string
+        type:
+          description: POS Type
+          enum:
+            - ADMINISTRATIVE
+            - ATM
+            - AUTHORIZATION
+            - COUPON_MACHINE
+            - DIAL_TERMINAL
+            - ECOMMERCE
+            - ECR
+            - FUEL_MACHINE
+            - HOME_TERMINAL
+            - MICR
+            - OFF_PREMISE
+            - PAYMENT
+            - PDA
+            - PHONE
+            - POINT
+            - POS_TERMINAL
+            - PUBLIC_UTILITY
+            - SELF_SERVICE
+            - TELEVISION
+            - TELLER
+            - TRAVELERS_CHECK_MACHINE
+            - VENDING
+            - VOICE
+            - UNKNOWN
+          type: string
+      required:
+        - attended
+        - card_retention_capable
+        - on_premise
+        - operator
+        - partial_approval_capable
+        - pin_capability
+        - type
     asa_request_status:
       type: string
       description: The type of authorization request that this request is for. Note that `CREDIT_AUTHORIZATION` and `FINANCIAL_CREDIT_AUTHORIZATION` is only available to users with credit decisioning via ASA enabled.
@@ -18547,7 +18625,7 @@ components:
             entry_mode:
               $ref: '#/components/schemas/asa_request_pos_entry_mode'
             terminal:
-              $ref: '#/components/schemas/pos_terminal'
+              $ref: '#/components/schemas/asa_pos_terminal'
         amount:
           type: integer
           format: int64
