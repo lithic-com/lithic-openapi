@@ -13337,6 +13337,7 @@ components:
           enum:
             - DECLINE
             - SUCCESS
+            - PENDING_CHALLENGE
           type:
             - string
             - 'null'
