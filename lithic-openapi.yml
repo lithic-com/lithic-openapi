@@ -14,28 +14,28 @@ servers:
 security:
   - ApiKeyAuth: []
 tags:
-  - name: 3DS
-  - name: Account
-  - name: Book Transfer
-  - name: Account Holder
-  - name: Auth Stream Access (ASA)
-  - name: Authorization Rules
-  - name: Balance
-  - name: Card
-  - name: Credit Product
-  - name: Dispute
-  - name: Event
-  - name: External Bank Account
-  - name: External Payments
-  - name: Financial Account
-  - name: Management Operations
-  - name: Payment
-  - name: Responder Endpoints
-  - name: Settlement Report
-  - name: Statements
-  - name: Status
-  - name: Tokenization
-  - name: Transaction
+  - name: '"3DS"'
+  - name: '"Account"'
+  - name: '"Book Transfer"'
+  - name: '"Account Holder"'
+  - name: '"Auth Stream Access (ASA)"'
+  - name: '"Authorization Rules"'
+  - name: '"Balance"'
+  - name: '"Card"'
+  - name: '"Credit Product"'
+  - name: '"Dispute"'
+  - name: '"Event"'
+  - name: '"External Bank Account"'
+  - name: '"External Payments"'
+  - name: '"Financial Account"'
+  - name: '"Management Operations"'
+  - name: '"Payment"'
+  - name: '"Responder Endpoints"'
+  - name: '"Settlement Report"'
+  - name: '"Statements"'
+  - name: '"Status"'
+  - name: '"Tokenization"'
+  - name: '"Transaction"'
 paths:
   /v1/account_holders:
     get:
