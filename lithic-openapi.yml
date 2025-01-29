@@ -12284,6 +12284,7 @@ components:
         * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
         * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
         * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+        * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution.
       enum:
         - ACH_ORIGINATION_CANCELLED
         - ACH_ORIGINATION_INITIATED
@@ -12295,6 +12296,7 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
+        - ACH_RETURN_SETTLED
       type: string
     FinancialTransaction:
       properties:
@@ -14757,6 +14759,7 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
+        - ACH_RETURN_SETTLED
         - AUTHORIZATION
         - AUTHORIZATION_ADVICE
         - AUTHORIZATION_EXPIRY
@@ -16228,6 +16231,7 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
+        - ACH_RETURN_SETTLED
       title: Supported Simulation Types
     supported_simulation_decline_reasons:
       $id: https://lithic.com/schemas/internal/treasury/simulation-api/supported_simulation_decline_reasons.json
