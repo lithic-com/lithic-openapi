@@ -13340,9 +13340,9 @@ components:
             - DECLINE
             - SUCCESS
             - PENDING_CHALLENGE
+            - PENDING_DECISION
           type:
             - string
-            - 'null'
         browser:
           description: |
             Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
@@ -13462,6 +13462,15 @@ components:
             - BROWSER
             - THREE_DS_REQUESTOR_INITIATED
           type: string
+        challenge_orchestrated_by:
+          description: Entity that orchestrates the challenge.
+          enum:
+            - LITHIC
+            - CUSTOMER
+            - NO_CHALLENGE
+          type:
+            - string
+            - 'null'
         created:
           description: |
             Date and time when the authentication was created in Lithic's system.
