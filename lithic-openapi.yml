@@ -202,7 +202,7 @@ paths:
         - Account Holder
     post:
       description: |-
-        Create an account holder and initiate the appropriate onboarding workflow.  Account holders and accounts have a 1:1 relationship. When an account holder is successfully created an associated account is also created.
+        Run an individual or business's information through the Customer Identification Program (CIP).
         All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the enrollment is under review or further action will be needed to complete the account enrollment process.
         This endpoint can only be used on accounts that are part of the program that the calling API key manages.
       operationId: postAccountHolders
@@ -241,7 +241,7 @@ paths:
                       first_name: Timmy
                       government_id: 211-23-1412
                       last_name: Turner
-                      phone_number: '+15555555555'
+                      phone_number: '+12024007611'
                   business_entity:
                     address:
                       address1: 123 Old Forest Way
@@ -272,7 +272,7 @@ paths:
                     government_id: 111-23-1412
                     last_name: Timothy
                     nationality: US
-                    phone_number: '+15555555555'
+                    phone_number: '+12024008176'
                     title: CEO
                   kyb_passed_timestamp: '2022-03-08T08:00:00Z'
                   nature_of_business: Software company selling solutions to the restaurant industry
@@ -684,7 +684,6 @@ paths:
                     - UTILITY_BILL_STATEMENT
                     - SSN_CARD
                     - ITIN_LETTER
-                    - FINCEN_BOI_REPORT
                   type: string
                 entity_token:
                   description: Globally unique identifier for the entity.
@@ -847,21 +846,21 @@ paths:
                 daily_spend_limit:
                   default: 125000
                   description: |
-                    Amount (in cents) for the account's daily spend limit (e.g. 100000 would be a $1,000 limit).
+                    Amount (in cents) for the account's daily spend limit.
                     By default the daily spend limit is set to $1,250.
                   minimum: 0
                   type: integer
                 lifetime_spend_limit:
                   default: 0
                   description: |
-                    Amount (in cents) for the account's lifetime spend limit (e.g. 100000 would be a $1,000 limit). Once this limit is reached, no transactions will be accepted on any card created for this account until the limit is updated.
+                    Amount (in cents) for the account's lifetime spend limit. Once this limit is reached, no transactions will be accepted on any card created for this account until the limit is updated.
                     Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the account limit. This behavior differs from the daily spend limit and the monthly spend limit.
                   minimum: 0
                   type: integer
                 monthly_spend_limit:
                   default: 500000
                   description: |
-                    Amount (in cents) for the account's monthly spend limit (e.g. 100000 would be a $1,000 limit).
+                    Amount (in cents) for the account's monthly spend limit.
                     By default the monthly spend limit is set to $5,000.
                   minimum: 0
                   type: integer
@@ -1001,7 +1000,7 @@ paths:
       parameters: []
       tags:
         - Authorization Rules
-      summary: Create a new rule
+      summary: Create a new V2 authorization rule
       description: Creates a new V2 authorization rule in draft mode
       requestBody:
         required: true
@@ -1041,7 +1040,7 @@ paths:
           required: false
       tags:
         - Authorization Rules
-      summary: List rules
+      summary: List V2 authorization rules
       description: Lists V2 authorization rules
       responses:
         '200':
@@ -1071,8 +1070,8 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Fetch a rule
-      description: Fetches a V2 authorization rule by its token
+      summary: Fetch a V2 authorization rule
+      description: Fetches an authorization rule by its token
       responses:
         '200':
           $ref: '#/components/responses/AuthRule'
@@ -1085,11 +1084,8 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Update a rule
-      description: |
-        Updates a V2 authorization rule's properties
-
-        If `account_tokens`, `card_tokens`, `program_level`, or `excluded_card_tokens` is provided, this will replace existing associations with the provided list of entities.
+      summary: Updates a V2 authorization rule
+      description: Updates an authorization rule's properties
       requestBody:
         required: true
         content:
@@ -1104,32 +1100,17 @@ paths:
           $ref: '#/components/responses/responses-BadRequest'
         '404':
           $ref: '#/components/responses/responses-NotFound'
-    delete:
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Authorization Rules
-      summary: Delete a rule
-      description: Deletes a V2 authorization rule
-      responses:
-        '204':
-          description: Auth Rule Deleted
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/apply:
     post:
-      deprecated: true
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Apply a rule
+      summary: Apply a V2 authorization rule
       description: |
-        Associates a V2 authorization rule with a card program, the provided account(s) or card(s).
+        Associates an authorization rules with a card program, the provided account(s) or card(s).
 
-        Prefer using the `PATCH` method for this operation.
+        This endpoint will replace any existing associations with the provided list of entities.
       requestBody:
         required: true
         content:
@@ -1149,9 +1130,9 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Draft a new rule version
+      summary: Draft a new V2 authorization rule version
       description: |
-        Creates a new draft version of a rule that will be ran in shadow mode.
+        Creates a new draft version of an authorization rules that will be ran in shadow mode.
 
         This can also be utilized to reset the draft parameters, causing a draft version to no longer be ran in shadow mode.
       requestBody:
@@ -1163,8 +1144,7 @@ paths:
               properties:
                 parameters:
                   anyOf:
-                    - title: Null (delete draft)
-                      type: 'null'
+                    - type: 'null'
                       description: Resets the drafts parameters, causing a draft version to no longer be ran in shadow mode.
                     - $ref: '#/components/schemas/auth-rule-parameters'
       responses:
@@ -1180,8 +1160,8 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Promote a rule version
-      description: Promotes the draft version of an authorization rule to the currently active version such that it is enforced in the authorization stream.
+      summary: Promote draft authorization rule
+      description: Promotes a draft version of an authorization rule to the currently active version such that it is enforced in the authorization stream.
       responses:
         '200':
           $ref: '#/components/responses/AuthRule'
@@ -1195,7 +1175,7 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Request a performance report
+      summary: Request authorization rule performance report
       description: |
         Requests a performance report of an authorization rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
         The generated report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.performance_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
@@ -1234,7 +1214,7 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Authorization Rules
-      summary: Request a backtest
+      summary: Request a backtest for an authorization rule
       description: |
         Initiates a request to asynchronously generate a backtest for an authorization rule. During backtesting, both the active version (if one exists) and the draft version of the Authorization Rule are evaluated by replaying historical transaction data against the rule's conditions. This process allows customers to simulate and understand the effects of proposed rule changes before deployment.
         The generated backtest report provides detailed results showing whether the draft version of the Auth Rule would have approved or declined historical transactions which were processed during the backtest period. These reports help evaluate how changes to rule configurations might affect overall transaction approval rates.
@@ -1271,7 +1251,7 @@ paths:
         - $ref: '#/components/parameters/backtestToken'
       tags:
         - Authorization Rules
-      summary: Retrieve backtest results
+      summary: Retrieve the backtest results for an authorization rule
       description: |
         Returns the backtest results of an authorization rule (if available).
 
@@ -1622,7 +1602,7 @@ paths:
                     - STANDARD_WITH_TRACKING
                   type: string
                 spend_limit:
-                  description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
+                  description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
                   minimum: 0
                   type: integer
@@ -1867,7 +1847,7 @@ paths:
                     - OK
                   type: string
                 spend_limit:
-                  description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
+                  description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
                   type: integer
                 spend_limit_duration:
@@ -2391,7 +2371,7 @@ paths:
         Customer must supply relevant fields for physical card creation including `product_id`, `carrier`, `shipping_method`, and `shipping_address`.
         The card token will be unchanged.  The card's type will be altered to `PHYSICAL`.
         The card will be set to state `PENDING_FULFILLMENT` and fulfilled at next fulfillment cycle.
-        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in an `OPEN` state to be converted.
+        Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in a state of either `OPEN` or `PAUSED` to be converted.
         Only applies to cards of type `VIRTUAL` (or existing cards with deprecated types of `DIGITAL_WALLET` and `UNLOCKED`).
       operationId: postConvertPhysical
       parameters:
@@ -6035,9 +6015,7 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 tokenization_channel: DIGITAL_WALLET
                 token_requestor_name: APPLE_PAY
-                token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                dpan: 5489123487251234
-                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
+                token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6633,8 +6611,6 @@ paths:
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                    dpan: 5489123487251234
-                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-08-28T15:57:14.578051'
                 has_more: false
               schema:
@@ -6689,8 +6665,6 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                dpan: 5489123487251234
-                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6933,8 +6907,6 @@ paths:
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                dpan: 5489123487251234
-                payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
                 properties:
@@ -6982,12 +6954,6 @@ paths:
               - APPROVED
               - DECLINED
             type: string
-        - in: query
-          description: Filters for transactions using transaction status field.
-          name: status
-          required: false
-          schema:
-            $ref: '#/components/schemas/card_transaction_status_filter'
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/endingBefore'
@@ -8914,9 +8880,7 @@ webhooks:
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
-                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                    dpan: 5489123487251234
-                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
+                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -9409,36 +9373,6 @@ webhooks:
       summary: three_ds_authentication.created
       tags:
         - Event Types
-  three_ds_authentication.challenge:
-    post:
-      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder. After a cardholder challenge is successfully completed, the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an app_requestor_url for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
-      summary: three_ds_authentication.challenge
-      requestBody:
-        content:
-          application/json:
-            schema:
-              allOf:
-                - properties:
-                    authentication_object:
-                      $ref: '#/components/schemas/ThreeDSAuthentication'
-                    challenge:
-                      $ref: '#/components/schemas/CustomerChallenge'
-                  required:
-                    - authentication_object
-                    - challenge
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - three_ds_authentication.challenge
-                      example: three_ds_authentication.challenge
-                      type: string
-                  type: object
-      responses:
-        '200':
-          description: Challenge has been issued to Customer
-      tags:
-        - Event Types
   tokenization.approval_request:
     post:
       description: |
@@ -9745,9 +9679,7 @@ webhooks:
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
-                    token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-                    dpan: 5489123487251234
-                    payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
+                    token_unique_reference: de25183f-6121-4ce5-8f2e-16b7fb07f252
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
               properties:
@@ -9818,6 +9750,27 @@ webhooks:
                   - three_ds_authentication_decision
       tags:
         - 3DS
+  three_ds_authentication.challenge:
+    post:
+      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder. After a cardholder challenge is successfully completed, the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an app_requestor_url for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
+      summary: three_ds_authentication.challenge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authentication_object:
+                  $ref: '#/components/schemas/ThreeDSAuthentication'
+                challenge:
+                  $ref: '#/components/schemas/CustomerChallenge'
+              required:
+                - authentication_object
+                - challenge
+      responses:
+        '200':
+          description: Challenge has been issued to Customer
+      tags:
+        - Event Types
 components:
   parameters:
     accountHolderTokenPath:
@@ -10528,7 +10481,6 @@ components:
             - UTILITY_BILL_STATEMENT
             - SSN_CARD
             - ITIN_LETTER
-            - FINCEN_BOI_REPORT
           type: string
         entity_token:
           description: Globally unique identifier for the entity.
@@ -10709,7 +10661,7 @@ components:
         available_spend_limit:
           properties:
             daily:
-              description: The available spend limit (in cents) relative to the daily limit configured on the Account (e.g. 100000 would be a $1,000 limit).
+              description: The available spend limit (in cents) relative to the daily limit configured on the Account.
               example: 100000
               type: integer
             lifetime:
@@ -11172,7 +11124,7 @@ components:
           example: '1'
           type: string
         spend_limit:
-          description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined.
+          description: Amount (in cents) to limit approved authorizations. Transaction requests above the spend limit will be declined.
           example: 1000
           type: integer
         spend_limit_duration:
@@ -11332,7 +11284,7 @@ components:
         available_spend_limit:
           properties:
             annually:
-              description: The available spend limit (in cents) relative to the annual limit configured on the Card (e.g. 100000 would be a $1,000 limit).
+              description: The available spend limit (in cents) relative to the annual limit configured on the Card.
               example: 200000
               type: integer
             forever:
@@ -12293,7 +12245,6 @@ components:
         * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
         * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
         * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-        * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution.
       enum:
         - ACH_ORIGINATION_CANCELLED
         - ACH_ORIGINATION_INITIATED
@@ -12305,7 +12256,6 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
-        - ACH_RETURN_SETTLED
       type: string
     FinancialTransaction:
       properties:
@@ -12628,7 +12578,7 @@ components:
           description: The KYC Exempt user's last name
           type: string
         phone_number:
-          description: The KYC Exempt user's phone number, entered in E.164 format.
+          description: The KYC Exempt user's phone number
           type: string
         workflow:
           description: Specifies the workflow type. This must be 'KYC_EXEMPT'
@@ -13348,10 +13298,9 @@ components:
           enum:
             - DECLINE
             - SUCCESS
-            - PENDING_CHALLENGE
-            - PENDING_DECISION
           type:
             - string
+            - 'null'
         browser:
           description: |
             Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
@@ -13471,15 +13420,6 @@ components:
             - BROWSER
             - THREE_DS_REQUESTOR_INITIATED
           type: string
-        challenge_orchestrated_by:
-          description: Entity that orchestrates the challenge.
-          enum:
-            - LITHIC
-            - CUSTOMER
-            - NO_CHALLENGE
-          type:
-            - string
-            - 'null'
         created:
           description: |
             Date and time when the authentication was created in Lithic's system.
@@ -13642,25 +13582,6 @@ components:
             Globally unique identifier for the 3DS authentication.
           format: uuid
           type: string
-        three_ds_requestor_challenge_indicator:
-          description: |
-            Indicates whether a challenge is requested for this transaction
-            * `NO_PREFERENCE` - No Preference
-            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
-            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
-            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
-            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
-            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
-            * `OTHER` - Other indicators not captured by above. These are rarely used
-          enum:
-            - NO_PREFERENCE
-            - NO_CHALLENGE_REQUESTED
-            - CHALLENGE_PREFERENCE
-            - CHALLENGE_MANDATE
-            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
-            - DATA_SHARE_ONLY
-            - OTHER
-          type: string
         transaction:
           description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
           oneOf:
@@ -13715,7 +13636,6 @@ components:
         - decision_made_by
         - merchant
         - message_category
-        - three_ds_requestor_challenge_indicator
         - token
       type: object
     Tokenization:
@@ -13774,16 +13694,6 @@ components:
         token_unique_reference:
           description: The network's unique reference for the tokenization.
           type: string
-        dpan:
-          description: The dynamic pan assigned to the token by the network.
-          type:
-            - string
-            - 'null'
-        payment_account_reference_id:
-          description: The network's unique reference for the card that is tokenized.
-          type:
-            - string
-            - 'null'
         tokenization_channel:
           description: The channel through which the tokenization was made.
           enum:
@@ -13802,7 +13712,6 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
-        - dpan
         - tokenization_channel
         - updated_at
       type: object
@@ -14119,7 +14028,6 @@ components:
         - UTILITY_BILL_STATEMENT
         - SSN_CARD
         - ITIN_LETTER
-        - FINCEN_BOI_REPORT
     document-upload-status:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-upload-status.json
@@ -14263,7 +14171,7 @@ components:
     auth-rule-state:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-state.json
-      title: Auth Rule State
+      title: Auth Rule Version 2 State
       type: string
       description: The state of the Auth Rule
       enum:
@@ -14305,7 +14213,7 @@ components:
     auth-rule-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-type.json
-      title: Auth Rule Types
+      title: Auth Rule Version 2 Types
       type: string
       enum:
         - CONDITIONAL_BLOCK
@@ -14314,7 +14222,7 @@ components:
     conditional-block-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-block-parameters.json
-      title: Conditional Block Parameters
+      title: Conditional Block Rule Parameters
       type: object
       properties:
         conditions:
@@ -14363,15 +14271,12 @@ components:
                   - IS_LESS_THAN
               value:
                 anyOf:
-                  - title: Regex
-                    type: string
+                  - type: string
                     description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - title: Number
-                    type: integer
+                  - type: integer
                     format: int64
                     description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
-                  - title: List of Strings
-                    type: array
+                  - type: array
                     items:
                       type: string
                     description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
@@ -14380,7 +14285,7 @@ components:
     velocity-limit-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-parameters.json
-      title: Velocity Limit Parameters
+      title: Velocity Limit Rule Parameters
       type: object
       properties:
         scope:
@@ -14390,13 +14295,11 @@ components:
             - ACCOUNT
         period:
           anyOf:
-            - title: Trailing Window
-              type: integer
-              description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
+            - type: integer
+              description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds.
               minimum: 10
               maximum: 2678400
-            - title: Fixed Window
-              type: string
+            - type: string
               enum:
                 - DAY
                 - MONTH
@@ -14410,11 +14313,9 @@ components:
           properties:
             include_mccs:
               anyOf:
-                - title: Null (include all MCCs)
-                  type: 'null'
+                - type: 'null'
                   description: Include all MCCs into the velocity computation.
-                - title: List of MCCs
-                  type: array
+                - type: array
                   items:
                     type: string
                     pattern: ^[0-9]{4}$
@@ -14422,11 +14323,9 @@ components:
                   description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
             include_countries:
               anyOf:
-                - title: Null (include all countries)
-                  type: 'null'
+                - type: 'null'
                   description: Include all countries into the velocity computation.
-                - title: List of Country Codes
-                  type: array
+                - type: array
                   items:
                     type: string
                     pattern: ^[A-Z]{3}$
@@ -14434,22 +14333,18 @@ components:
                   description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
         limit_amount:
           anyOf:
-            - title: Null (no amount limit)
-              type: 'null'
+            - type: 'null'
               description: No velocity limit on amount is applied to the transaction.
-            - title: Limit
-              type: integer
+            - type: integer
               format: int64
               minimum: 0
               description: The maximum amount of spend velocity allowed in the period in minor units (the smallest unit of a currency, e.g. cents for USD). Transactions exceeding this limit will be declined.
               example: 10000
         limit_count:
           anyOf:
-            - title: Null (no limit)
-              type: 'null'
+            - type: 'null'
               description: No limit on the number of velocity impacting events is applied.
-            - title: Limit
-              type: integer
+            - type: integer
               format: int64
               minimum: 0
               description: |-
@@ -14462,8 +14357,8 @@ components:
     auth-rule-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-parameters.json
-      title: Auth Rule Parameters
-      description: Parameters for the Auth Rule
+      title: Auth Rule Version 2 Parameters
+      description: Parameters for the current version of the Auth Rule
       anyOf:
         - $ref: '#/components/schemas/conditional-block-parameters'
         - $ref: '#/components/schemas/velocity-limit-parameters'
@@ -14518,7 +14413,7 @@ components:
     auth-rule:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule.json
-      title: Auth Rule
+      title: Auth Rule Version 2
       type: object
       properties:
         token:
@@ -14560,11 +14455,10 @@ components:
     create-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/create-auth-rule-request.json
-      title: Auth Rule Parameters
+      title: Auth Rule Version 2 Parameters
       type: object
       oneOf:
-        - title: Account Level Rule
-          properties:
+        - properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
             type:
@@ -14575,8 +14469,7 @@ components:
               $ref: '#/components/schemas/auth-rule-name'
           required:
             - account_tokens
-        - title: Card Level Rule
-          properties:
+        - properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
             type:
@@ -14587,8 +14480,7 @@ components:
               $ref: '#/components/schemas/auth-rule-name'
           required:
             - card_tokens
-        - title: Program Level Rule
-          properties:
+        - properties:
             program_level:
               $ref: '#/components/schemas/program-level'
             excluded_card_tokens:
@@ -14607,7 +14499,7 @@ components:
     patch-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/patch-auth-rule-request.json
-      title: Auth Rule Patch Request
+      title: Auth Rule Version 2 Patch Request
       type: object
       properties:
         state:
@@ -14619,45 +14511,24 @@ components:
           const: INACTIVE
         name:
           $ref: '#/components/schemas/auth-rule-name'
-      anyOf:
-        - title: Account Level Rule
-          type: object
-          properties:
-            account_tokens:
-              $ref: '#/components/schemas/account-tokens'
-        - title: Card Level Rule
-          type: object
-          properties:
-            card_tokens:
-              $ref: '#/components/schemas/card-tokens'
-        - title: Program Level Rule
-          type: object
-          properties:
-            program_level:
-              $ref: '#/components/schemas/program-level'
-            excluded_card_tokens:
-              $ref: '#/components/schemas/excluded-card-tokens'
     apply-auth-rule-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/apply-auth-rule-request.json
-      title: Auth Rule Apply Parameters
+      title: Auth Rule Apply Version 2 Parameters
       anyOf:
-        - title: Account Level Rule
-          type: object
+        - type: object
           properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
           required:
             - account_tokens
-        - title: Card Level Rule
-          type: object
+        - type: object
           properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
           required:
             - card_tokens
-        - title: Program Level Rule
-          type: object
+        - type: object
           properties:
             program_level:
               $ref: '#/components/schemas/program-level'
@@ -14726,7 +14597,7 @@ components:
     backtest-results:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
-      title: Auth Rules Backtest Results
+      title: Authorization Rules Backtest Results
       type: object
       properties:
         backtest_token:
@@ -14777,7 +14648,6 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
-        - ACH_RETURN_SETTLED
         - AUTHORIZATION
         - AUTHORIZATION_ADVICE
         - AUTHORIZATION_EXPIRY
@@ -16249,7 +16119,6 @@ components:
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
-        - ACH_RETURN_SETTLED
       title: Supported Simulation Types
     supported_simulation_decline_reasons:
       $id: https://lithic.com/schemas/internal/treasury/simulation-api/supported_simulation_decline_reasons.json
@@ -16419,7 +16288,7 @@ components:
           description: Individual's last name, as it appears on government-issued identity documents.
         phone_number:
           type: string
-          example: '+15555555555'
+          example: '+12124007676'
           description: Individual's phone number, entered in E.164 format.
         government_id:
           type: string
@@ -16453,7 +16322,7 @@ components:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
             description: Business phone number, entered in E.164 format.
-            example: '+15555555555'
+            example: '+12124007676'
             type: string
           minItems: 1
           type: array
@@ -16625,17 +16494,6 @@ components:
       required:
         - document_upload_token
         - status
-    card_transaction_status_filter:
-      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction_status_filter.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Card Transaction Status Filter
-      type: string
-      enum:
-        - PENDING
-        - VOIDED
-        - SETTLED
-        - DECLINED
-        - EXPIRED
     currency:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/currency.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17067,7 +16925,7 @@ components:
       oneOf:
         - type: 'null'
         - type: object
-      description: Information provided by the card network in each event. This includes common identifiers shared between you, Lithic, the card network and in some cases the acquirer. These identifiers often link together events within the same transaction lifecycle and can be used to locate a particular transaction, such as during processing of disputes. Not all fields are available in all events, and the presence of these fields is dependent on the card network and the event type. If the field is populated by the network, we will pass it through as is unless otherwise specified. Please consult the official network documentation for more details about these fields and how to use them.
+      description: Information provided by the card network in each event. This includes common identifiers shared between you, Lithic, the card network and in some cases the acquirer. These identifiers often link together events within the same transaction lifecycle and can be used to locate a particular transaction, such as during processing of disputes. Not all fields are available in all events, and the presence of these fields is dependent on the card network and the event type.
       properties:
         acquirer:
           properties:
@@ -17090,22 +16948,12 @@ components:
         mastercard:
           properties:
             banknet_reference_number:
-              description: Identifier assigned by Mastercard. Guaranteed by Mastercard to be unique for any transaction within a specific financial network on any processing day.
+              description: Identifier assigned by Mastercard.
               oneOf:
                 - type: 'null'
                 - type: string
             switch_serial_number:
               description: Identifier assigned by Mastercard, applicable to single-message transactions only.
-              oneOf:
-                - type: 'null'
-                - type: string
-            original_banknet_reference_number:
-              description: Identifier assigned by Mastercard. Matches the `banknet_reference_number` of a prior related event. May be populated in authorization reversals, incremental authorizations (authorization requests that augment a previously authorized amount), automated fuel dispenser authorization advices and clearings, and financial authorizations. If the original banknet reference number contains all zeroes, then no actual reference number could be found by the network or acquirer. If Mastercard converts a transaction from dual-message to single-message, such as for certain ATM transactions, it will populate the original banknet reference number in the resulting financial authorization with the banknet reference number of the initial authorization, which Lithic does not receive.
-              oneOf:
-                - type: 'null'
-                - type: string
-            original_switch_serial_number:
-              description: Identifier assigned by Mastercard. Matches the `switch_serial_number` of a prior related event. May be populated in returns and return reversals. Applicable to single-message transactions only.
               oneOf:
                 - type: 'null'
                 - type: string
@@ -17115,17 +16963,10 @@ components:
           required:
             - banknet_reference_number
             - switch_serial_number
-            - original_banknet_reference_number
-            - original_switch_serial_number
         visa:
           properties:
             transaction_id:
-              description: Identifier assigned by Visa to link original messages to subsequent messages. Guaranteed by Visa to be unique for each original authorization and financial authorization.
-              oneOf:
-                - type: 'null'
-                - type: string
-            original_transaction_id:
-              description: Identifier assigned by Visa. Matches the `transaction_id` of a prior related event. May be populated in incremental authorizations (authorization requests that augment a previously authorized amount), authorization advices, financial authorizations, and clearings.
+              description: Identifier assigned by Visa.
               oneOf:
                 - type: 'null'
                 - type: string
@@ -17134,7 +16975,6 @@ components:
             - type: object
           required:
             - transaction_id
-            - original_transaction_id
       required:
         - acquirer
         - mastercard
@@ -17268,7 +17108,6 @@ components:
           description: Amount of the event in the settlement currency.
           example: 1000
           type: integer
-          deprecated: true
         amounts:
           $ref: '#/components/schemas/transaction_event_amounts'
         created:
@@ -18509,84 +18348,6 @@ components:
         pin_entered:
           type: boolean
           description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
-    asa_pos_terminal:
-      $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/pos_terminal.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Point of Sale Terminal
-      type: object
-      properties:
-        acceptor_terminal_id:
-          description: Uniquely identifies a terminal at the card acceptor location of acquiring institutions or merchant POS Systems
-          type:
-            - string
-            - 'null'
-          minLength: 8
-          maxLength: 8
-          pattern: ^[a-zA-Z0-9]*$
-        attended:
-          description: True if a clerk is present at the sale.
-          type: boolean
-        card_retention_capable:
-          description: True if the terminal is capable of retaining the card.
-          type: boolean
-        on_premise:
-          description: True if the sale was made at the place of business (vs. mobile).
-          type: boolean
-        operator:
-          description: The person that is designated to swipe the card
-          enum:
-            - ADMINISTRATIVE
-            - CARDHOLDER
-            - CARD_ACCEPTOR
-            - UNKNOWN
-          type: string
-        partial_approval_capable:
-          type: boolean
-          description: 'True if the terminal is capable of partial approval. Partial approval is when part of a transaction is approved and another payment must be used for the remainder. Example scenario: A $40 transaction is attempted on a prepaid card with a $25 balance. If partial approval is enabled, $25 can be authorized, at which point the POS will prompt the user for an additional payment of $15.'
-        pin_capability:
-          description: Status of whether the POS is able to accept PINs
-          enum:
-            - CAPABLE
-            - INOPERATIVE
-            - NOT_CAPABLE
-            - UNSPECIFIED
-          type: string
-        type:
-          description: POS Type
-          enum:
-            - ADMINISTRATIVE
-            - ATM
-            - AUTHORIZATION
-            - COUPON_MACHINE
-            - DIAL_TERMINAL
-            - ECOMMERCE
-            - ECR
-            - FUEL_MACHINE
-            - HOME_TERMINAL
-            - MICR
-            - OFF_PREMISE
-            - PAYMENT
-            - PDA
-            - PHONE
-            - POINT
-            - POS_TERMINAL
-            - PUBLIC_UTILITY
-            - SELF_SERVICE
-            - TELEVISION
-            - TELLER
-            - TRAVELERS_CHECK_MACHINE
-            - VENDING
-            - VOICE
-            - UNKNOWN
-          type: string
-      required:
-        - attended
-        - card_retention_capable
-        - on_premise
-        - operator
-        - partial_approval_capable
-        - pin_capability
-        - type
     asa_request_status:
       type: string
       description: The type of authorization request that this request is for. Note that `CREDIT_AUTHORIZATION` and `FINANCIAL_CREDIT_AUTHORIZATION` is only available to users with credit decisioning via ASA enabled.
@@ -18651,7 +18412,7 @@ components:
             entry_mode:
               $ref: '#/components/schemas/asa_request_pos_entry_mode'
             terminal:
-              $ref: '#/components/schemas/asa_pos_terminal'
+              $ref: '#/components/schemas/pos_terminal'
         amount:
           type: integer
           format: int64
@@ -19196,7 +18957,7 @@ components:
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
-                    phone_number: '+15555555555'
+                    phone_number: '+123456789012'
                   pan_unique_reference: pan_unique_ref_1234567890123456789012345678
                   payment_account_reference: ref_1234567890123456789012
                   token_unique_reference: token_unique_ref_1234567890123456789012345678
@@ -19230,11 +18991,11 @@ components:
             - DECLINE
           example: APPROVE
         phone_number:
-          description: Phone number of the end user attempting a tokenization. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the account holder information on file. E.164 format without hyphens. For example, "+15555555555" for a US phone number.
+          description: Phone number of the end user attempting a tokenization. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the accountholder information on file. E.164 format without hyphens. For example, "+12124007676" for a US phone number.
           type: string
-          example: '15555555555'
+          example: '+15558675309'
         email:
-          description: 'Email address of the end user attempting a tokenization to be used for authentication. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the account holder information on file. Permitted values: Valid email address. For example, "johnny@appleseed.com".'
+          description: 'Email address of the end user attempting a tokenization to be used for authentication. Lithic must pass this to the card networks to pass to the wallets to display for the user as they select an authentication option in their digital wallet. Lithic will always default to using this value for authentication over the accountholder information on file. Permitted values: Valid email address. For example, "johnny@appleseed.com".'
           type: string
           format: email
           example: test@example.com
@@ -19249,7 +19010,7 @@ components:
         - mobile_application_name
       examples:
         - tokenization_decision: AUTHENTICATE
-          phone_number: '+15555555555'
+          phone_number: '+15558675309'
           email: test@example.com
           mobile_application_name: Wells Fargo
     performance-report:
@@ -19292,7 +19053,7 @@ components:
     backtest-report:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-report.json
-      title: Auth Rules Backtest Report
+      title: Authorization Rules Backtest Report
       description: Webhook payload for the auth_rules.backtest_report.created event.
       allOf:
         - $ref: '#/components/schemas/backtest-results'
@@ -19476,7 +19237,7 @@ components:
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
-                    phone_number: '+15555555555'
+                    phone_number: '+123456789012'
                   pan_unique_reference: pan_unique_ref_1234567890123456789012345678
                   payment_account_reference: ref_1234567890123456789012
                   token_unique_reference: token_unique_ref_1234567890123456789012345678
@@ -19544,7 +19305,7 @@ components:
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
-                    phone_number: '+15555555555'
+                    phone_number: '+123456789012'
                   pan_unique_reference: pan_unique_ref_1234567890123456789012345678
                   payment_account_reference: ref_1234567890123456789012
                   token_unique_reference: token_unique_ref_1234567890123456789012345678
