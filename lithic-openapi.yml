@@ -7835,13 +7835,38 @@ webhooks:
         - Event Types
   account_holder.updated:
     post:
-      description: Occurs when a new account_holder is updated.
+      description: Occurs when an account_holder is updated.
       requestBody:
         content:
           application/json:
-            schema:
-              examples:
-                - business_account_token: null
+            examples:
+              kybExample:
+                summary: KYB Payload Example
+                value:
+                  event_type: account_holder.updated
+                  token: 00000000-0000-0000-0000-000000000001
+                  update_request:
+                    business_entity:
+                      address:
+                        postal_code: '61023'
+                    control_person:
+                      address:
+                        postal_code: '68023'
+                    website_url: https://www.mynewbusiness.com
+              kycExample:
+                summary: KYC Payload Example
+                value:
+                  event_type: account_holder.updated
+                  token: 00000000-0000-0000-0000-000000000001
+                  update_request:
+                    individual:
+                      address:
+                        postal_code: '68023'
+                    phone_number: '+15555555555'
+              legacyExample:
+                summary: Legacy Payload Example
+                value:
+                  business_account_token: null
                   created: '2023-09-26 16:41:40.530938'
                   email: john@lithic.com
                   event_type: account_holder.updated
@@ -7850,53 +7875,130 @@ webhooks:
                   last_name: Appleseed
                   phone_number: 15555555555
                   token: 00000000-0000-0000-0000-000000000001
-              properties:
-                business_account_token:
-                  description: If applicable, represents the business account token associated with the account_holder.
-                  example: 00000000-0000-0000-0000-000000000001
-                  format: uuid
-                  type: string
-                created:
-                  description: When the account_holder updated event was created
-                  format: date-time
-                  type: string
-                email:
-                  description: If updated, the newly updated email associated with the account_holder otherwise the existing email is provided.
-                  example: johnny@lithic.com
-                  type: string
-                event_type:
-                  description: The name of the event
-                  enum:
-                    - account_holder.updated
-                  example: account_holder.updated
-                  type: string
-                external_id:
-                  description: If applicable, represents the external_id associated with the account_holder.
-                  example: 00000000-0000-0000-0000-000000000001
-                  format: uuid
-                  type: string
-                first_name:
-                  description: If applicable, represents the account_holder's first name.
-                  example: Johnny
-                  type: string
-                last_name:
-                  description: If applicable, represents the account_holder's last name.
-                  example: Appleseed
-                  type: string
-                legal_business_name:
-                  description: If applicable, represents the account_holder's business name.
-                  example: Lithic
-                  type: string
-                phone_number:
-                  description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
-                  example: '+15555555555'
-                  type: string
-                token:
-                  description: The token of the account_holder that was created.
-                  example: 00000000-0000-0000-0000-000000000001
-                  format: uuid
-                  type: string
-              type: object
+            schema:
+              oneOf:
+                - title: KYB Payload
+                  description: KYB payload for an updated account holder.
+                  type: object
+                  properties:
+                    event_type:
+                      description: The name of the event
+                      enum:
+                        - account_holder.updated
+                      example: account_holder.updated
+                      type: string
+                    token:
+                      description: The token of the account_holder that was created.
+                      example: 00000000-0000-0000-0000-000000000001
+                      format: uuid
+                      type: string
+                    update_request:
+                      type: object
+                      description: Original request to update the account holder.
+                      properties:
+                        beneficial_owner_entities:
+                          description: List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
+                          items:
+                            $ref: '#/components/schemas/kyb-business-entity'
+                          minItems: 0
+                          type: array
+                        beneficial_owner_individuals:
+                          description: List of all individuals with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an individual, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
+                          items:
+                            $ref: '#/components/schemas/individual'
+                          minItems: 0
+                          type: array
+                        business_entity:
+                          description: Information for business for which the account is being opened and KYB is being run.
+                          $ref: '#/components/schemas/kyb-business-entity'
+                        control_person:
+                          description: An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer, Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section II) for more background.
+                          $ref: '#/components/schemas/individual'
+                    nature_of_business:
+                      description: Short description of the company's line of business (i.e., what does the company do?).
+                      example: Software company selling solutions to the restaurant industry
+                      type: string
+                    website_url:
+                      description: Company website URL.
+                      example: www.mybusiness.com
+                      type: string
+                    external_id:
+                      description: A user provided id that can be used to link an account holder with an external system
+                      type: string
+                - title: KYC Payload
+                  description: KYC payload for an updated account holder.
+                  type: object
+                  properties:
+                    event_type:
+                      description: The name of the event
+                      enum:
+                        - account_holder.updated
+                      example: account_holder.updated
+                      type: string
+                    token:
+                      description: The token of the account_holder that was created.
+                      example: 00000000-0000-0000-0000-000000000001
+                      format: uuid
+                      type: string
+                    update_request:
+                      type: object
+                      description: Original request to update the account holder.
+                      properties:
+                        individual:
+                          $ref: '#/components/schemas/individual'
+                          description: Information on the individual for whom the account is being opened and KYC is being run.
+                    external_id:
+                      description: A user provided id that can be used to link an account holder with an external system
+                      type: string
+                - title: Legacy Payload
+                  description: Legacy payload for an updated account holder.
+                  type: object
+                  properties:
+                    business_account_token:
+                      description: If applicable, represents the business account token associated with the account_holder.
+                      example: 00000000-0000-0000-0000-000000000001
+                      format: uuid
+                      type: string
+                    created:
+                      description: When the account_holder updated event was created
+                      format: date-time
+                      type: string
+                    email:
+                      description: If updated, the newly updated email associated with the account_holder otherwise the existing email is provided.
+                      example: johnny@lithic.com
+                      type: string
+                    event_type:
+                      description: The name of the event
+                      enum:
+                        - account_holder.updated
+                      example: account_holder.updated
+                      type: string
+                    external_id:
+                      description: If applicable, represents the external_id associated with the account_holder.
+                      example: 00000000-0000-0000-0000-000000000001
+                      format: uuid
+                      type: string
+                    first_name:
+                      description: If applicable, represents the account_holder's first name.
+                      example: Johnny
+                      type: string
+                    last_name:
+                      description: If applicable, represents the account_holder's last name.
+                      example: Appleseed
+                      type: string
+                    legal_business_name:
+                      description: If applicable, represents the account_holder's business name.
+                      example: Lithic
+                      type: string
+                    phone_number:
+                      description: If updated, the newly updated phone_number associated with the account_holder otherwise the existing phone_number is provided.
+                      example: '+15555555555'
+                      type: string
+                    token:
+                      description: The token of the account_holder that was created.
+                      example: 00000000-0000-0000-0000-000000000001
+                      format: uuid
+                      type: string
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
