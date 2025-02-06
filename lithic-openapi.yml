@@ -5,7 +5,10 @@ info:
   description: |
     The Lithic Developer API is designed to provide a predictable programmatic interface for accessing your Lithic account through an API and transaction webhooks.
     Note that your API key is a secret and should be treated as such. Don't share it with anyone, including us. We will never ask you for it.
-  termsOfService: https://lithic.com/legal#terms
+  termsOfService: https://lithic.com/legal/terms
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
   title: Lithic Developer API
   version: 1.0.0
 servers:
