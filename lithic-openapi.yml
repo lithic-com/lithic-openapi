@@ -13605,6 +13605,25 @@ components:
             - BROWSER
             - THREE_DS_REQUESTOR_INITIATED
           type: string
+        challenge_metadata:
+          description: Metadata about the challenge method and delivery.
+          type:
+            - object
+            - 'null'
+          properties:
+            method_type:
+              description: The type of challenge method used for authentication.
+              enum:
+                - SMS_OTP
+                - OUT_OF_BAND
+              type: string
+            phone_number:
+              description: The phone number used for delivering the OTP. Relevant only for SMS_OTP method.
+              type:
+                - string
+                - 'null'
+          required:
+            - method_type
         challenge_orchestrated_by:
           description: Entity that orchestrates the challenge.
           enum:
@@ -13846,7 +13865,6 @@ components:
         - cardholder
         - channel
         - created
-        - decision_made_by
         - merchant
         - message_category
         - three_ds_requestor_challenge_indicator
