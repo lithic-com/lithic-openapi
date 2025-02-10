@@ -15441,7 +15441,7 @@ components:
       enum:
         - CHECKING
         - SAVINGS
-      title: Account Type
+      title: Account Type External
     update_bank_account_api_request:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/update_bank_account_api_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
