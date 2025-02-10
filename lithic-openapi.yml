@@ -15434,6 +15434,14 @@ components:
         - verification_method
         - owner_type
         - owner
+    account_type_external:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/account_type_external.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - CHECKING
+        - SAVINGS
+      title: Account Type
     update_bank_account_api_request:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/update_bank_account_api_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15480,6 +15488,8 @@ components:
           type: string
           minLength: 1
           maxLength: 256
+        type:
+          $ref: '#/components/schemas/account_type_external'
     micro_deposit_verification_request:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/micro_deposit_verification_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
