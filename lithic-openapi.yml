@@ -133,7 +133,7 @@ paths:
                           - address:
                               address1: 22 Street North
                               city: New York
-                              country: US
+                              country: USA
                               postal_code: '10004'
                               state: NY
                             dba_business_name: Busy Business, Inc.
@@ -148,7 +148,7 @@ paths:
                           address:
                             address1: 22 Street North
                             city: New York
-                            country: US
+                            country: USA
                             postal_code: '10004'
                             state: NY
                           dba_business_name: Busy Business, Inc.
@@ -162,7 +162,7 @@ paths:
                           address:
                             address1: 451 New Forest Way
                             city: Springfield
-                            country: US
+                            country: USA
                             postal_code: '68022'
                             state: IL
                           dob: '1991-03-08T08:00:00Z'
@@ -224,11 +224,7 @@ paths:
                         postal_code: '90210'
                         state: OR
                       dba_name: MHoldings
-                      entity_type: LLC
                       government_id: 98-7654321
-                      incorporation_country: US
-                      incorporation_date: '2015-09-17'
-                      incorporation_state: NV
                       legal_business_name: Majority Holdings LLC
                       phone_numbers:
                         - '+15555555555'
@@ -253,11 +249,7 @@ paths:
                       postal_code: '61022'
                       state: NE
                     dba_name: Example Business Solutions
-                    entity_type: Corporation
                     government_id: 12-3456789
-                    incorporation_country: US
-                    incorporation_date: '2010-06-28'
-                    incorporation_state: DE
                     legal_business_name: Busy Business, Inc.
                     phone_numbers:
                       - '+15555555555'
@@ -274,9 +266,7 @@ paths:
                     first_name: Tom
                     government_id: 111-23-1412
                     last_name: Timothy
-                    nationality: US
                     phone_number: '+15555555555'
-                    title: CEO
                   kyb_passed_timestamp: '2022-03-08T08:00:00Z'
                   nature_of_business: Software company selling solutions to the restaurant industry
                   tos_timestamp: '2022-03-08T08:00:00Z'
@@ -459,7 +449,7 @@ paths:
                         city: Springfield
                         state: IL
                         postal_code: '68022'
-                        country: US
+                        country: USA
                       dob: '1991-03-08T08:00:00Z'
                       email: john@appleseed.com
                       first_name: John
@@ -507,7 +497,7 @@ paths:
                         city: New York
                         state: NY
                         postal_code: '10004'
-                        country: US
+                        country: USA
                       dba_business_name: Busy Business, Inc.
                       government_id: 98-7654321
                       legal_business_name: Busy Business, Inc.
@@ -521,7 +511,7 @@ paths:
                         city: Springfield
                         state: IL
                         postal_code: '68022'
-                        country: US
+                        country: USA
                       dob: '1991-03-08T08:00:00Z'
                       email: john@appleseed.com
                       first_name: John
@@ -534,7 +524,7 @@ paths:
                           city: New York
                           state: NY
                           postal_code: '10004'
-                          country: US
+                          country: USA
                         dba_business_name: Busy Business, Inc.
                         government_id: 98-7654321
                         legal_business_name: Busy Business, Inc.
