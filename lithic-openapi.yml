@@ -133,7 +133,7 @@ paths:
                           - address:
                               address1: 22 Street North
                               city: New York
-                              country: US
+                              country: USA
                               postal_code: '10004'
                               state: NY
                             dba_business_name: Busy Business, Inc.
@@ -148,7 +148,7 @@ paths:
                           address:
                             address1: 22 Street North
                             city: New York
-                            country: US
+                            country: USA
                             postal_code: '10004'
                             state: NY
                           dba_business_name: Busy Business, Inc.
@@ -162,7 +162,7 @@ paths:
                           address:
                             address1: 451 New Forest Way
                             city: Springfield
-                            country: US
+                            country: USA
                             postal_code: '68022'
                             state: IL
                           dob: '1991-03-08T08:00:00Z'
@@ -224,11 +224,7 @@ paths:
                         postal_code: '90210'
                         state: OR
                       dba_name: MHoldings
-                      entity_type: LLC
                       government_id: 98-7654321
-                      incorporation_country: US
-                      incorporation_date: '2015-09-17'
-                      incorporation_state: NV
                       legal_business_name: Majority Holdings LLC
                       phone_numbers:
                         - '+15555555555'
@@ -253,11 +249,7 @@ paths:
                       postal_code: '61022'
                       state: NE
                     dba_name: Example Business Solutions
-                    entity_type: Corporation
                     government_id: 12-3456789
-                    incorporation_country: US
-                    incorporation_date: '2010-06-28'
-                    incorporation_state: DE
                     legal_business_name: Busy Business, Inc.
                     phone_numbers:
                       - '+15555555555'
@@ -274,9 +266,7 @@ paths:
                     first_name: Tom
                     government_id: 111-23-1412
                     last_name: Timothy
-                    nationality: US
                     phone_number: '+15555555555'
-                    title: CEO
                   kyb_passed_timestamp: '2022-03-08T08:00:00Z'
                   nature_of_business: Software company selling solutions to the restaurant industry
                   tos_timestamp: '2022-03-08T08:00:00Z'
@@ -459,7 +449,7 @@ paths:
                         city: Springfield
                         state: IL
                         postal_code: '68022'
-                        country: US
+                        country: USA
                       dob: '1991-03-08T08:00:00Z'
                       email: john@appleseed.com
                       first_name: John
@@ -507,7 +497,7 @@ paths:
                         city: New York
                         state: NY
                         postal_code: '10004'
-                        country: US
+                        country: USA
                       dba_business_name: Busy Business, Inc.
                       government_id: 98-7654321
                       legal_business_name: Busy Business, Inc.
@@ -521,7 +511,7 @@ paths:
                         city: Springfield
                         state: IL
                         postal_code: '68022'
-                        country: US
+                        country: USA
                       dob: '1991-03-08T08:00:00Z'
                       email: john@appleseed.com
                       first_name: John
@@ -534,7 +524,7 @@ paths:
                           city: New York
                           state: NY
                           postal_code: '10004'
-                          country: US
+                          country: USA
                         dba_business_name: Busy Business, Inc.
                         government_id: 98-7654321
                         legal_business_name: Busy Business, Inc.
@@ -4591,6 +4581,7 @@ paths:
             enum:
               - ACH
               - CARD
+              - INTERNAL
               - TRANSFER
             type: string
         - description: Financial Transaction result to be returned.
@@ -12448,10 +12439,12 @@ components:
             Status types:
             * `CARD` - Issuing card transaction.
             * `ACH` - Transaction over ACH.
+            * `INTERNAL` - Transaction for internal adjustment.
             * `TRANSFER` - Internal transfer of funds between financial accounts in your program.
           enum:
             - ACH
             - CARD
+            - INTERNAL
             - TRANSFER
           type: string
         created:
@@ -14972,6 +14965,7 @@ components:
         - FINANCIAL_CREDIT_AUTHORIZATION
         - INTEREST
         - INTEREST_REVERSAL
+        - INTERNAL_ADJUSTMENT
         - LATE_PAYMENT
         - LATE_PAYMENT_REVERSAL
         - PROVISIONAL_CREDIT
@@ -18506,6 +18500,65 @@ components:
           format: date
       required:
         - effective_date
+    asa_network_specific_data_mastercard:
+      type: object
+      properties:
+        transaction_type_identifier:
+          oneOf:
+            - type: 'null'
+              description: Transaction type identifier not available.
+            - type: string
+              description: Indicates the type of additional transaction purpose.
+              minLength: 3
+              maxLength: 3
+        ecommerce_security_level_indicator:
+          oneOf:
+            - type: 'null'
+              description: Electronic commerce security level indicator not available.
+            - type: string
+              description: Indicates the electronic commerce security level and UCAF collection.
+              minLength: 3
+              maxLength: 3
+        on_behalf_service_result:
+          oneOf:
+            - type: 'null'
+              description: On-behalf service result not available.
+            - type: array
+              items:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    description: Indicates the service performed on the transaction.
+                    minLength: 2
+                    maxLength: 2
+                  result_1:
+                    type: string
+                    description: Indicates the results of the service processing.
+                    minLength: 1
+                    maxLength: 1
+                  result_2:
+                    type: string
+                    description: Identifies the results of the service processing.
+                    minLength: 1
+                    maxLength: 1
+                required:
+                  - service
+                  - result_1
+                  - result_2
+              description: The On-behalf Service performed on the transaction and the results. Contains all applicable, on-behalf service results that were performed on a given transaction.
+              maxItems: 10
+    asa_network_specific_data_visa:
+      type: object
+      properties:
+        business_application_identifier:
+          oneOf:
+            - type: 'null'
+              description: Business application identifier not available.
+            - type: string
+              description: Identifies the purpose or category of a transaction, used to classify and process transactions according to Visa’s rules.
+              minLength: 2
+              maxLength: 2
     card-type:
       $id: https://lithic.com/schemas/authorization/card/card-type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18790,6 +18843,20 @@ components:
       required:
         - fleet_restriction_code
         - fleet_prompt_code
+    asa_network_specific_data:
+      description: Contains raw data provided by the card network, including attributes that provide further context about the authorization. If populated by the network, data is organized by Lithic and passed through without further modification. Please consult the official network documentation for more details about these values and how to use them. This object is only available to certain programs- contact your Customer Success Manager to discuss enabling access.
+      type: object
+      properties:
+        mastercard:
+          oneOf:
+            - type: 'null'
+              description: There was no Mastercard-specific data available for this transaction.
+            - $ref: '#/components/schemas/asa_network_specific_data_mastercard'
+        visa:
+          oneOf:
+            - type: 'null'
+              description: There was no Visa-specific data available for this transaction.
+            - $ref: '#/components/schemas/asa_network_specific_data_visa'
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18899,6 +18966,11 @@ components:
           type: array
           maxItems: 0
           deprecated: true
+        network_specific_data:
+          oneOf:
+            - type: 'null'
+              description: Network specific data not available or program is not opted in to receive this data.
+            - $ref: '#/components/schemas/asa_network_specific_data'
       required:
         - acquirer_fee
         - amount
@@ -19005,6 +19077,79 @@ components:
           required:
             - fleet_restriction_code
             - fleet_prompt_code
+        asa_network_specific_data:
+          description: Contains raw data provided by the card network, including attributes that provide further context about the authorization. If populated by the network, data is organized by Lithic and passed through without further modification. Please consult the official network documentation for more details about these values and how to use them. This object is only available to certain programs- contact your Customer Success Manager to discuss enabling access.
+          type: object
+          properties:
+            mastercard:
+              oneOf:
+                - type: 'null'
+                  description: There was no Mastercard-specific data available for this transaction.
+                - $ref: '#/components/schemas/asa_network_specific_data_mastercard'
+            visa:
+              oneOf:
+                - type: 'null'
+                  description: There was no Visa-specific data available for this transaction.
+                - $ref: '#/components/schemas/asa_network_specific_data_visa'
+        asa_network_specific_data_mastercard:
+          type: object
+          properties:
+            transaction_type_identifier:
+              oneOf:
+                - type: 'null'
+                  description: Transaction type identifier not available.
+                - type: string
+                  description: Indicates the type of additional transaction purpose.
+                  minLength: 3
+                  maxLength: 3
+            ecommerce_security_level_indicator:
+              oneOf:
+                - type: 'null'
+                  description: Electronic commerce security level indicator not available.
+                - type: string
+                  description: Indicates the electronic commerce security level and UCAF collection.
+                  minLength: 3
+                  maxLength: 3
+            on_behalf_service_result:
+              oneOf:
+                - type: 'null'
+                  description: On-behalf service result not available.
+                - type: array
+                  items:
+                    type: object
+                    properties:
+                      service:
+                        type: string
+                        description: Indicates the service performed on the transaction.
+                        minLength: 2
+                        maxLength: 2
+                      result_1:
+                        type: string
+                        description: Indicates the results of the service processing.
+                        minLength: 1
+                        maxLength: 1
+                      result_2:
+                        type: string
+                        description: Identifies the results of the service processing.
+                        minLength: 1
+                        maxLength: 1
+                    required:
+                      - service
+                      - result_1
+                      - result_2
+                  description: The On-behalf Service performed on the transaction and the results. Contains all applicable, on-behalf service results that were performed on a given transaction.
+                  maxItems: 10
+        asa_network_specific_data_visa:
+          type: object
+          properties:
+            business_application_identifier:
+              oneOf:
+                - type: 'null'
+                  description: Business application identifier not available.
+                - type: string
+                  description: Identifies the purpose or category of a transaction, used to classify and process transactions according to Visa’s rules.
+                  minLength: 2
+                  maxLength: 2
         asa_request_cardholder_authentication:
           description: Cardholder Authentication object in ASA
           type: object
