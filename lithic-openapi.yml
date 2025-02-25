@@ -15637,6 +15637,29 @@ components:
       enum:
         - ISSUING
         - OPERATING
+    financial-account-status:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-status.json
+      title: Financial Account Status
+      description: Status of the financial account
+      type: string
+      enum:
+        - OPEN
+        - CLOSED
+        - SUSPENDED
+        - PENDING
+    financial-account-status-change-reason:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-status-change-reason.json
+      title: Financial Account Status Change Reason
+      description: Reason for the financial account status change
+      type: string
+      enum:
+        - CHARGED_OFF_DELINQUENT
+        - CHARGED_OFF_FRAUD
+        - END_USER_REQUEST
+        - BANK_REQUEST
+        - DELINQUENT
     financial-account-state:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-state.json
@@ -15740,6 +15763,12 @@ components:
             - string
             - 'null'
           format: uuid
+        status:
+          $ref: '#/components/schemas/financial-account-status'
+        status_change_reason:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/financial-account-status-change-reason'
         is_for_benefit_of:
           type: boolean
           description: Whether financial account is for the benefit of another entity
@@ -15754,6 +15783,7 @@ components:
         - is_for_benefit_of
         - account_token
         - credit_configuration
+        - status
     financial-accounts-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-accounts-response.json
