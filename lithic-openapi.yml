@@ -3309,6 +3309,8 @@ paths:
                       - management_operation.updated
                       - payment_transaction.created
                       - payment_transaction.updated
+                      - internal_transaction.created
+                      - internal_transaction.updated
                       - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
@@ -3471,6 +3473,8 @@ paths:
                       - management_operation.updated
                       - payment_transaction.created
                       - payment_transaction.updated
+                      - internal_transaction.created
+                      - internal_transaction.updated
                       - settlement_report.updated
                       - statements.created
                       - three_ds_authentication.created
@@ -3734,6 +3738,8 @@ paths:
                 - management_operation.updated
                 - payment_transaction.created
                 - payment_transaction.updated
+                - internal_transaction.created
+                - internal_transaction.updated
                 - settlement_report.updated
                 - statements.created
                 - three_ds_authentication.created
@@ -5684,6 +5690,8 @@ paths:
                     - management_operation.updated
                     - payment_transaction.created
                     - payment_transaction.updated
+                    - internal_transaction.created
+                    - internal_transaction.updated
                     - settlement_report.updated
                     - statements.created
                     - three_ds_authentication.created
@@ -9340,6 +9348,52 @@ webhooks:
       summary: management_operation.updated
       tags:
         - Event Types
+  internal_transaction.created:
+    post:
+      description: Occurs when an internal adjustment is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/internal_adjustment_transaction'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - internal_transaction.created
+                      example: internal_transaction.created
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: internal_transaction.created
+      tags:
+        - Event Types
+  internal_transaction.updated:
+    post:
+      description: Occurs when an internal adjustment is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/internal_adjustment_transaction'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - internal_transaction.updated
+                      example: internal_transaction.updated
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: internal_transaction.updated
+      tags:
+        - Event Types
   payment_transaction.created:
     post:
       description: Occurs when a payment transaction is created.
@@ -12008,6 +12062,8 @@ components:
             - management_operation.updated
             - payment_transaction.created
             - payment_transaction.updated
+            - internal_transaction.created
+            - internal_transaction.updated
             - settlement_report.updated
             - statements.created
             - three_ds_authentication.created
@@ -12073,6 +12129,8 @@ components:
               - management_operation.updated
               - payment_transaction.created
               - payment_transaction.updated
+              - internal_transaction.created
+              - internal_transaction.updated
               - settlement_report.updated
               - statements.created
               - three_ds_authentication.created
@@ -19802,6 +19860,79 @@ components:
                 recommendation_reasons:
                   - Reason1
                 recommended_decision: Decision1
+    internal_adjustment_event:
+      $id: https://lithic.com/schemas/treasury/ledger/internal_adjustment_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Internal Adjustment Event
+      type: object
+      properties:
+        amount:
+          type: integer
+        type:
+          type: string
+          enum:
+            - INTERNAL_ADJUSTMENT
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        created:
+          type: string
+          format: date-time
+        token:
+          type: string
+          format: uuid
+      required:
+        - amount
+        - type
+        - result
+        - created
+        - token
+    internal_adjustment_transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/internal_adjustment_transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Internal Adjustment Transaction
+      type: object
+      properties:
+        token:
+          type: string
+          format: uuid
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        category:
+          type: string
+          enum:
+            - INTERNAL
+        status:
+          $ref: '#/components/schemas/transaction_status'
+        settled_amount:
+          type: integer
+        pending_amount:
+          type: integer
+        currency:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/internal_adjustment_event'
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        descriptor:
+          type: string
+      required:
+        - token
+        - result
+        - category
+        - status
+        - settled_amount
+        - pending_amount
+        - currency
+        - events
+        - created
+        - updated
+        - descriptor
     statements_created_webhook:
       $id: https://lithic.com/schemas/treasury/statements/statements_created_webhook.json
       $schema: https://json-schema.org/draft/2020-12/schema
