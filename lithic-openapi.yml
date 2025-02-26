@@ -5218,6 +5218,131 @@ paths:
       summary: Get settlement summary
       tags:
         - Settlement Report
+  /v1/reports/settlement/network_totals:
+    get:
+      description: (Available March 4, 2025) List network total records with optional filters. Not available in sandbox.
+      operationId: listNetworkTotals
+      parameters:
+        - description: Singular report date to filter on (YYYY-MM-DD). Cannot be populated in conjunction with report_date_begin or report_date_end.
+          in: query
+          name: report_date
+          schema:
+            format: date
+            type: string
+        - description: Earliest report date to filter on, inclusive (YYYY-MM-DD).
+          in: query
+          name: report_date_begin
+          schema:
+            format: date
+            type: string
+        - description: Latest report date to filter on, exclusive (YYYY-MM-DD).
+          in: query
+          name: report_date_end
+          schema:
+            format: date
+            type: string
+        - description: Network to filter on.
+          in: query
+          name: network
+          schema:
+            type: string
+            enum:
+              - VISA
+              - MASTERCARD
+              - MAESTRO
+              - INTERLINK
+        - description: Institution ID to filter on.
+          in: query
+          name: institution_id
+          schema:
+            type: string
+        - description: Settlement institution ID to filter on.
+          in: query
+          name: settlement_institution_id
+          schema:
+            type: string
+        - description: Datetime in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
+          in: query
+          name: begin
+          schema:
+            format: date-time
+            type: string
+        - description: Datetime in RFC 3339 format. Only entries created before the specified time will be included. UTC time zone.
+          in: query
+          name: end
+          schema:
+            format: date-time
+            type: string
+        - description: Number of records per page.
+          in: query
+          name: page_size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          schema:
+            type: string
+            format: uuid
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network_totals_list'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List network totals
+      tags:
+        - Settlement Report
+  /v1/reports/settlement/network_totals/{token}:
+    get:
+      description: (Available March 4, 2025) Retrieve a specific network total record by token. Not available in sandbox.
+      operationId: getNetworkTotal
+      parameters:
+        - description: Token of the network total record to retrieve
+          in: path
+          name: token
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network_total'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get network total
+      tags:
+        - Settlement Report
   /v1/responder_endpoints:
     delete:
       operationId: deleteResponderEndpoint
@@ -16391,6 +16516,171 @@ components:
       required:
         - data
         - has_more
+    network_total:
+      $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Total
+      type: object
+      required:
+        - token
+        - network
+        - institution_id
+        - settlement_institution_id
+        - settlement_service
+        - report_date
+        - currency
+        - amounts
+        - created
+        - updated
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier.
+        network:
+          type: string
+          enum:
+            - VISA
+            - MASTERCARD
+            - MAESTRO
+            - INTERLINK
+          description: Card network where the transaction took place. VISA, MASTERCARD, MAESTRO, or INTERLINK.
+        institution_id:
+          type: string
+          description: 'The institution that activity occurred on. For Mastercard: ICA (Interbank Card Association). For Maestro: institution ID. For Visa: lowest level SRE (Settlement Reporting Entity).'
+        settlement_institution_id:
+          type: string
+          description: 'The institution responsible for settlement. For Mastercard: same as `institution_id`. For Maestro: billing ICA. For Visa: Funds Transfer SRE (FTSRE).'
+        settlement_service:
+          type: string
+          description: Settlement service.
+        report_date:
+          type: string
+          format: date
+          description: Date that the network total record applies to. YYYY-MM-DD format.
+        cycle:
+          type: integer
+          description: The clearing cycle that the network total record applies to. Mastercard only.
+        currency:
+          type: string
+          description: Three-digit alphabetic ISO 4217 code.
+        amounts:
+          type: object
+          required:
+            - gross_settlement
+            - interchange_fees
+            - net_settlement
+          properties:
+            gross_settlement:
+              type: integer
+              description: Total settlement amount excluding interchange, in currency's smallest unit.
+            interchange_fees:
+              type: integer
+              description: Interchange amount, in currency's smallest unit.
+            visa_charges:
+              type: integer
+              description: Charges specific to Visa/Interlink, in currency's smallest unit.
+            net_settlement:
+              type: integer
+              description: "`gross_settlement` net of `interchange_fees` and `visa_charges` (if applicable), in currency's smallest unit."
+        created:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp for when the record was created. UTC time zone.
+        updated:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp for when the record was last updated. UTC time zone.
+      examples:
+        - token: 12cf7505-06a8-435e-b1c7-4c430d02f6c3
+          network: VISA
+          institution_id: '1000000000'
+          settlement_institution_id: '1000000001'
+          settlement_service: '015'
+          report_date: '2025-02-25'
+          currency: CAD
+          amounts:
+            gross_settlement: 100
+            interchange_fees: -25
+            visa_charges: 10
+            net_settlement: 85
+          created: '2025-02-25T13:07:31.419631Z'
+          updated: '2025-02-25T13:07:31.419631Z'
+    network_totals_list:
+      $id: https://lithic.com/schemas/common/2025-02-25/network_totals_list.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Totals Response
+      type: object
+      required:
+        - data
+        - has_more
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/network_total'
+        has_more:
+          description: Indicates whether there are more network total records to be retrieved.
+          type: boolean
+      examples:
+        - data:
+            - token: 12cf7505-06a8-435e-b1c7-4c430d02f6c3
+              network: VISA
+              institution_id: '1000000000'
+              settlement_institution_id: '1000000001'
+              settlement_service: '015'
+              report_date: '2025-02-25'
+              currency: CAD
+              amounts:
+                gross_settlement: 100
+                interchange_fees: -25
+                visa_charges: 10
+                net_settlement: 85
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+            - token: 0604c316-17f0-456d-9ac7-7d94252acb1a
+              network: INTERLINK
+              institution_id: '1000000000'
+              settlement_institution_id: '1000000001'
+              settlement_service: '001'
+              report_date: '2025-02-25'
+              currency: USD
+              amounts:
+                gross_settlement: 200
+                interchange_fees: -50
+                visa_charges: 10
+                net_settlement: 160
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+            - token: 700a1c78-04ed-47e2-8160-b1e18914ec7b
+              network: MASTERCARD
+              institution_id: '031511'
+              settlement_institution_id: '031511'
+              settlement_service: US00000001
+              report_date: '2025-02-25'
+              currency: USD
+              cycle: 1
+              amounts:
+                gross_settlement: 100
+                interchange_fees: -25
+                net_settlement: 75
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+            - token: e05d5448-210e-4cc3-bd0d-d54d3c6c9a9f
+              network: MASTERCARD
+              institution_id: '031511'
+              settlement_institution_id: '031511'
+              settlement_service: US00000001
+              report_date: '2025-02-25'
+              currency: USD
+              cycle: 2
+              amounts:
+                gross_settlement: 100
+                interchange_fees: -25
+                net_settlement: 75
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+          has_more: false
     simulate_receipt_request:
       $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_receipt_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
