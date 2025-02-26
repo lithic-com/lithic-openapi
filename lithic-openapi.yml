@@ -549,49 +549,60 @@ paths:
       tags:
         - Account Holder
     patch:
-      description: Update the information associated with a particular account holder.
+      description: |-
+        Update the information associated with a particular account holder (including business owners and control persons associated to a business account).
+        If Lithic is performing KYB or KYC and additional verification is required we will run the individual's or business's updated information again and return whether the status is accepted or pending (i.e., further action required).
+        All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the workflow is under review or further action will be needed to complete the evaluation process.
+        This endpoint can only be used on existing accounts that are part of the program that the calling API key manages.
       operationId: patchAccountHolder
       parameters:
-        - $ref: '#/components/parameters/accountHolderTokenPath'
+        - $ref: '#/components/parameters/accountHolderToken'
       requestBody:
         content:
           application/json:
+            examples:
+              kybRequest:
+                summary: Update a business account holder with KYB workflow
+                value:
+                  business_entity:
+                    address:
+                      postal_code: '61023'
+                  control_person:
+                    address:
+                      postal_code: '68023'
+                  website_url: https://www.mynewbusiness.com
+              kycExemptRequest:
+                summary: Update an individual account holder with KYC workflow
+                value:
+                  individual:
+                    address:
+                      postal_code: '68023'
+                  phone_number: '+15555555555'
+              kycRequest:
+                summary: Update an individual account holder with KYC workflow
+                value:
+                  individual:
+                    address:
+                      postal_code: '68023'
+                    government_id: 111-23-1413
             schema:
-              properties:
-                business_account_token:
-                  description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
-                  type: string
-                email:
-                  description: Account holder's email address. The primary purpose of this field is for cardholder identification and verification during the digital wallet tokenization process.
-                  type: string
-                phone_number:
-                  description: Account holder's phone number, entered in E.164 format. The primary purpose of this field is for cardholder identification and verification during the digital wallet tokenization process.
-                  type: string
-              type: object
+              oneOf:
+                - $ref: '#/components/schemas/kyb-patch-request'
+                - $ref: '#/components/schemas/kyc-patch-request'
+                - $ref: '#/components/schemas/patch-request'
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                properties:
-                  business_account_token:
-                    description: Only applicable for customers using the KYC-Exempt workflow to enroll businesses with authorized users. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
-                    type: string
-                  email:
-                    description: The newly updated email for the account holder
-                    type: string
-                  phone_number:
-                    description: The newly updated phone_number for the account holder
-                    type: string
-                  token:
-                    description: The token for the account holder that was updated
-                    type: string
-                type: object
+                oneOf:
+                  - $ref: '#/components/schemas/kyb-kyc-patch-response'
+                  - $ref: '#/components/schemas/patch-response'
           description: OK
         '404':
-          $ref: '#/components/responses/NotFound'
-      summary: Update account holder information
+          $ref: '#/components/responses/responses-NotFound'
+      summary: Update account holder information and possibly resubmit for evaluation
       tags:
         - Account Holder
   /v1/account_holders/{account_holder_token}/documents:
@@ -1009,7 +1020,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
     get:
       servers:
         - description: Sandbox environment that provides key functionality mirroring production
@@ -1057,7 +1068,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}:
     get:
       parameters:
@@ -1072,7 +1083,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
     patch:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
@@ -1096,7 +1107,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
     delete:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
@@ -1110,7 +1121,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/apply:
     post:
       deprecated: true
@@ -1135,7 +1146,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/draft:
     post:
       parameters:
@@ -1166,7 +1177,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/promote:
     post:
       parameters:
@@ -1181,7 +1192,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/report:
     post:
       parameters:
@@ -1218,7 +1229,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
         '422':
           description: Returned when the request was syntactically correct, but could not be processed
   /v2/auth_rules/{auth_rule_token}/backtests:
@@ -1256,7 +1267,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}:
     get:
       parameters:
@@ -1282,7 +1293,7 @@ paths:
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
-          $ref: '#/components/responses/responses-NotFound'
+          $ref: '#/components/responses/components-responses-NotFound'
   /v1/auth_stream/secret:
     get:
       description: |
@@ -6300,7 +6311,7 @@ paths:
         '401':
           $ref: '#/components/responses/responses-Unauthorized'
         '404':
-          $ref: '#/components/responses/exception-responses_responses-NotFound'
+          $ref: '#/components/responses/responses-NotFound'
         '409':
           $ref: '#/components/responses/responses-Conflict'
         '429':
@@ -6355,7 +6366,7 @@ paths:
         '401':
           $ref: '#/components/responses/responses-Unauthorized'
         '404':
-          $ref: '#/components/responses/exception-responses_responses-NotFound'
+          $ref: '#/components/responses/responses-NotFound'
         '409':
           $ref: '#/components/responses/responses-Conflict'
         '429':
@@ -10346,6 +10357,18 @@ components:
       schema:
         type: string
       example: v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE= v1,bm9ldHUjKzFob2VudXRob2VodWUzMjRvdWVvdW9ldQo=
+    accountHolderToken:
+      description: Globally unique identifier for the account holder.
+      examples:
+        accountHolderTokenExample:
+          summary: A sample account holder token
+          value: 65db64b2-ae89-491a-97d9-f64788f8b2ab
+      in: path
+      name: account_holder_token
+      required: true
+      schema:
+        format: uuid
+        type: string
     InstanceToken:
       name: x-instance-uuid
       in: header
@@ -10466,13 +10489,19 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Unprocessable entity.
+    responses-NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+      description: The specified resource was not found.
     responses-BadRequest:
       description: Bad Request
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/schemas-Error'
-    responses-NotFound:
+    components-responses-NotFound:
       description: Not Found
       content:
         application/json:
@@ -10505,12 +10534,6 @@ components:
         | Please provide API key in the form Authorization: [api-key] | The Authorization header is not formatted properly |
         | Insufficient privileges. Issuing API key required | Write access requires an Issuing API key. Reach out at [lithic.com/contact](https://lithic.com/contact) |
         | Insufficient privileges to create virtual cards. | Creating virtual cards requires an additional privilege | Reach out at [lithic.com/contact](https://lithic.com/contact) |
-    exception-responses_responses-NotFound:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/error'
-      description: The specified resource was not found.
     responses-Conflict:
       content:
         application/json:
@@ -14422,6 +14445,518 @@ components:
         - CONTROL_PERSON_ID_VERIFICATION_FAILURE
         - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
         - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
+    address-patch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/api-shared/2024-01-15/address-patch.json
+      title: Address
+      type: object
+      properties:
+        address1:
+          description: Valid deliverable address (no PO boxes).
+          example: 123 Old Forest Way
+          type: string
+        address2:
+          description: Unit or apartment number (if applicable).
+          type: string
+        city:
+          description: Name of city.
+          example: Omaha
+          type: string
+        country:
+          description: Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
+          example: USA
+          type: string
+        postal_code:
+          description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+          example: '68022'
+          type: string
+        state:
+          description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+          example: NE
+          type: string
+    kyb-business-entity-patch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyb-workflows/kyb-business-entity-patch.json
+      title: KYB Business Entity
+      type: object
+      properties:
+        entity_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for an entity.
+        address:
+          $ref: '#/components/schemas/address-patch'
+          description: Business''s physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
+        dba_business_name:
+          description: Any name that the business operates under that is not its legal business name (if applicable).
+          type: string
+        government_id:
+          description: Government-issued identification number. US Federal Employer Identification Numbers (EIN) are currently supported, entered as full nine-digits, with or without hyphens.
+          example: 114-123-1513
+          type: string
+        legal_business_name:
+          description: Legal (formal) business name.
+          example: Acme, Inc.
+          type: string
+        parent_company:
+          description: Parent company name (if applicable).
+          type: string
+        phone_numbers:
+          description: One or more of the business's phone number(s), entered as a list in E.164 format.
+          items:
+            description: Business phone number, entered in E.164 format.
+            example: '+15555555555'
+            type: string
+          minItems: 1
+          type: array
+      required:
+        - entity_token
+    individual-patch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/individual-patch.json
+      title: Individual
+      type: object
+      properties:
+        entity_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for an entity.
+        address:
+          $ref: '#/components/schemas/address-patch'
+          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
+        dob:
+          type: string
+          example: '1991-03-08 08:00:00'
+          description: Individual's date of birth, as an RFC 3339 date.
+        email:
+          type: string
+          example: tom@middle-earth.com
+          description: Individual's email address. If utilizing Lithic for chargeback processing, this customer email address may be used to communicate dispute status and resolution.
+        first_name:
+          type: string
+          example: Tom
+          description: Individual's first name, as it appears on government-issued identity documents.
+        last_name:
+          type: string
+          example: Bombadil
+          description: Individual's last name, as it appears on government-issued identity documents.
+        phone_number:
+          type: string
+          example: '+15555555555'
+          description: Individual's phone number, entered in E.164 format.
+        government_id:
+          type: string
+          example: 111-23-1412
+          description: Government-issued identification number (required for identity verification and compliance with banking regulations). Social Security Numbers (SSN) and Individual Taxpayer Identification Numbers (ITIN) are currently supported, entered as full nine-digits, with or without hyphens
+          writeOnly: true
+    kyb-individual-patch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyb-workflows/kyb-individual-patch.json
+      title: KYB Individual
+      type: object
+      description: Individuals associated with a KYB application. Phone number is optional.
+      allOf:
+        - $ref: '#/components/schemas/individual-patch'
+        - required:
+            - entity_token
+    kyb-patch-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyb-workflows/kyb-patch-request.json
+      title: Business Patch Request
+      type: object
+      description: The KYB request payload for updating a business.
+      properties:
+        beneficial_owner_entities:
+          description: List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
+          items:
+            $ref: '#/components/schemas/kyb-business-entity-patch'
+          minItems: 0
+          type: array
+        beneficial_owner_individuals:
+          description: List of all individuals with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an individual, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
+          items:
+            $ref: '#/components/schemas/kyb-individual-patch'
+          minItems: 0
+          type: array
+        business_entity:
+          description: Information for business for which the account is being opened and KYB is being run.
+          $ref: '#/components/schemas/kyb-business-entity-patch'
+        control_person:
+          description: An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer, Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section II) for more background.
+          $ref: '#/components/schemas/kyb-individual-patch'
+        nature_of_business:
+          description: Short description of the company's line of business (i.e., what does the company do?).
+          example: Software company selling solutions to the restaurant industry
+          type: string
+        website_url:
+          description: Company website URL.
+          example: www.mybusiness.com
+          type: string
+        external_id:
+          description: A user provided id that can be used to link an account holder with an external system
+          type: string
+    kyc-individual-patch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyc-workflows/kyc-individual-patch.json
+      title: Individuals associated with a KYC application.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/individual-patch'
+        - required:
+            - entity_token
+    kyc-patch-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyc-workflows/kyc-patch-request.json
+      title: Individual Patch Request
+      type: object
+      description: The KYC request payload for updating an account holder.
+      properties:
+        individual:
+          $ref: '#/components/schemas/kyc-individual-patch'
+          description: Information on the individual for whom the account is being opened and KYC is being run.
+        external_id:
+          description: A user provided id that can be used to link an account holder with an external system
+          type: string
+    patch-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/patch-request.json
+      title: Legacy Patch Request
+      type: object
+      description: The legacy request for updating an account holder.
+      properties:
+        email:
+          description: Allowed for all Account Holders. Account holder's email address. The primary purpose of this field is for cardholder identification and verification during the digital wallet tokenization process.
+          type: string
+        phone_number:
+          description: Allowed for all Account Holders. Account holder's phone number, entered in E.164 format. The primary purpose of this field is for cardholder identification and verification during the digital wallet tokenization process.
+          type: string
+        address:
+          description: 'Allowed for: KYC-Exempt, BYO-KYC, BYO-KYB.'
+          $ref: '#/components/schemas/address-patch'
+        business_account_token:
+          description: 'Allowed for: KYC-Exempt, BYO-KYC. The token of the business account to which the account holder is associated.'
+          type: string
+        first_name:
+          description: Allowed for KYC-Exempt, BYO-KYC. Account holder's first name.
+          type: string
+        last_name:
+          description: Allowed for KYC-Exempt, BYO-KYC. Account holder's last name.
+          type: string
+        legal_business_name:
+          description: Allowed for BYO-KYB. Legal business name of the account holder.
+          type: string
+    status:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status.json
+      title: KYC/KYB Status
+      description: Enrollment status for KYC/KYB
+      type: string
+      enum:
+        - ACCEPTED
+        - PENDING_DOCUMENT
+        - PENDING_RESUBMIT
+        - REJECTED
+    verification-application:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/verification-application.json
+      title: Verification Application
+      type: object
+      description: Represents the status of an identity verification application for an account holder
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: Timestamp of when the application was created.
+        status:
+          description: |-
+            KYC and KYB evaluation states.
+
+            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+          $ref: '#/components/schemas/status'
+        status_reasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/status-reasons'
+          description: Reason for the evaluation status.
+        updated:
+          type: string
+          format: date-time
+          description: Timestamp of when the application was last updated.
+      required:
+        - created
+        - status
+        - status_reasons
+        - updated
+    address:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/api-shared/2024-01-15/address.json
+      title: Address
+      type: object
+      properties:
+        address1:
+          description: Valid deliverable address (no PO boxes).
+          example: 123 Old Forest Way
+          type: string
+        address2:
+          description: Unit or apartment number (if applicable).
+          type: string
+        city:
+          description: Name of city.
+          example: Omaha
+          type: string
+        country:
+          description: Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
+          example: USA
+          type: string
+        postal_code:
+          description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+          example: '68022'
+          type: string
+        state:
+          description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+          example: NE
+          type: string
+      required:
+        - address1
+        - city
+        - country
+        - postal_code
+        - state
+    individual:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/individual.json
+      title: Individual
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/address'
+          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
+        dob:
+          type: string
+          example: '1991-03-08 08:00:00'
+          description: Individual's date of birth, as an RFC 3339 date.
+        email:
+          type: string
+          example: tom@middle-earth.com
+          description: Individual's email address. If utilizing Lithic for chargeback processing, this customer email address may be used to communicate dispute status and resolution.
+        first_name:
+          type: string
+          example: Tom
+          description: Individual's first name, as it appears on government-issued identity documents.
+        last_name:
+          type: string
+          example: Bombadil
+          description: Individual's last name, as it appears on government-issued identity documents.
+        phone_number:
+          type: string
+          example: '+15555555555'
+          description: Individual's phone number, entered in E.164 format.
+        government_id:
+          type: string
+          example: 111-23-1412
+          description: Government-issued identification number (required for identity verification and compliance with banking regulations). Social Security Numbers (SSN) and Individual Taxpayer Identification Numbers (ITIN) are currently supported, entered as full nine-digits, with or without hyphens
+          writeOnly: true
+    kyb-business-entity:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyb-workflows/kyb-business-entity.json
+      title: KYB Business Entity
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/address'
+          description: Business''s physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
+        dba_business_name:
+          description: Any name that the business operates under that is not its legal business name (if applicable).
+          type: string
+        government_id:
+          description: Government-issued identification number. US Federal Employer Identification Numbers (EIN) are currently supported, entered as full nine-digits, with or without hyphens.
+          example: 114-123-1513
+          type: string
+        legal_business_name:
+          description: Legal (formal) business name.
+          example: Acme, Inc.
+          type: string
+        parent_company:
+          description: Parent company name (if applicable).
+          type: string
+        phone_numbers:
+          description: One or more of the business's phone number(s), entered as a list in E.164 format.
+          items:
+            description: Business phone number, entered in E.164 format.
+            example: '+15555555555'
+            type: string
+          minItems: 1
+          type: array
+      required:
+        - address
+        - government_id
+        - legal_business_name
+        - phone_numbers
+    kyb-kyc-patch-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/account-holder-response.json
+      title: Business/Individual Patch Response
+      type: object
+      properties:
+        token:
+          description: Globally unique identifier for the account holder.
+          type: string
+          format: uuid
+        account_token:
+          description: Globally unique identifier for the account.
+          type: string
+          format: uuid
+        business_account_token:
+          description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
+          type: string
+          format: uuid
+        created:
+          description: Timestamp of when the account holder was created.
+          type: string
+          format: date-time
+        exemption_type:
+          description: The type of KYC exemption for a KYC-Exempt Account Holder. "None" if the account holder is not KYC-Exempt.
+          type: string
+          enum:
+            - AUTHORIZED_USER
+            - PREPAID_CARD_USER
+        external_id:
+          description: Customer-provided token that indicates a relationship with an object outside of the Lithic ecosystem.
+          type: string
+          format: string
+        user_type:
+          description: |-
+            The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
+
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "beneficial_owner_entities",
+
+            "nature_of_business", and "website_url" attributes will be present.
+          type: string
+          enum:
+            - BUSINESS
+            - INDIVIDUAL
+        verification_application:
+          $ref: '#/components/schemas/verification-application'
+          description: Information about the most recent identity verification attempt
+        individual:
+          $ref: '#/components/schemas/individual'
+          description: Only present when user_type == "INDIVIDUAL". Information about the individual for which the account is being opened and KYC is being run.
+        business_entity:
+          $ref: '#/components/schemas/kyb-business-entity'
+          description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
+        beneficial_owner_entities:
+          description: Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
+          type: array
+          items:
+            $ref: '#/components/schemas/kyb-business-entity'
+          minItems: 0
+        beneficial_owner_individuals:
+          description: Only present when user_type == "BUSINESS". List of all individuals with >25% ownership in the company.
+          type: array
+          items:
+            $ref: '#/components/schemas/individual'
+          minItems: 0
+        control_person:
+          $ref: '#/components/schemas/individual'
+          description: |-
+            Only present when user_type == "BUSINESS".
+
+            An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer,
+
+            Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access
+
+            to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
+        nature_of_business:
+          description: Only present when user_type == "BUSINESS". User-submitted description of the business.
+          type: string
+          format: string
+        website_url:
+          description: Only present when user_type == "BUSINESS". Business's primary website.
+          type: string
+          format: string
+        email:
+          description: |
+            <
+              Deprecated.
+              Use control_person.email when user_type == "BUSINESS".
+              Use individual.phone_number when user_type == "INDIVIDUAL".
+            >
+            Primary email of Account Holder.
+          type: string
+        phone_number:
+          description: |
+            <
+              Deprecated.
+              Use control_person.phone_number when user_type == "BUSINESS".
+              Use individual.phone_number when user_type == "INDIVIDUAL".
+            >
+            Primary phone of Account Holder, entered in E.164 format.
+          type: string
+        status:
+          description: |+
+            <Deprecated. Use verification_application.status instead>
+
+            KYC and KYB evaluation states.
+
+            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+
+          $ref: '#/components/schemas/status'
+        status_reasons:
+          description: <Deprecated. Use verification_application.status_reasons> Reason for the evaluation status.
+          type: array
+          items:
+            $ref: '#/components/schemas/status-reasons'
+        required_documents:
+          description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
+          type: array
+          items:
+            $ref: '#/components/schemas/required-document'
+    patch-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/patch-response.json
+      title: Legacy Patch Response
+      type: object
+      properties:
+        token:
+          description: The token for the account holder that was updated
+          type: string
+        email:
+          description: The email for the account holder
+          type: string
+        phone_number:
+          description: The phone_number for the account holder
+          type: string
+        business_account_token:
+          description: The token for the business account that the account holder is associated with
+          type: string
+        address:
+          description: The address for the account holder
+          $ref: '#/components/schemas/address'
+        first_name:
+          description: The first name for the account holder
+          type: string
+        last_name:
+          description: The last name for the account holder
+          type: string
+        legal_business_name:
+          description: The legal business name for the account holder
+          type: string
+    error:
+      $id: https://lithic.com/schemas/customer-facing/api-shared/error.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Error
+      type: object
+      properties:
+        debugging_request_id:
+          type: string
+          format: uuid
+          description: Identifier to help debug an error.
+        message:
+          type: string
+          description: Explanation of error response.
+      required:
+        - debugging_request_id
+        - message
     document-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/documentation/document-type.json
@@ -15205,7 +15740,7 @@ components:
         - PRENOTE
         - EXTERNALLY_VERIFIED
       title: Verification Method
-    address:
+    address-2:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/address.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Address
@@ -15321,7 +15856,7 @@ components:
           $ref: '#/components/schemas/verification_state'
         address:
           description: Address
-          $ref: '#/components/schemas/address'
+          $ref: '#/components/schemas/address-2'
       required:
         - token
         - type
@@ -15441,7 +15976,7 @@ components:
           default: true
         address:
           description: Address
-          $ref: '#/components/schemas/address'
+          $ref: '#/components/schemas/address-2'
         financial_account_token:
           description: The financial account token of the operating account to fund the micro deposits
           type: string
@@ -15601,7 +16136,7 @@ components:
           pattern: ^[A-Z]{3}$
         address:
           description: Address
-          $ref: '#/components/schemas/address'
+          $ref: '#/components/schemas/address-2'
       required:
         - type
         - routing_number
@@ -15648,7 +16183,7 @@ components:
           pattern: ^[a-zA-Z0-9]*$
         address:
           description: Address
-          $ref: '#/components/schemas/address'
+          $ref: '#/components/schemas/address-2'
         dob:
           description: Date of Birth of the Individual that owns the external bank account
           title: Date of Birth
@@ -16849,153 +17384,6 @@ components:
               - BENEFICIAL_OWNER_INDIVIDUAL_BLOCKLIST_ALERT_FAILURE
               - BENEFICIAL_OWNER_INDIVIDUAL_ID_VERIFICATION_FAILURE
               - BENEFICIAL_OWNER_INDIVIDUAL_NAME_VERIFICATION_FAILURE
-    status:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/status.json
-      title: KYC/KYB Status
-      description: Enrollment status for KYC/KYB
-      type: string
-      enum:
-        - ACCEPTED
-        - PENDING_DOCUMENT
-        - PENDING_RESUBMIT
-        - REJECTED
-    verification-application:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/verification-application.json
-      title: Verification Application
-      type: object
-      description: Represents the status of an identity verification application for an account holder
-      properties:
-        created:
-          type: string
-          format: date-time
-          description: Timestamp of when the application was created.
-        status:
-          description: |-
-            KYC and KYB evaluation states.
-
-            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
-          $ref: '#/components/schemas/status'
-        status_reasons:
-          type: array
-          items:
-            $ref: '#/components/schemas/status-reasons'
-          description: Reason for the evaluation status.
-        updated:
-          type: string
-          format: date-time
-          description: Timestamp of when the application was last updated.
-      required:
-        - created
-        - status
-        - status_reasons
-        - updated
-    address-2:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/api-shared/2024-01-15/address.json
-      title: Address
-      type: object
-      properties:
-        address1:
-          description: Valid deliverable address (no PO boxes).
-          example: 123 Old Forest Way
-          type: string
-        address2:
-          description: Unit or apartment number (if applicable).
-          type: string
-        city:
-          description: Name of city.
-          example: Omaha
-          type: string
-        country:
-          description: Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
-          example: USA
-          type: string
-        postal_code:
-          description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
-          example: '68022'
-          type: string
-        state:
-          description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
-          example: NE
-          type: string
-      required:
-        - address1
-        - city
-        - country
-        - postal_code
-        - state
-    individual:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/individual.json
-      title: Individual
-      type: object
-      properties:
-        address:
-          $ref: '#/components/schemas/address-2'
-          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
-        dob:
-          type: string
-          example: '1991-03-08 08:00:00'
-          description: Individual's date of birth, as an RFC 3339 date.
-        email:
-          type: string
-          example: tom@middle-earth.com
-          description: Individual's email address. If utilizing Lithic for chargeback processing, this customer email address may be used to communicate dispute status and resolution.
-        first_name:
-          type: string
-          example: Tom
-          description: Individual's first name, as it appears on government-issued identity documents.
-        last_name:
-          type: string
-          example: Bombadil
-          description: Individual's last name, as it appears on government-issued identity documents.
-        phone_number:
-          type: string
-          example: '+15555555555'
-          description: Individual's phone number, entered in E.164 format.
-        government_id:
-          type: string
-          example: 111-23-1412
-          description: Government-issued identification number (required for identity verification and compliance with banking regulations). Social Security Numbers (SSN) and Individual Taxpayer Identification Numbers (ITIN) are currently supported, entered as full nine-digits, with or without hyphens
-          writeOnly: true
-    kyb-business-entity:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/kyb-workflows/kyb-business-entity.json
-      title: KYB Business Entity
-      type: object
-      properties:
-        address:
-          $ref: '#/components/schemas/address-2'
-          description: Business''s physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
-        dba_business_name:
-          description: Any name that the business operates under that is not its legal business name (if applicable).
-          type: string
-        government_id:
-          description: Government-issued identification number. US Federal Employer Identification Numbers (EIN) are currently supported, entered as full nine-digits, with or without hyphens.
-          example: 114-123-1513
-          type: string
-        legal_business_name:
-          description: Legal (formal) business name.
-          example: Acme, Inc.
-          type: string
-        parent_company:
-          description: Parent company name (if applicable).
-          type: string
-        phone_numbers:
-          description: One or more of the business's phone number(s), entered as a list in E.164 format.
-          items:
-            description: Business phone number, entered in E.164 format.
-            example: '+15555555555'
-            type: string
-          minItems: 1
-          type: array
-      required:
-        - address
-        - government_id
-        - legal_business_name
-        - phone_numbers
     account-holder-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/account-holder-response.json
@@ -17115,22 +17503,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/required-document'
-    error:
-      $id: https://lithic.com/schemas/customer-facing/api-shared/error.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Error
-      type: object
-      properties:
-        debugging_request_id:
-          type: string
-          format: uuid
-          description: Identifier to help debug an error.
-        message:
-          type: string
-          description: Explanation of error response.
-      required:
-        - debugging_request_id
-        - message
     simulate-enrollment-document-review-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-document-review.json
