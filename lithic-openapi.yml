@@ -15202,6 +15202,7 @@ components:
                   * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
                   * `CARD_TRANSACTION_COUNT_1H`: The number of transactions on the card in the trailing hour up and until the authorization.
                   * `CARD_TRANSACTION_COUNT_24H`: The number of transactions on the card in the trailing 24 hours up and until the authorization.
+                  * `CARD_STATE`: The current state of the card associated with the transaction. Valid values are `CLOSED`, `OPEN`, `PAUSED`, `PENDING_ACTIVATION`, `PENDING_FULFILLMENT`.
                 enum:
                   - MCC
                   - COUNTRY
@@ -15214,6 +15215,7 @@ components:
                   - RISK_SCORE
                   - CARD_TRANSACTION_COUNT_1H
                   - CARD_TRANSACTION_COUNT_24H
+                  - CARD_STATE
               operation:
                 type: string
                 description: The operation to apply to the attribute
