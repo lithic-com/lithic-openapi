@@ -6504,6 +6504,44 @@ paths:
       summary: Simulate 3DS authentication
       tags:
         - 3DS
+  /v1/three_ds_decisioning/simulate/enter_otp:
+    post:
+      description: Endpoint for simulating entering OTP into 3DS Challenge UI. A call to /v1/three_ds_authentication/simulate that resulted in triggered SMS-OTP challenge must precede. Only a single attempt is supported; upon entering OTP, the challenge is either approved or declined.
+      requestBody:
+        content:
+          application/json:
+            example:
+              token: fabd829d-7f7b-4432-a8f2-07ea4889aaac
+              otp: '123456'
+            schema:
+              properties:
+                token:
+                  description: A unique token returned as part of a /v1/three_ds_authentication/simulate call that resulted in PENDING_CHALLENGE authentication result.
+                  format: uuid
+                  type: string
+                otp:
+                  description: The OTP entered by the cardholder
+                  example: '123456'
+                  type: string
+              required:
+                - token
+                - otp
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Simulate entering OTP into 3DS Challenge UI
+      tags:
+        - 3DS
   /v1/three_ds_authentication/{three_ds_authentication_token}:
     get:
       description: Get 3DS Authentication by token
