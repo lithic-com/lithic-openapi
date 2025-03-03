@@ -5246,7 +5246,7 @@ paths:
           schema:
             format: date
             type: string
-        - description: Latest report date to filter on, exclusive (YYYY-MM-DD).
+        - description: Latest report date to filter on, inclusive (YYYY-MM-DD).
           in: query
           name: report_date_end
           schema:
