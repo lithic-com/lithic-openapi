@@ -14763,7 +14763,7 @@ components:
         - phone_numbers
     kyb-kyc-patch-response:
       $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/account-holder-response.json
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyb-kyc-patch-response.json
       title: Business/Individual Patch Response
       type: object
       properties:
