@@ -15713,10 +15713,10 @@ components:
         - PRENOTE
         - EXTERNALLY_VERIFIED
       title: Verification Method
-    address-2:
-      $id: https://lithic.com/schemas/customer-facing/treasury/cies/address.json
+    external_bank_account_address:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/external_bank_account_address.json
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Address
+      title: External Bank Account Address
       type: object
       properties:
         address1:
@@ -15829,7 +15829,7 @@ components:
           $ref: '#/components/schemas/verification_state'
         address:
           description: Address
-          $ref: '#/components/schemas/address-2'
+          $ref: '#/components/schemas/external_bank_account_address'
       required:
         - token
         - type
@@ -15949,7 +15949,7 @@ components:
           default: true
         address:
           description: Address
-          $ref: '#/components/schemas/address-2'
+          $ref: '#/components/schemas/external_bank_account_address'
         financial_account_token:
           description: The financial account token of the operating account to fund the micro deposits
           type: string
@@ -16109,7 +16109,7 @@ components:
           pattern: ^[A-Z]{3}$
         address:
           description: Address
-          $ref: '#/components/schemas/address-2'
+          $ref: '#/components/schemas/external_bank_account_address'
       required:
         - type
         - routing_number
@@ -16156,7 +16156,7 @@ components:
           pattern: ^[a-zA-Z0-9]*$
         address:
           description: Address
-          $ref: '#/components/schemas/address-2'
+          $ref: '#/components/schemas/external_bank_account_address'
         dob:
           description: Date of Birth of the Individual that owns the external bank account
           title: Date of Birth
