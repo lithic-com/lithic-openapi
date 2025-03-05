@@ -5231,7 +5231,7 @@ paths:
         - Settlement Report
   /v1/reports/settlement/network_totals:
     get:
-      description: (Available March 4, 2025) List network total records with optional filters. Not available in sandbox.
+      description: List network total records with optional filters. Not available in sandbox.
       operationId: listNetworkTotals
       parameters:
         - description: Singular report date to filter on (YYYY-MM-DD). Cannot be populated in conjunction with report_date_begin or report_date_end.
@@ -5324,7 +5324,7 @@ paths:
         - Settlement Report
   /v1/reports/settlement/network_totals/{token}:
     get:
-      description: (Available March 4, 2025) Retrieve a specific network total record by token. Not available in sandbox.
+      description: Retrieve a specific network total record by token. Not available in sandbox.
       operationId: getNetworkTotal
       parameters:
         - description: Token of the network total record to retrieve
