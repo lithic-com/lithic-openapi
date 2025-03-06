@@ -15256,6 +15256,18 @@ components:
                     pattern: ^[0-9]{4}$
                     example: '5542'
                   description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
+            exclude_mccs:
+              anyOf:
+                - title: Null (do not exclude any MCCs)
+                  type: 'null'
+                  description: Do not exclude any MCCs from the velocity computation.
+                - title: List of MCCs
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9]{4}$
+                    example: '5542'
+                  description: Merchant Category Codes to exclude from the velocity calculation. Transactions matching this MCC will be excluded from the calculated velocity.
             include_countries:
               anyOf:
                 - title: Null (include all countries)
@@ -15268,6 +15280,18 @@ components:
                     pattern: ^[A-Z]{3}$
                     example: USA
                   description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
+            exclude_countries:
+              anyOf:
+                - title: Null (do not exclude any countries)
+                  type: 'null'
+                  description: Do not exclude any countries from the velocity computation.
+                - title: List of Country Codes
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[A-Z]{3}$
+                    example: USA
+                  description: ISO-3166-1 alpha-3 Country Codes to exclude from the velocity calculation. Transactions matching any of the provided will be excluded from the calculated velocity.
         limit_amount:
           anyOf:
             - title: Null (no amount limit)
