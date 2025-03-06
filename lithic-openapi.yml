@@ -16581,9 +16581,6 @@ components:
         has_grace:
           description: Whether the account currently has grace or not
           type: boolean
-        is_spend_blocked:
-          description: Whether spend is blocked for the financial account
-          type: boolean
       required:
         - period_state
         - period_number
@@ -16592,7 +16589,6 @@ components:
         - consecutive_full_payments_made
         - days_past_due
         - has_grace
-        - is_spend_blocked
     amount_due:
       $id: https://lithic.com/schemas/treasury/statements/amount_due.json
       $schema: https://json-schema.org/draft/2020-12/schema
