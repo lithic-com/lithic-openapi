@@ -4068,7 +4068,11 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '409':
-          $ref: '#/components/responses/BadRequest'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_external_bank_account_error_response'
+          description: Conflict
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Create external bank account
@@ -16143,6 +16147,38 @@ components:
         - verification_method
         - owner_type
         - owner
+    create_external_bank_account_error_response_context:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/create_external_bank_account_error_response_context.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Create External Bank Account Api Response Context
+      type: object
+      properties:
+        existing_token:
+          type: string
+          format: uuid
+          description: The existing external bank account token.
+      required:
+        - existing_token
+    create_external_bank_account_error_response:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/create_external_bank_account_error_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Create External Bank Account Api Response
+      type: object
+      properties:
+        debugging_request_id:
+          type: string
+          format: uuid
+          description: Identifier to help debug an error.
+        message:
+          type: string
+          description: Explanation of error response.
+        context:
+          description: context
+          $ref: '#/components/schemas/create_external_bank_account_error_response_context'
+      required:
+        - debugging_request_id
+        - message
+        - context
     account_type_external:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/account_type_external.json
       $schema: https://json-schema.org/draft/2020-12/schema
