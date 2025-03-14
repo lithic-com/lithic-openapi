@@ -3166,6 +3166,45 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /v1/transactions/{transaction_token}/expire_authorization:
+    post:
+      summary: Expire an authorization
+      description: Expire authorization
+      operationId: expireAuthorization
+      tags:
+        - Transaction
+      parameters:
+        - required: true
+          schema:
+            title: Transaction Token
+            type: string
+            format: uuid
+          name: transaction_token
+          description: The token of the transaction to expire.
+          in: path
+          example: 00000000-0000-0000-0000-000000000000
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /v1/transactions/events/{event_token}/enhanced_commercial_data:
     get:
       description: Get L2/L3 enhanced commercial data associated with a transaction event. Not available in sandbox.
@@ -4958,6 +4997,35 @@ paths:
       summary: Get loan tape by token
       tags:
         - Statements
+  /v1/financial_accounts/{financial_account_token}/update_status:
+    post:
+      description: Update financial account status
+      operationId: updateFinancialAccountStatus
+      summary: Update financial account status
+      tags:
+        - Financial Account
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update-financial-account-status-request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/financial-account-response'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /v1/payments:
     get:
       description: List all the payments for the provided search criteria.
@@ -16321,6 +16389,9 @@ components:
         - ISSUING
         - RESERVE
         - OPERATING
+        - CHARGED_OFF_FEES
+        - CHARGED_OFF_INTEREST
+        - CHARGED_OFF_PRINCIPAL
     account-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/account-financial-account-type.json
@@ -17084,6 +17155,35 @@ components:
       required:
         - data
         - has_more
+    update-financial-account-status-change-reason:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account/2024-01-15/update-financial-account-status-change-reason.json
+      title: Update Financial Account Status Change Reason
+      description: Reason for the financial account status change
+      type: string
+      enum:
+        - CHARGED_OFF_FRAUD
+        - END_USER_REQUEST
+        - BANK_REQUEST
+        - CHARGED_OFF_DELINQUENT
+    update-financial-account-status-request:
+      $id: https://lithic.com/schemas/account/2024-01-15/update-financial-account-status.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Update financial account status request
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/financial-account-status'
+        status_change_reason:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/update-financial-account-status-change-reason'
+      required:
+        - status
+        - status_change_reason
+      examples:
+        - status: CLOSED
+          status_change_reason: END_USER_REQUEST
     network_total:
       $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
       $schema: https://json-schema.org/draft/2020-12/schema
