@@ -4572,27 +4572,6 @@ paths:
       summary: Get balances
       tags:
         - Balance
-  /v1/financial_accounts/{financial_account_token}/charge_off:
-    post:
-      description: Update issuing account state to charged off
-      operationId: chargeOffAccount
-      summary: Charge off issuing account
-      tags:
-        - Financial Account
-      parameters:
-        - $ref: '#/components/parameters/financialAccountToken'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/charge-off-account-request'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/financial-account-credit-config-response'
   /v1/financial_accounts/{financial_account_token}/credit_configuration:
     get:
       description: Get an Account's credit configuration
@@ -16563,18 +16542,6 @@ components:
       required:
         - data
         - has_more
-    charge-off-account-request:
-      $id: https://lithic.com/schemas/treasury/ledger/charge_off_account_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Charge off account request
-      type: object
-      properties:
-        reason:
-          $ref: '#/components/schemas/charged-off-reason'
-      required:
-        - reason
-      examples:
-        - reason: FRAUD
     financial-account-credit-config-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-response.json
