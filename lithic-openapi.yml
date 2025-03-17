@@ -16766,6 +16766,7 @@ components:
       enum:
         - INITIAL
         - PERIOD_END
+        - FINAL
       title: Statement Type
     statement_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_response.json
@@ -16794,9 +16795,11 @@ components:
           type: string
           format: date
         payment_due_date:
-          description: Date when the payment is due
-          type: string
-          format: date
+          oneOf:
+            - type: 'null'
+            - description: Date when the payment is due
+              type: string
+              format: date
         next_payment_due_date:
           description: Date when the next payment is due
           type: string
