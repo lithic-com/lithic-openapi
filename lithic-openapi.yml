@@ -3185,11 +3185,6 @@ paths:
           example: 00000000-0000-0000-0000-000000000000
       responses:
         '202':
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: false
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
