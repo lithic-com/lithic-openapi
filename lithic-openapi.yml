@@ -16650,6 +16650,21 @@ components:
         - PROMO
         - PENALTY
       title: Period State
+    financial_account_state:
+      $id: https://lithic.com/schemas/treasury/statements/financial_account_state.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Financial Account State
+      description: Information about the financial account state
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/financial-account-status'
+        status_change_reason:
+          oneOf:
+            - $ref: '#/components/schemas/financial-account-status-change-reason'
+            - type: 'null'
+      required:
+        - status
     account_standing:
       $id: https://lithic.com/schemas/treasury/statements/account_standing.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16676,6 +16691,8 @@ components:
         has_grace:
           description: Whether the account currently has grace or not
           type: boolean
+        financial_account_state:
+          $ref: '#/components/schemas/financial_account_state'
       required:
         - period_state
         - period_number
@@ -16684,6 +16701,7 @@ components:
         - consecutive_full_payments_made
         - days_past_due
         - has_grace
+        - financial_account_state
     amount_due:
       $id: https://lithic.com/schemas/treasury/statements/amount_due.json
       $schema: https://json-schema.org/draft/2020-12/schema
