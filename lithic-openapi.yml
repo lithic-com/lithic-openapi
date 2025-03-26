@@ -8044,13 +8044,13 @@ webhooks:
                       description: Original request to update the account holder.
                       properties:
                         beneficial_owner_entities:
-                          description: Deprecated
+                          description: List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
                           items:
                             $ref: '#/components/schemas/kyb-business-entity'
                           minItems: 0
                           type: array
                         beneficial_owner_individuals:
-                          description: List of all individuals with >25% ownership in the company. If no individual owns >25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included.
+                          description: List of all individuals with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an individual, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
                           items:
                             $ref: '#/components/schemas/individual'
                           minItems: 0
@@ -10696,7 +10696,7 @@ components:
           type: string
         beneficial_owner_entities:
           description: |
-            Deprecated.  Only present when user_type == "BUSINESS".
+            Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
           items:
             $ref: '#/components/schemas/AccountHolderBusinessResponse'
           minItems: 0
@@ -12840,15 +12840,17 @@ components:
     Kyb:
       properties:
         beneficial_owner_entities:
-          description: 'Deprecated.   '
+          description: |
+            List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
           items:
             $ref: '#/components/schemas/BusinessEntity'
           minItems: 0
           type: array
         beneficial_owner_individuals:
-          description: |-
-            List of all direct and indirect individuals with >25% ownership in the company. If no individual owns >25% of the company, please identify the largest shareholder  in this field.
-            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+          description: |
+            List of all direct and indirect individuals with >25% ownership in the company. If no entity or individual owns >25% of the company,
+            and the largest shareholder is an individual, please identify them in this field.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
           items:
             $ref: '#/components/schemas/KybIndividual'
           minItems: 0
@@ -12892,6 +12894,7 @@ components:
             - KYB_BYO
           type: string
       required:
+        - beneficial_owner_entities
         - beneficial_owner_individuals
         - business_entity
         - control_person
