@@ -1609,22 +1609,7 @@ paths:
                 shipping_address:
                   $ref: '#/components/schemas/ShippingAddress'
                 shipping_method:
-                  description: |
-                    Shipping method for the card. Only applies to cards of type PHYSICAL. Use of options besides `STANDARD` require additional permissions.
-                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
-                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
-                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
-                  enum:
-                    - 2_DAY
-                    - EXPEDITED
-                    - EXPRESS
-                    - PRIORITY
-                    - STANDARD
-                    - STANDARD_WITH_TRACKING
-                  type: string
+                  $ref: '#/components/schemas/CardShippingMethod'
                 spend_limit:
                   description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
@@ -2207,22 +2192,7 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                   description: If omitted, the previous shipping address will be used.
                 shipping_method:
-                  description: |
-                    Shipping method for the card. Use of options besides `STANDARD` require additional permissions.
-                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
-                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
-                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
-                  enum:
-                    - 2-DAY
-                    - EXPEDITED
-                    - EXPRESS
-                    - PRIORITY
-                    - STANDARD
-                    - STANDARD_WITH_TRACKING
-                  type: string
+                  $ref: '#/components/schemas/CardShippingMethod'
               type: object
         required: true
       responses:
@@ -2273,8 +2243,11 @@ paths:
   /v1/cards/{card_token}/renew:
     post:
       description: |-
-        Creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
-        Applies to card types `PHYSICAL` and `VIRTUAL`.  A card can be replaced or renewed a total of 8 times.
+        Applies to card types `PHYSICAL` and `VIRTUAL`.
+        For `PHYSICAL`, creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
+        A `PHYSICAL` card can be replaced or renewed a total of 8 times.
+        For `VIRTUAL`, the card will retain the same card token and PAN and receive an updated expiry and CVC2 code.
+        `product_id`, `shipping_method`, `shipping_address`, `carrier` are only relevant for renewing `PHYSICAL` cards.
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2323,22 +2296,7 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                   description: The shipping address this card will be sent to.
                 shipping_method:
-                  description: |
-                    Shipping method for the card. Use of options besides `STANDARD` require additional permissions.
-                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
-                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
-                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
-                  enum:
-                    - 2-DAY
-                    - EXPEDITED
-                    - EXPRESS
-                    - PRIORITY
-                    - STANDARD
-                    - STANDARD_WITH_TRACKING
-                  type: string
+                  $ref: '#/components/schemas/CardShippingMethod'
               required:
                 - shipping_address
               type: object
@@ -2433,22 +2391,7 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                   description: The shipping address this card will be sent to.
                 shipping_method:
-                  description: |
-                    Shipping method for the card. Use of options besides `STANDARD` require additional permissions.
-                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
-                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
-                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
-                  enum:
-                    - 2-DAY
-                    - EXPEDITED
-                    - EXPRESS
-                    - PRIORITY
-                    - STANDARD
-                    - STANDARD_WITH_TRACKING
-                  type: string
+                  $ref: '#/components/schemas/CardShippingMethod'
               required:
                 - shipping_address
               type: object
@@ -8044,13 +7987,13 @@ webhooks:
                       description: Original request to update the account holder.
                       properties:
                         beneficial_owner_entities:
-                          description: List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
+                          description: Deprecated
                           items:
                             $ref: '#/components/schemas/kyb-business-entity'
                           minItems: 0
                           type: array
                         beneficial_owner_individuals:
-                          description: List of all individuals with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an individual, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
+                          description: List of all individuals with >25% ownership in the company. If no individual owns >25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included.
                           items:
                             $ref: '#/components/schemas/individual'
                           minItems: 0
@@ -10696,7 +10639,7 @@ components:
           type: string
         beneficial_owner_entities:
           description: |
-            Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
+            Deprecated.  Only present when user_type == "BUSINESS".
           items:
             $ref: '#/components/schemas/AccountHolderBusinessResponse'
           minItems: 0
@@ -12840,17 +12783,15 @@ components:
     Kyb:
       properties:
         beneficial_owner_entities:
-          description: |
-            List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
+          description: 'Deprecated. '
           items:
             $ref: '#/components/schemas/BusinessEntity'
           minItems: 0
           type: array
         beneficial_owner_individuals:
-          description: |
-            List of all direct and indirect individuals with >25% ownership in the company. If no entity or individual owns >25% of the company,
-            and the largest shareholder is an individual, please identify them in this field.
-            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
+          description: |-
+            List of all direct and indirect individuals with >25% ownership in the company. If no individual owns >25% of the company, please identify the largest shareholder in this field.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/KybIndividual'
           minItems: 0
@@ -12894,7 +12835,6 @@ components:
             - KYB_BYO
           type: string
       required:
-        - beneficial_owner_entities
         - beneficial_owner_individuals
         - business_entity
         - control_person
@@ -13444,6 +13384,25 @@ components:
         - SELF_SERVICE
         - FULL_SERVICE
         - NON_FUEL_ONLY
+    CardShippingMethod:
+      description: |
+        Shipping method for the card. Only applies to cards of type PHYSICAL. 
+        Use of options besides `STANDARD` require additional permissions.
+
+        * `STANDARD` - USPS regular mail or similar international option, with no tracking
+        * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+        * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+        * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+        * `2_DAY` - FedEx 2-day shipping, with tracking
+        * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+      enum:
+        - 2_DAY
+        - EXPEDITED
+        - EXPRESS
+        - PRIORITY
+        - STANDARD
+        - STANDARD_WITH_TRACKING
+      type: string
     ShippingAddress:
       properties:
         address1:
