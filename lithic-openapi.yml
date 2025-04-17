@@ -1609,7 +1609,24 @@ paths:
                 shipping_address:
                   $ref: '#/components/schemas/ShippingAddress'
                 shipping_method:
-                  $ref: '#/components/schemas/CardShippingMethod'
+                  description: |
+                    Shipping method for the card. Only applies to cards of type PHYSICAL.
+                    Use of options besides `STANDARD` require additional permissions.
+
+                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
+                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                  enum:
+                    - 2_DAY
+                    - EXPEDITED
+                    - EXPRESS
+                    - PRIORITY
+                    - STANDARD
+                    - STANDARD_WITH_TRACKING
+                  type: string
                 spend_limit:
                   description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined. Note that a spend limit of 0 is effectively no limit, and should only be used to reset or remove a prior limit. Only a limit of 1 or above will result in declined transactions due to checks against the card limit.
                   example: 0
@@ -2192,7 +2209,24 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                   description: If omitted, the previous shipping address will be used.
                 shipping_method:
-                  $ref: '#/components/schemas/CardShippingMethod'
+                  description: |
+                    Shipping method for the card. Only applies to cards of type PHYSICAL.
+                    Use of options besides `STANDARD` require additional permissions.
+
+                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
+                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                  enum:
+                    - 2_DAY
+                    - EXPEDITED
+                    - EXPRESS
+                    - PRIORITY
+                    - STANDARD
+                    - STANDARD_WITH_TRACKING
+                  type: string
               type: object
         required: true
       responses:
@@ -2296,7 +2330,24 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                   description: The shipping address this card will be sent to.
                 shipping_method:
-                  $ref: '#/components/schemas/CardShippingMethod'
+                  description: |
+                    Shipping method for the card. Only applies to cards of type PHYSICAL.
+                    Use of options besides `STANDARD` require additional permissions.
+
+                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
+                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                  enum:
+                    - 2_DAY
+                    - EXPEDITED
+                    - EXPRESS
+                    - PRIORITY
+                    - STANDARD
+                    - STANDARD_WITH_TRACKING
+                  type: string
               required:
                 - shipping_address
               type: object
@@ -2391,7 +2442,24 @@ paths:
                   $ref: '#/components/schemas/ShippingAddress'
                   description: The shipping address this card will be sent to.
                 shipping_method:
-                  $ref: '#/components/schemas/CardShippingMethod'
+                  description: |
+                    Shipping method for the card. Only applies to cards of type PHYSICAL.
+                    Use of options besides `STANDARD` require additional permissions.
+
+                    * `STANDARD` - USPS regular mail or similar international option, with no tracking
+                    * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
+                    * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
+                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                  enum:
+                    - 2_DAY
+                    - EXPEDITED
+                    - EXPRESS
+                    - PRIORITY
+                    - STANDARD
+                    - STANDARD_WITH_TRACKING
+                  type: string
               required:
                 - shipping_address
               type: object
@@ -7987,13 +8055,16 @@ webhooks:
                       description: Original request to update the account holder.
                       properties:
                         beneficial_owner_entities:
-                          description: Deprecated
+                          description: Deprecated.
                           items:
                             $ref: '#/components/schemas/kyb-business-entity'
                           minItems: 0
                           type: array
+                          deprecated: true
                         beneficial_owner_individuals:
-                          description: List of all individuals with >25% ownership in the company. If no individual owns >25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included.
+                          description: |-
+                            List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field.
+                            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
                           items:
                             $ref: '#/components/schemas/individual'
                           minItems: 0
@@ -10638,15 +10709,17 @@ components:
           format: uuid
           type: string
         beneficial_owner_entities:
-          description: |
-            Deprecated.  Only present when user_type == "BUSINESS".
+          description: Deprecated.
           items:
             $ref: '#/components/schemas/AccountHolderBusinessResponse'
           minItems: 0
           type: array
+          deprecated: true
         beneficial_owner_individuals:
-          description: |
-            Only present when user_type == "BUSINESS". List of all individuals with >25% ownership in the company.
+          description: |-
+            Only present when user_type == "BUSINESS".
+            List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/AccountHolderIndividualResponse'
           minItems: 0
@@ -10743,10 +10816,9 @@ components:
           format: uuid
           type: string
         user_type:
-          description: |
+          description: |-
             The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
-            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "beneficial_owner_entities",
-            "nature_of_business", and "website_url" attributes will be present.
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "nature_of_business", and "website_url" attributes will be present.
           enum:
             - BUSINESS
             - INDIVIDUAL
@@ -12783,14 +12855,15 @@ components:
     Kyb:
       properties:
         beneficial_owner_entities:
-          description: 'Deprecated. '
+          description: Deprecated.
           items:
             $ref: '#/components/schemas/BusinessEntity'
           minItems: 0
           type: array
+          deprecated: true
         beneficial_owner_individuals:
           description: |-
-            List of all direct and indirect individuals with >25% ownership in the company. If no individual owns >25% of the company, please identify the largest shareholder in this field.
+            List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field.
             See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/KybIndividual'
@@ -13139,6 +13212,11 @@ components:
           type:
             - string
             - 'null'
+        expected_release_date:
+          description: Date when the financial transaction expected to be released after settlement
+          format: date
+          title: Expected Release Date
+          type: string
       required:
         - direction
         - external_bank_account_token
@@ -13384,25 +13462,6 @@ components:
         - SELF_SERVICE
         - FULL_SERVICE
         - NON_FUEL_ONLY
-    CardShippingMethod:
-      description: |
-        Shipping method for the card. Only applies to cards of type PHYSICAL. 
-        Use of options besides `STANDARD` require additional permissions.
-
-        * `STANDARD` - USPS regular mail or similar international option, with no tracking
-        * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
-        * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-        * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-        * `2_DAY` - FedEx 2-day shipping, with tracking
-        * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
-      enum:
-        - 2_DAY
-        - EXPEDITED
-        - EXPRESS
-        - PRIORITY
-        - STANDARD
-        - STANDARD_WITH_TRACKING
-      type: string
     ShippingAddress:
       properties:
         address1:
@@ -14535,13 +14594,14 @@ components:
       description: The KYB request payload for updating a business.
       properties:
         beneficial_owner_entities:
-          description: List of all entities with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an entity, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background. If no business owner is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_individuals` must be populated. on entities that should be included.
+          description: Deprecated.
           items:
             $ref: '#/components/schemas/kyb-business-entity-patch'
           minItems: 0
           type: array
+          deprecated: true
         beneficial_owner_individuals:
-          description: List of all individuals with >25% ownership in the company. If no entity or individual owns >25% of the company, and the largest shareholder is an individual, please identify them in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf)(Section I) for more background on individuals that should be included. If no individual is an entity, pass in an empty list. However, either this parameter or `beneficial_owner_entities` must be populated.
+          description: List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/kyb-individual-patch'
           minItems: 0
@@ -14796,8 +14856,7 @@ components:
           description: |-
             The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
 
-            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "beneficial_owner_entities",
-
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals",
             "nature_of_business", and "website_url" attributes will be present.
           type: string
           enum:
@@ -14813,13 +14872,13 @@ components:
           $ref: '#/components/schemas/kyb-business-entity'
           description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
         beneficial_owner_entities:
-          description: Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
+          description: Deprecated.
           type: array
           items:
             $ref: '#/components/schemas/kyb-business-entity'
           minItems: 0
         beneficial_owner_individuals:
-          description: Only present when user_type == "BUSINESS". List of all individuals with >25% ownership in the company.
+          description: Only present when user_type == "BUSINESS". List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           type: array
           items:
             $ref: '#/components/schemas/individual'
@@ -15690,6 +15749,7 @@ components:
         - INTERNAL_ADJUSTMENT
         - LATE_PAYMENT
         - LATE_PAYMENT_REVERSAL
+        - LOSS_WRITE_OFF
         - PROVISIONAL_CREDIT
         - PROVISIONAL_CREDIT_REVERSAL
         - RETURN
@@ -16347,11 +16407,11 @@ components:
         - CLOSED
         - SUSPENDED
         - PENDING
-    financial-account-status-change-reason:
+    financial-account-substatus:
       $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-status-change-reason.json
-      title: Financial Account Status Change Reason
-      description: Reason for the financial account status change
+      $id: https://lithic.com/schemas/account/2024-01-15/financial-account-substatus.json
+      title: Financial Account Substatus
+      description: Substatus for the financial account
       type: string
       enum:
         - CHARGED_OFF_DELINQUENT
@@ -16464,10 +16524,10 @@ components:
           format: uuid
         status:
           $ref: '#/components/schemas/financial-account-status'
-        status_change_reason:
+        substatus:
           oneOf:
             - type: 'null'
-            - $ref: '#/components/schemas/financial-account-status-change-reason'
+            - $ref: '#/components/schemas/financial-account-substatus'
         is_for_benefit_of:
           type: boolean
           description: Whether financial account is for the benefit of another entity
@@ -16618,9 +16678,9 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/financial-account-status'
-        status_change_reason:
+        substatus:
           oneOf:
-            - $ref: '#/components/schemas/financial-account-status-change-reason'
+            - $ref: '#/components/schemas/financial-account-substatus'
             - type: 'null'
       required:
         - status
@@ -17099,11 +17159,11 @@ components:
       required:
         - data
         - has_more
-    update-financial-account-status-change-reason:
+    update-financial-account-substatus:
       $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account/2024-01-15/update-financial-account-status-change-reason.json
-      title: Update Financial Account Status Change Reason
-      description: Reason for the financial account status change
+      $id: https://lithic.com/schemas/account/2024-01-15/update-financial-account-substatus.json
+      title: Update Financial Account Substatus
+      description: Substatus for the financial account
       type: string
       enum:
         - CHARGED_OFF_FRAUD
@@ -17118,16 +17178,16 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/financial-account-status'
-        status_change_reason:
+        substatus:
           oneOf:
             - type: 'null'
-            - $ref: '#/components/schemas/update-financial-account-status-change-reason'
+            - $ref: '#/components/schemas/update-financial-account-substatus'
       required:
         - status
-        - status_change_reason
+        - substatus
       examples:
         - status: CLOSED
-          status_change_reason: END_USER_REQUEST
+          substatus: END_USER_REQUEST
     network_total:
       $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17497,8 +17557,7 @@ components:
           description: |-
             The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
 
-            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "beneficial_owner_entities",
-
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals",
             "nature_of_business", and "website_url" attributes will be present.
           type: string
           enum:
@@ -17514,13 +17573,13 @@ components:
           $ref: '#/components/schemas/kyb-business-entity'
           description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
         beneficial_owner_entities:
-          description: Only present when user_type == "BUSINESS". List of all entities with >25% ownership in the company.
+          description: Deprecated.
           type: array
           items:
             $ref: '#/components/schemas/kyb-business-entity'
           minItems: 0
         beneficial_owner_individuals:
-          description: Only present when user_type == "BUSINESS". List of all individuals with >25% ownership in the company.
+          description: Only present when user_type == "BUSINESS". List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           type: array
           items:
             $ref: '#/components/schemas/individual'
@@ -19032,6 +19091,31 @@ components:
       enum:
         - CREDIT
         - DEBIT
+    transaction_series:
+      $id: https://lithic.com/schemas/treasury/ledger/transaction_series.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Series
+      type: object
+      properties:
+        type:
+          type: string
+          example: FEE
+        related_transaction_token:
+          oneOf:
+            - type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            - type: 'null'
+        related_transaction_event_token:
+          oneOf:
+            - type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            - type: 'null'
+      required:
+        - type
+        - related_transaction_token
+        - related_transaction_event_token
     management_operation_transaction:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_transaction.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19070,6 +19154,10 @@ components:
           format: uuid
         direction:
           $ref: '#/components/schemas/management_operation_direction'
+        transaction_series:
+          oneOf:
+            - $ref: '#/components/schemas/transaction_series'
+            - type: 'null'
       required:
         - token
         - result
@@ -19083,6 +19171,7 @@ components:
         - updated
         - financial_account_token
         - direction
+        - transaction_series
     management_operation_transactions_response:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_transactions_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19324,6 +19413,13 @@ components:
               description: 3DS authentication token not available.
             - type: string
               description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
+        authentication_method:
+          type: string
+          description: Indicates the method used to authenticate the cardholder.
+          enum:
+            - FRICTIONLESS
+            - CHALLENGE
+            - NONE
     asa_request_pos_entry_mode:
       description: POS > Entry Mode object in ASA
       type: object
@@ -19862,6 +19958,13 @@ components:
                   description: 3DS authentication token not available.
                 - type: string
                   description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
+            authentication_method:
+              type: string
+              description: Indicates the method used to authenticate the cardholder.
+              enum:
+                - FRICTIONLESS
+                - CHALLENGE
+                - NONE
         asa_request_card:
           description: Card object in ASA
           type: object
