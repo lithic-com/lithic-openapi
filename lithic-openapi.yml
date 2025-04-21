@@ -206,7 +206,7 @@ paths:
     post:
       description: |-
         Create an account holder and initiate the appropriate onboarding workflow.  Account holders and accounts have a 1:1 relationship. When an account holder is successfully created an associated account is also created.
-        All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the enrollment is under review or further action will be needed to complete the account enrollment process.
+        All calls to this endpoint will return a synchronous response. The response time will depend on the workflow. In some cases, the response may indicate the workflow is under review or further action will be needed to complete the account creation process.
         This endpoint can only be used on accounts that are part of the program that the calling API key manages.
       operationId: postAccountHolders
       requestBody:
@@ -552,7 +552,7 @@ paths:
       description: |-
         Update the information associated with a particular account holder (including business owners and control persons associated to a business account).
         If Lithic is performing KYB or KYC and additional verification is required we will run the individual's or business's updated information again and return whether the status is accepted or pending (i.e., further action required).
-        All calls to this endpoint will return an immediate response - though in some cases, the response may indicate the workflow is under review or further action will be needed to complete the evaluation process.
+        All calls to this endpoint will return a synchronous response. The response time will depend on the workflow. In some cases, the response may indicate the workflow is under review or further action will be needed to complete the account creation process.
         This endpoint can only be used on existing accounts that are part of the program that the calling API key manages.
       operationId: patchAccountHolder
       parameters:
@@ -1498,7 +1498,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/Card'
+                      $ref: '#/components/schemas/non_pci_card_response'
                     type: array
                   has_more:
                     description: More data exists.
@@ -1707,7 +1707,7 @@ paths:
                 token: 7ef7d65c-9023-4da3-b113-3b8583fd7951
                 type: VIRTUAL
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1793,7 +1793,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1819,7 +1819,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1933,7 +1933,7 @@ paths:
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: VIRTUAL
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2259,7 +2259,7 @@ paths:
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2382,7 +2382,7 @@ paths:
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2486,7 +2486,7 @@ paths:
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
               schema:
-                $ref: '#/components/schemas/Card'
+                $ref: '#/components/schemas/pci_card_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -8063,7 +8063,7 @@ webhooks:
                           deprecated: true
                         beneficial_owner_individuals:
                           description: |-
-                            List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field.
+                            You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
                             See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
                           items:
                             $ref: '#/components/schemas/individual'
@@ -9253,7 +9253,6 @@ webhooks:
                   primary_claim_id: CLAIM-001
                   reason: GOODS_SERVICES_NOT_RECEIVED
                   representment_date: null
-                  resolution_amount: null
                   resolution_date: null
                   resolution_note: null
                   resolution_reason: null
@@ -10691,7 +10690,7 @@ components:
           type: object
           deprecated: true
         created:
-          description: Timestamp of when the account was created. For accounts created before 2023-05-11, this field will be null.
+          description: Timestamp of when the account was created.
           format: date-time
           type:
             - string
@@ -10718,7 +10717,7 @@ components:
         beneficial_owner_individuals:
           description: |-
             Only present when user_type == "BUSINESS".
-            List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field.
+            You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
             See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/AccountHolderIndividualResponse'
@@ -11419,176 +11418,6 @@ components:
         - legal_business_name
         - phone_numbers
       type: object
-    Card:
-      properties:
-        account_token:
-          description: Globally unique identifier for the account to which the card belongs.
-          example: f3f4918c-dee9-464d-a819-4aa42901d624
-          format: uuid
-          type: string
-        auth_rule_tokens:
-          description: |-
-            List of identifiers for the Auth Rule(s) that are applied on the card.
-            This field is deprecated and will no longer be populated in the `Card` object. The key will be removed from the schema in a future release. Use the `/auth_rules` endpoints to fetch Auth Rule information instead.
-          items:
-            type: string
-          type: array
-          deprecated: true
-        card_program_token:
-          description: Globally unique identifier for the card program on which the card exists.
-          example: 5e9483eb-8103-4e16-9794-2106111b2eca
-          format: uuid
-          type: string
-        replacement_for:
-          description: If the card is a replacement for another card, the globally unique identifier for the card that was replaced.
-          example: 5e9483eb-8103-4e16-9794-2106111b2eca
-          format: uuid
-          type:
-            - string
-            - 'null'
-        cardholder_currency:
-          description: 3-character alphabetic ISO 4217 code for the currency of the cardholder.
-          example: USD
-          type: string
-        created:
-          description: An RFC 3339 timestamp for when the card was created. UTC time zone.
-          example: '2021-06-28T22:53:15Z'
-          format: date-time
-          type: string
-        cvv:
-          description: Three digit cvv printed on the back of the card.
-          example: '776'
-          maxLength: 3
-          minLength: 3
-          type: string
-          x-lithic-tag: Enterprise
-        digital_card_art_token:
-          description: Specifies the digital card art to be displayed in the user’s digital wallet after tokenization. This artwork must be approved by Mastercard and configured by Lithic to use. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
-          example: 00000000-0000-0000-1000-000000000000
-          format: uuid
-          type: string
-        exp_month:
-          description: Two digit (MM) expiry month.
-          example: '06'
-          maxLength: 2
-          minLength: 2
-          type: string
-          x-lithic-tag: Enterprise
-        exp_year:
-          description: Four digit (yyyy) expiry year.
-          example: '2027'
-          maxLength: 4
-          minLength: 4
-          type: string
-          x-lithic-tag: Enterprise
-        funding:
-          description: 'Deprecated: Funding account for the card.'
-          $ref: '#/components/schemas/FundingAccount'
-        hostname:
-          description: Hostname of card’s locked merchant (will be empty if not applicable).
-          type: string
-        last_four:
-          description: Last four digits of the card number.
-          maxLength: 4
-          minLength: 4
-          type: string
-        memo:
-          description: Friendly name to identify the card.
-          example: New Card
-          type: string
-        pan:
-          description: |
-            Primary Account Number (PAN) (i.e. the card number). Customers must be PCI compliant to have PAN returned as a field in production. Please contact [support@lithic.com](mailto:support@lithic.com) for questions.
-          example: '4111111289144142'
-          maxLength: 16
-          minLength: 16
-          type: string
-          x-lithic-tag: Enterprise
-        pending_commands:
-          description: 'Indicates if there are offline PIN changes pending card interaction with an offline PIN terminal. Possible commands are: CHANGE_PIN, UNBLOCK_PIN. Applicable only to cards issued in markets supporting offline PINs.'
-          items:
-            type: string
-          type: array
-        pin_status:
-          description: Indicates if a card is blocked due a PIN status issue (e.g. excessive incorrect attempts).
-          enum:
-            - OK
-            - BLOCKED
-            - NOT_SET
-          type: string
-        product_id:
-          description: Only applicable to cards of type `PHYSICAL`. This must be configured with Lithic before use. Specifies the configuration (i.e., physical card art) that the card should be manufactured with.
-          example: '1'
-          type: string
-        spend_limit:
-          description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined.
-          example: 1000
-          type: integer
-        spend_limit_duration:
-          description: |-
-            Spend limit duration values:
-            * `ANNUALLY` - Card will authorize transactions up to spend limit for the trailing year.
-            * `FOREVER` - Card will authorize only up to spend limit for the entire lifetime of the card.
-            * `MONTHLY` - Card will authorize transactions up to spend limit for the trailing month. To support recurring monthly payments, which can occur on different day every month, the time window we consider for monthly velocity starts 6 days after the current calendar date one month prior.
-            * `TRANSACTION` - Card will authorize multiple transactions if each individual transaction is under the spend limit.
-          enum:
-            - ANNUALLY
-            - FOREVER
-            - MONTHLY
-            - TRANSACTION
-          type: string
-        state:
-          description: |
-            Card state values:
-            * `CLOSED` - Card will no longer approve authorizations. Closing a card cannot be undone.
-            * `OPEN` - Card will approve authorizations (if they match card and account parameters).
-            * `PAUSED` - Card will decline authorizations, but can be resumed at a later time.
-            * `PENDING_FULFILLMENT` - The initial state for cards of type `PHYSICAL`. The card is provisioned pending manufacturing and fulfillment. Cards in this state can accept authorizations for e-commerce purchases, but not for "Card Present" purchases where the physical card itself is present.
-            * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION` . Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions or can be added to mobile wallets. API clients should update the card's state to `OPEN` only after the cardholder confirms receipt of the card.
-
-            In sandbox, the same daily batch fulfillment occurs, but no cards are actually manufactured.
-          enum:
-            - CLOSED
-            - OPEN
-            - PAUSED
-            - PENDING_ACTIVATION
-            - PENDING_FULFILLMENT
-          type: string
-        token:
-          description: Globally unique identifier.
-          example: 7ef7d65c-9023-4da3-b113-3b8583fd7951
-          format: uuid
-          type: string
-        type:
-          description: |
-            Card types:
-            * `VIRTUAL` - Card will authorize at any merchant and can be added to a digital wallet like Apple Pay or Google Pay (if the card program is digital wallet-enabled).
-            * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
-            * `SINGLE_USE` - Card is closed upon first successful authorization.
-            * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card.
-            * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.
-            * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.
-          enum:
-            - MERCHANT_LOCKED
-            - PHYSICAL
-            - SINGLE_USE
-            - VIRTUAL
-            - UNLOCKED
-            - DIGITAL_WALLET
-          type: string
-      required:
-        - account_token
-        - card_program_token
-        - created
-        - funding
-        - last_four
-        - pin_status
-        - spend_limit
-        - spend_limit_duration
-        - state
-        - token
-        - type
-      type: object
     CardAggregateBalance:
       description: Card Aggregate Balance across all end-user accounts
       properties:
@@ -11965,11 +11794,6 @@ components:
           type:
             - string
             - 'null'
-        resolution_amount:
-          description: Resolution amount net of network fees.
-          type:
-            - integer
-            - 'null'
         resolution_date:
           description: Date that the dispute was resolved.
           format: date-time
@@ -12065,7 +11889,6 @@ components:
         - primary_claim_id
         - reason
         - representment_date
-        - resolution_amount
         - resolution_date
         - resolution_note
         - resolution_reason
@@ -12744,58 +12567,6 @@ components:
         - token
         - updated
       type: object
-    FundingAccount:
-      properties:
-        account_name:
-          description: Account name identifying the funding source. This may be `null`.
-          type: string
-        created:
-          description: An RFC 3339 string representing when this funding source was added to the Lithic account. This may be `null`. UTC time zone.
-          format: date-time
-          type: string
-        last_four:
-          description: The last 4 digits of the account (e.g. bank account, debit card) associated with this FundingAccount. This may be null.
-          maxLength: 4
-          minLength: 4
-          type: string
-        nickname:
-          description: The nickname given to the `FundingAccount` or `null` if it has no nickname.
-          maxLength: 255
-          minLength: 1
-          type: string
-        state:
-          description: |
-            State of funding source.
-
-            Funding source states:
-            * `ENABLED` - The funding account is available to use for card creation and transactions.
-            * `PENDING` - The funding account is still being verified e.g. bank micro-deposits verification.
-            * `DELETED` - The founding account has been deleted.
-          enum:
-            - DELETED
-            - ENABLED
-            - PENDING
-          type: string
-        token:
-          description: A globally unique identifier for this FundingAccount.
-          format: uuid
-          type: string
-        type:
-          description: |
-            Types of funding source:
-            * `DEPOSITORY_CHECKING` - Bank checking account.
-            * `DEPOSITORY_SAVINGS` - Bank savings account.
-          enum:
-            - DEPOSITORY_CHECKING
-            - DEPOSITORY_SAVINGS
-          type: string
-      required:
-        - created
-        - last_four
-        - state
-        - token
-        - type
-      type: object
     Individual:
       properties:
         address:
@@ -12863,7 +12634,7 @@ components:
           deprecated: true
         beneficial_owner_individuals:
           description: |-
-            List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field.
+            You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
             See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/KybIndividual'
@@ -14601,7 +14372,7 @@ components:
           type: array
           deprecated: true
         beneficial_owner_individuals:
-          description: List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+          description: You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           items:
             $ref: '#/components/schemas/kyb-individual-patch'
           minItems: 0
@@ -14878,7 +14649,7 @@ components:
             $ref: '#/components/schemas/kyb-business-entity'
           minItems: 0
         beneficial_owner_individuals:
-          description: Only present when user_type == "BUSINESS". List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+          description: Only present when user_type == "BUSINESS". You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           type: array
           items:
             $ref: '#/components/schemas/individual'
@@ -15687,6 +15458,205 @@ components:
         - backtest_token
         - simulation_parameters
         - results
+    funding_account:
+      $id: https://lithic.com/schemas/common/2024-01-15/card/funding_account.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      description: Funding account for a card
+      type: object
+      properties:
+        account_name:
+          description: Account name identifying the funding source. This may be `null`.
+          type: string
+        created:
+          description: An RFC 3339 string representing when this funding source was added to the Lithic account. This may be `null`. UTC time zone.
+          format: date-time
+          type: string
+        last_four:
+          description: The last 4 digits of the account (e.g. bank account, debit card) associated with this FundingAccount. This may be null.
+          maxLength: 4
+          minLength: 4
+          type: string
+        nickname:
+          description: The nickname given to the `FundingAccount` or `null` if it has no nickname.
+          maxLength: 255
+          minLength: 1
+          type: string
+        state:
+          description: 'State of funding source. Funding source states: * `ENABLED` - The funding account is available to use for card creation and transactions. * `PENDING` - The funding account is still being verified e.g. bank micro-deposits verification. * `DELETED` - The founding account has been deleted.'
+          enum:
+            - DELETED
+            - ENABLED
+            - PENDING
+          type: string
+        token:
+          description: A globally unique identifier for this FundingAccount.
+          format: uuid
+          type: string
+        type:
+          description: 'Types of funding source: * `DEPOSITORY_CHECKING` - Bank checking account. * `DEPOSITORY_SAVINGS` - Bank savings account.'
+          enum:
+            - DEPOSITORY_CHECKING
+            - DEPOSITORY_SAVINGS
+          type: string
+      required:
+        - created
+        - last_four
+        - state
+        - token
+        - type
+    non_pci_card_response:
+      $id: https://lithic.com/schemas/common/2024-01-15/card/non_pci_card_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      description: Card details without PCI information
+      type: object
+      properties:
+        account_token:
+          description: Globally unique identifier for the account to which the card belongs.
+          example: f3f4918c-dee9-464d-a819-4aa42901d624
+          type: string
+        auth_rule_tokens:
+          description: List of identifiers for the Auth Rule(s) that are applied on the card. This field is deprecated and will no longer be populated in the `Card` object. The key will be removed from the schema in a future release. Use the `/auth_rules` endpoints to fetch Auth Rule information instead.
+          items:
+            type: string
+          type: array
+          deprecated: true
+        card_program_token:
+          description: Globally unique identifier for the card program on which the card exists.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          type: string
+        replacement_for:
+          description: If the card is a replacement for another card, the globally unique identifier for the card that was replaced.
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          type:
+            - string
+            - 'null'
+        cardholder_currency:
+          description: 3-character alphabetic ISO 4217 code for the currency of the cardholder.
+          example: USD
+          type: string
+        created:
+          description: An RFC 3339 timestamp for when the card was created. UTC time zone.
+          example: '2021-06-28T22:53:15Z'
+          format: date-time
+          type: string
+        digital_card_art_token:
+          description: Specifies the digital card art to be displayed in the user's digital wallet after tokenization. This artwork must be approved by Mastercard and configured by Lithic to use.
+          example: 00000000-0000-0000-1000-000000000000
+          type: string
+        exp_month:
+          description: Two digit (MM) expiry month.
+          example: '06'
+          maxLength: 2
+          minLength: 2
+          type: string
+        exp_year:
+          description: Four digit (yyyy) expiry year.
+          example: '2027'
+          maxLength: 4
+          minLength: 4
+          type: string
+        funding:
+          description: 'Deprecated: Funding account for the card.'
+          $ref: '#/components/schemas/funding_account'
+        hostname:
+          description: Hostname of card's locked merchant (will be empty if not applicable).
+          type: string
+        last_four:
+          description: Last four digits of the card number.
+          maxLength: 4
+          minLength: 4
+          type: string
+        memo:
+          description: Friendly name to identify the card.
+          example: New Card
+          type: string
+        pending_commands:
+          description: 'Indicates if there are offline PIN changes pending card interaction with an offline PIN terminal. Possible commands are: CHANGE_PIN, UNBLOCK_PIN. Applicable only to cards issued in markets supporting offline PINs.'
+          items:
+            type: string
+          type: array
+        pin_status:
+          description: Indicates if a card is blocked due a PIN status issue (e.g. excessive incorrect attempts).
+          enum:
+            - OK
+            - BLOCKED
+            - NOT_SET
+          type: string
+        product_id:
+          description: Only applicable to cards of type `PHYSICAL`. This must be configured with Lithic before use. Specifies the configuration (i.e., physical card art) that the card should be manufactured with.
+          example: '1'
+          type: string
+        spend_limit:
+          description: Amount (in cents) to limit approved authorizations (e.g. 100000 would be a $1,000 limit). Transaction requests above the spend limit will be declined.
+          example: 1000
+          type: integer
+        spend_limit_duration:
+          type: string
+          enum:
+            - ANNUALLY
+            - FOREVER
+            - MONTHLY
+            - TRANSACTION
+            - DAILY
+          description: Spend limit duration
+        state:
+          description: 'Card state values: * `CLOSED` - Card will no longer approve authorizations. Closing a card cannot be undone. * `OPEN` - Card will approve authorizations (if they match card and account parameters). * `PAUSED` - Card will decline authorizations, but can be resumed at a later time. * `PENDING_FULFILLMENT` - The initial state for cards of type `PHYSICAL`. The card is provisioned pending manufacturing and fulfillment. Cards in this state can accept authorizations for e-commerce purchases, but not for "Card Present" purchases where the physical card itself is present. * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION`. Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions or can be added to mobile wallets. API clients should update the card''s state to `OPEN` only after the cardholder confirms receipt of the card. In sandbox, the same daily batch fulfillment occurs, but no cards are actually manufactured.'
+          enum:
+            - CLOSED
+            - OPEN
+            - PAUSED
+            - PENDING_ACTIVATION
+            - PENDING_FULFILLMENT
+          type: string
+        token:
+          description: Globally unique identifier.
+          example: 7ef7d65c-9023-4da3-b113-3b8583fd7951
+          type: string
+        type:
+          description: 'Card types: * `VIRTUAL` - Card will authorize at any merchant and can be added to a digital wallet like Apple Pay or Google Pay (if the card program is digital wallet-enabled). * `PHYSICAL` - Manufactured and sent to the cardholder. We offer white label branding, credit, ATM, PIN debit, chip/EMV, NFC and magstripe functionality. * `SINGLE_USE` - Card is closed upon first successful authorization. * `MERCHANT_LOCKED` - *[Deprecated]* Card is locked to the first merchant that successfully authorizes the card. * `UNLOCKED` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead. * `DIGITAL_WALLET` - *[Deprecated]* Similar behavior to VIRTUAL cards, please use VIRTUAL instead.'
+          enum:
+            - MERCHANT_LOCKED
+            - PHYSICAL
+            - SINGLE_USE
+            - VIRTUAL
+            - UNLOCKED
+            - DIGITAL_WALLET
+          type: string
+      required:
+        - account_token
+        - card_program_token
+        - created
+        - funding
+        - last_four
+        - pin_status
+        - spend_limit
+        - spend_limit_duration
+        - state
+        - token
+        - type
+    pci_card_response:
+      $id: https://lithic.com/schemas/common/2024-01-15/card/pci_card_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      description: Card details with potentially PCI sensitive information for Enterprise customers
+      allOf:
+        - $ref: '#/components/schemas/non_pci_card_response'
+        - type: object
+          properties:
+            pan:
+              description: Primary Account Number (PAN) (i.e. the card number). Customers must be PCI compliant to have PAN returned as a field in production. Please contact support@lithic.com for questions.
+              example: '4111111289144142'
+              maxLength: 16
+              minLength: 16
+              type: string
+            cvv:
+              description: Three digit cvv printed on the back of the card.
+              example: '776'
+              maxLength: 3
+              minLength: 3
+              type: string
+          examples:
+            - pan: '4111111289144142'
+              cvv: '776'
     financial_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/financial_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15758,6 +15728,7 @@ components:
         - TRANSFER_INSUFFICIENT_FUNDS
         - RETURNED_PAYMENT
         - RETURNED_PAYMENT_REVERSAL
+        - LITHIC_NETWORK_PAYMENT
     searchable_account_types:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/searchable_account_types.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16387,6 +16358,8 @@ components:
         - CHARGED_OFF_FEES
         - CHARGED_OFF_INTEREST
         - CHARGED_OFF_PRINCIPAL
+        - SECURITY
+        - PROGRAM_RECEIVABLES
     account-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/account-financial-account-type.json
@@ -16929,6 +16902,7 @@ components:
         - MANAGEMENT_DISPUTE
         - MANAGEMENT_FEE
         - MANAGEMENT_REWARD
+        - MANAGEMENT_DISBURSEMENT
     statement_line_item_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_line_item_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17364,7 +17338,7 @@ components:
           type: string
           format: uuid
         token:
-          description: Payment token
+          description: Customer-generated payment token used to uniquely identify the simulated payment
           type: string
           format: uuid
         receipt_type:
@@ -17579,7 +17553,7 @@ components:
             $ref: '#/components/schemas/kyb-business-entity'
           minItems: 0
         beneficial_owner_individuals:
-          description: Only present when user_type == "BUSINESS". List of all direct and indirect individuals with 25% or more ownership in the company. If no individual owns 25% of the company, please identify the largest shareholder in this field. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+          description: Only present when user_type == "BUSINESS". You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
           type: array
           items:
             $ref: '#/components/schemas/individual'
@@ -17999,6 +17973,90 @@ components:
         - acquirer
         - mastercard
         - visa
+    mastercard_network_specific_data:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/mastercard_network_specific_data.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Mastercard Network Specific Data
+      type: object
+      properties:
+        transaction_type_identifier:
+          oneOf:
+            - type: 'null'
+              description: Transaction type identifier not available.
+            - type: string
+              description: Indicates the type of additional transaction purpose.
+              minLength: 3
+              maxLength: 3
+        ecommerce_security_level_indicator:
+          oneOf:
+            - type: 'null'
+              description: Electronic commerce security level indicator not available.
+            - type: string
+              description: Indicates the electronic commerce security level and UCAF collection.
+              minLength: 3
+              maxLength: 3
+        on_behalf_service_result:
+          oneOf:
+            - type: 'null'
+              description: On-behalf service result not available.
+            - type: array
+              items:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    description: Indicates the service performed on the transaction.
+                    minLength: 2
+                    maxLength: 2
+                  result_1:
+                    type: string
+                    description: Indicates the results of the service processing.
+                    minLength: 1
+                    maxLength: 1
+                  result_2:
+                    type: string
+                    description: Identifies the results of the service processing.
+                    minLength: 1
+                    maxLength: 1
+                required:
+                  - service
+                  - result_1
+                  - result_2
+              description: The On-behalf Service performed on the transaction and the results. Contains all applicable, on-behalf service results that were performed on a given transaction.
+              maxItems: 10
+      required:
+        - transaction_type_identifier
+        - ecommerce_security_level_indicator
+        - on_behalf_service_result
+    visa_network_specific_data:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/visa_network_specific_data.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Visa Network Specific Data
+      type: object
+      properties:
+        business_application_identifier:
+          oneOf:
+            - type: 'null'
+              description: Business application identifier not available.
+            - type: string
+              description: Identifies the purpose or category of a transaction, used to classify and process transactions according to Visa’s rules.
+              minLength: 2
+              maxLength: 2
+      required:
+        - business_application_identifier
+    network_specific_data:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/network_specific_data.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Specific Data
+      type: object
+      properties:
+        mastercard:
+          $ref: '#/components/schemas/mastercard_network_specific_data'
+        visa:
+          $ref: '#/components/schemas/visa_network_specific_data'
+      required:
+        - mastercard
+        - visa
     detailed_result:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/detailed_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18138,6 +18196,8 @@ components:
           type: string
         network_info:
           $ref: '#/components/schemas/network_info'
+        network_specific_data:
+          $ref: '#/components/schemas/network_specific_data'
         detailed_results:
           items:
             $ref: '#/components/schemas/detailed_result'
@@ -18336,6 +18396,11 @@ components:
             - NOT_CAPABLE
             - UNSPECIFIED
           type: string
+        acceptor_terminal_id:
+          description: Uniquely identifies a terminal at the card acceptor location of acquiring institutions or merchant POS Systems
+          type:
+            - string
+            - 'null'
         type:
           description: POS Type
           enum:
@@ -19024,27 +19089,32 @@ components:
         - MANAGEMENT_DISPUTE
         - MANAGEMENT_REWARD
         - MANAGEMENT_ADJUSTMENT
+        - MANAGEMENT_DISBURSEMENT
     management_operation_event_type:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_event_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Management Operation Event Type
       type: string
       enum:
-        - CASH_BACK
-        - CURRENCY_CONVERSION
-        - INTEREST
-        - LATE_PAYMENT
-        - BILLING_ERROR
-        - PROVISIONAL_CREDIT
         - LOSS_WRITE_OFF
+        - CASH_BACK
         - CASH_BACK_REVERSAL
+        - CURRENCY_CONVERSION
         - CURRENCY_CONVERSION_REVERSAL
+        - INTEREST
         - INTEREST_REVERSAL
+        - LATE_PAYMENT
         - LATE_PAYMENT_REVERSAL
+        - BILLING_ERROR
         - BILLING_ERROR_REVERSAL
+        - PROVISIONAL_CREDIT
         - PROVISIONAL_CREDIT_REVERSAL
         - RETURNED_PAYMENT
         - RETURNED_PAYMENT_REVERSAL
+        - DISPUTE_WON
+        - DISPUTE_WON_REVERSAL
+        - DISBURSE
+        - DISBURSE_REVERSAL
     management_operation_event:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
