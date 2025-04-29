@@ -1043,6 +1043,15 @@ paths:
             type: string
             format: uuid
           required: false
+        - name: scope
+          in: query
+          description: Only return Authorization Rules that are bound to the provided scope;
+          schema:
+            enum:
+              - PROGRAM
+              - ACCOUNT
+              - CARD
+            type: string
       tags:
         - Authorization Rules
       summary: List rules
@@ -2172,7 +2181,7 @@ paths:
     post:
       description: |-
         Initiate print and shipment of a duplicate physical card (e.g. card is physically damaged).  The PAN, expiry, and CVC2 will remain the same and the original card can continue to be used until the new card is activated.
-        Only applies to cards of type `PHYSICAL`.  A card can be replaced or renewed a total of 8 times.
+        Only applies to cards of type `PHYSICAL`.  A card can be reissued or renewed a total of 8 times.
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2279,7 +2288,7 @@ paths:
       description: |-
         Applies to card types `PHYSICAL` and `VIRTUAL`.
         For `PHYSICAL`, creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
-        A `PHYSICAL` card can be replaced or renewed a total of 8 times.
+        A `PHYSICAL` card can be reissued or renewed a total of 8 times.
         For `VIRTUAL`, the card will retain the same card token and PAN and receive an updated expiry and CVC2 code.
         `product_id`, `shipping_method`, `shipping_address`, `carrier` are only relevant for renewing `PHYSICAL` cards.
       operationId: postCardRenew
@@ -7415,6 +7424,7 @@ paths:
                     - INACTIVITY_FEE_DOWN
                     - PROVISIONAL_CREDIT
                     - DISPUTE_WON
+                    - SERVICE
                     - TRANSFER
                   type: string
               required:
@@ -14971,6 +14981,7 @@ components:
       enum:
         - CONDITIONAL_BLOCK
         - VELOCITY_LIMIT
+        - MERCHANT_LOCK
       description: The type of Auth Rule
     conditional-block-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15156,6 +15167,35 @@ components:
         - scope
         - period
         - filters
+    merchant-lock-parameters:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/merchant-lock/merchant-lock-inputs.json
+      title: Merchant Lock Inputs
+      type: object
+      properties:
+        merchants:
+          type: array
+          items:
+            type: object
+            properties:
+              merchant_id:
+                type: string
+                description: Unique alphanumeric identifier for the payment card acceptor (merchant). This attribute specifies the merchant entity that will be locked or referenced for authorization rules.
+              descriptor:
+                type: string
+                description: Short description of the merchant, often used to provide more human-readable context about the transaction merchant. This is typically the name or label shown on transaction summaries.
+              comment:
+                type: string
+                description: A comment or explanation about the merchant, used internally for rule management purposes.
+            oneOf:
+              - required:
+                  - merchant_id
+              - required:
+                  - descriptor
+            description: Represents a specific merchant lock based on their ID or descriptor. Each merchant object allows transaction rules to work at a granular level and requires at least one of merchant_id or descriptor.
+          description: A list of merchant locks defining specific merchants or groups of merchants (based on descriptors or IDs) that the lock applies to.
+      required:
+        - merchants
     auth-rule-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-parameters.json
@@ -15164,6 +15204,7 @@ components:
       anyOf:
         - $ref: '#/components/schemas/conditional-block-parameters'
         - $ref: '#/components/schemas/velocity-limit-parameters'
+        - $ref: '#/components/schemas/merchant-lock-parameters'
     auth-rule-version:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-version.json
@@ -15722,6 +15763,7 @@ components:
         - LOSS_WRITE_OFF
         - PROVISIONAL_CREDIT
         - PROVISIONAL_CREDIT_REVERSAL
+        - SERVICE
         - RETURN
         - RETURN_REVERSAL
         - TRANSFER
