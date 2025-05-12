@@ -31,6 +31,7 @@ tags:
   - name: External Bank Account
   - name: External Payments
   - name: Financial Account
+  - name: Funding Events
   - name: Management Operations
   - name: Payment
   - name: Responder Endpoints
@@ -1022,9 +1023,6 @@ paths:
         '404':
           $ref: '#/components/responses/components-responses-NotFound'
     get:
-      servers:
-        - description: Sandbox environment that provides key functionality mirroring production
-          url: https://sandbox.lithic.com
       parameters:
         - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/startingAfter'
@@ -1493,6 +1491,12 @@ paths:
               - PAUSED
               - PENDING_ACTIVATION
               - PENDING_FULFILLMENT
+            type: string
+        - description: |
+            Returns cards containing the specified partial or full memo text.
+          in: query
+          name: memo
+          schema:
             type: string
         - $ref: '#/components/parameters/beginTime'
         - $ref: '#/components/parameters/endTime'
@@ -2175,6 +2179,53 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Provision card (Digital Wallet)
+      tags:
+        - Card
+  /v1/cards/{card_token}/web_provision:
+    post:
+      description: |
+        Allow your cardholders to directly add payment cards to the device's digital wallet from a browser on the web. Currently only suported for Apple Pay.
+
+        This requires some additional setup and configuration. Please [Contact Us](https://lithic.com/contact) or your Customer Success representative for more information.
+      operationId: postCardWebProvision
+      parameters:
+        - $ref: '#/components/parameters/cardTokenDigitalWallet'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              webProvisionAppleCard:
+                summary: Web push provision a card in Apple Pay
+                value:
+                  digital_wallet: APPLE_PAY
+            schema:
+              properties:
+                digital_wallet:
+                  description: Name of digital wallet provider.
+                  enum:
+                    - APPLE_PAY
+                  type: string
+              type: object
+        description: Update request.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebPushProvisioningResponse'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Web Push Provision card (Digital Wallet)
       tags:
         - Card
   /v1/cards/{card_token}/reissue:
@@ -3362,6 +3413,7 @@ paths:
                       - external_payment.updated
                       - financial_account.created
                       - financial_account.updated
+                      - funding_event.created
                       - loan_tape.created
                       - loan_tape.updated
                       - management_operation.created
@@ -3526,6 +3578,7 @@ paths:
                       - external_payment.updated
                       - financial_account.created
                       - financial_account.updated
+                      - funding_event.created
                       - loan_tape.created
                       - loan_tape.updated
                       - management_operation.created
@@ -3791,6 +3844,7 @@ paths:
                 - external_payment.updated
                 - financial_account.created
                 - financial_account.updated
+                - funding_event.created
                 - loan_tape.created
                 - loan_tape.updated
                 - management_operation.created
@@ -5880,6 +5934,7 @@ paths:
                     - external_payment.updated
                     - financial_account.created
                     - financial_account.updated
+                    - funding_event.created
                     - loan_tape.created
                     - loan_tape.updated
                     - management_operation.created
@@ -7918,6 +7973,113 @@ paths:
       summary: Reverse management operation
       tags:
         - Management Operations
+  /v1/funding_events:
+    get:
+      description: Get all funding events for program
+      operationId: getFundingEvents
+      parameters:
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          schema:
+            default: 50
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/funding_event_responses'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List funding events
+      tags:
+        - Funding Events
+  /v1/funding_events/{funding_event_token}:
+    get:
+      description: Get funding event for program by id
+      operationId: getFundingEventById
+      parameters:
+        - description: Globally unique identifier for funding event.
+          in: path
+          name: funding_event_token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/funding_event_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get funding event by ID
+      tags:
+        - Funding Events
+  /v1/funding_events/{funding_event_token}/details:
+    get:
+      description: Get funding event details by id
+      operationId: getFundingEventDetailsById
+      parameters:
+        - description: Globally unique identifier for funding event.
+          in: path
+          name: funding_event_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/funding_event_details_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get funding event details
+      tags:
+        - Funding Events
 webhooks:
   account_holder.created:
     post:
@@ -9422,6 +9584,21 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: financial_account.updated
+      tags:
+        - Event Types
+  funding_event.created:
+    post:
+      description: Occurs when a funding event is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/funding_events_created_webhook'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: funding_event.created
       tags:
         - Event Types
   loan_tape.created:
@@ -12061,6 +12238,7 @@ components:
             - external_payment.updated
             - financial_account.created
             - financial_account.updated
+            - funding_event.created
             - loan_tape.created
             - loan_tape.updated
             - management_operation.created
@@ -12128,6 +12306,7 @@ components:
               - external_payment.updated
               - financial_account.created
               - financial_account.updated
+              - funding_event.created
               - loan_tape.created
               - loan_tape.updated
               - management_operation.created
@@ -13831,6 +14010,12 @@ components:
                   description: |
                     Amount of the purchase in minor units of currency with all punctuation removed. Maps to EMV 3DS field purchaseAmount.
                   type: number
+                cardholder_amount:
+                  description: |
+                    Approximate amount of the purchase in minor units of cardholder currency. Derived from `amount` using a daily conversion rate.
+                  type:
+                    - number
+                    - 'null'
                 currency:
                   description: |
                     Currency of the purchase. Maps to EMV 3DS field purchaseCurrency.
@@ -13860,6 +14045,7 @@ components:
                     - string
               required:
                 - amount
+                - cardholder_amount
                 - currency
                 - currency_exponent
                 - date_time
@@ -14196,6 +14382,40 @@ components:
           example: 1900
           type: integer
       type: object
+    WebPushProvisioningResponse:
+      properties:
+        jws:
+          $ref: '#/components/schemas/WebPushProvisioningResponseJws'
+          description: JWS object required for handoff to Apple's script.
+        state:
+          description: A unique identifier for the JWS object.
+          example: 3cc4c292-727b-4ca8-b9a8-f96c15485f4e
+          type: string
+      type: object
+    WebPushProvisioningResponseJws:
+      properties:
+        header:
+          $ref: '#/components/schemas/WebPushProvisioningResponseHeader'
+          description: JWS unprotected headers containing header parameters that aren't integrity-protected by the JWS signature.
+        protected:
+          description: Base64url encoded JWS protected headers containing the header parameters that are integrity-protected by the JWS signature.
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9
+          type: string
+        payload:
+          description: Base64url encoded JSON object containing the provisioning payload.
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9
+          type: string
+        signature:
+          description: Base64url encoded signature of the JWS object.
+          example: SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+          type: string
+      type: object
+    WebPushProvisioningResponseHeader:
+      properties:
+        kid:
+          description: The ID for the JWS Public Key of the key pair used to generate the signature.
+          example: 8dc7aed4-29e3-41e4-9cdb-673a05e6615c
+          type: string
     required-document:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/required-document.json
@@ -16945,6 +17165,7 @@ components:
         - MANAGEMENT_FEE
         - MANAGEMENT_REWARD
         - MANAGEMENT_DISBURSEMENT
+        - PROGRAM_FUNDING
     statement_line_item_response:
       $id: https://lithic.com/schemas/treasury/statements/statement_line_item_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17815,6 +18036,14 @@ components:
             - SUCCESS
           example: SUCCESS
           type: string
+        authentication_method:
+          description: Indicates the method used to authenticate the cardholder.
+          enum:
+            - FRICTIONLESS
+            - CHALLENGE
+            - NONE
+          example: FRICTIONLESS
+          type: string
         decision_made_by:
           description: Indicates which party made the 3DS authentication decision.
           enum:
@@ -17963,6 +18192,24 @@ components:
           required:
             - acquirer_reference_number
             - retrieval_reference_number
+        amex:
+          properties:
+            transaction_id:
+              description: Identifier assigned by American Express to link original messages to subsequent messages. Guaranteed by American Express to be unique for each original authorization and financial authorization.
+              oneOf:
+                - type: 'null'
+                - type: string
+            original_transaction_id:
+              description: Identifier assigned by American Express. Matches the `transaction_id` of a prior related event. May be populated in incremental authorizations (authorization requests that augment a previously authorized amount), authorization advices, financial authorizations, and clearings.
+              oneOf:
+                - type: 'null'
+                - type: string
+          oneOf:
+            - type: 'null'
+            - type: object
+          required:
+            - transaction_id
+            - original_transaction_id
         mastercard:
           properties:
             banknet_reference_number:
@@ -18013,6 +18260,7 @@ components:
             - original_transaction_id
       required:
         - acquirer
+        - amex
         - mastercard
         - visa
     mastercard_network_specific_data:
@@ -18602,8 +18850,9 @@ components:
           deprecated: true
           $ref: '#/components/schemas/merchant_currency'
         network:
-          description: Card network of the authorization. Can be `INTERLINK`, `MAESTRO`, `MASTERCARD`, `VISA`, or `UNKNOWN`. Value is `UNKNOWN` when Lithic cannot determine the network code from the upstream provider.
+          description: Card network of the authorization. Value is `UNKNOWN` when Lithic cannot determine the network code from the upstream provider.
           enum:
+            - AMEX
             - INTERLINK
             - MAESTRO
             - MASTERCARD
@@ -19348,6 +19597,120 @@ components:
           format: date
       required:
         - effective_date
+    funding_event_settlement:
+      $id: https://lithic.com/schemas/internal/treasury/funding/funding_event_settlement.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Funding Event Settlement
+      type: object
+      properties:
+        amount:
+          type: integer
+          format: int64
+        settlement_date:
+          type: string
+          example: '2024-01-01'
+          format: date
+      required:
+        - amount
+        - settlement_date
+    funding_event_response:
+      $id: https://lithic.com/schemas/internal/treasury/funding/funding_event_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Funding Event Response
+      type: object
+      properties:
+        token:
+          description: Unique token ID
+          type: string
+          example: b68b7424-aa69-4cbc-a946-30d90181b621
+          format: uuid
+        collection_tokens:
+          description: IDs of collections
+          type: array
+          items:
+            type: string
+            example: b68b7424-aa69-4cbc-a946-30d90181b621
+            format: uuid
+        previous_high_watermark:
+          description: Time of the previous high watermark
+          type: string
+          example: '2024-01-01T00:00:00Z'
+          format: date-time
+        high_watermark:
+          description: Time of the high watermark
+          type: string
+          example: '2024-01-01T00:00:00Z'
+          format: date-time
+        collection_resource_type:
+          description: Collection resource type
+          type: string
+          example: PAYMENT
+          enum:
+            - BOOK_TRANSFER
+            - PAYMENT
+        settlement_breakdowns:
+          description: List of settlements
+          type: array
+          items:
+            $ref: '#/components/schemas/funding_event_settlement'
+        created_at:
+          description: Time of the creation
+          type: string
+          example: '2024-01-01T00:00:00Z'
+          format: date-time
+        updated_at:
+          description: Time of the update
+          type: string
+          example: '2024-01-01T00:00:00Z'
+          format: date-time
+      required:
+        - token
+        - previous_high_watermark
+        - high_watermark
+        - collection_resource_type
+        - created_at
+        - updated_at
+        - settlement_breakdowns
+        - collection_tokens
+    funding_event_responses:
+      $id: https://lithic.com/schemas/internal/treasury/funding/funding_event_responses.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Funding Event Responses
+      type: object
+      properties:
+        data:
+          type: array
+          description: Funding Event Response
+          items:
+            $ref: '#/components/schemas/funding_event_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
+    funding_event_details_response:
+      $id: https://lithic.com/schemas/internal/treasury/funding/funding_event_details_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Funding Event Details Response
+      type: object
+      properties:
+        token:
+          description: Unique token ID
+          type: string
+          example: b68b7424-aa69-4cbc-a946-30d90181b621
+          format: uuid
+        settlement_summary_url:
+          description: URL of the settlement summary
+          type: string
+          format: uri
+        settlement_details_url:
+          description: URL of the settlement details
+          type: string
+          format: uri
+      required:
+        - token
+        - settlement_details_url
+        - settlement_summary_url
     asa_network_specific_data_mastercard:
       type: object
       properties:
@@ -19785,11 +20148,12 @@ components:
           type: string
           description: Card network of the authorization.
           enum:
+            - AMEX
             - INTERLINK
             - MAESTRO
             - MASTERCARD
-            - VISA
             - UNKNOWN
+            - VISA
         network_risk_score:
           $ref: '#/components/schemas/network_risk_score'
         settled_amount:
@@ -20190,7 +20554,7 @@ components:
           type: string
         location:
           description: Latitude and longitude where the device is located during the authorization attempt
-          example: 37.3860517,-122.0838511
+          example: 37.3860517/-122.0838511
           maxLength: 64
           type: string
       required:
@@ -20361,7 +20725,7 @@ components:
               device:
                 imei: '123456789012345'
                 ip_address: 1.1.1.1
-                location: 37.3860517,-122.0838511
+                location: 37.3860517/-122.0838511
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
@@ -20641,7 +21005,7 @@ components:
               device:
                 imei: '123456789012345'
                 ip_address: 1.1.1.1
-                location: 37.3860517,-122.0838511
+                location: 37.3860517/-122.0838511
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
@@ -20664,6 +21028,20 @@ components:
                 recommendation_reasons:
                   - Reason1
                 recommended_decision: Decision1
+    funding_events_created_webhook:
+      $id: https://lithic.com/schemas/treasury/funding/funding_events_created_webhook.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Funding Event Webhook
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/funding_event_response'
+      properties:
+        event_type:
+          type: string
+          enum:
+            - funding_event.created
+      required:
+        - event_type
     internal_adjustment_event:
       $id: https://lithic.com/schemas/treasury/ledger/internal_adjustment_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20782,7 +21160,7 @@ components:
               device:
                 imei: '123456789012345'
                 ip_address: 1.1.1.1
-                location: 37.3860517,-122.0838511
+                location: 37.3860517/-122.0838511
               digital_wallet_token_metadata:
                 payment_account_info:
                   account_holder_data:
