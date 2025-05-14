@@ -19653,12 +19653,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/funding_event_settlement'
-        created_at:
+        created:
           description: Time of the creation
           type: string
           example: '2024-01-01T00:00:00Z'
           format: date-time
-        updated_at:
+        updated:
           description: Time of the update
           type: string
           example: '2024-01-01T00:00:00Z'
@@ -19668,8 +19668,8 @@ components:
         - previous_high_watermark
         - high_watermark
         - collection_resource_type
-        - created_at
-        - updated_at
+        - created
+        - updated
         - settlement_breakdowns
         - collection_tokens
     funding_event_responses:
