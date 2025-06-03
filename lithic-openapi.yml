@@ -22,7 +22,7 @@ tags:
   - name: Book Transfer
   - name: Account Holder
   - name: Auth Stream Access (ASA)
-  - name: Authorization Rules
+  - name: Auth Rules
   - name: Balance
   - name: Card
   - name: Credit Product
@@ -877,7 +877,7 @@ paths:
                     - PAUSED
                   type: string
                 verification_address:
-                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Authorization Rules. The field will be removed from the schema in a future release.
+                  description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Auth Rules. The field will be removed from the schema in a future release.
                   properties:
                     address1:
                       type: string
@@ -1005,9 +1005,9 @@ paths:
     post:
       parameters: []
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Create a new rule
-      description: Creates a new V2 authorization rule in draft mode
+      description: Creates a new V2 Auth rule in draft mode
       requestBody:
         required: true
         content:
@@ -1029,34 +1029,43 @@ paths:
         - $ref: '#/components/parameters/pageSize'
         - name: card_token
           in: query
-          description: Only return Authorization Rules that are bound to the provided card token.
+          description: Only return Auth Rules that are bound to the provided card token.
           schema:
             type: string
             format: uuid
           required: false
         - name: account_token
           in: query
-          description: Only return Authorization Rules that are bound to the provided account token.
+          description: Only return Auth Rules that are bound to the provided account token.
           schema:
             type: string
             format: uuid
           required: false
         - name: scope
           in: query
-          description: Only return Authorization Rules that are bound to the provided scope;
+          description: Only return Auth Rules that are bound to the provided scope.
           schema:
             enum:
               - PROGRAM
               - ACCOUNT
               - CARD
             type: string
+        - name: event_stream
+          in: query
+          description: Only return Auth rules that are executed during the provided event stream.
+          schema:
+            enum:
+              - AUTHORIZATION
+              - THREE_DS_AUTHENTICATION
+            type: string
+          required: false
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: List rules
-      description: Lists V2 authorization rules
+      description: Lists V2 Auth rules
       responses:
         '200':
-          description: Authorization Rules
+          description: Auth Rules
           content:
             application/json:
               schema:
@@ -1066,7 +1075,7 @@ paths:
                       $ref: '#/components/schemas/auth-rule'
                     type: array
                   has_more:
-                    description: Indicates whether there are more Authorization Rules to be retrieved by paging through the results.
+                    description: Indicates whether there are more Auth Rules to be retrieved by paging through the results.
                     type: boolean
                 required:
                   - data
@@ -1081,9 +1090,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Fetch a rule
-      description: Fetches a V2 authorization rule by its token
+      description: Fetches a V2 Auth rule by its token
       responses:
         '200':
           $ref: '#/components/responses/AuthRule'
@@ -1095,10 +1104,10 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Update a rule
       description: |
-        Updates a V2 authorization rule's properties
+        Updates a V2 Auth rule's properties
 
         If `account_tokens`, `card_tokens`, `program_level`, or `excluded_card_tokens` is provided, this will replace existing associations with the provided list of entities.
       requestBody:
@@ -1119,9 +1128,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Delete a rule
-      description: Deletes a V2 authorization rule
+      description: Deletes a V2 Auth rule
       responses:
         '204':
           description: Auth Rule Deleted
@@ -1135,10 +1144,10 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Apply a rule
       description: |
-        Associates a V2 authorization rule with a card program, the provided account(s) or card(s).
+        Associates a V2 Auth rule with a card program, the provided account(s) or card(s).
 
         Prefer using the `PATCH` method for this operation.
       requestBody:
@@ -1159,7 +1168,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Draft a new rule version
       description: |
         Creates a new draft version of a rule that will be ran in shadow mode.
@@ -1190,9 +1199,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Promote a rule version
-      description: Promotes the draft version of an authorization rule to the currently active version such that it is enforced in the authorization stream.
+      description: Promotes the draft version of an Auth rule to the currently active version such that it is enforced in the respective stream.
       responses:
         '200':
           $ref: '#/components/responses/AuthRule'
@@ -1205,21 +1214,21 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Request a performance report
       description: |
-        Requests a performance report of an authorization rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
+        Requests a performance report of an Auth rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
         The generated report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.performance_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
 
-        Reports are generated based on data collected by Lithic's authorization processing system in the trailing week. The performance of the auth rule will be assessed on the configuration of the auth rule at the time the report is requested.
-        This implies that if a performance report is requested, right after updating an auth rule, depending on the number of authorizations processed for a card program, it may be the case that no data is available for the report. Therefore Lithic recommends to decouple making updates to an Auth Rule, and requesting performance reports.
+        Reports are generated based on data collected by Lithic's processing system in the trailing week. The performance of the auth rule will be assessed on the configuration of the auth rule at the time the report is requested.
+        This implies that if a performance report is requested, right after updating an auth rule, depending on the number of events processed for a card program, it may be the case that no data is available for the report. Therefore Lithic recommends to decouple making updates to an Auth Rule, and requesting performance reports.
 
         To make this concrete, consider the following example:
-        1. At time `t`, a new Auth Rule is created, and applies to all authorizations on a card program. The Auth Rule has not yet been promoted, causing the draft version of the rule to be applied in shadow mode.
+        1. At time `t`, a new Auth Rule is created, and applies to all auth events on a card program. The Auth Rule has not yet been promoted, causing the draft version of the rule to be applied in shadow mode.
         2. At time `t + 1 hour` a performance report is requested for the Auth Rule. This performance report will *only* contain data for the Auth Rule being executed in the window between `t` and `t + 1 hour`. This is because Lithic's transaction processing system will only start capturing data for the Auth Rule at the time it is created.
         3. At time `t + 2 hours` the draft version of the Auth Rule is promoted to the active version of the Auth Rule by calling the `/v2/auth_rules/{auth_rule_token}/promote` endpoint. If a performance report is requested at this moment it will still only contain data for this version of the rule, but the window of available data will now span from `t` to `t + 2 hours`.
-        4. At time `t + 3 hours` a new version of the rule is drafted by calling the `/v2/auth_rules/{auth_rule_token}/draft` endpoint. If a performance report is requested right at this moment, it will only contain data for authorizations to which both the active version and the draft version is applied. Lithic does this to ensure that performance reports represent a fair comparison between rules. Because there may be no authorizations in this window, and because there may be some lag before data is available in a performance report, the requested performance report could contain no to little data.
-        5. At time `t + 4 hours` another performance report is requested: this time the performance report will contain data from the window between `t + 3 hours` and `t + 4 hours`, for any authorizations to which both the current version of the authorization rule (in enforcing mode) and the draft version of the authorization rule (in shadow mode) applied.
+        4. At time `t + 3 hours` a new version of the rule is drafted by calling the `/v2/auth_rules/{auth_rule_token}/draft` endpoint. If a performance report is requested right at this moment, it will only contain data for events to which both the active version and the draft version is applied. Lithic does this to ensure that performance reports represent a fair comparison between rules. Because there may be no events in this window, and because there may be some lag before data is available in a performance report, the requested performance report could contain no to little data.
+        5. At time `t + 4 hours` another performance report is requested: this time the performance report will contain data from the window between `t + 3 hours` and `t + 4 hours`, for any events to which both the current version of the Auth rule (in enforcing mode) and the draft version of the Auth rule (in shadow mode) applied.
 
         Note that generating a report may take up to 15 minutes and that delivery is not guaranteed. Customers are required to have created an event subscription to receive the webhook.
         Additionally, there is a delay of approximately 15 minutes between when Lithic's transaction processing systems have processed the transaction, and when a transaction will be included in the report.
@@ -1244,10 +1253,10 @@ paths:
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Request a backtest
       description: |
-        Initiates a request to asynchronously generate a backtest for an authorization rule. During backtesting, both the active version (if one exists) and the draft version of the Authorization Rule are evaluated by replaying historical transaction data against the rule's conditions. This process allows customers to simulate and understand the effects of proposed rule changes before deployment.
+        Initiates a request to asynchronously generate a backtest for an Auth rule. During backtesting, both the active version (if one exists) and the draft version of the Auth Rule are evaluated by replaying historical transaction data against the rule's conditions. This process allows customers to simulate and understand the effects of proposed rule changes before deployment.
         The generated backtest report provides detailed results showing whether the draft version of the Auth Rule would have approved or declined historical transactions which were processed during the backtest period. These reports help evaluate how changes to rule configurations might affect overall transaction approval rates.
 
         The generated backtest report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.backtest_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
@@ -1281,15 +1290,15 @@ paths:
         - $ref: '#/components/parameters/authRuleToken'
         - $ref: '#/components/parameters/backtestToken'
       tags:
-        - Authorization Rules
+        - Auth Rules
       summary: Retrieve backtest results
       description: |
-        Returns the backtest results of an authorization rule (if available).
+        Returns the backtest results of an Auth rule (if available).
 
         Backtesting is an asynchronous process that requires time to complete. If a customer retrieves the backtest results using this endpoint before the report is fully generated, the response will return null for `results.current_version` and `results.draft_version`. Customers are advised to wait for the backtest creation process to complete (as indicated by the webhook event auth_rules.backtest_report.created) before retrieving results from this endpoint.
 
         Backtesting is an asynchronous process, while the backtest is being processed, results will not be available which will cause `results.current_version` and `results.draft_version` objects to contain `null`.
-        The entries in `results` will also always represent the configuration of the rule at the time requests are made to this endpoint. For example, the results for `current_version` in the served backtest report will be consistent with which version of the rule is currently activated in the Auth Stream, regardless of which version of the rule was active in the Auth Stream at the time a backtest is requested.
+        The entries in `results` will also always represent the configuration of the rule at the time requests are made to this endpoint. For example, the results for `current_version` in the served backtest report will be consistent with which version of the rule is currently activated in the respective event stream, regardless of which version of the rule was active in the event stream at the time a backtest is requested.
       responses:
         '200':
           description: Backtest results
@@ -8550,7 +8559,7 @@ webhooks:
         - Tokenization
   auth_rules.performance_report.created:
     post:
-      description: Authorization Rules performance report created.
+      description: Auth Rules performance report created.
       requestBody:
         content:
           application/json:
@@ -8564,7 +8573,7 @@ webhooks:
         - Event Types
   auth_rules.backtest_report.created:
     post:
-      description: Authorization Rules backtest report created.
+      description: Auth Rules backtest report created.
       requestBody:
         content:
           application/json:
@@ -10717,7 +10726,7 @@ components:
           schema:
             $ref: '#/components/schemas/schemas-Error'
     AuthRule:
-      description: Authorization Rule
+      description: Auth Rule
       content:
         application/json:
           schema:
@@ -12652,7 +12661,7 @@ components:
         * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
         * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
         * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
-        * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the fed.
+        * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the Federal Reserve.
         * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
         * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
         * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
@@ -14434,7 +14443,7 @@ components:
             description: The name of a required document.
         status_reasons:
           type: array
-          description: rovides the status reasons that will be satisfied by providing one of the valid documents.
+          description: Provides the status reasons that will be satisfied by providing one of the valid documents.
           items:
             type: string
             description: An account holder's status reason
@@ -15144,6 +15153,15 @@ components:
         - entity_token
         - required_document_uploads
         - token
+    event-stream:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/event-stream.json
+      title: Event Stream Types
+      type: string
+      enum:
+        - AUTHORIZATION
+        - THREE_DS_AUTHENTICATION
+      description: The type of event stream the Auth rule applies to.
     auth-rule-token:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-token.json
@@ -15202,7 +15220,14 @@ components:
         - CONDITIONAL_BLOCK
         - VELOCITY_LIMIT
         - MERCHANT_LOCK
-      description: The type of Auth Rule
+        - CONDITIONAL_3DS_ACTION
+      description: |-
+        The type of Auth Rule. Effectively determines the event stream during which it will be evaluated. 
+
+        - `CONDITIONAL_BLOCK`: AUTHORIZATION event stream.
+        - `VELOCITY_LIMIT`: AUTHORIZATION event stream.
+        - `MERCHANT_LOCK`: AUTHORIZATION event stream.
+        - `CONDITIONAL_3DS_ACTION`: THREE_DS_AUTHENTICATION event stream.
     conditional-block-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-block-parameters.json
@@ -15416,6 +15441,73 @@ components:
           description: A list of merchant locks defining specific merchants or groups of merchants (based on descriptors or IDs) that the lock applies to.
       required:
         - merchants
+    conditional-3ds-action-parameters:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-3ds-action-parameters.json
+      title: Conditional 3DS Action Parameters
+      type: object
+      properties:
+        action:
+          type: string
+          description: The action to take if the conditions are met.
+          enum:
+            - DECLINE
+            - CHALLENGE
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              attribute:
+                type: string
+                description: |-
+                  The attribute to target.
+
+                  The following attributes may be targeted:
+                  * `MCC`: A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
+                  * `COUNTRY`: Country of entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.
+                  * `CURRENCY`: 3-character alphabetic ISO 4217 code for the merchant currency of the transaction.
+                  * `MERCHANT_ID`: Unique alphanumeric identifier for the payment card acceptor (merchant).
+                  * `DESCRIPTOR`: Short description of card acceptor.
+                  * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
+                  * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authentication. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+                  * `MESSAGE_CATEGORY`: The category of the authentication being processed.
+                enum:
+                  - MCC
+                  - COUNTRY
+                  - CURRENCY
+                  - MERCHANT_ID
+                  - DESCRIPTOR
+                  - TRANSACTION_AMOUNT
+                  - RISK_SCORE
+                  - MESSAGE_CATEGORY
+              operation:
+                type: string
+                description: The operation to apply to the attribute
+                enum:
+                  - IS_ONE_OF
+                  - IS_NOT_ONE_OF
+                  - MATCHES
+                  - DOES_NOT_MATCH
+                  - IS_GREATER_THAN
+                  - IS_LESS_THAN
+              value:
+                anyOf:
+                  - title: Regex
+                    type: string
+                    description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
+                  - title: Number
+                    type: integer
+                    format: int64
+                    description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
+                  - title: List of Strings
+                    type: array
+                    items:
+                      type: string
+                    description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+      required:
+        - action
+        - conditions
     auth-rule-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-parameters.json
@@ -15425,6 +15517,7 @@ components:
         - $ref: '#/components/schemas/conditional-block-parameters'
         - $ref: '#/components/schemas/velocity-limit-parameters'
         - $ref: '#/components/schemas/merchant-lock-parameters'
+        - $ref: '#/components/schemas/conditional-3ds-action-parameters'
     auth-rule-version:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-version.json
@@ -15499,6 +15592,8 @@ components:
           $ref: '#/components/schemas/draft-version'
         name:
           $ref: '#/components/schemas/auth-rule-name'
+        event_stream:
+          $ref: '#/components/schemas/event-stream'
       required:
         - token
         - state
@@ -15509,6 +15604,7 @@ components:
         - current_version
         - draft_version
         - name
+        - event_stream
     schemas-Error:
       type: object
       properties:
@@ -15660,27 +15756,37 @@ components:
           $ref: '#/components/schemas/auth-rule-version'
         approved:
           type: integer
-          description: The total number of historical transactions approved by this rule during the backtest period, or the number of transactions that would have been approved if the rule was evaluated in shadow mode.
+          description: The total number of historical transactions approved by this rule during the relevant period, or the number of transactions that would have been approved if the rule was evaluated in shadow mode.
         declined:
           type: integer
-          description: The total number of historical transactions declined by this rule during the backtest period, or the number of transactions that would have been declined if the rule was evaluated in shadow mode.
+          description: The total number of historical transactions declined by this rule during the relevant period, or the number of transactions that would have been declined if the rule was evaluated in shadow mode.
+        challenged:
+          type: integer
+          description: The total number of historical transactions challenged by this rule during the relevant period, or the number of transactions that would have been challenged if the rule was evaluated in shadow mode. Currently applicable only for 3DS Auth Rules.
         examples:
           type: array
-          description: Example authorization request events that would have been approved or declined.
+          description: Example events and their outcomes.
           items:
             type: object
             properties:
               event_token:
                 type: string
                 format: uuid
-                description: The authorization request event token.
+                description: The event token.
               timestamp:
                 type: string
                 format: date-time
-                description: The timestamp of the authorization request event.
+                description: The timestamp of the event.
               approved:
                 type: boolean
-                description: Whether the rule would have approved the authorization request.
+                description: Whether the rule would have approved the request.
+              decision:
+                type: string
+                enum:
+                  - APPROVED
+                  - DECLINED
+                  - CHALLENGED
+                description: The decision made by the rule for this event.
     backtest-results:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
@@ -18773,7 +18879,7 @@ components:
             - integer
             - 'null'
         acquirer_reference_number:
-          description: Unique identifier assigned to a transaction by the acquirer that can be used in dispute and chargeback filing.
+          description: Unique identifier assigned to a transaction by the acquirer that can be used in dispute and chargeback filing. This field has been deprecated in favor of the `acquirer_reference_number` that resides in the event-level `network_info`.
           example: '12345678987654321234567'
           maxLength: 23
           minLength: 23
@@ -19603,16 +19709,16 @@ components:
       title: Funding Event Settlement
       type: object
       properties:
-        amount:
+        settled_gross_amount:
           type: integer
           format: int64
-        settlement_date:
+        network_settlement_date:
           type: string
           example: '2024-01-01'
           format: date
       required:
-        - amount
-        - settlement_date
+        - settled_gross_amount
+        - network_settlement_date
     funding_event_response:
       $id: https://lithic.com/schemas/internal/treasury/funding/funding_event_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19625,7 +19731,7 @@ components:
           example: b68b7424-aa69-4cbc-a946-30d90181b621
           format: uuid
         collection_tokens:
-          description: IDs of collections
+          description: IDs of collections, further information can be gathered from the appropriate collection API based on collection_resource_type
           type: array
           items:
             type: string
@@ -19648,8 +19754,8 @@ components:
           enum:
             - BOOK_TRANSFER
             - PAYMENT
-        settlement_breakdowns:
-          description: List of settlements
+        network_settlement_summary:
+          description: Network settlement summary breakdown by network settlement date
           type: array
           items:
             $ref: '#/components/schemas/funding_event_settlement'
@@ -19670,7 +19776,7 @@ components:
         - collection_resource_type
         - created
         - updated
-        - settlement_breakdowns
+        - network_settlement_summary
         - collection_tokens
     funding_event_responses:
       $id: https://lithic.com/schemas/internal/treasury/funding/funding_event_responses.json
