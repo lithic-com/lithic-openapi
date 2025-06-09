@@ -4778,6 +4778,33 @@ paths:
       summary: Get financial transaction
       tags:
         - Financial Account
+  /v1/financial_accounts/{financial_account_token}/register_account_number:
+    post:
+      description: Register account number
+      operationId: registerAccountNumber
+      parameters:
+        - $ref: '#/components/parameters/financialAccountToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/register_account_number_request'
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Register Account Number
+      tags:
+        - Financial Account
   /v1/financial_accounts/{financial_account_token}/statements:
     get:
       description: List the statements for a given financial account.
@@ -6518,7 +6545,7 @@ paths:
         - Status
   /v1/three_ds_authentication/simulate:
     post:
-      description: "Simulates a 3DS authentication request from the payment network as if it came from an ACS. If you're configured for 3DS Customer Decisioning, simulating authentications requires your customer decisioning endpoint to be set up properly (respond with a valid JSON). "
+      description: "Simulates a 3DS authentication request from the payment network as if it came from an ACS. If you're configured for 3DS Customer Decisioning, simulating authentications requires your customer decisioning endpoint to be set up properly (respond with a valid JSON). If the authentication decision is to challenge, ensure that the account holder associated with the card transaction has a valid phone number configured to receive the OTP code via SMS. "
       operationId: postSimulateAuthentication
       requestBody:
         content:
@@ -13296,7 +13323,7 @@ components:
           example: '2023-06-01'
           type: string
         settlement_date:
-          description: Date of when money movement is triggered for the transaction.
+          description: Date of when money movement is triggered for the transaction. One exception applies - for Mastercard dual message settlement, this is the settlement advisement date, which is distinct from the date of money movement.
           example: '2023-06-01'
           type: string
         token:
@@ -15328,12 +15355,14 @@ components:
                 - DAY
                 - WEEK
                 - MONTH
+                - YEAR
               description: |-
                 The window of time to calculate Spend Velocity over.
 
                 * `DAY`: Velocity over the current day since midnight Eastern Time.
                 * `WEEK`: Velocity over the current week since 00:00 / 12 AM on Monday in Eastern Time.
                 * `MONTH`: Velocity over the current month since 00:00 / 12 AM on the first of the month in Eastern Time.
+                * `YEAR`: Velocity over the current year since 00:00 / 12 AM on January 1st in Eastern Time.
         filters:
           type: object
           properties:
@@ -16728,6 +16757,7 @@ components:
         - CHARGED_OFF_PRINCIPAL
         - SECURITY
         - PROGRAM_RECEIVABLES
+        - COLLECTION
     account-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/account-financial-account-type.json
@@ -16966,6 +16996,16 @@ components:
           description: Tier to assign to a financial account
           minLength: 1
       required: []
+    register_account_number_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/register_account_number_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Register Account Number Request
+      type: object
+      properties:
+        account_number:
+          type: string
+      required:
+        - account_number
     statement_totals:
       $id: https://lithic.com/schemas/treasury/statements/statements_totals.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18153,6 +18193,7 @@ components:
         decision_made_by:
           description: Indicates which party made the 3DS authentication decision.
           enum:
+            - CUSTOMER_RULES
             - CUSTOMER_ENDPOINT
             - LITHIC_DEFAULT
             - LITHIC_RULES
@@ -19986,6 +20027,7 @@ components:
             - NETWORK
             - LITHIC_DEFAULT
             - LITHIC_RULES
+            - CUSTOMER_RULES
             - CUSTOMER_ENDPOINT
             - UNKNOWN
         three_ds_authentication_token:
@@ -20532,6 +20574,7 @@ components:
                 - NETWORK
                 - LITHIC_DEFAULT
                 - LITHIC_RULES
+                - CUSTOMER_RULES
                 - CUSTOMER_ENDPOINT
                 - UNKNOWN
             three_ds_authentication_token:
