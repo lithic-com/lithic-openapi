@@ -875,6 +875,7 @@ paths:
                   enum:
                     - ACTIVE
                     - PAUSED
+                    - CLOSED
                   type: string
                 verification_address:
                   description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Auth Rules. The field will be removed from the schema in a future release.
@@ -10866,7 +10867,7 @@ components:
             Account state:
               * `ACTIVE` - Account is able to transact and create new cards.
               * `PAUSED` - Account will not be able to transact or create new cards. It can be set back to `ACTIVE`.
-              * `CLOSED` - Account will not be able to transact or create new cards. `CLOSED` accounts are also unable to be transitioned to `ACTIVE` or `PAUSED` states. `CLOSED` accounts result from failing to pass KYB/KYC or Lithic closing for risk/compliance reasons. Please contact [support@lithic.com](mailto:support@lithic.com) if you believe this was in error.
+              * `CLOSED` - Account will not be able to transact or create new cards. `CLOSED` accounts are unable to be transitioned to `ACTIVE` or `PAUSED` states. Accounts can be manually set to `CLOSED`, or this can be done by Lithic due to failure to pass KYB/KYC or for risk/compliance reasons. Please contact [support@lithic.com](mailto:support@lithic.com) if you believe this was done by mistake.
           enum:
             - ACTIVE
             - PAUSED
@@ -16171,6 +16172,7 @@ components:
         - PLAID
         - PRENOTE
         - EXTERNALLY_VERIFIED
+        - UNVERIFIED
       title: Verification Method
     external_bank_account_address:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/external_bank_account_address.json
