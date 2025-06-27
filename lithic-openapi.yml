@@ -31,6 +31,7 @@ tags:
   - name: External Bank Account
   - name: External Payments
   - name: Financial Account
+  - name: Fraud Report
   - name: Funding Events
   - name: Management Operations
   - name: Payment
@@ -1211,13 +1212,55 @@ paths:
         '404':
           $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/report:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+        - name: begin
+          in: query
+          required: true
+          description: Start date for the report
+          schema:
+            type: string
+            format: date
+        - name: end
+          in: query
+          required: true
+          description: End date for the report
+          schema:
+            type: string
+            format: date
+      tags:
+        - Auth Rules
+      summary: Retrieve a performance report
+      description: |
+        Retrieves a performance report for an Auth rule containing daily statistics and evaluation outcomes.
+
+        **Time Range Limitations:**
+        - Reports are supported for the past 3 months only
+        - Maximum interval length is 1 month
+        - Report data is available only through the previous day in UTC (current day data is not available)
+
+        The report provides daily statistics for both current and draft versions of the Auth rule, including approval, decline, and challenge counts along with sample events.
+      responses:
+        '200':
+          description: Auth Rule Performance Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/performance-report-v2'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/components-responses-NotFound'
     post:
+      deprecated: true
       parameters:
         - $ref: '#/components/parameters/authRuleToken'
       tags:
         - Auth Rules
       summary: Request a performance report
       description: |
+        This endpoint is deprecated and will be removed in the future.
         Requests a performance report of an Auth rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
         The generated report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.performance_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
 
@@ -1263,7 +1306,7 @@ paths:
         The generated backtest report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.backtest_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
         It is also possible to request backtest reports on-demand through the `/v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}` endpoint.
 
-        Lithic currently supports backtesting for `CONDITIONAL_BLOCK` rules. Backtesting for `VELOCITY_LIMIT` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
+        Lithic currently supports backtesting for `CONDITIONAL_BLOCK` / `CONDITIONAL_3DS_ACTION` rules. Backtesting for `VELOCITY_LIMIT` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
         If a historical transaction does not feature the required inputs to evaluate the rule, then it will not be included in the final backtest report.
       requestBody:
         required: true
@@ -1639,9 +1682,9 @@ paths:
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                    * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
                   enum:
                     - 2_DAY
                     - EXPEDITED
@@ -2286,9 +2329,9 @@ paths:
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                    * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
                   enum:
                     - 2_DAY
                     - EXPEDITED
@@ -2407,9 +2450,9 @@ paths:
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                    * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
                   enum:
                     - 2_DAY
                     - EXPEDITED
@@ -2519,9 +2562,9 @@ paths:
                     * `STANDARD` - USPS regular mail or similar international option, with no tracking
                     * `STANDARD_WITH_TRACKING` - USPS regular mail or similar international option, with tracking
                     * `PRIORITY` - USPS Priority, 1-3 day shipping, with tracking
-                    * `EXPRESS` - FedEx Express, 3-day shipping, with tracking
-                    * `2_DAY` - FedEx 2-day shipping, with tracking
-                    * `EXPEDITED` - FedEx Standard Overnight or similar international option, with tracking
+                    * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
+                    * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
+                    * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
                   enum:
                     - 2_DAY
                     - EXPEDITED
@@ -3185,6 +3228,82 @@ paths:
       summary: Embedded card UI
       tags:
         - Card
+  /v1/fraud/transactions/{transaction_token}:
+    get:
+      description: |
+        Retrieve a fraud report for a specific transaction identified by its unique transaction token.
+      summary: Get a fraud report for a transaction
+      operationId: getFraudReport
+      tags:
+        - Fraud Report
+      parameters:
+        - required: true
+          schema:
+            title: Transaction Token
+            type: string
+            format: uuid
+          name: transaction_token
+          description: The token of the transaction that the enhanced data is associated with.
+          in: path
+          example: 00000000-0000-0000-0000-000000000000
+      responses:
+        '200':
+          description: Fraud report for the specified transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fraud-report-response'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      description: |
+        Report fraud for a specific transaction token by providing details such as fraud type, fraud status, and any additional comments.
+      summary: Create or update a fraud report for a transaction
+      operationId: createUpdateFraudReport
+      tags:
+        - Fraud Report
+      parameters:
+        - required: true
+          schema:
+            title: Transaction Token
+            type: string
+            format: uuid
+          name: transaction_token
+          description: The token of the transaction that the enhanced data is associated with.
+          in: path
+          example: 00000000-0000-0000-0000-000000000000
+      requestBody:
+        required: true
+        description: The details of the fraud report to create or update.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fraud-report-request'
+      responses:
+        '200':
+          description: The created or updated fraud report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fraud-report-response'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /v1/transactions/{transaction_token}/enhanced_commercial_data:
     get:
       description: Get all L2/L3 enhanced commercial data associated with a transaction. Not available in sandbox.
@@ -4164,10 +4283,12 @@ paths:
                   PLAID: '#/components/schemas/plaid_verified_create_bank_account_api_request'
                   PRENOTE: '#/components/schemas/bank_verified_create_bank_account_api_request'
                   EXTERNALLY_VERIFIED: '#/components/schemas/externally_verified_create_bank_account_api_request'
+                  UNVERIFIED: '#/components/schemas/unverified_create_bank_account_api_request'
               oneOf:
                 - $ref: '#/components/schemas/bank_verified_create_bank_account_api_request'
                 - $ref: '#/components/schemas/plaid_verified_create_bank_account_api_request'
                 - $ref: '#/components/schemas/externally_verified_create_bank_account_api_request'
+                - $ref: '#/components/schemas/unverified_create_bank_account_api_request'
       responses:
         '201':
           content:
@@ -4359,6 +4480,44 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Retry external bank account via prenote
+      tags:
+        - External Bank Account
+  /v1/external_bank_accounts/{external_bank_account_token}/set_verification_method:
+    post:
+      description: |
+        Update the verification method for an external bank account. Verification method can only be updated
+        if the `verification_state` is `PENDING`.
+      operationId: setVerificationMethod
+      parameters:
+        - in: path
+          name: external_bank_account_token
+          required: true
+          schema:
+            format: uuid
+            title: External Bank Account Token
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/set_verification_method_request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bank_account_api_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Set verification method
       tags:
         - External Bank Account
   /v1/credit_products/{credit_product_token}/extended_credit:
@@ -6551,85 +6710,8 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              simulateAuthentication:
-                summary: Simulate an authentication
-                value:
-                  merchant:
-                    country: USA
-                    id: OODKZAPJVN4YS7O
-                    mcc: '5812'
-                    name: COFFEE SHOP
-                  pan: '4111111289144142'
-                  transaction:
-                    amount: 100
-                    currency: USD
-                  card_expiry_check: MATCH
             schema:
-              properties:
-                merchant:
-                  properties:
-                    country:
-                      description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
-                      example: USA
-                      type: string
-                    id:
-                      description: Unique identifier to identify the payment card acceptor. Corresponds to `merchant_acceptor_id` in authorization.
-                      example: OODKZAPJVN4YS7O
-                      maxLength: 15
-                      minLength: 1
-                      type: string
-                    mcc:
-                      description: |
-                        Merchant category code for the transaction to be simulated. A four-digit number listed in ISO 18245.
-                        Supported merchant category codes can be found [here](https://docs.lithic.com/docs/transactions#merchant-category-codes-mccs).
-                      example: '5812'
-                      type: string
-                    name:
-                      description: Merchant descriptor, corresponds to `descriptor` in authorization. If CHALLENGE keyword is included, Lithic will trigger a challenge.
-                      example: COFFEE SHOP
-                      maxLength: 25
-                      minLength: 1
-                      type: string
-                  required:
-                    - country
-                    - id
-                    - mcc
-                    - name
-                  type: object
-                pan:
-                  description: Sixteen digit card number.
-                  example: '4111111289144142'
-                  maxLength: 16
-                  minLength: 16
-                  type: string
-                transaction:
-                  properties:
-                    amount:
-                      description: Amount (in cents) to authenticate.
-                      minimum: 0
-                      type: integer
-                    currency:
-                      description: 3-character alphabetic ISO 4217 currency code.
-                      example: GBP
-                      type: string
-                  required:
-                    - amount
-                    - currency
-                  type: object
-                card_expiry_check:
-                  description: |
-                    When set will use the following values as part of the Simulated Authentication. When not set defaults to MATCH
-                  enum:
-                    - MATCH
-                    - MISMATCH
-                    - NOT_PRESENT
-                  type: string
-              required:
-                - merchant
-                - pan
-                - transaction
-              type: object
+              $ref: '#/components/schemas/simulate-authentication-request'
         required: true
       responses:
         '201':
@@ -6640,7 +6722,7 @@ paths:
               schema:
                 properties:
                   token:
-                    description: A unique token to reference this transaction with later calls to void or clear the authorization.
+                    description: Globally unique identifier for the 3DS authentication.
                     format: uuid
                     type: string
                 type: object
@@ -6658,7 +6740,7 @@ paths:
         - 3DS
   /v1/three_ds_decisioning/simulate/enter_otp:
     post:
-      description: Endpoint for simulating entering OTP into 3DS Challenge UI. A call to /v1/three_ds_authentication/simulate that resulted in triggered SMS-OTP challenge must precede. Only a single attempt is supported; upon entering OTP, the challenge is either approved or declined.
+      description: Endpoint for simulating entering OTP into 3DS Challenge UI. A call to [/v1/three_ds_authentication/simulate](https://docs.lithic.com/reference/postsimulateauthentication) that resulted in triggered SMS-OTP challenge must precede. Only a single attempt is supported; upon entering OTP, the challenge is either approved or declined.
       requestBody:
         content:
           application/json:
@@ -6699,7 +6781,7 @@ paths:
       description: Get 3DS Authentication by token
       operationId: getThreeDsAuthenticationByToken
       parameters:
-        - description: 3DS Authentication Token
+        - description: Globally unique identifier for the 3DS authentication.
           in: path
           name: three_ds_authentication_token
           required: true
@@ -6711,7 +6793,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ThreeDSAuthentication'
+                $ref: '#/components/schemas/authentication'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -6765,7 +6847,9 @@ paths:
         - 3DS
   /v1/three_ds_decisioning/challenge_response:
     post:
-      description: Card program's response to a 3DS Challenge Request (CReq)
+      description: |-
+        Card program's response to a 3DS Challenge Request.
+        Challenge Request is emitted as a webhook [three_ds_authentication.challenge](https://docs.lithic.com/reference/post_three-ds-authentication-challenge) and your Card Program needs to be configured with Out of Band (OOB) Challenges in order to receive it (see https://docs.lithic.com/docs/3ds-challenge-flow for more information).
       summary: Respond to a Challenge Request
       security:
         - ApiKeyAuth: []
@@ -6773,7 +6857,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChallengeResponse'
+              $ref: '#/components/schemas/challenge-response'
       responses:
         '200':
           description: Challenge Response was received and forwarded to the ACS
@@ -9874,6 +9958,7 @@ webhooks:
                     retries: 0
                     return_reason_code: null
                     sec_code: CCD
+                    addenda: null
                   pending_amount: 0
                   result: APPROVED
                   settled_amount: 4103
@@ -9930,7 +10015,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/ThreeDSAuthentication'
+                - $ref: '#/components/schemas/authentication'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -9953,7 +10038,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/ThreeDSAuthentication'
+                - $ref: '#/components/schemas/authentication'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -9970,29 +10055,13 @@ webhooks:
         - Event Types
   three_ds_authentication.challenge:
     post:
-      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue the requested Challenge Method to the CardHolder. After a cardholder challenge is successfully completed, the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an app_requestor_url for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
+      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue its own challenge to the cardholder. After a cardholder challenge is successfully completed, the Card Program needs to respond back to Lithic by call to [/v1/three_ds_decisioning/challenge_response](https://docs.lithic.com/reference/post_v1-three-ds-decisioning-challenge-response). Then the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an `app_requestor_url` for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
       summary: three_ds_authentication.challenge
       requestBody:
         content:
           application/json:
             schema:
-              allOf:
-                - properties:
-                    authentication_object:
-                      $ref: '#/components/schemas/ThreeDSAuthentication'
-                    challenge:
-                      $ref: '#/components/schemas/CustomerChallenge'
-                  required:
-                    - authentication_object
-                    - challenge
-                - properties:
-                    event_type:
-                      description: The type of event that occurred.
-                      enum:
-                        - three_ds_authentication.challenge
-                      example: three_ds_authentication.challenge
-                      type: string
-                  type: object
+              $ref: '#/components/schemas/challenge-event'
       responses:
         '200':
           description: Challenge has been issued to Customer
@@ -10352,29 +10421,14 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ThreeDSAuthentication'
+              $ref: '#/components/schemas/authentication'
       responses:
         '200':
-          description: Information on whether the Request was Approved/Declined and if a Challenge should be created
+          description: Information on whether the Request was Approved/Declined and if a Challenge should be created.
           content:
             application/json:
               schema:
-                properties:
-                  three_ds_authentication_decision:
-                    enum:
-                      - APPROVE
-                      - DECLINE
-                      - CHALLENGE_REQUESTED
-                    type: string
-                    description: |
-                      * `APPROVE` - Approve the 3DS Transaction and proceed to Authorization
-                      * `DECLINE` - Decline the 3DS Transaction ending the transaction
-                      * `CHALLENGE_REQUESTED` - Conditional Approval for the 3DS Transaction where a follow-up Challenge will be triggered to further authenticate the Cardholder
-                  oob_url:
-                    type: string
-                    description: URL which may be used in the presentation of a 3DS Challenge UI to the cardholder. This value will be used by the ACS as the OOB App URL. When applicable, this URL may be used for automatic app switching or rendered directly as an element in the Challenge UI. This value is only used with CHALLENGE_REQUESTED decision.
-                required:
-                  - three_ds_authentication_decision
+                $ref: '#/components/schemas/three-ds-decisioning'
       tags:
         - 3DS
 components:
@@ -13094,6 +13148,11 @@ components:
               - string
               - 'null'
           type: array
+        addenda:
+          title: Addenda
+          type:
+            - string
+            - 'null'
       required:
         - company_id
         - receipt_routing_number
@@ -13112,6 +13171,11 @@ components:
             - WEB
           title: SEC Code
           type: string
+        addenda:
+          title: Addenda
+          type:
+            - string
+            - 'null'
       required:
         - sec_code
       title: PaymentMethodRequestAttributes
@@ -13558,44 +13622,6 @@ components:
         - TAX_INCLUDED
         - TAX_NOT_INCLUDED
         - NOT_SUPPORTED
-    ChallengeResponse:
-      properties:
-        token:
-          description: Globally unique identifier for the 3DS authentication. This token is sent as part of the initial 3DS Decisioning Request and as part of the 3DS Challenge Event in the [ThreeDSAuthentication](#/components/schemas/ThreeDSAuthentication) object
-          format: uuid
-          type: string
-        challenge_response:
-          description: Whether the Cardholder has Approved or Declined the issued Challenge
-          enum:
-            - APPROVE
-            - DECLINE_BY_CUSTOMER
-          type: string
-      required:
-        - token
-        - challenge_response
-    CustomerChallenge:
-      properties:
-        challenge_method_type:
-          description: Type of Challenge that should be issued to the CardHolder
-          enum:
-            - OUT_OF_BAND
-          type: string
-        start_time:
-          description: ISO-8601 time at which the challenge has started
-          type: string
-          format: date-time
-        expiry_time:
-          description: ISO-8601 time at which the challenge expires
-          type: string
-          format: date-time
-        app_requestor_url:
-          description: Fully qualified app URL of the merchant app. This should be used to redirect the cardholder back to the merchant app after completing an app-based challenge. This URL will only be populated if the 3DS Requestor App is provided to the 3DS SDK.
-          type: string
-          example: https://appname.com
-      required:
-        - challenge_method_type
-        - start_time
-        - expiry_time
     ThreeDSAddress:
       properties:
         address1:
@@ -13630,475 +13656,6 @@ components:
           type:
             - string
             - 'null'
-      type: object
-    ThreeDSAuthentication:
-      properties:
-        account_type:
-          description: |
-            Type of account/card that is being used for the transaction. Maps to EMV 3DS field `acctType`.
-          enum:
-            - CREDIT
-            - DEBIT
-            - NOT_APPLICABLE
-          type:
-            - string
-            - 'null'
-        additional_data:
-          description: |
-            Object containing additional data about the 3DS request that is beyond the EMV 3DS standard spec (e.g., specific fields that only certain card networks send but are not required across all 3DS requests).
-          oneOf:
-            - type: object
-              properties:
-                network_decision:
-                  description: |
-                    Mastercard only: Indicates whether the network would have considered the authentication request to be low risk or not.
-                  enum:
-                    - LOW_RISK
-                    - NOT_LOW_RISK
-                  type:
-                    - string
-                    - 'null'
-                network_risk_score:
-                  description: |
-                    Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk.
-                  type:
-                    - integer
-                    - 'null'
-            - type: 'null'
-        app:
-          description: |
-            Object containing data about the app used in the e-commerce transaction. Present if the channel is 'APP_BASED'.
-          properties:
-            device_info:
-              description: |
-                Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded. Maps to EMV 3DS field deviceInfo.
-              type:
-                - string
-                - 'null'
-            ip:
-              anyOf:
-                - format: ipv4
-                  type: string
-                - format: ipv6
-                  type: string
-              description: |
-                External IP address used by the app generating the 3DS authentication request. Maps to EMV 3DS field appIp.
-        authentication_request_type:
-          description: |
-            Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field threeDSRequestorAuthenticationInd.
-          enum:
-            - ADD_CARD
-            - BILLING_AGREEMENT
-            - DELAYED_SHIPMENT
-            - EMV_TOKEN_CARDHOLDER_VERIFICATION
-            - INSTALLMENT_TRANSACTION
-            - MAINTAIN_CARD
-            - PAYMENT_TRANSACTION
-            - RECURRING_TRANSACTION
-            - SPLIT_PAYMENT
-            - SPLIT_SHIPMENT
-          type:
-            - string
-            - 'null'
-        authentication_result:
-          description: Indicates the outcome of the 3DS authentication process.
-          enum:
-            - DECLINE
-            - SUCCESS
-            - PENDING_CHALLENGE
-            - PENDING_DECISION
-          type:
-            - string
-        browser:
-          description: |
-            Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
-          properties:
-            ip:
-              anyOf:
-                - format: ipv4
-                  type: string
-                - format: ipv6
-                  type: string
-                - type: 'null'
-              description: |
-                IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field browserIP.
-            java_enabled:
-              description: |
-                Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field browserJavaEnabled.
-              type:
-                - boolean
-                - 'null'
-            javascript_enabled:
-              description: |
-                Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field browserJavascriptEnabled.
-              type:
-                - boolean
-                - 'null'
-            language:
-              description: |
-                Language of the cardholder's browser as defined in IETF BCP47. Maps to EMV 3DS field browserLanguage.
-              type:
-                - string
-                - 'null'
-            time_zone:
-              description: |
-                Time zone of the cardholder's browser offset in minutes between UTC and the cardholder browser's local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field browserTz.
-              type:
-                - string
-                - 'null'
-            user_agent:
-              description: |
-                Content of the HTTP user-agent header. Maps to EMV 3DS field browserUserAgent.
-              type:
-                - string
-                - 'null'
-        card_expiry_check:
-          description: |
-            Indicates whether the expiration date provided by the cardholder during checkout matches Lithic's record of the card's expiration date.
-          enum:
-            - MATCH
-            - MISMATCH
-            - NOT_PRESENT
-          type: string
-        card_token:
-          description: Globally unique identifier for the card on which the 3DS authentication has occurred.
-          format: uuid
-          type: string
-        cardholder:
-          description: Object containing data about the cardholder provided during the transaction.
-          properties:
-            address_match:
-              description: |
-                Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field addrMatch.
-              type:
-                - boolean
-                - 'null'
-            billing_address:
-              $ref: '#/components/schemas/ThreeDSAddress'
-              description: Object containing data on the billing address provided during the transaction.
-              type: object
-            email:
-              description: |
-                Email address that is either provided by the cardholder or is on file with the merchant in a 3RI request. Maps to EMV 3DS field email.
-              maxLength: 254
-              minLength: 1
-              type:
-                - string
-                - 'null'
-            name:
-              description: Name of the cardholder. Maps to EMV 3DS field cardholderName.
-              maxLength: 36
-              minLength: 1
-              type:
-                - string
-                - 'null'
-            phone_number_home:
-              description: |
-                Home phone number provided by the cardholder. Maps to EMV 3DS fields homePhone.cc and homePhone.subscriber.
-              maxLength: 18
-              minLength: 1
-              type:
-                - string
-                - 'null'
-            phone_number_mobile:
-              description: |
-                Mobile/cell phone number provided by the cardholder. Maps to EMV 3DS fields mobilePhone.cc and mobilePhone.subscriber.
-              maxLength: 18
-              minLength: 1
-              type:
-                - string
-                - 'null'
-            phone_number_work:
-              description: |
-                Work phone number provided by the cardholder. Maps to EMV 3DS fields workPhone.cc and workPhone.subscriber.
-              maxLength: 18
-              minLength: 1
-              type:
-                - string
-                - 'null'
-            shipping_address:
-              $ref: '#/components/schemas/ThreeDSAddress'
-              description: Object containing data on the shipping address provided during the transaction.
-              type: object
-          type: object
-        channel:
-          description: Channel in which the authentication occurs. Maps to EMV 3DS field deviceChannel.
-          enum:
-            - APP_BASED
-            - BROWSER
-            - THREE_DS_REQUESTOR_INITIATED
-          type: string
-        challenge_metadata:
-          description: Metadata about the challenge method and delivery.
-          type:
-            - object
-            - 'null'
-          properties:
-            method_type:
-              description: The type of challenge method used for authentication.
-              enum:
-                - SMS_OTP
-                - OUT_OF_BAND
-              type: string
-            phone_number:
-              description: The phone number used for delivering the OTP. Relevant only for SMS_OTP method.
-              type:
-                - string
-                - 'null'
-          required:
-            - method_type
-        challenge_orchestrated_by:
-          description: Entity that orchestrates the challenge.
-          enum:
-            - LITHIC
-            - CUSTOMER
-            - NO_CHALLENGE
-          type:
-            - string
-            - 'null'
-        created:
-          description: |
-            Date and time when the authentication was created in Lithic's system.
-          format: date-time
-          type: string
-        decision_made_by:
-          description: Entity that made the authentication decision.
-          enum:
-            - CUSTOMER_ENDPOINT
-            - LITHIC_DEFAULT
-            - LITHIC_RULES
-            - NETWORK
-            - UNKNOWN
-          type:
-            - string
-            - 'null'
-        merchant:
-          description: Object containing data about the merchant involved in the e-commerce transaction.
-          properties:
-            country:
-              description: |
-                Country code of the merchant requesting 3DS authentication. Maps to EMV 3DS field merchantCountryCode.
-              maxLength: 3
-              minLength: 3
-              type: string
-            id:
-              description: |
-                Merchant identifier as assigned by the acquirer. Maps to EMV 3DS field acquirerMerchantId.
-              type: string
-            mcc:
-              description: |
-                Merchant category code assigned to the merchant that describes its business activity type. Maps to EMV 3DS field mcc.
-              maxLength: 4
-              minLength: 4
-              type: string
-            name:
-              description: Name of the merchant. Maps to EMV 3DS field merchantName.
-              type: string
-            risk_indicator:
-              description: |
-                Object containing additional data indicating additional risk factors related to the e-commerce transaction.
-              properties:
-                delivery_email_address:
-                  description: |
-                    In transactions with electronic delivery, email address to which merchandise is delivered. Maps to EMV 3DS field deliveryEmailAddress.
-                  type:
-                    - string
-                    - 'null'
-                delivery_time_frame:
-                  description: |
-                    The delivery time frame for the merchandise. Maps to EMV 3DS field deliveryTimeframe.
-                  enum:
-                    - ELECTRONIC_DELIVERY
-                    - OVERNIGHT_SHIPPING
-                    - SAME_DAY_SHIPPING
-                    - TWO_DAY_OR_MORE_SHIPPING
-                  type:
-                    - string
-                    - 'null'
-                gift_card_amount:
-                  description: |
-                    In prepaid or gift card purchase transactions, purchase amount total in major units (e.g., a purchase of USD $205.10 would be 205). Maps to EMV 3DS field giftCardAmount.
-                  type:
-                    - integer
-                    - 'null'
-                gift_card_count:
-                  description: |
-                    In prepaid or gift card purchase transactions, count of individual prepaid or gift cards/codes purchased. Maps to EMV 3DS field giftCardCount.
-                  type:
-                    - integer
-                    - 'null'
-                gift_card_currency:
-                  description: |
-                    In prepaid or gift card purchase transactions, currency code of the gift card. Maps to EMV 3DS field giftCardCurr.
-                  maxLength: 3
-                  minLength: 3
-                  type:
-                    - string
-                    - 'null'
-                order_availability:
-                  description: |
-                    Indicates whether the purchase is for merchandise that is available now or at a future date. Maps to EMV 3DS field preOrderPurchaseInd.
-                  enum:
-                    - FUTURE_AVAILABILITY
-                    - MERCHANDISE_AVAILABLE
-                  type:
-                    - string
-                    - 'null'
-                pre_order_available_date:
-                  description: |
-                    In pre-order purchase transactions, the expected date that the merchandise will be available. Maps to EMV 3DS field preOrderDate.
-                  format: date-time
-                  type:
-                    - string
-                    - 'null'
-                reorder_items:
-                  description: Indicates whether the cardholder is reordering previously purchased merchandise. Maps to EMV 3DS field reorderItemsInd.
-                  enum:
-                    - FIRST_TIME_ORDERED
-                    - REORDERED
-                  type:
-                    - string
-                    - 'null'
-                shipping_method:
-                  description: |
-                    Shipping method that the cardholder chose for the transaction. If purchase includes one or more item, this indicator is used for the physical goods; if the purchase only includes digital goods, this indicator is used to describe the most expensive item purchased. Maps to EMV 3DS field shipIndicator.
-                  enum:
-                    - DIGITAL_GOODS
-                    - LOCKER_DELIVERY
-                    - OTHER
-                    - PICK_UP_AND_GO_DELIVERY
-                    - SHIP_TO_BILLING_ADDRESS
-                    - SHIP_TO_NON_BILLING_ADDRESS
-                    - SHIP_TO_OTHER_VERIFIED_ADDRESS
-                    - SHIP_TO_STORE
-                    - TRAVEL_AND_EVENT_TICKETS
-                  type:
-                    - string
-                    - 'null'
-              type: object
-          required:
-            - country
-            - id
-            - mcc
-            - name
-            - risk_indicator
-          type: object
-        message_category:
-          description: |
-            Either PAYMENT_AUTHENTICATION or NON_PAYMENT_AUTHENTICATION.  For NON_PAYMENT_AUTHENTICATION, additional_data and transaction fields are not populated.
-          enum:
-            - NON_PAYMENT_AUTHENTICATION
-            - PAYMENT_AUTHENTICATION
-          type: string
-        three_ri_request_type:
-          description: |
-            Type of 3DS Requestor Initiated (3RI) request i.e., a 3DS authentication that takes place at the initiation of the merchant rather than the cardholder. The most common example of this is where a merchant is authenticating before billing for a recurring transaction such as a pay TV subscription or a utility bill. Maps to EMV 3DS field threeRIInd.
-          enum:
-            - ACCOUNT_VERIFICATION
-            - ADD_CARD
-            - BILLING_AGREEMENT
-            - CARD_SECURITY_CODE_STATUS_CHECK
-            - DELAYED_SHIPMENT
-            - DEVICE_BINDING_STATUS_CHECK
-            - INSTALLMENT_TRANSACTION
-            - MAIL_ORDER
-            - MAINTAIN_CARD_INFO
-            - OTHER_PAYMENT
-            - RECURRING_TRANSACTION
-            - SPLIT_PAYMENT
-            - SPLIT_SHIPMENT
-            - TELEPHONE_ORDER
-            - TOP_UP
-            - TRUST_LIST_STATUS_CHECK
-          type:
-            - string
-            - 'null'
-        token:
-          description: |
-            Globally unique identifier for the 3DS authentication.
-          format: uuid
-          type: string
-        three_ds_requestor_challenge_indicator:
-          description: |
-            Indicates whether a challenge is requested for this transaction
-            * `NO_PREFERENCE` - No Preference
-            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
-            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
-            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
-            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
-            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
-            * `OTHER` - Other indicators not captured by above. These are rarely used
-          enum:
-            - NO_PREFERENCE
-            - NO_CHALLENGE_REQUESTED
-            - CHALLENGE_PREFERENCE
-            - CHALLENGE_MANDATE
-            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
-            - DATA_SHARE_ONLY
-            - OTHER
-          type: string
-        transaction:
-          description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
-          oneOf:
-            - type: 'null'
-            - type: object
-              properties:
-                amount:
-                  description: |
-                    Amount of the purchase in minor units of currency with all punctuation removed. Maps to EMV 3DS field purchaseAmount.
-                  type: number
-                cardholder_amount:
-                  description: |
-                    Approximate amount of the purchase in minor units of cardholder currency. Derived from `amount` using a daily conversion rate.
-                  type:
-                    - number
-                    - 'null'
-                currency:
-                  description: |
-                    Currency of the purchase. Maps to EMV 3DS field purchaseCurrency.
-                  maxLength: 3
-                  minLength: 3
-                  type: string
-                currency_exponent:
-                  description: |
-                    Minor units of currency, as specified in ISO 4217 currency exponent. Maps to EMV 3DS field purchaseExponent.
-                  type: number
-                date_time:
-                  description: |
-                    Date and time when the authentication was generated by the merchant/acquirer's 3DS server. Maps to EMV 3DS field purchaseDate.
-                  format: date-time
-                  type: string
-                type:
-                  description: |
-                    Type of the transaction for which a 3DS authentication request is occurring. Maps to EMV 3DS field transType.
-                  enum:
-                    - ACCOUNT_FUNDING
-                    - CHECK_ACCEPTANCE
-                    - GOODS_SERVICE_PURCHASE
-                    - PREPAID_ACTIVATION_AND_LOAD
-                    - QUASI_CASH_TRANSACTION
-                  type:
-                    - 'null'
-                    - string
-              required:
-                - amount
-                - cardholder_amount
-                - currency
-                - currency_exponent
-                - date_time
-                - type
-      required:
-        - account_type
-        - authentication_result
-        - card_expiry_check
-        - card_token
-        - cardholder
-        - channel
-        - created
-        - merchant
-        - message_category
-        - three_ds_requestor_challenge_indicator
-        - token
       type: object
     Tokenization:
       properties:
@@ -15749,33 +15306,6 @@ components:
               $ref: '#/components/schemas/excluded-card-tokens'
           required:
             - program_level
-    report-token:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/report-token.json
-      title: Auth Rule Performance Report Token
-      type: string
-      format: uuid
-    backtest-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-request.json
-      title: Auth Rules Backtest Request Parameters
-      type: object
-      properties:
-        start:
-          type: string
-          format: date-time
-          description: The start time of the backtest.
-        end:
-          type: string
-          format: date-time
-          description: The end time of the backtest.
-    backtest-token:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-token.json
-      title: Auth Rule Backtest Token
-      description: Auth Rule Backtest Token
-      type: string
-      format: uuid
     rule-stats:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/rule-stats.json
@@ -15817,6 +15347,80 @@ components:
                   - DECLINED
                   - CHALLENGED
                 description: The decision made by the rule for this event.
+    performance-report-v2:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/performance-report-v2.json
+      title: Auth Rule Performance Report V2
+      type: object
+      properties:
+        auth_rule_token:
+          $ref: '#/components/schemas/auth-rule-token'
+        begin:
+          description: The start date (UTC) of the report.
+          type: string
+          format: date
+        end:
+          description: The end date (UTC) of the report.
+          type: string
+          format: date
+        daily_statistics:
+          description: Daily evaluation statistics for the Auth Rule.
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                description: The date (UTC) for which the statistics are reported.
+                type: string
+                format: date
+              current_version_statistics:
+                description: Detailed statistics for the current version of the rule.
+                type:
+                  - object
+                  - 'null'
+                $ref: '#/components/schemas/rule-stats'
+              draft_version_statistics:
+                description: Detailed statistics for the draft version of the rule.
+                type:
+                  - object
+                  - 'null'
+                $ref: '#/components/schemas/rule-stats'
+            required:
+              - date
+              - current_version_statistics
+              - draft_version_statistics
+      required:
+        - auth_rule_token
+        - begin
+        - end
+        - daily_statistics
+    report-token:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/report-token.json
+      title: Auth Rule Performance Report Token
+      type: string
+      format: uuid
+    backtest-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-request.json
+      title: Auth Rules Backtest Request Parameters
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: The start time of the backtest.
+        end:
+          type: string
+          format: date-time
+          description: The end time of the backtest.
+    backtest-token:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-token.json
+      title: Auth Rule Backtest Token
+      description: Auth Rule Backtest Token
+      type: string
+      format: uuid
     backtest-results:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-results.json
@@ -16082,6 +15686,7 @@ components:
         - CASH_BACK
         - CASH_BACK_REVERSAL
         - CLEARING
+        - COLLECTION
         - CORRECTION_CREDIT
         - CORRECTION_DEBIT
         - CREDIT_AUTHORIZATION
@@ -16127,6 +15732,99 @@ components:
         - RETURNED_PAYMENT
         - RETURNED_PAYMENT_REVERSAL
         - LITHIC_NETWORK_PAYMENT
+    fraud-report-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/fraud/fraud-report-response.json
+      title: Fraud Report Response
+      type: object
+      properties:
+        transaction_token:
+          type: string
+          format: uuid
+          description: The universally unique identifier (UUID) associated with the transaction being reported.
+        fraud_status:
+          type: string
+          enum:
+            - SUSPECTED_FRAUD
+            - FRAUDULENT
+            - NOT_FRAUDULENT
+            - NO_REPORTED_FRAUD
+          description: |-
+            The fraud status of the transaction, string (enum) supporting the following values:
+
+             - `SUSPECTED_FRAUD`: The transaction is suspected to be fraudulent, but this hasn’t been confirmed.
+             - `FRAUDULENT`: The transaction is confirmed to be fraudulent. A transaction may immediately be moved into this state, or be graduated into this state from the `SUSPECTED_FRAUD` state.
+             - `NOT_FRAUDULENT`: The transaction is (explicitly) marked as not fraudulent. A transaction may immediately be moved into this state, or be graduated into this state from the `SUSPECTED_FRAUD` state.
+             - `NO_REPORTED_FRAUD`: Indicates that no fraud report exists for the transaction. It is the default state for transactions that have not been analyzed or associated with any known fraudulent activity.
+        fraud_type:
+          type: string
+          enum:
+            - FIRST_PARTY_FRAUD
+            - ACCOUNT_TAKEOVER
+            - CARD_COMPROMISED
+            - IDENTITY_THEFT
+            - CARDHOLDER_MANIPULATION
+          description: |-
+            Specifies the type or category of fraud that the transaction is suspected or confirmed to involve, string (enum) supporting the following values:
+
+             - `FIRST_PARTY_FRAUD`: First-party fraud occurs when a legitimate account or cardholder intentionally misuses financial services for personal gain. This includes actions such as disputing legitimate transactions to obtain a refund, abusing return policies, or defaulting on credit obligations without intent to repay.
+             - `ACCOUNT_TAKEOVER`: Account takeover fraud occurs when a fraudster gains unauthorized access to an existing account, modifies account settings, and carries out fraudulent transactions.
+             - `CARD_COMPROMISED`: Card compromised fraud occurs when a fraudster gains access to card details without taking over the account, such as through physical card theft, cloning, or online data breaches.
+             - `IDENTITY_THEFT`: Identity theft fraud occurs when a fraudster uses stolen personal information, such as Social Security numbers or addresses, to open accounts, apply for loans, or conduct financial transactions in someone's name.
+             - `CARDHOLDER_MANIPULATION`: This type of fraud occurs when a fraudster manipulates or coerces a legitimate cardholder into unauthorized transactions, often through social engineering tactics.
+        comment:
+          type: string
+          description: Provides additional context or details about the fraud report.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp representing when the fraud report was created.
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp representing the last update to the fraud report.
+      required:
+        - transaction_token
+        - fraud_status
+    fraud-report-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/fraud/fraud-report-request.json
+      title: Fraud Report Parameters
+      type: object
+      properties:
+        fraud_status:
+          type: string
+          enum:
+            - SUSPECTED_FRAUD
+            - FRAUDULENT
+            - NOT_FRAUDULENT
+          description: |-
+            The fraud status of the transaction, string (enum) supporting the following values:
+
+             - `SUSPECTED_FRAUD`: The transaction is suspected to be fraudulent, but this hasn’t been confirmed.
+             - `FRAUDULENT`: The transaction is confirmed to be fraudulent. A transaction may immediately be moved into this state, or be graduated into this state from the `SUSPECTED_FRAUD` state.
+             - `NOT_FRAUDULENT`: The transaction is (explicitly) marked as not fraudulent. A transaction may immediately be moved into this state, or be graduated into this state from the `SUSPECTED_FRAUD` state.
+        fraud_type:
+          type: string
+          enum:
+            - FIRST_PARTY_FRAUD
+            - ACCOUNT_TAKEOVER
+            - CARD_COMPROMISED
+            - IDENTITY_THEFT
+            - CARDHOLDER_MANIPULATION
+          description: |-
+            Specifies the type or category of fraud that the transaction is suspected or confirmed to involve, string (enum) supporting the following values:
+
+             - `FIRST_PARTY_FRAUD`: First-party fraud occurs when a legitimate account or cardholder intentionally misuses financial services for personal gain. This includes actions such as disputing legitimate transactions to obtain a refund, abusing return policies, or defaulting on credit obligations without intent to repay.
+             - `ACCOUNT_TAKEOVER`: Account takeover fraud occurs when a fraudster gains unauthorized access to an existing account, modifies account settings, and carries out fraudulent transactions.
+             - `CARD_COMPROMISED`: Card compromised fraud occurs when a fraudster gains access to card details without taking over the account, such as through physical card theft, cloning, or online data breaches.
+             - `IDENTITY_THEFT`: Identity theft fraud occurs when a fraudster uses stolen personal information, such as Social Security numbers or addresses, to open accounts, apply for loans, or conduct financial transactions in someone's name.
+             - `CARDHOLDER_MANIPULATION`: This type of fraud occurs when a fraudster manipulates or coerces a legitimate cardholder into unauthorized transactions, often through social engineering tactics.
+        comment:
+          type: string
+          description: Optional field providing additional information or context about why the transaction is considered fraudulent.
+      required:
+        - fraud_status
     searchable_account_types:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/searchable_account_types.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16580,6 +16278,102 @@ components:
         - verification_method
         - owner_type
         - owner
+    unverified_verification_method:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/unverified_verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - UNVERIFIED
+      title: Unverified Verification Methods
+    unverified_create_bank_account_api_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/unverified_create_bank_account_api_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Unverified Create Bank Account Api Request
+      type: object
+      properties:
+        verification_method:
+          description: Verification Method
+          $ref: '#/components/schemas/unverified_verification_method'
+        owner_type:
+          description: Owner Type
+          $ref: '#/components/schemas/owner_type'
+        owner:
+          description: Legal Name of the business or individual who owns the external account. This will appear in statements
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[!-~ ]*$
+        account_token:
+          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
+          type: string
+          format: uuid
+        company_id:
+          description: Optional field that helps identify bank accounts in receipts
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[a-zA-Z0-9]*$
+        doing_business_as:
+          description: Doing Business As
+          type: string
+          minLength: 1
+          maxLength: 40
+        dob:
+          description: Date of Birth of the Individual that owns the external bank account
+          title: Date of Birth
+          type: string
+          format: date
+        user_defined_id:
+          description: User Defined ID
+          title: User Defined ID
+          type: string
+          minLength: 1
+          maxLength: 256
+        type:
+          description: Account Type
+          $ref: '#/components/schemas/searchable_account_types'
+        routing_number:
+          description: Routing Number
+          type: string
+          minLength: 9
+          maxLength: 9
+          pattern: ^[0-9]{9}$
+        account_number:
+          description: Account Number
+          type: string
+          minLength: 1
+          maxLength: 17
+          pattern: ^[0-9-]{1,17}$
+        name:
+          description: The nickname for this External Bank Account
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[!-~ ]*$
+        country:
+          description: The country that the bank account is located in using ISO 3166-1. We will only accept USA bank accounts e.g., USA
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        currency:
+          description: currency of the external account 3-character alphabetic ISO 4217 code
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+        address:
+          description: Address
+          $ref: '#/components/schemas/external_bank_account_address'
+      required:
+        - type
+        - routing_number
+        - account_number
+        - country
+        - currency
+        - verification_method
+        - owner_type
+        - owner
     create_external_bank_account_error_response_context:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/create_external_bank_account_error_response_context.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -16701,6 +16495,58 @@ components:
         financial_account_token:
           type: string
           format: uuid
+    set_verification_method_allowed_verification_methods:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/verification_method.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - MICRO_DEPOSIT
+        - PLAID
+        - PRENOTE
+        - EXTERNALLY_VERIFIED
+      title: Set Verification Method Allowed Verification Methods
+    set_verification_method_request:
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/set_verification_method_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Set Verification Method Request
+      type: object
+      properties:
+        verification_method:
+          description: The verification method to set for the external bank account
+          type: string
+          $ref: '#/components/schemas/set_verification_method_allowed_verification_methods'
+        financial_account_token:
+          description: The financial account token of the operating account to fund the micro deposits. Required when verification_method is MICRO_DEPOSIT or PRENOTE.
+          type: string
+          format: uuid
+        processor_token:
+          description: Plaid processor token for the bank account. Required when verification_method is PLAID.
+          type: string
+          minLength: 1
+      required:
+        - verification_method
+      allOf:
+        - if:
+            properties:
+              verification_method:
+                const: MICRO_DEPOSIT
+          then:
+            required:
+              - financial_account_token
+        - if:
+            properties:
+              verification_method:
+                const: PRENOTE
+          then:
+            required:
+              - financial_account_token
+        - if:
+            properties:
+              verification_method:
+                const: PLAID
+          then:
+            required:
+              - processor_token
     extended_credit:
       $id: https://lithic.com/schemas/treasury/ledger/extended_credit.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18052,6 +17898,618 @@ components:
       required:
         - document_upload_token
         - status
+    simulate-authentication-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/simulate-authentication-request.json
+      title: 3DS Simulation Request object
+      type: object
+      description: Request object for simulating a 3DS authentication
+      properties:
+        merchant:
+          type: object
+          description: Merchant information for the simulated transaction
+          properties:
+            country:
+              type: string
+              description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+              example: USA
+            id:
+              type: string
+              description: Unique identifier to identify the payment card acceptor. Corresponds to `merchant_acceptor_id` in authorization.
+              example: OODKZAPJVN4YS7O
+              maxLength: 15
+              minLength: 1
+            mcc:
+              type: string
+              description: Merchant category code for the transaction to be simulated. A four-digit number listed in ISO 18245. Supported merchant category codes can be found [here](https://docs.lithic.com/docs/transactions#merchant-category-codes-mccs).
+              example: '5812'
+            name:
+              type: string
+              description: Merchant descriptor, corresponds to `descriptor` in authorization. If CHALLENGE keyword is included, Lithic will trigger a challenge.
+              example: COFFEE SHOP
+              maxLength: 25
+              minLength: 1
+          required:
+            - country
+            - id
+            - mcc
+            - name
+        pan:
+          type: string
+          description: Sixteen digit card number.
+          example: '4111111289144142'
+          maxLength: 16
+          minLength: 16
+        transaction:
+          type: object
+          description: Transaction details for the simulation
+          properties:
+            amount:
+              type: integer
+              description: Amount (in cents) to authenticate.
+              minimum: 0
+            currency:
+              type: string
+              description: 3-character alphabetic ISO 4217 currency code.
+              example: GBP
+          required:
+            - amount
+            - currency
+        card_expiry_check:
+          type: string
+          description: When set will use the following values as part of the Simulated Authentication. When not set defaults to MATCH
+          enum:
+            - MATCH
+            - MISMATCH
+            - NOT_PRESENT
+      required:
+        - merchant
+        - pan
+        - transaction
+    authentication:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/authentication.json
+      title: 3DS Authentication object
+      type: object
+      description: Represents a 3DS authentication
+      properties:
+        account_type:
+          type:
+            - string
+            - 'null'
+          description: Type of account/card that is being used for the transaction. Maps to EMV 3DS field `acctType`.
+          enum:
+            - CREDIT
+            - DEBIT
+            - NOT_APPLICABLE
+            - null
+        additional_data:
+          type:
+            - object
+            - 'null'
+          description: Object containing additional data about the 3DS request that is beyond the EMV 3DS standard spec (e.g., specific fields that only certain card networks send but are not required across all 3DS requests).
+          properties:
+            network_decision:
+              type:
+                - string
+                - 'null'
+              description: 'Mastercard only: Indicates whether the network would have considered the authentication request to be low risk or not.'
+              enum:
+                - LOW_RISK
+                - NOT_LOW_RISK
+                - null
+            network_risk_score:
+              type:
+                - integer
+                - 'null'
+              description: 'Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values: Integer between 0-950, in increments of 50.'
+          required: []
+        app:
+          type:
+            - object
+            - 'null'
+          description: Object containing data about the app used in the e-commerce transaction. Present if the channel is 'APP_BASED'.
+          properties:
+            device_info:
+              type:
+                - string
+                - 'null'
+              description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded. Maps to EMV 3DS field `deviceInfo`.
+            ip:
+              anyOf:
+                - type: string
+                  format: ipv4
+                - type: string
+                  format: ipv6
+                - type: 'null'
+              description: External IP address used by the app generating the 3DS authentication request. Maps to EMV 3DS field `appIp`.
+          required: []
+        authentication_request_type:
+          type:
+            - string
+            - 'null'
+          description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field `threeDSRequestorAuthenticationInd`.
+          enum:
+            - ADD_CARD
+            - BILLING_AGREEMENT
+            - DELAYED_SHIPMENT
+            - EMV_TOKEN_CARDHOLDER_VERIFICATION
+            - INSTALLMENT_TRANSACTION
+            - MAINTAIN_CARD
+            - PAYMENT_TRANSACTION
+            - RECURRING_TRANSACTION
+            - SPLIT_PAYMENT
+            - SPLIT_SHIPMENT
+            - null
+        authentication_result:
+          type:
+            - string
+          description: Indicates the outcome of the 3DS authentication process.
+          enum:
+            - DECLINE
+            - SUCCESS
+            - PENDING_CHALLENGE
+            - PENDING_DECISION
+        browser:
+          type:
+            - object
+            - 'null'
+          description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
+          properties:
+            accept_header:
+              type:
+                - string
+                - 'null'
+              description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
+            ip:
+              anyOf:
+                - type: string
+                  format: ipv4
+                - type: string
+                  format: ipv6
+                - type: 'null'
+              description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field `browserIP`.
+            java_enabled:
+              type:
+                - boolean
+                - 'null'
+              description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field `browserJavaEnabled`.
+            javascript_enabled:
+              type:
+                - boolean
+                - 'null'
+              description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field `browserJavascriptEnabled`.
+            language:
+              type:
+                - string
+                - 'null'
+              description: Language of the cardholder's browser as defined in IETF BCP47. Maps to EMV 3DS field `browserLanguage`.
+            time_zone:
+              type:
+                - string
+                - 'null'
+              description: Time zone of the cardholder's browser offset in minutes between UTC and the cardholder browser's local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field `browserTz`.
+            user_agent:
+              type:
+                - string
+                - 'null'
+              description: Content of the HTTP user-agent header. Maps to EMV 3DS field `browserUserAgent`.
+          required: []
+        card_expiry_check:
+          type: string
+          description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic's record of the card's expiration date.
+          enum:
+            - MATCH
+            - MISMATCH
+            - NOT_PRESENT
+        card_token:
+          type: string
+          description: 'Globally unique identifier for the card on which the 3DS authentication has occurred. Permitted values: 36-digit version 4 UUID (including hyphens).'
+          format: uuid
+        cardholder:
+          type: object
+          description: Object containing data about the cardholder provided during the transaction.
+          properties:
+            address_match:
+              type:
+                - boolean
+                - 'null'
+              description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field `addrMatch`.
+            billing_address:
+              type: object
+              description: Object containing data on the billing address provided during the transaction.
+              properties:
+                address1:
+                  type:
+                    - string
+                    - 'null'
+                  description: First line of the street address provided by the cardholder.
+                address2:
+                  type:
+                    - string
+                    - 'null'
+                  description: Second line of the street address provided by the cardholder.
+                address3:
+                  type:
+                    - string
+                    - 'null'
+                  description: Third line of the street address provided by the cardholder.
+                city:
+                  type:
+                    - string
+                    - 'null'
+                  description: City of the address provided by the cardholder.
+                country:
+                  type:
+                    - string
+                    - 'null'
+                  description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+                  minLength: 3
+                  maxLength: 3
+                postal_code:
+                  type:
+                    - string
+                    - 'null'
+                  description: Postal code (e.g., ZIP code) of the address provided by the cardholder
+            email:
+              type:
+                - string
+                - 'null'
+              description: Email address that is either provided by the cardholder or is on file with the merchant in a 3RI request. Maps to EMV 3DS field `email`.
+              maxLength: 254
+              minLength: 1
+            name:
+              type:
+                - string
+                - 'null'
+              description: Name of the cardholder. Maps to EMV 3DS field `cardholderName`.
+              maxLength: 36
+              minLength: 1
+            phone_number_home:
+              type:
+                - string
+                - 'null'
+              description: Home phone number provided by the cardholder. Maps to EMV 3DS fields `homePhone.cc` and `homePhone.subscriber`.
+              maxLength: 18
+              minLength: 1
+            phone_number_mobile:
+              type:
+                - string
+                - 'null'
+              description: Mobile/cell phone number provided by the cardholder. Maps to EMV 3DS fields `mobilePhone.cc` and `mobilePhone.subscriber`.
+              maxLength: 18
+              minLength: 1
+            phone_number_work:
+              type:
+                - string
+                - 'null'
+              description: Work phone number provided by the cardholder. Maps to EMV 3DS fields `workPhone.cc` and `workPhone.subscriber`.
+              maxLength: 18
+              minLength: 1
+            shipping_address:
+              type: object
+              description: Object containing data on the shipping address provided during the transaction.
+              properties:
+                address1:
+                  type:
+                    - string
+                    - 'null'
+                  description: First line of the street address provided by the cardholder.
+                address2:
+                  type:
+                    - string
+                    - 'null'
+                  description: Second line of the street address provided by the cardholder.
+                address3:
+                  type:
+                    - string
+                    - 'null'
+                  description: Third line of the street address provided by the cardholder.
+                city:
+                  type:
+                    - string
+                    - 'null'
+                  description: City of the address provided by the cardholder.
+                country:
+                  type:
+                    - string
+                    - 'null'
+                  description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+                  minLength: 3
+                  maxLength: 3
+                postal_code:
+                  type:
+                    - string
+                    - 'null'
+                  description: Postal code (e.g., ZIP code) of the address provided by the cardholder
+          required: []
+        challenge_metadata:
+          type:
+            - object
+            - 'null'
+          description: Metadata about the challenge method and delivery. Only present when a challenge is triggered.
+          properties:
+            method_type:
+              type: string
+              enum:
+                - SMS_OTP
+                - OUT_OF_BAND
+              description: The type of challenge method used for authentication.
+            phone_number:
+              type:
+                - string
+                - 'null'
+              description: The phone number used for delivering the OTP. Relevant only for SMS_OTP method.
+          required:
+            - method_type
+        challenge_orchestrated_by:
+          type:
+            - string
+            - 'null'
+          description: Entity that orchestrates the challenge. This won't be set for authentications for which a decision has not yet been made (e.g. in-flight customer decisioning request).
+          enum:
+            - LITHIC
+            - CUSTOMER
+            - NO_CHALLENGE
+            - null
+        channel:
+          type: string
+          description: Channel in which the authentication occurs. Maps to EMV 3DS field `deviceChannel`.
+          enum:
+            - APP_BASED
+            - BROWSER
+            - THREE_DS_REQUESTOR_INITIATED
+        created:
+          type: string
+          description: "Date and time when the authentication was created in Lithic's system. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd'T'hh:mm:ssZ."
+          format: date-time
+        decision_made_by:
+          type:
+            - string
+            - 'null'
+          description: Entity that made the authentication decision. This won't be set for authentications for which a decision has not yet been made (e.g. in-flight customer decisioning request).
+          enum:
+            - LITHIC_RULES
+            - LITHIC_DEFAULT
+            - CUSTOMER_RULES
+            - CUSTOMER_ENDPOINT
+            - NETWORK
+            - UNKNOWN
+            - null
+        merchant:
+          type: object
+          description: Object containing data about the merchant involved in the e-commerce transaction.
+          properties:
+            country:
+              type: string
+              description: 'Country code of the merchant requesting 3DS authentication. Maps to EMV 3DS field `merchantCountryCode`. Permitted values: ISO 3166-1 alpha-3 country code (e.g., USA).'
+              minLength: 3
+              maxLength: 3
+            id:
+              type: string
+              description: Merchant identifier as assigned by the acquirer. Maps to EMV 3DS field `acquirerMerchantId`.
+            mcc:
+              type: string
+              description: Merchant category code assigned to the merchant that describes its business activity type. Maps to EMV 3DS field `mcc`.
+              minLength: 4
+              maxLength: 4
+            name:
+              type: string
+              description: Name of the merchant. Maps to EMV 3DS field `merchantName`.
+            risk_indicator:
+              type: object
+              description: Object containing additional data indicating additional risk factors related to the e-commerce transaction.
+              properties:
+                delivery_email_address:
+                  type:
+                    - string
+                    - 'null'
+                  description: In transactions with electronic delivery, email address to which merchandise is delivered. Maps to EMV 3DS field `deliveryEmailAddress`.
+                delivery_time_frame:
+                  type:
+                    - string
+                    - 'null'
+                  description: The delivery time frame for the merchandise. Maps to EMV 3DS field `deliveryTimeframe`.
+                  enum:
+                    - ELECTRONIC_DELIVERY
+                    - OVERNIGHT_SHIPPING
+                    - SAME_DAY_SHIPPING
+                    - TWO_DAY_OR_MORE_SHIPPING
+                    - null
+                gift_card_amount:
+                  type:
+                    - integer
+                    - 'null'
+                  description: In prepaid or gift card purchase transactions, purchase amount total in major units (e.g., a purchase of USD $205.10 would be 205). Maps to EMV 3DS field `giftCardAmount`.
+                gift_card_count:
+                  type:
+                    - integer
+                    - 'null'
+                  description: In prepaid or gift card purchase transactions, count of individual prepaid or gift cards/codes purchased. Maps to EMV 3DS field `giftCardCount`.
+                gift_card_currency:
+                  type:
+                    - string
+                    - 'null'
+                  description: 'In prepaid or gift card purchase transactions, currency code of the gift card. Maps to EMV 3DS field `giftCardCurr`. Permitted values: ISO 4217 three-character currency code (e.g., USD).'
+                  minLength: 3
+                  maxLength: 3
+                order_availability:
+                  type:
+                    - string
+                    - 'null'
+                  description: Indicates whether the purchase is for merchandise that is available now or at a future date. Maps to EMV 3DS field `preOrderPurchaseInd`.
+                  enum:
+                    - FUTURE_AVAILABILITY
+                    - MERCHANDISE_AVAILABLE
+                    - null
+                pre_order_available_date:
+                  type:
+                    - string
+                    - 'null'
+                  description: "In pre-order purchase transactions, the expected date that the merchandise will be available. Maps to EMV 3DS field `preOrderDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd'T'hh:mm:ssZ"
+                  format: date-time
+                reorder_items:
+                  type:
+                    - string
+                    - 'null'
+                  description: Indicates whether the cardholder is reordering previously purchased merchandise. Maps to EMV 3DS field `reorderItemsInd`.
+                  enum:
+                    - FIRST_TIME_ORDERED
+                    - REORDERED
+                    - null
+                shipping_method:
+                  type:
+                    - string
+                    - 'null'
+                  description: Shipping method that the cardholder chose for the transaction. If purchase includes one or more item, this indicator is used for the physical goods; if the purchase only includes digital goods, this indicator is used to describe the most expensive item purchased. Maps to EMV 3DS field `shipIndicator`.
+                  enum:
+                    - DIGITAL_GOODS
+                    - LOCKER_DELIVERY
+                    - OTHER
+                    - PICK_UP_AND_GO_DELIVERY
+                    - SHIP_TO_BILLING_ADDRESS
+                    - SHIP_TO_NON_BILLING_ADDRESS
+                    - SHIP_TO_OTHER_VERIFIED_ADDRESS
+                    - SHIP_TO_STORE
+                    - TRAVEL_AND_EVENT_TICKETS
+                    - null
+              required: []
+          required:
+            - country
+            - id
+            - mcc
+            - name
+            - risk_indicator
+        message_category:
+          type: string
+          description: Either PAYMENT_AUTHENTICATION or NON_PAYMENT_AUTHENTICATION. For NON_PAYMENT_AUTHENTICATION, additional_data and transaction fields are not populated.
+          enum:
+            - NON_PAYMENT_AUTHENTICATION
+            - PAYMENT_AUTHENTICATION
+        three_ds_requestor_challenge_indicator:
+          type: string
+          description: |-
+            Indicates whether a challenge is requested for this transaction
+
+            * `NO_PREFERENCE` - No Preference
+            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
+            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
+            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
+            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
+            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
+            * `OTHER` - Other indicators not captured by above. These are rarely used
+          enum:
+            - NO_PREFERENCE
+            - NO_CHALLENGE_REQUESTED
+            - CHALLENGE_PREFERENCE
+            - CHALLENGE_MANDATE
+            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
+            - DATA_SHARE_ONLY
+            - OTHER
+        three_ri_request_type:
+          type:
+            - string
+            - 'null'
+          description: Type of 3DS Requestor Initiated (3RI) request — i.e., a 3DS authentication that takes place at the initiation of the merchant rather than the cardholder. The most common example of this is where a merchant is authenticating before billing for a recurring transaction such as a pay TV subscription or a utility bill. Maps to EMV 3DS field `threeRIInd`.
+          enum:
+            - ACCOUNT_VERIFICATION
+            - ADD_CARD
+            - BILLING_AGREEMENT
+            - CARD_SECURITY_CODE_STATUS_CHECK
+            - DELAYED_SHIPMENT
+            - DEVICE_BINDING_STATUS_CHECK
+            - INSTALLMENT_TRANSACTION
+            - MAIL_ORDER
+            - MAINTAIN_CARD_INFO
+            - OTHER_PAYMENT
+            - RECURRING_TRANSACTION
+            - SPLIT_PAYMENT
+            - SPLIT_SHIPMENT
+            - TELEPHONE_ORDER
+            - TOP_UP
+            - TRUST_LIST_STATUS_CHECK
+            - null
+        token:
+          type: string
+          description: 'Globally unique identifier for the 3DS authentication. Permitted values: 36-digit version 4 UUID (including hyphens).'
+          format: uuid
+        transaction:
+          type:
+            - object
+            - 'null'
+          description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
+          properties:
+            amount:
+              type: number
+              description: Amount of the purchase in minor units of currency with all punctuation removed. Maps to EMV 3DS field `purchaseAmount`.
+            cardholder_amount:
+              type:
+                - number
+                - 'null'
+              description: Approximate amount of the purchase in minor units of cardholder currency. Derived from `amount` using a daily conversion rate.
+            currency:
+              type: string
+              description: 'Currency of the purchase. Maps to EMV 3DS field `purchaseCurrency`. Permitted values: ISO 4217 three-character currency code (e.g., USD).'
+              minLength: 3
+              maxLength: 3
+            currency_exponent:
+              type: number
+              description: Minor units of currency, as specified in ISO 4217 currency exponent. Maps to EMV 3DS field `purchaseExponent`.
+            date_time:
+              type: string
+              description: "Date and time when the authentication was generated by the merchant/acquirer's 3DS server. Maps to EMV 3DS field `purchaseDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd'T'hh:mm:ssZ."
+              format: date-time
+            type:
+              type:
+                - string
+                - 'null'
+              description: Type of the transaction for which a 3DS authentication request is occurring. Maps to EMV 3DS field `transType`.
+              enum:
+                - ACCOUNT_FUNDING
+                - CHECK_ACCEPTANCE
+                - GOODS_SERVICE_PURCHASE
+                - PREPAID_ACTIVATION_AND_LOAD
+                - QUASI_CASH_TRANSACTION
+                - null
+          required:
+            - amount
+            - cardholder_amount
+            - currency
+            - currency_exponent
+            - date_time
+            - type
+      required:
+        - account_type
+        - authentication_result
+        - card_expiry_check
+        - card_token
+        - cardholder
+        - channel
+        - created
+        - merchant
+        - message_category
+        - three_ds_requestor_challenge_indicator
+        - token
+    challenge-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/challenge-response.json
+      title: Challenge Response object
+      type: object
+      description: Response from Card Program to a 3DS Authentication challenge
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for 3DS Authentication that resulted in PENDING_CHALLENGE authentication result.
+          format: uuid
+        challenge_response:
+          type: string
+          description: Whether the Cardholder has approved or declined the issued Challenge
+          enum:
+            - APPROVE
+            - DECLINE_BY_CUSTOMER
+      required:
+        - token
+        - challenge_response
     card_transaction_status_filter:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction_status_filter.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19973,8 +20431,11 @@ components:
           type: string
           format: uuid
     asa_request_cardholder_authentication:
+      title: Cardholder Authentication Object
       description: Cardholder Authentication object in ASA
-      type: object
+      type:
+        - object
+        - 'null'
       properties:
         3ds_version:
           oneOf:
@@ -20180,8 +20641,11 @@ components:
         - FINANCIAL_CREDIT_AUTHORIZATION
         - BALANCE_INQUIRY
     asa_request_fleet_info:
+      title: Fleet Info
       description: Optional Object containing information if the Card is a part of a Fleet managed program
-      type: object
+      type:
+        - object
+        - 'null'
       properties:
         driver_number:
           oneOf:
@@ -20212,8 +20676,11 @@ components:
         - fleet_restriction_code
         - fleet_prompt_code
     asa_network_specific_data:
+      title: Network Specific Data
       description: Contains raw data provided by the card network, including attributes that provide further context about the authorization. If populated by the network, data is organized by Lithic and passed through without further modification. Please consult the official network documentation for more details about these values and how to use them. This object is only available to certain programs- contact your Customer Success Manager to discuss enabling access.
-      type: object
+      type:
+        - object
+        - 'null'
       properties:
         mastercard:
           oneOf:
@@ -20225,6 +20692,17 @@ components:
             - type: 'null'
               description: There was no Visa-specific data available for this transaction.
             - $ref: '#/components/schemas/asa_network_specific_data_visa'
+    asa_request_account_type:
+      type:
+        - string
+        - 'null'
+      description: The selected account type for applicable ATM transactions such as cash withdrawals, deposits, or balance inquires.
+      enum:
+        - DEFAULT
+        - CHECKING
+        - SAVINGS
+        - CREDIT_CARD
+        - null
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20238,10 +20716,7 @@ components:
         card:
           $ref: '#/components/schemas/asa_request_card'
         cardholder_authentication:
-          oneOf:
-            - description: Cardholder Authentication information not available
-              type: 'null'
-            - $ref: '#/components/schemas/asa_request_cardholder_authentication'
+          $ref: '#/components/schemas/asa_request_cardholder_authentication'
         pos:
           type: object
           properties:
@@ -20321,10 +20796,7 @@ components:
           type: string
           format: uuid
         fleet_info:
-          oneOf:
-            - type: 'null'
-              description: Transaction is not associated with a fleet program
-            - $ref: '#/components/schemas/asa_request_fleet_info'
+          $ref: '#/components/schemas/asa_request_fleet_info'
         events:
           description: A list of all events that have modified this transaction. Note that this will always be an empty array in all authorization requests originated by Lithic.
           type: array
@@ -20336,10 +20808,9 @@ components:
           maxItems: 0
           deprecated: true
         network_specific_data:
-          oneOf:
-            - type: 'null'
-              description: Network specific data not available or program is not opted in to receive this data.
-            - $ref: '#/components/schemas/asa_network_specific_data'
+          $ref: '#/components/schemas/asa_network_specific_data'
+        account_type:
+          $ref: '#/components/schemas/asa_request_account_type'
       required:
         - acquirer_fee
         - amount
@@ -20415,8 +20886,11 @@ components:
               type: boolean
               description: Indicates whether the cardholder entered the PIN. True if the PIN was entered.
         asa_request_fleet_info:
+          title: Fleet Info
           description: Optional Object containing information if the Card is a part of a Fleet managed program
-          type: object
+          type:
+            - object
+            - 'null'
           properties:
             driver_number:
               oneOf:
@@ -20447,8 +20921,11 @@ components:
             - fleet_restriction_code
             - fleet_prompt_code
         asa_network_specific_data:
+          title: Network Specific Data
           description: Contains raw data provided by the card network, including attributes that provide further context about the authorization. If populated by the network, data is organized by Lithic and passed through without further modification. Please consult the official network documentation for more details about these values and how to use them. This object is only available to certain programs- contact your Customer Success Manager to discuss enabling access.
-          type: object
+          type:
+            - object
+            - 'null'
           properties:
             mastercard:
               oneOf:
@@ -20520,8 +20997,11 @@ components:
                   minLength: 2
                   maxLength: 2
         asa_request_cardholder_authentication:
+          title: Cardholder Authentication Object
           description: Cardholder Authentication object in ASA
-          type: object
+          type:
+            - object
+            - 'null'
           properties:
             3ds_version:
               oneOf:
@@ -20592,6 +21072,17 @@ components:
                 - FRICTIONLESS
                 - CHALLENGE
                 - NONE
+        asa_request_account_type:
+          type:
+            - string
+            - 'null'
+          description: The selected account type for applicable ATM transactions such as cash withdrawals, deposits, or balance inquires.
+          enum:
+            - DEFAULT
+            - CHECKING
+            - SAVINGS
+            - CREDIT_CARD
+            - null
         asa_request_card:
           description: Card object in ASA
           type: object
@@ -21280,6 +21771,53 @@ components:
             - statements.created
       required:
         - event_type
+    challenge:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/challenge.json
+      title: 3DS Challenge object
+      type: object
+      description: Represents a challenge object for 3DS authentication
+      properties:
+        challenge_method_type:
+          type: string
+          description: The type of challenge method issued to the cardholder
+          enum:
+            - OUT_OF_BAND
+        start_time:
+          type: string
+          description: ISO-8601 time at which the challenge has started
+          format: date-time
+        expiry_time:
+          type: string
+          description: ISO-8601 time at which the challenge expires
+          format: date-time
+        app_requestor_url:
+          type:
+            - string
+            - 'null'
+          description: Fully qualified app URL of the merchant app. This should be used to redirect the cardholder back to the merchant app after completing an app-based challenge. This URL will only be populated if the 3DS Requestor App is provided to the 3DS SDK.
+          format: uri
+      required:
+        - challenge_method_type
+        - start_time
+        - expiry_time
+    challenge-event:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/challenge-event.json
+      title: 3DS Challenge webhook event
+      type: object
+      description: Represents a challenge event that is emitted after issuing a 3DS challenge
+      properties:
+        authentication_object:
+          $ref: '#/components/schemas/authentication'
+        challenge:
+          $ref: '#/components/schemas/challenge'
+        event_type:
+          const: three_ds_authentication.challenge
+      required:
+        - authentication_object
+        - challenge
+        - event_type
     tokenization-approval-request:
       $id: https://lithic.com/schemas/tokenization/notify-webhooks/tokenization-approval-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -21334,6 +21872,30 @@ components:
                 recommendation_reasons:
                   - Reason1
                 recommended_decision: Decision1
+    three-ds-decisioning:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/three-ds-decisioning.json
+      title: 3DS Decision Response object
+      type: object
+      description: Information on whether the Authentication should be approved, declined or challenged.
+      properties:
+        three_ds_authentication_decision:
+          type: string
+          description: |-
+            * `APPROVE` - Approve the 3DS Transaction and proceed to Authorization
+            * `DECLINE` - Decline the 3DS Transaction ending the transaction
+            * `CHALLENGE_REQUESTED` - Conditional Approval for the 3DS Transaction where a follow-up Challenge will be triggered to further authenticate the Cardholder
+          enum:
+            - APPROVE
+            - DECLINE
+            - CHALLENGE_REQUESTED
+        oob_url:
+          type: string
+          description: |-
+            URL which may be used in the presentation of a 3DS Challenge UI to the cardholder. This value will be used by the ACS as the OOB App URL. When applicable, this URL may be used for automatic app switching or rendered directly as an element in the Challenge UI.
+            This field is only used with CHALLENGE_REQUESTED decision and when customer orchestrates the 3DS challenge on their own.
+      required:
+        - three_ds_authentication_decision
   securitySchemes:
     ApiKeyAuth:
       in: header
