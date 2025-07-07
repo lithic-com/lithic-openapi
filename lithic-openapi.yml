@@ -555,7 +555,7 @@ paths:
         Update the information associated with a particular account holder (including business owners and control persons associated to a business account).
         If Lithic is performing KYB or KYC and additional verification is required we will run the individual's or business's updated information again and return whether the status is accepted or pending (i.e., further action required).
         All calls to this endpoint will return a synchronous response. The response time will depend on the workflow. In some cases, the response may indicate the workflow is under review or further action will be needed to complete the account creation process.
-        This endpoint can only be used on existing accounts that are part of the program that the calling API key manages.
+        This endpoint can only be used on existing accounts that are part of the program that the calling API key manages. 
       operationId: patchAccountHolder
       parameters:
         - $ref: '#/components/parameters/accountHolderToken'
@@ -1699,18 +1699,7 @@ paths:
                   minimum: 0
                   type: integer
                 spend_limit_duration:
-                  description: |-
-                    Spend limit duration values:
-                    * `ANNUALLY` - Card will authorize transactions up to spend limit for the trailing year.
-                    * `FOREVER` - Card will authorize only up to spend limit for the entire lifetime of the card.
-                    * `MONTHLY` - Card will authorize transactions up to spend limit for the trailing month. To support recurring monthly payments, which can occur on different day every month, the time window we consider for monthly velocity starts 6 days after the current calendar date one month prior.
-                    * `TRANSACTION` - Card will authorize multiple transactions if each individual transaction is under the spend limit.
-                  enum:
-                    - ANNUALLY
-                    - FOREVER
-                    - MONTHLY
-                    - TRANSACTION
-                  type: string
+                  $ref: '#/components/schemas/spend_limit_duration'
                 state:
                   description: |
                     Card state values:
@@ -1836,7 +1825,7 @@ paths:
     post:
       description: |-
         Get card configuration such as spend limit and state. Customers must be PCI compliant to use this endpoint. Please contact [support@lithic.com](mailto:support@lithic.com) for questions.
-        *Note: this is a `POST` endpoint because it is more secure to send sensitive data in a request body than in a URL.*
+        *Note: this is a `POST` endpoint because it is more secure to send sensitive data in a request body than in a URL.* 
       operationId: searchCardByPan
       requestBody:
         content:
@@ -1943,18 +1932,7 @@ paths:
                   example: 0
                   type: integer
                 spend_limit_duration:
-                  description: |-
-                    Spend limit duration values:
-                    * `ANNUALLY` - Card will authorize transactions up to spend limit for the trailing year.
-                    * `FOREVER` - Card will authorize only up to spend limit for the entire lifetime of the card.
-                    * `MONTHLY` - Card will authorize transactions up to spend limit for the trailing month. To support recurring monthly payments, which can occur on different day every month, the time window we consider for monthly velocity starts 6 days after the current calendar date one month prior.
-                    * `TRANSACTION` - Card will authorize multiple transactions if each individual transaction is under the spend limit.
-                  enum:
-                    - ANNUALLY
-                    - FOREVER
-                    - MONTHLY
-                    - TRANSACTION
-                  type: string
+                  $ref: '#/components/schemas/spend_limit_duration'
                 state:
                   description: |
                     Card state values:
@@ -2285,7 +2263,7 @@ paths:
     post:
       description: |-
         Initiate print and shipment of a duplicate physical card (e.g. card is physically damaged).  The PAN, expiry, and CVC2 will remain the same and the original card can continue to be used until the new card is activated.
-        Only applies to cards of type `PHYSICAL`.  A card can be reissued or renewed a total of 8 times.
+        Only applies to cards of type `PHYSICAL`.  A card can be reissued or renewed a total of 8 times. 
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2394,7 +2372,7 @@ paths:
         For `PHYSICAL`, creates a new card with the same card token and PAN, but updated expiry and CVC2 code. The original card will keep working for card-present transactions until the new card is activated. For card-not-present transactions, the original card details (expiry, CVC2) will also keep working until the new card is activated.
         A `PHYSICAL` card can be reissued or renewed a total of 8 times.
         For `VIRTUAL`, the card will retain the same card token and PAN and receive an updated expiry and CVC2 code.
-        `product_id`, `shipping_method`, `shipping_address`, `carrier` are only relevant for renewing `PHYSICAL` cards.
+        `product_id`, `shipping_method`, `shipping_address`, `carrier` are only relevant for renewing `PHYSICAL` cards. 
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2518,7 +2496,7 @@ paths:
         The card token will be unchanged.  The card's type will be altered to `PHYSICAL`.
         The card will be set to state `PENDING_FULFILLMENT` and fulfilled at next fulfillment cycle.
         Virtual cards created on card programs which do not support physical cards cannot be converted.  The card program cannot be changed as part of the conversion.  Cards must be in an `OPEN` state to be converted.
-        Only applies to cards of type `VIRTUAL` (or existing cards with deprecated types of `DIGITAL_WALLET` and `UNLOCKED`).
+        Only applies to cards of type `VIRTUAL` (or existing cards with deprecated types of `DIGITAL_WALLET` and `UNLOCKED`). 
       operationId: postConvertPhysical
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -3547,6 +3525,8 @@ paths:
                       - loan_tape.updated
                       - management_operation.created
                       - management_operation.updated
+                      - network_total.created
+                      - network_total.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - internal_transaction.created
@@ -3712,6 +3692,8 @@ paths:
                       - loan_tape.updated
                       - management_operation.created
                       - management_operation.updated
+                      - network_total.created
+                      - network_total.updated
                       - payment_transaction.created
                       - payment_transaction.updated
                       - internal_transaction.created
@@ -3978,6 +3960,8 @@ paths:
                 - loan_tape.updated
                 - management_operation.created
                 - management_operation.updated
+                - network_total.created
+                - network_total.updated
                 - payment_transaction.created
                 - payment_transaction.updated
                 - internal_transaction.created
@@ -6135,6 +6119,8 @@ paths:
                     - loan_tape.updated
                     - management_operation.created
                     - management_operation.updated
+                    - network_total.created
+                    - network_total.updated
                     - payment_transaction.created
                     - payment_transaction.updated
                     - internal_transaction.created
@@ -6705,7 +6691,7 @@ paths:
         - Status
   /v1/three_ds_authentication/simulate:
     post:
-      description: "Simulates a 3DS authentication request from the payment network as if it came from an ACS. If you're configured for 3DS Customer Decisioning, simulating authentications requires your customer decisioning endpoint to be set up properly (respond with a valid JSON). If the authentication decision is to challenge, ensure that the account holder associated with the card transaction has a valid phone number configured to receive the OTP code via SMS. "
+      description: 'Simulates a 3DS authentication request from the payment network as if it came from an ACS. If you''re configured for 3DS Customer Decisioning, simulating authentications requires your customer decisioning endpoint to be set up properly (respond with a valid JSON). If the authentication decision is to challenge, ensure that the account holder associated with the card transaction has a valid phone number configured to receive the OTP code via SMS. '
       operationId: postSimulateAuthentication
       requestBody:
         content:
@@ -7059,7 +7045,7 @@ paths:
       description: |-
         This endpoint is used to ask the card network to pause a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network pauses the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on tokenizations with status `ACTIVE`.
         A paused token will prevent merchants from sending authorizations, and is a temporary status that can be changed.
-        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information. 
       operationId: pauseTokenization
       parameters:
         - description: Tokenization token
@@ -7091,7 +7077,7 @@ paths:
       description: |-
         This endpoint is used to ask the card network to unpause a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network unpauses the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on tokenizations with status `PAUSED`.
         This will put the tokenization in an active state, and transactions may resume.
-        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information. 
       operationId: unpauseTokenization
       parameters:
         - description: Tokenization token
@@ -7123,7 +7109,7 @@ paths:
       description: |-
         This endpoint is used to ask the card network to deactivate a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network deactivates the tokenization, the state will be updated and a tokenization.updated event will be sent.
         Authorizations attempted with a deactivated tokenization will be blocked and will not be forwarded to Lithic from the network. Deactivating the token is a permanent operation. If the target is a digital wallet tokenization, it will be removed from its device.
-        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information. 
       operationId: deactivateTokenization
       parameters:
         - description: Tokenization token
@@ -7155,7 +7141,7 @@ paths:
       description: |-
         This endpoint is used to ask the card network to activate a tokenization. A successful response indicates that the request was successfully delivered to the card network. When the card network activates the tokenization, the state will be updated and a tokenization.updated event will be sent. The endpoint may only be used on digital wallet tokenizations with status `INACTIVE`, `PENDING_ACTIVATION`, or `PENDING_2FA`.
         This will put the tokenization in an active state, and transactions will be allowed.
-        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information. 
       operationId: activateTokenization
       parameters:
         - description: Tokenization token
@@ -7187,7 +7173,7 @@ paths:
       description: |-
         This endpoint is used to ask the card network to send another activation code to a cardholder that has already tried tokenizing a card. A successful response indicates that the request was successfully delivered to the card network.
         The endpoint may only be used on Mastercard digital wallet tokenizations with status `INACTIVE`, `PENDING_ACTIVATION`, or `PENDING_2FA`. The network will send a new activation code to the one of the contact methods provided in the initial tokenization flow. If a user fails to enter the code correctly 3 times, the contact method will not be eligible for resending the activation code, and the cardholder must restart the provision process.
-        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information. 
       operationId: resendActivationCodeForTokenization
       parameters:
         - description: Tokenization token
@@ -7238,7 +7224,7 @@ paths:
         This endpoint is used update the digital card art for a digital wallet tokenization. A successful response indicates that the card network has updated the tokenization's art, and the tokenization's `digital_cart_art_token` field was updated.
         The endpoint may not be used on tokenizations with status `DEACTIVATED`.
         Note that this updates the art for one specific tokenization, not all tokenizations for a card. New tokenizations for a card will be created with the art referenced in the card object's `digital_card_art_token` field.
-        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information.
+        Reach out at [lithic.com/contact](https://lithic.com/contact) for more information. 
       operationId: updateDigitalCardArtForTokenization
       parameters:
         - description: Tokenization token
@@ -8357,7 +8343,7 @@ webhooks:
                         beneficial_owner_individuals:
                           description: |-
                             You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
-                            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+                            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. 
                           items:
                             $ref: '#/components/schemas/individual'
                           minItems: 0
@@ -9860,6 +9846,54 @@ webhooks:
       summary: internal_transaction.updated
       tags:
         - Event Types
+  network_total.created:
+    post:
+      description: Occurs when a network total is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/network_total'
+                - properties:
+                    token:
+                      description: Globally unique identifier for the network total
+                      type: string
+                      format: uuid
+                    event_type:
+                      description: The type of event that occurred.
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: network_total.created
+      tags:
+        - Event Types
+  network_total.updated:
+    post:
+      description: Occurs when a network total is updated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/network_total'
+                - properties:
+                    token:
+                      description: Globally unique identifier for the network total
+                      type: string
+                      format: uuid
+                    event_type:
+                      description: The type of event that occurred.
+                      type: string
+                  type: object
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: network_total.updated
+      tags:
+        - Event Types
   payment_transaction.created:
     post:
       description: Occurs when a payment transaction is created.
@@ -10996,7 +11030,7 @@ components:
           description: |-
             Only present when user_type == "BUSINESS".
             You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
-            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. 
           items:
             $ref: '#/components/schemas/AccountHolderIndividualResponse'
           minItems: 0
@@ -11095,7 +11129,7 @@ components:
         user_type:
           description: |-
             The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
-            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "nature_of_business", and "website_url" attributes will be present.
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals", "nature_of_business", and "website_url" attributes will be present. 
           enum:
             - BUSINESS
             - INDIVIDUAL
@@ -12334,6 +12368,8 @@ components:
             - loan_tape.updated
             - management_operation.created
             - management_operation.updated
+            - network_total.created
+            - network_total.updated
             - payment_transaction.created
             - payment_transaction.updated
             - internal_transaction.created
@@ -12402,6 +12438,8 @@ components:
               - loan_tape.updated
               - management_operation.created
               - management_operation.updated
+              - network_total.created
+              - network_total.updated
               - payment_transaction.created
               - payment_transaction.updated
               - internal_transaction.created
@@ -12751,7 +12789,7 @@ components:
         * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
         * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
         * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-        * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution.
+        * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution. 
       enum:
         - ACH_ORIGINATION_CANCELLED
         - ACH_ORIGINATION_INITIATED
@@ -12915,7 +12953,7 @@ components:
         beneficial_owner_individuals:
           description: |-
             You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
-            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. 
           items:
             $ref: '#/components/schemas/KybIndividual'
           minItems: 0
@@ -15505,6 +15543,22 @@ components:
         - state
         - token
         - type
+    spend_limit_duration:
+      $id: https://lithic.com/schemas/common/2024-01-15/card/spend_limit_duration.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      description: |-
+        Spend limit duration values:
+
+        * `ANNUALLY` - Card will authorize transactions up to spend limit for the trailing year.
+        * `FOREVER` - Card will authorize only up to spend limit for the entire lifetime of the card.
+        * `MONTHLY` - Card will authorize transactions up to spend limit for the trailing month. To support recurring monthly payments, which can occur on different day every month, the time window we consider for monthly velocity starts 6 days after the current calendar date one month prior.
+        * `TRANSACTION` - Card will authorize multiple transactions if each individual transaction is under the spend limit.
+      type: string
+      enum:
+        - ANNUALLY
+        - FOREVER
+        - MONTHLY
+        - TRANSACTION
     non_pci_card_response:
       $id: https://lithic.com/schemas/common/2024-01-15/card/non_pci_card_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -15592,14 +15646,7 @@ components:
           example: 1000
           type: integer
         spend_limit_duration:
-          type: string
-          enum:
-            - ANNUALLY
-            - FOREVER
-            - MONTHLY
-            - TRANSACTION
-            - DAILY
-          description: Spend limit duration
+          $ref: '#/components/schemas/spend_limit_duration'
         state:
           description: 'Card state values: * `CLOSED` - Card will no longer approve authorizations. Closing a card cannot be undone. * `OPEN` - Card will approve authorizations (if they match card and account parameters). * `PAUSED` - Card will decline authorizations, but can be resumed at a later time. * `PENDING_FULFILLMENT` - The initial state for cards of type `PHYSICAL`. The card is provisioned pending manufacturing and fulfillment. Cards in this state can accept authorizations for e-commerce purchases, but not for "Card Present" purchases where the physical card itself is present. * `PENDING_ACTIVATION` - At regular intervals, cards of type `PHYSICAL` in state `PENDING_FULFILLMENT` are sent to the card production warehouse and updated to state `PENDING_ACTIVATION`. Similar to `PENDING_FULFILLMENT`, cards in this state can be used for e-commerce transactions or can be added to mobile wallets. API clients should update the card''s state to `OPEN` only after the cardholder confirms receipt of the card. In sandbox, the same daily batch fulfillment occurs, but no cards are actually manufactured.'
           enum:
@@ -16496,7 +16543,7 @@ components:
           type: string
           format: uuid
     set_verification_method_allowed_verification_methods:
-      $id: https://lithic.com/schemas/customer-facing/treasury/cies/verification_method.json
+      $id: https://lithic.com/schemas/customer-facing/treasury/cies/set_verification_method_allowed_verification_methods.json
       $schema: https://json-schema.org/draft/2020-12/schema
       type: string
       enum:
@@ -16525,28 +16572,6 @@ components:
           minLength: 1
       required:
         - verification_method
-      allOf:
-        - if:
-            properties:
-              verification_method:
-                const: MICRO_DEPOSIT
-          then:
-            required:
-              - financial_account_token
-        - if:
-            properties:
-              verification_method:
-                const: PRENOTE
-          then:
-            required:
-              - financial_account_token
-        - if:
-            properties:
-              verification_method:
-                const: PLAID
-          then:
-            required:
-              - processor_token
     extended_credit:
       $id: https://lithic.com/schemas/treasury/ledger/extended_credit.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17432,6 +17457,7 @@ components:
         - settlement_service
         - report_date
         - currency
+        - is_complete
         - amounts
         - created
         - updated
@@ -17443,11 +17469,12 @@ components:
         network:
           type: string
           enum:
+            - AMEX
             - VISA
             - MASTERCARD
             - MAESTRO
             - INTERLINK
-          description: Card network where the transaction took place. VISA, MASTERCARD, MAESTRO, or INTERLINK.
+          description: Card network where the transaction took place. AMEX, VISA, MASTERCARD, MAESTRO, or INTERLINK.
         institution_id:
           type: string
           description: 'The institution that activity occurred on. For Mastercard: ICA (Interbank Card Association). For Maestro: institution ID. For Visa: lowest level SRE (Settlement Reporting Entity).'
@@ -17467,6 +17494,9 @@ components:
         currency:
           type: string
           description: 3-character alphabetic ISO 4217 code.
+        is_complete:
+          type: boolean
+          description: Indicates that all settlement records related to this Network Total are available in the details endpoint.
         amounts:
           type: object
           required:
@@ -17485,7 +17515,7 @@ components:
               description: Charges specific to Visa/Interlink, in currency's smallest unit.
             net_settlement:
               type: integer
-              description: "`gross_settlement` net of `interchange_fees` and `visa_charges` (if applicable), in currency's smallest unit."
+              description: '`gross_settlement` net of `interchange_fees` and `visa_charges` (if applicable), in currency''s smallest unit.'
         created:
           type: string
           format: date-time
@@ -17502,6 +17532,7 @@ components:
           settlement_service: '015'
           report_date: '2025-02-25'
           currency: CAD
+          is_complete: true
           amounts:
             gross_settlement: 100
             interchange_fees: -25
@@ -17534,6 +17565,7 @@ components:
               settlement_service: '015'
               report_date: '2025-02-25'
               currency: CAD
+              is_complete: true
               amounts:
                 gross_settlement: 100
                 interchange_fees: -25
@@ -17548,6 +17580,7 @@ components:
               settlement_service: '001'
               report_date: '2025-02-25'
               currency: USD
+              is_complete: true
               amounts:
                 gross_settlement: 200
                 interchange_fees: -50
@@ -17563,6 +17596,7 @@ components:
               report_date: '2025-02-25'
               currency: USD
               cycle: 1
+              is_complete: false
               amounts:
                 gross_settlement: 100
                 interchange_fees: -25
@@ -17577,6 +17611,7 @@ components:
               report_date: '2025-02-25'
               currency: USD
               cycle: 2
+              is_complete: true
               amounts:
                 gross_settlement: 100
                 interchange_fees: -25
@@ -18261,7 +18296,7 @@ components:
             - THREE_DS_REQUESTOR_INITIATED
         created:
           type: string
-          description: "Date and time when the authentication was created in Lithic's system. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd'T'hh:mm:ssZ."
+          description: 'Date and time when the authentication was created in Lithic''s system. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
           format: date-time
         decision_made_by:
           type:
@@ -18346,7 +18381,7 @@ components:
                   type:
                     - string
                     - 'null'
-                  description: "In pre-order purchase transactions, the expected date that the merchandise will be available. Maps to EMV 3DS field `preOrderDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd'T'hh:mm:ssZ"
+                  description: 'In pre-order purchase transactions, the expected date that the merchandise will be available. Maps to EMV 3DS field `preOrderDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ'
                   format: date-time
                 reorder_items:
                   type:
@@ -18457,7 +18492,7 @@ components:
               description: Minor units of currency, as specified in ISO 4217 currency exponent. Maps to EMV 3DS field `purchaseExponent`.
             date_time:
               type: string
-              description: "Date and time when the authentication was generated by the merchant/acquirer's 3DS server. Maps to EMV 3DS field `purchaseDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd'T'hh:mm:ssZ."
+              description: 'Date and time when the authentication was generated by the merchant/acquirer''s 3DS server. Maps to EMV 3DS field `purchaseDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
               format: date-time
             type:
               type:
@@ -18714,6 +18749,20 @@ components:
         - three_ds_authentication_token
         - verification_attempted
         - verification_result
+    account_type:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/account_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Account Type
+      type:
+        - string
+        - 'null'
+      description: The selected account type for applicable ATM transactions such as cash withdrawals, deposits, or balance inquiries.
+      enum:
+        - DEFAULT
+        - CHECKING
+        - SAVINGS
+        - CREDIT_CARD
+        - null
     transaction_event_amounts:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/transaction_event_amounts.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19074,11 +19123,13 @@ components:
         - UNKNOWN_HOST_TIMEOUT
         - USER_TRANSACTION_LIMIT
     transaction_event:
-      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/avs.json
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/transaction_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Transaction Event
       type: object
       properties:
+        account_type:
+          $ref: '#/components/schemas/account_type'
         amount:
           description: Amount of the event in the settlement currency.
           example: 1000
@@ -20560,13 +20611,13 @@ components:
       type: object
       properties:
         acceptor_terminal_id:
-          description: Uniquely identifies a terminal at the card acceptor location of acquiring institutions or merchant POS Systems
+          description: Uniquely identifies a terminal at the card acceptor location of acquiring institutions or merchant POS Systems. Left justified with trailing spaces.
           type:
             - string
             - 'null'
           minLength: 8
           maxLength: 8
-          pattern: ^[a-zA-Z0-9]*$
+          pattern: ^[a-zA-Z0-9 ]*$
         attended:
           description: True if a clerk is present at the sale.
           type: boolean
@@ -20692,17 +20743,6 @@ components:
             - type: 'null'
               description: There was no Visa-specific data available for this transaction.
             - $ref: '#/components/schemas/asa_network_specific_data_visa'
-    asa_request_account_type:
-      type:
-        - string
-        - 'null'
-      description: The selected account type for applicable ATM transactions such as cash withdrawals, deposits, or balance inquires.
-      enum:
-        - DEFAULT
-        - CHECKING
-        - SAVINGS
-        - CREDIT_CARD
-        - null
     asa-request:
       $id: https://lithic.com/schemas/authorization/asa/asa-request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20810,7 +20850,7 @@ components:
         network_specific_data:
           $ref: '#/components/schemas/asa_network_specific_data'
         account_type:
-          $ref: '#/components/schemas/asa_request_account_type'
+          $ref: '#/components/schemas/account_type'
       required:
         - acquirer_fee
         - amount
@@ -21072,17 +21112,6 @@ components:
                 - FRICTIONLESS
                 - CHALLENGE
                 - NONE
-        asa_request_account_type:
-          type:
-            - string
-            - 'null'
-          description: The selected account type for applicable ATM transactions such as cash withdrawals, deposits, or balance inquires.
-          enum:
-            - DEFAULT
-            - CHECKING
-            - SAVINGS
-            - CREDIT_CARD
-            - null
         asa_request_card:
           description: Card object in ASA
           type: object
