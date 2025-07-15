@@ -34,6 +34,7 @@ tags:
   - name: Fraud Report
   - name: Funding Events
   - name: Management Operations
+  - name: Network Program
   - name: Payment
   - name: Responder Endpoints
   - name: Settlement Report
@@ -878,6 +879,30 @@ paths:
                     - PAUSED
                     - CLOSED
                   type: string
+                substatus:
+                  description: |
+                    Account state substatus values:
+                    * `FRAUD_IDENTIFIED` - The account has been recognized as being created or used with stolen or fabricated identity information, encompassing both true identity theft and synthetic identities.
+                    * `SUSPICIOUS_ACTIVITY` - The account has exhibited suspicious behavior, such as unauthorized access or fraudulent transactions, necessitating further investigation.
+                    * `RISK_VIOLATION` - The account has been involved in deliberate misuse by the legitimate account holder. Examples include disputing valid transactions without cause, falsely claiming non-receipt of goods, or engaging in intentional bust-out schemes to exploit account services.
+                    * `END_USER_REQUEST` - The account holder has voluntarily requested the closure of the account for personal reasons. This encompasses situations such as bankruptcy, other financial considerations, or the account holder's death.
+                    * `ISSUER_REQUEST` - The issuer has initiated the closure of the account due to business strategy, risk management, inactivity, product changes, regulatory concerns, or violations of terms and conditions.
+                    * `NOT_ACTIVE` - The account has not had any transactions or payment activity within a specified period. This status applies to accounts that are paused or closed due to inactivity.
+                    * `INTERNAL_REVIEW` - The account is temporarily paused pending further internal review. In future implementations, this status may prevent clients from activating the account via APIs until the review is completed.
+                    * `OTHER` - The reason for the account's current status does not fall into any of the above categories. A comment should be provided to specify the particular reason.
+                  enum:
+                    - FRAUD_IDENTIFIED
+                    - SUSPICIOUS_ACTIVITY
+                    - RISK_VIOLATION
+                    - END_USER_REQUEST
+                    - ISSUER_REQUEST
+                    - NOT_ACTIVE
+                    - INTERNAL_REVIEW
+                    - OTHER
+                  type: string
+                comment:
+                  description: Additional context or information related to the account.
+                  type: string
                 verification_address:
                   description: Address used during Address Verification Service (AVS) checks during transactions if enabled via Auth Rules. This field is deprecated as AVS checks are no longer supported by Auth Rules. The field will be removed from the schema in a future release.
                   properties:
@@ -971,6 +996,7 @@ paths:
               - ISSUING
               - OPERATING
               - RESERVE
+              - SECURITY
             type: string
       responses:
         '200':
@@ -1424,6 +1450,7 @@ paths:
               - ISSUING
               - OPERATING
               - RESERVE
+              - SECURITY
             type: string
       responses:
         '200':
@@ -1666,6 +1693,36 @@ paths:
                   description: Globally unique identifier for the card that this card will replace. If the card type is `PHYSICAL` it will be replaced by a `PHYSICAL` card. If the card type is `VIRTUAL` it will be replaced by a `VIRTUAL` card.
                   example: 00000000-0000-0000-1000-000000000000
                   format: uuid
+                  type: string
+                replacement_substatus:
+                  description: |
+                    Card state substatus values for the card that this card will replace:
+                    * `LOST` - The physical card is no longer in the cardholder's possession due to being lost or never received by the cardholder.
+                    * `COMPROMISED` - Card information has been exposed, potentially leading to unauthorized access. This may involve physical card theft, cloning, or online data breaches.
+                    * `DAMAGED` - The physical card is not functioning properly, such as having chip failures or a demagnetized magnetic stripe.
+                    * `END_USER_REQUEST` - The cardholder requested the closure of the card for reasons unrelated to fraud or damage, such as switching to a different product or closing the account.
+                    * `ISSUER_REQUEST` - The issuer closed the card for reasons unrelated to fraud or damage, such as account inactivity, product or policy changes, or technology upgrades.
+                    * `NOT_ACTIVE` - The card hasn’t had any transaction activity for a specified period, applicable to statuses like `PAUSED` or `CLOSED`.
+                    * `SUSPICIOUS_ACTIVITY` - The card has one or more suspicious transactions or activities that require review. This can involve prompting the cardholder to confirm legitimate use or report confirmed fraud.
+                    * `INTERNAL_REVIEW` - The card is temporarily paused pending further internal review.
+                    * `EXPIRED` - The card has expired and has been closed without being reissued.
+                    * `UNDELIVERABLE` - The card cannot be delivered to the cardholder and has been returned.
+                    * `OTHER` - The reason for the status does not fall into any of the above categories. A comment should be provided to specify the reason.
+                  enum:
+                    - LOST
+                    - COMPROMISED
+                    - DAMAGED
+                    - END_USER_REQUEST
+                    - ISSUER_REQUEST
+                    - NOT_ACTIVE
+                    - SUSPICIOUS_ACTIVITY
+                    - INTERNAL_REVIEW
+                    - EXPIRED
+                    - UNDELIVERABLE
+                    - OTHER
+                  type: string
+                replacement_comment:
+                  description: Additional context or information related to the card that this card will replace.
                   type: string
                 replacement_account_token:
                   description: Restricted field limited to select use cases. Lithic will reach out directly if this field should be used. Globally unique identifier for the replacement card's account. If this field is specified, `replacement_for` must also be specified. If `replacement_for` is specified and this field is omitted, the replacement card's account will be inferred from the card being replaced.
@@ -1919,6 +1976,11 @@ paths:
                   description: Friendly name to identify the card.
                   example: New Card
                   type: string
+                network_program_token:
+                  description: Globally unique identifier for the card's network program. Currently applicable to Visa cards participating in Account Level Management only.
+                  example: 00000000-0000-0000-1000-000000000000
+                  format: uuid
+                  type: string
                 pin:
                   description: Encrypted PIN block (in base64). Only applies to cards of type `PHYSICAL` and `VIRTUAL`. Changing PIN also resets PIN status to `OK`. See [Encrypted PIN Block](https://docs.lithic.com/docs/cards#encrypted-pin-block).
                   type: string
@@ -1943,6 +2005,36 @@ paths:
                     - CLOSED
                     - OPEN
                     - PAUSED
+                  type: string
+                substatus:
+                  description: |
+                    Card state substatus values:
+                    * `LOST` - The physical card is no longer in the cardholder's possession due to being lost or never received by the cardholder.
+                    * `COMPROMISED` - Card information has been exposed, potentially leading to unauthorized access. This may involve physical card theft, cloning, or online data breaches.
+                    * `DAMAGED` - The physical card is not functioning properly, such as having chip failures or a demagnetized magnetic stripe.
+                    * `END_USER_REQUEST` - The cardholder requested the closure of the card for reasons unrelated to fraud or damage, such as switching to a different product or closing the account.
+                    * `ISSUER_REQUEST` - The issuer closed the card for reasons unrelated to fraud or damage, such as account inactivity, product or policy changes, or technology upgrades.
+                    * `NOT_ACTIVE` - The card hasn’t had any transaction activity for a specified period, applicable to statuses like `PAUSED` or `CLOSED`.
+                    * `SUSPICIOUS_ACTIVITY` - The card has one or more suspicious transactions or activities that require review. This can involve prompting the cardholder to confirm legitimate use or report confirmed fraud.
+                    * `INTERNAL_REVIEW` - The card is temporarily paused pending further internal review.
+                    * `EXPIRED` - The card has expired and has been closed without being reissued.
+                    * `UNDELIVERABLE` - The card cannot be delivered to the cardholder and has been returned.
+                    * `OTHER` - The reason for the status does not fall into any of the above categories. A comment should be provided to specify the reason.
+                  enum:
+                    - LOST
+                    - COMPROMISED
+                    - DAMAGED
+                    - END_USER_REQUEST
+                    - ISSUER_REQUEST
+                    - NOT_ACTIVE
+                    - SUSPICIOUS_ACTIVITY
+                    - INTERNAL_REVIEW
+                    - EXPIRED
+                    - UNDELIVERABLE
+                    - OTHER
+                  type: string
+                comment:
+                  description: Additional context or information related to the card.
                   type: string
               type: object
         required: true
@@ -4617,6 +4709,7 @@ paths:
               - ISSUING
               - OPERATING
               - RESERVE
+              - SECURITY
             type: string
       responses:
         '200':
@@ -8080,6 +8173,95 @@ paths:
       summary: Reverse management operation
       tags:
         - Management Operations
+  /v1/network_programs:
+    get:
+      description: List network programs.
+      operationId: getNetworkPrograms
+      parameters:
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          schema:
+            default: 50
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Date string in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
+          in: query
+          name: begin
+          schema:
+            format: date-time
+            type: string
+        - description: Date string in RFC 3339 format. Only entries created before the specified time will be included. UTC time zone.
+          in: query
+          name: end
+          schema:
+            format: date-time
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/NetworkProgram'
+                    type: array
+                  has_more:
+                    description: Whether there are more network programs to be retrieved.
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List network programs
+      tags:
+        - Network Program
+  /v1/network_programs/{network_program_token}:
+    get:
+      description: Get network program.
+      operationId: getNetworkProgram
+      parameters:
+        - description: Globally unique identifier for the network program.
+          in: path
+          name: network_program_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkProgram'
+              examples:
+                getNetworkProgramResponse:
+                  value:
+                    token: 94644cff-d693-4881-b472-3a51e742ea47
+                    registered_program_identification_number: '00000000'
+                    name: Visa Signature Preferred Credit Card
+                    default_product_code: D
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get network program
+      tags:
+        - Network Program
   /v1/funding_events:
     get:
       description: Get all funding events for program
@@ -10961,6 +11143,30 @@ components:
             - PAUSED
             - CLOSED
           type: string
+        substatus:
+          description: |
+            Account state substatus values:
+            * `FRAUD_IDENTIFIED` - The account has been recognized as being created or used with stolen or fabricated identity information, encompassing both true identity theft and synthetic identities.
+            * `SUSPICIOUS_ACTIVITY` - The account has exhibited suspicious behavior, such as unauthorized access or fraudulent transactions, necessitating further investigation.
+            * `RISK_VIOLATION` - The account has been involved in deliberate misuse by the legitimate account holder. Examples include disputing valid transactions without cause, falsely claiming non-receipt of goods, or engaging in intentional bust-out schemes to exploit account services.
+            * `END_USER_REQUEST` - The account holder has voluntarily requested the closure of the account for personal reasons. This encompasses situations such as bankruptcy, other financial considerations, or the account holder's death.
+            * `ISSUER_REQUEST` - The issuer has initiated the closure of the account due to business strategy, risk management, inactivity, product changes, regulatory concerns, or violations of terms and conditions.
+            * `NOT_ACTIVE` - The account has not had any transactions or payment activity within a specified period. This status applies to accounts that are paused or closed due to inactivity.
+            * `INTERNAL_REVIEW` - The account is temporarily paused pending further internal review. In future implementations, this status may prevent clients from activating the account via APIs until the review is completed.
+            * `OTHER` - The reason for the account's current status does not fall into any of the above categories. A comment should be provided to specify the particular reason.
+          enum:
+            - FRAUD_IDENTIFIED
+            - SUSPICIOUS_ACTIVITY
+            - RISK_VIOLATION
+            - END_USER_REQUEST
+            - ISSUER_REQUEST
+            - NOT_ACTIVE
+            - INTERNAL_REVIEW
+            - OTHER
+          type: string
+        comment:
+          description: Additional context or information related to the account.
+          type: string
         token:
           description: |
             Globally unique identifier for the account. This is the same as the account_token returned by the enroll endpoint. If using this parameter, do not include pagination.
@@ -11465,6 +11671,7 @@ components:
             - ISSUING
             - OPERATING
             - RESERVE
+            - SECURITY
           type: string
         last_financial_account_token:
           description: Globally unique identifier for the financial account that had its balance updated most recently
@@ -11609,6 +11816,7 @@ components:
             - ISSUING
             - OPERATING
             - RESERVE
+            - SECURITY
           type: string
         last_transaction_event_token:
           description: Globally unique identifier for the last financial transaction event that impacted this balance.
@@ -11664,6 +11872,7 @@ components:
             - ISSUING
             - OPERATING
             - RESERVE
+            - SECURITY
           type: string
         last_transaction_event_token:
           description: Globally unique identifier for the last financial transaction event that impacted this balance.
@@ -11778,6 +11987,9 @@ components:
       type: object
     CardProgram:
       properties:
+        account_level_management_enabled:
+          description: Whether the card program is participating in Account Level Management. Currently applicable to Visa card programs only.
+          type: boolean
         cardholder_currency:
           description: 3-character alphabetic ISO 4217 code for the currency of the cardholder.
           example: USD
@@ -11811,6 +12023,7 @@ components:
           format: uuid
           type: string
       required:
+        - account_level_management_enabled
         - created
         - name
         - pan_range_end
@@ -13971,6 +14184,27 @@ components:
           type: string
       title: UpdateFinancialAccountRequest
       type: object
+    NetworkProgram:
+      properties:
+        token:
+          description: Lithic-generated unique identifier for the program
+          format: uuid
+          type: string
+        registered_program_identification_number:
+          description: RPIN value assigned by the network.
+          type: string
+        name:
+          description: The name of the network program.
+          type: string
+        default_product_code:
+          description: Network product ID associated with this program.
+          type: string
+      required:
+        - token
+        - registered_program_identification_number
+        - name
+        - default_product_code
+      type: object
     settlementSummaryDetails:
       properties:
         currency:
@@ -14927,6 +15161,93 @@ components:
                     description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
       required:
         - conditions
+    velocity-limit-period:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-period.json
+      title: Velocity Limit Period
+      oneOf:
+        - title: Trailing Window
+          type: integer
+          description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
+          minimum: 10
+          maximum: 2678400
+        - title: Fixed Window
+          type: string
+          enum:
+            - DAY
+            - WEEK
+            - MONTH
+            - YEAR
+          description: |-
+            The window of time to calculate Spend Velocity over.
+
+            * `DAY`: Velocity over the current day since midnight Eastern Time.
+            * `WEEK`: Velocity over the current week since 00:00 / 12 AM on Monday in Eastern Time.
+            * `MONTH`: Velocity over the current month since 00:00 / 12 AM on the first of the month in Eastern Time.
+            * `YEAR`: Velocity over the current year since 00:00 / 12 AM on January 1st in Eastern Time.
+        - title: Trailing Window Object
+          type: object
+          properties:
+            duration:
+              type: integer
+              description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
+              minimum: 10
+              maximum: 2678400
+            type:
+              type: string
+              const: CUSTOM
+        - title: Fixed Window Day
+          type: object
+          description: Velocity over the current day since 00:00 / 12 AM in Eastern Time
+          properties:
+            type:
+              type: string
+              const: DAY
+        - title: Fixed Window Week
+          type: object
+          description: Velocity over the current week since 00:00 / 12 AM in Eastern Time on specified `day_of_week`
+          properties:
+            type:
+              type: string
+              const: WEEK
+            day_of_week:
+              type: integer
+              description: The day of the week to start the week from. Following ISO-8601, 1 is Monday and 7 is Sunday. Defaults to Monday if not specified.
+              minimum: 1
+              maximum: 7
+              default: 1
+        - title: Fixed Window Month
+          type: object
+          description: Velocity over the current month since 00:00 / 12 AM in Eastern Time on specified `day_of_month`.
+          properties:
+            type:
+              type: string
+              const: MONTH
+            day_of_month:
+              type: integer
+              description: The day of the month to start from. Accepts values from 1 to 31, and will reset at the end of the month if the day exceeds the number of days in the month. Defaults to the 1st of the month if not specified.
+              minimum: 1
+              maximum: 31
+              default: 1
+        - title: Fixed Window Year
+          type: object
+          description: Velocity over the current year since 00:00 / 12 AM in Eastern Time on specified `month` and `day_of_month`. This validates the month and day of the year to start from is a real date. In the event that February 29th is selected, in non-leap years, the window will start from February 28th.
+          properties:
+            type:
+              type: string
+              const: YEAR
+            day_of_month:
+              type: integer
+              description: The day of the month to start from. Defaults to the 1st of the month if not specified.
+              minimum: 1
+              maximum: 31
+              default: 1
+            month:
+              type: integer
+              description: The month to start from. 1 is January and 12 is December. Defaults to January if not specified.
+              minimum: 1
+              maximum: 12
+              default: 1
     velocity-limit-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-parameters.json
@@ -14939,26 +15260,7 @@ components:
             - CARD
             - ACCOUNT
         period:
-          anyOf:
-            - title: Trailing Window
-              type: integer
-              description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
-              minimum: 10
-              maximum: 2678400
-            - title: Fixed Window
-              type: string
-              enum:
-                - DAY
-                - WEEK
-                - MONTH
-                - YEAR
-              description: |-
-                The window of time to calculate Spend Velocity over.
-
-                * `DAY`: Velocity over the current day since midnight Eastern Time.
-                * `WEEK`: Velocity over the current week since 00:00 / 12 AM on Monday in Eastern Time.
-                * `MONTH`: Velocity over the current month since 00:00 / 12 AM on the first of the month in Eastern Time.
-                * `YEAR`: Velocity over the current year since 00:00 / 12 AM on January 1st in Eastern Time.
+          $ref: '#/components/schemas/velocity-limit-period'
         filters:
           type: object
           properties:
@@ -15035,8 +15337,8 @@ components:
                 A spend velocity impacting transaction is a transaction that has been authorized, and optionally settled, or a force post (a transaction that settled without prior authorization).
       required:
         - scope
-        - period
         - filters
+        - period
     merchant-lock-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/merchant-lock/merchant-lock-inputs.json
@@ -15095,7 +15397,7 @@ components:
                   * `MERCHANT_ID`: Unique alphanumeric identifier for the payment card acceptor (merchant).
                   * `DESCRIPTOR`: Short description of card acceptor.
                   * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
-                  * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authentication. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+                  * `RISK_SCORE`: Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk.
                   * `MESSAGE_CATEGORY`: The category of the authentication being processed.
                 enum:
                   - MCC
@@ -15625,6 +15927,12 @@ components:
           description: Friendly name to identify the card.
           example: New Card
           type: string
+        network_program_token:
+          description: Globally unique identifier for the card's network program. Null if the card is not associated with a network program. Currently applicable to Visa cards participating in Account Level Management only
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          type:
+            - string
+            - 'null'
         pending_commands:
           description: 'Indicates if there are offline PIN changes pending card interaction with an offline PIN terminal. Possible commands are: CHANGE_PIN, UNBLOCK_PIN. Applicable only to cards issued in markets supporting offline PINs.'
           items:
@@ -15655,6 +15963,24 @@ components:
             - PAUSED
             - PENDING_ACTIVATION
             - PENDING_FULFILLMENT
+          type: string
+        substatus:
+          description: 'Card state substatus values: * `LOST` - The physical card is no longer in the cardholder''s possession due to being lost or never received by the cardholder. * `COMPROMISED` - Card information has been exposed, potentially leading to unauthorized access. This may involve physical card theft, cloning, or online data breaches. * `DAMAGED` - The physical card is not functioning properly, such as having chip failures or a demagnetized magnetic stripe. * `END_USER_REQUEST` - The cardholder requested the closure of the card for reasons unrelated to fraud or damage, such as switching to a different product or closing the account. * `ISSUER_REQUEST` - The issuer closed the card for reasons unrelated to fraud or damage, such as account inactivity, product or policy changes, or technology upgrades. * `NOT_ACTIVE` - The card hasn’t had any transaction activity for a specified period, applicable to statuses like `PAUSED` or `CLOSED`. * `SUSPICIOUS_ACTIVITY` - The card has one or more suspicious transactions or activities that require review. This can involve prompting the cardholder to confirm legitimate use or report confirmed fraud. * `INTERNAL_REVIEW` - The card is temporarily paused pending further internal review. * `EXPIRED` - The card has expired and has been closed without being reissued. * `UNDELIVERABLE` - The card cannot be delivered to the cardholder and has been returned. * `OTHER` - The reason for the status does not fall into any of the above categories. A comment can be provided to specify the reason.'
+          enum:
+            - LOST
+            - COMPROMISED
+            - DAMAGED
+            - END_USER_REQUEST
+            - ISSUER_REQUEST
+            - NOT_ACTIVE
+            - SUSPICIOUS_ACTIVITY
+            - INTERNAL_REVIEW
+            - EXPIRED
+            - UNDELIVERABLE
+            - OTHER
+          type: string
+        comment:
+          description: Additional context or information related to the card.
           type: string
         token:
           description: Globally unique identifier.
@@ -17719,6 +18045,7 @@ components:
         - ACH_ORIGINATION_PROCESSED
         - ACH_ORIGINATION_SETTLED
         - ACH_RECEIPT_SETTLED
+        - ACH_RECEIPT_RELEASED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
         - ACH_RETURN_SETTLED
@@ -18643,7 +18970,7 @@ components:
         - address
         - zipcode
     cardholder_authentication:
-      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/cardholder_authentication.json
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/cardholder_authentication.yaml
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Cardholder Authentication
       type: object
@@ -18655,8 +18982,9 @@ components:
             - type: string
               example: '2'
               description: The 3DS version used for the authentication
+          deprecated: true
         acquirer_exemption:
-          description: Whether an acquirer exemption applied to the transaction.
+          description: Whether an acquirer exemption applied to the transaction. Not currently populated and will be removed in the future.
           enum:
             - AUTHENTICATION_OUTAGE_EXCEPTION
             - LOW_VALUE
@@ -18668,8 +18996,9 @@ components:
             - TRANSACTION_RISK_ANALYSIS
           example: NONE
           type: string
+          deprecated: true
         authentication_result:
-          description: Indicates what the outcome of the 3DS authentication process is.
+          description: Indicates the outcome of the 3DS authentication process.
           enum:
             - ATTEMPTS
             - DECLINE
@@ -18697,22 +19026,15 @@ components:
           example: LITHIC_RULES
           type: string
         liability_shift:
-          description: |+
+          description: |
             Indicates whether chargeback liability shift applies to the transaction. Possible enum values:
-
-                * `3DS_AUTHENTICATED`: The transaction was fully authenticated through a 3-D Secure flow, chargeback liability shift applies.
-
-                * `ACQUIRER_EXEMPTION`: The acquirer utilised an exemption to bypass Strong Customer Authentication (`transStatus = N`, or `transStatus = I`). Liability remains with the acquirer and in this case the `acquirer_exemption` field is expected to be not `NONE`.
-
-                * `NONE`: Chargeback liability shift has not shifted to the issuer, i.e. the merchant is liable.
-
-               * `TOKEN_AUTHENTICATED`: The transaction was a tokenized payment with validated cryptography, possibly recurring. Chargeback liability shift to the issuer applies.
-
+              * `3DS_AUTHENTICATED`: The transaction was fully authenticated through a 3-D Secure flow, chargeback liability shift applies.
+              * `NONE`: Chargeback liability shift has not shifted to the issuer, i.e. the merchant is liable.
+              * `TOKEN_AUTHENTICATED`: The transaction was a tokenized payment with validated cryptography, possibly recurring. Chargeback liability shift to the issuer applies.
           enum:
             - 3DS_AUTHENTICATED
-            - ACQUIRER_EXEMPTION
-            - NONE
             - TOKEN_AUTHENTICATED
+            - NONE
           type: string
         three_ds_authentication_token:
           oneOf:
@@ -18729,6 +19051,7 @@ components:
             - OTHER
           example: NONE
           type: string
+          deprecated: true
         verification_result:
           description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
           enum:
@@ -18740,6 +19063,7 @@ components:
             - SUCCESS
           example: FRICTIONLESS
           type: string
+          deprecated: true
       required:
         - 3ds_version
         - acquirer_exemption
@@ -20135,6 +20459,36 @@ components:
         - type
         - related_transaction_token
         - related_transaction_event_token
+    external_resource_type:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://schemas.lithic.com/customer-facing/treasury/ledger/external_resource_type.json
+      title: ExternalResourceType
+      type: string
+      enum:
+        - STATEMENT
+        - COLLECTION
+        - DISPUTE
+        - UNKNOWN
+      description: Type of external resource associated with the management operation
+    external_resource:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://schemas.lithic.com/customer-facing/treasury/ledger/external_resource.json
+      title: ExternalResource
+      type: object
+      required:
+        - external_resource_type
+        - external_resource_token
+      properties:
+        external_resource_type:
+          $ref: '#/components/schemas/external_resource_type'
+        external_resource_token:
+          type: string
+          description: Token identifying the external resource
+        external_resource_sub_token:
+          type: string
+          description: Token identifying the external resource sub-resource
+      description: External resource associated with the management operation
+      additionalProperties: false
     management_operation_transaction:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_transaction.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20177,6 +20531,10 @@ components:
           oneOf:
             - $ref: '#/components/schemas/transaction_series'
             - type: 'null'
+        external_resource:
+          oneOf:
+            - $ref: '#/components/schemas/external_resource'
+            - type: 'null'
       required:
         - token
         - result
@@ -20206,6 +20564,16 @@ components:
       required:
         - data
         - has_more
+    on_closed_account:
+      $id: https://lithic.com/schemas/treasury/ledger/on_closed_account.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: On Closed Account
+      description: What to do if the financial account is closed when posting an operation
+      type: string
+      enum:
+        - FAIL
+        - USE_SUSPENSE
+      default: FAIL
     create_management_operation_request:
       $id: https://lithic.com/schemas/treasury/ledger/create_management_operation_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20235,6 +20603,8 @@ components:
           format: uuid
         direction:
           $ref: '#/components/schemas/management_operation_direction'
+        on_closed_account:
+          $ref: '#/components/schemas/on_closed_account'
       required:
         - category
         - event_type
@@ -20481,82 +20851,6 @@ components:
           description: Globally unique identifier for the card.
           type: string
           format: uuid
-    asa_request_cardholder_authentication:
-      title: Cardholder Authentication Object
-      description: Cardholder Authentication object in ASA
-      type:
-        - object
-        - 'null'
-      properties:
-        3ds_version:
-          oneOf:
-            - type: 'null'
-              description: 3DS version not available
-            - type: string
-              description: The 3DS version used for the authentication
-        acquirer_exemption:
-          type: string
-          description: Whether an acquirer exemption applied to the transaction.
-          enum:
-            - NONE
-            - MERCHANT_INITIATED_TRANSACTION
-            - TRANSACTION_RISK_ANALYSIS
-            - RECURRING_PAYMENT
-            - LOW_VALUE
-            - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
-            - SECURE_CORPORATE_PAYMENT
-            - AUTHENTICATION_OUTAGE_EXCEPTION
-        liability_shift:
-          type: string
-          description: Indicates whether liability shift to the issuer applies to the transaction.
-          enum:
-            - NONE
-            - 3DS_AUTHENTICATED
-            - TOKEN_AUTHENTICATED
-        verification_attempted:
-          type: string
-          description: Indicates whether a 3DS challenge flow was used, and if so, what the verification method was. (deprecated, use `authentication_result`)
-          enum:
-            - NONE
-            - OTHER
-        verification_result:
-          type: string
-          description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
-          enum:
-            - SUCCESS
-            - FRICTIONLESS
-            - NOT_ATTEMPTED
-        authentication_result:
-          type: string
-          description: Indicates what the outcome of the 3DS authentication process is.
-          enum:
-            - SUCCESS
-            - DECLINE
-            - ATTEMPTS
-            - NONE
-        decision_made_by:
-          type: string
-          description: Indicates which party made the 3DS authentication decision.
-          enum:
-            - NETWORK
-            - LITHIC_DEFAULT
-            - LITHIC_RULES
-            - CUSTOMER_RULES
-            - CUSTOMER_ENDPOINT
-            - UNKNOWN
-        three_ds_authentication_token:
-          oneOf:
-            - type: 'null'
-              description: 3DS authentication token not available.
-            - type: string
-              description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
-        authentication_method:
-          type: string
-          description: Indicates the method used to authenticate the cardholder.
-          enum:
-            - FRICTIONLESS
-            - CHALLENGE
-            - NONE
     asa_request_pos_entry_mode:
       description: POS > Entry Mode object in ASA
       type: object
@@ -20756,7 +21050,7 @@ components:
         card:
           $ref: '#/components/schemas/asa_request_card'
         cardholder_authentication:
-          $ref: '#/components/schemas/asa_request_cardholder_authentication'
+          $ref: '#/components/schemas/cardholder_authentication'
         pos:
           type: object
           properties:
@@ -21036,82 +21330,6 @@ components:
                   description: Identifies the purpose or category of a transaction, used to classify and process transactions according to Visa’s rules.
                   minLength: 2
                   maxLength: 2
-        asa_request_cardholder_authentication:
-          title: Cardholder Authentication Object
-          description: Cardholder Authentication object in ASA
-          type:
-            - object
-            - 'null'
-          properties:
-            3ds_version:
-              oneOf:
-                - type: 'null'
-                  description: 3DS version not available
-                - type: string
-                  description: The 3DS version used for the authentication
-            acquirer_exemption:
-              type: string
-              description: Whether an acquirer exemption applied to the transaction.
-              enum:
-                - NONE
-                - MERCHANT_INITIATED_TRANSACTION
-                - TRANSACTION_RISK_ANALYSIS
-                - RECURRING_PAYMENT
-                - LOW_VALUE
-                - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
-                - SECURE_CORPORATE_PAYMENT
-                - AUTHENTICATION_OUTAGE_EXCEPTION
-            liability_shift:
-              type: string
-              description: Indicates whether liability shift to the issuer applies to the transaction.
-              enum:
-                - NONE
-                - 3DS_AUTHENTICATED
-                - TOKEN_AUTHENTICATED
-            verification_attempted:
-              type: string
-              description: Indicates whether a 3DS challenge flow was used, and if so, what the verification method was. (deprecated, use `authentication_result`)
-              enum:
-                - NONE
-                - OTHER
-            verification_result:
-              type: string
-              description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
-              enum:
-                - SUCCESS
-                - FRICTIONLESS
-                - NOT_ATTEMPTED
-            authentication_result:
-              type: string
-              description: Indicates what the outcome of the 3DS authentication process is.
-              enum:
-                - SUCCESS
-                - DECLINE
-                - ATTEMPTS
-                - NONE
-            decision_made_by:
-              type: string
-              description: Indicates which party made the 3DS authentication decision.
-              enum:
-                - NETWORK
-                - LITHIC_DEFAULT
-                - LITHIC_RULES
-                - CUSTOMER_RULES
-                - CUSTOMER_ENDPOINT
-                - UNKNOWN
-            three_ds_authentication_token:
-              oneOf:
-                - type: 'null'
-                  description: 3DS authentication token not available.
-                - type: string
-                  description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
-            authentication_method:
-              type: string
-              description: Indicates the method used to authenticate the cardholder.
-              enum:
-                - FRICTIONLESS
-                - CHALLENGE
-                - NONE
         asa_request_card:
           description: Card object in ASA
           type: object
