@@ -11261,11 +11261,7 @@ components:
           type: string
         email:
           description: |
-            <
-              Deprecated.
-              Use control_person.email when user_type == "BUSINESS".
-              Use individual.phone_number when user_type == "INDIVIDUAL".
-            >
+            (Deprecated. Use control_person.email when user_type == "BUSINESS". Use individual.phone_number when user_type == "INDIVIDUAL".)
             Primary email of Account Holder.
           example: '+15555555555'
           type: string
@@ -11288,17 +11284,13 @@ components:
           type: string
         phone_number:
           description: |
-            <
-              Deprecated.
-              Use control_person.phone_number when user_type == "BUSINESS".
-              Use individual.phone_number when user_type == "INDIVIDUAL".
-            >
+            (Deprecated. Use control_person.phone_number when user_type == "BUSINESS". Use individual.phone_number when user_type == "INDIVIDUAL".)
             Primary phone of Account Holder, entered in E.164 format.
           example: '+15555555555'
           type: string
         status:
           description: |
-            <Deprecated. Use verification_application.status instead>
+            (Deprecated. Use verification_application.status instead)
 
             KYC and KYB evaluation states.
 
@@ -11312,7 +11304,10 @@ components:
             - REJECTED
           type: string
         status_reasons:
-          description: <Deprecated. Use verification_application.status_reasons> Reason for the evaluation status.
+          description: |
+            (Deprecated. Use verification_application.status_reasons)
+
+            Reason for the evaluation status.
           items:
             enum:
               - ADDRESS_VERIFICATION_FAILURE
@@ -14770,33 +14765,28 @@ components:
           format: string
         email:
           description: |
-            <
-              Deprecated.
-              Use control_person.email when user_type == "BUSINESS".
-              Use individual.phone_number when user_type == "INDIVIDUAL".
-            >
+            (Deprecated. Use control_person.email when user_type == "BUSINESS".
+            Use individual.phone_number when user_type == "INDIVIDUAL".)
             Primary email of Account Holder.
           type: string
         phone_number:
           description: |
-            <
-              Deprecated.
-              Use control_person.phone_number when user_type == "BUSINESS".
-              Use individual.phone_number when user_type == "INDIVIDUAL".
-            >
+            (Deprecated. Use control_person.phone_number when user_type == "BUSINESS".
+            Use individual.phone_number when user_type == "INDIVIDUAL".)
             Primary phone of Account Holder, entered in E.164 format.
           type: string
         status:
           description: |+
-            <Deprecated. Use verification_application.status instead>
-
+            (Deprecated. Use verification_application.status instead)
             KYC and KYB evaluation states.
 
             Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
 
           $ref: '#/components/schemas/status'
         status_reasons:
-          description: <Deprecated. Use verification_application.status_reasons> Reason for the evaluation status.
+          description: |-
+            (Deprecated. Use verification_application.status_reasons)
+             Reason for the evaluation status.
           type: array
           items:
             $ref: '#/components/schemas/status-reasons'
@@ -18197,33 +18187,28 @@ components:
           format: string
         email:
           description: |
-            <
-              Deprecated.
-              Use control_person.email when user_type == "BUSINESS".
-              Use individual.phone_number when user_type == "INDIVIDUAL".
-            >
+            (Deprecated. Use control_person.email when user_type == "BUSINESS".
+            Use individual.phone_number when user_type == "INDIVIDUAL".)
             Primary email of Account Holder.
           type: string
         phone_number:
           description: |
-            <
-              Deprecated.
-              Use control_person.phone_number when user_type == "BUSINESS".
-              Use individual.phone_number when user_type == "INDIVIDUAL".
-            >
+            (Deprecated. Use control_person.phone_number when user_type == "BUSINESS".
+            Use individual.phone_number when user_type == "INDIVIDUAL".)
             Primary phone of Account Holder, entered in E.164 format.
           type: string
         status:
           description: |+
-            <Deprecated. Use verification_application.status instead>
-
+            (Deprecated. Use verification_application.status instead)
             KYC and KYB evaluation states.
 
             Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
 
           $ref: '#/components/schemas/status'
         status_reasons:
-          description: <Deprecated. Use verification_application.status_reasons> Reason for the evaluation status.
+          description: |-
+            (Deprecated. Use verification_application.status_reasons)
+            Reason for the evaluation status.
           type: array
           items:
             $ref: '#/components/schemas/status-reasons'
@@ -21385,7 +21370,6 @@ components:
             - APPROVED
             - ACCOUNT_INACTIVE
             - AVS_INVALID
-            - CARD_CLOSED
             - CARD_PAUSED
             - INSUFFICIENT_FUNDS
             - UNAUTHORIZED_MERCHANT
