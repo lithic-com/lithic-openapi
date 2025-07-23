@@ -1077,6 +1077,7 @@ paths:
               - PROGRAM
               - ACCOUNT
               - CARD
+              - ANY
             type: string
         - name: event_stream
           in: query
@@ -13658,6 +13659,7 @@ components:
             - ARBITRATION
             - CHARGEBACK
             - CLEARING
+            - COLLABORATION
             - FEE
             - FINANCIAL
             - NON-FINANCIAL
