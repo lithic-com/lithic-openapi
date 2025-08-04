@@ -5342,6 +5342,144 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /v1/account_activity:
+    get:
+      operationId: listAccountActivity
+      summary: List Account Activity
+      description: Retrieve a list of transactions across all public accounts.
+      parameters:
+        - name: status
+          in: query
+          description: Filter by transaction status
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - DECLINED
+                - EXPIRED
+                - PENDING
+                - SETTLED
+                - VOIDED
+                - RETURNED
+                - REVERSED
+        - name: result
+          in: query
+          description: Filter by transaction result
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - APPROVED
+                - DECLINED
+        - name: financial_account_token
+          in: query
+          description: Filter by financial account token
+          schema:
+            type: string
+            format: uuid
+        - name: business_account_token
+          in: query
+          description: Filter by business account token
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          description: Filter by transaction category
+          schema:
+            $ref: '#/components/schemas/transaction_category'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+      responses:
+        '200':
+          description: Successful response with unified transaction data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/base-transactions-response'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Financial Account
+  /v1/account_activity/{transaction_token}:
+    get:
+      operationId: getAccountActivity
+      summary: Get Single Transaction from Account Activity
+      description: Retrieve a single transaction
+      parameters:
+        - name: transaction_token
+          in: path
+          required: true
+          description: The unique identifier for the transaction
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response with the requested account activity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/base-transaction-response'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Financial Account
   /v1/payments:
     get:
       description: List all the payments for the provided search criteria.
@@ -13522,6 +13660,8 @@ components:
           format: date
           title: Expected Release Date
           type: string
+        related_account_tokens:
+          $ref: '#/components/schemas/related_account_tokens'
       required:
         - direction
         - external_bank_account_token
@@ -13541,6 +13681,7 @@ components:
         - status
         - token
         - updated
+        - related_account_tokens
       type: object
       title: PaymentResponse
     PostPaymentResponse:
@@ -14156,12 +14297,23 @@ components:
           description: Date and time when the financial transaction was last updated. UTC time zone.
           format: date-time
           type: string
+        transaction_series:
+          description: A series of transactions that are grouped together.
+          oneOf:
+            - $ref: '#/components/schemas/transaction_series'
+            - type: 'null'
+        external_resource:
+          description: An external resource associated with the transfer.
+          oneOf:
+            - $ref: '#/components/schemas/external_resource'
+            - type: 'null'
       type: object
       required:
         - category
         - created
         - currency
         - events
+        - external_resource
         - from_financial_account_token
         - pending_amount
         - result
@@ -14169,6 +14321,7 @@ components:
         - status
         - to_financial_account_token
         - token
+        - transaction_series
         - updated
     UpdateFinancialAccountRequest:
       properties:
@@ -17759,1114 +17912,229 @@ components:
       examples:
         - status: CLOSED
           substatus: END_USER_REQUEST
-    network_total:
-      $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
+    transaction_family_types:
+      $id: https://lithic.com/schemas/treasury/ledger/transaction_family_types.json
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Network Total
+      title: TransactionFamilyType
+      type: string
+      enum:
+        - CARD
+        - PAYMENT
+        - TRANSFER
+        - INTERNAL
+        - EXTERNAL_PAYMENT
+        - MANAGEMENT_OPERATION
+    transaction_status:
+      $id: https://lithic.com/schemas/treasury/ledger/transaction_status.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Status
+      type: string
+      enum:
+        - PENDING
+        - SETTLED
+        - DECLINED
+        - REVERSED
+        - CANCELED
+    base_transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/base_transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: base_transaction
+      description: Base class for all transaction types in the ledger service
       type: object
-      required:
-        - token
-        - network
-        - institution_id
-        - settlement_institution_id
-        - settlement_service
-        - report_date
-        - currency
-        - is_complete
-        - amounts
-        - created
-        - updated
       properties:
+        family:
+          $ref: '#/components/schemas/transaction_family_types'
+        status:
+          $ref: '#/components/schemas/transaction_status'
+          description: The status of the transaction
         token:
           type: string
+          description: Unique identifier for the transaction
           format: uuid
-          description: Globally unique identifier.
-        network:
-          type: string
-          enum:
-            - AMEX
-            - VISA
-            - MASTERCARD
-            - MAESTRO
-            - INTERLINK
-          description: Card network where the transaction took place. AMEX, VISA, MASTERCARD, MAESTRO, or INTERLINK.
-        institution_id:
-          type: string
-          description: 'The institution that activity occurred on. For Mastercard: ICA (Interbank Card Association). For Maestro: institution ID. For Visa: lowest level SRE (Settlement Reporting Entity).'
-        settlement_institution_id:
-          type: string
-          description: 'The institution responsible for settlement. For Mastercard: same as `institution_id`. For Maestro: billing ICA. For Visa: Funds Transfer SRE (FTSRE).'
-        settlement_service:
-          type: string
-          description: Settlement service.
-        report_date:
-          type: string
-          format: date
-          description: Date that the network total record applies to. YYYY-MM-DD format.
-        cycle:
-          type: integer
-          description: The clearing cycle that the network total record applies to. Mastercard only.
-        currency:
-          type: string
-          description: 3-character alphabetic ISO 4217 code.
-        is_complete:
-          type: boolean
-          description: Indicates that all settlement records related to this Network Total are available in the details endpoint.
-        amounts:
-          type: object
-          required:
-            - gross_settlement
-            - interchange_fees
-            - net_settlement
-          properties:
-            gross_settlement:
-              type: integer
-              description: Total settlement amount excluding interchange, in currency's smallest unit.
-            interchange_fees:
-              type: integer
-              description: Interchange amount, in currency's smallest unit.
-            visa_charges:
-              type: integer
-              description: Charges specific to Visa/Interlink, in currency's smallest unit.
-            net_settlement:
-              type: integer
-              description: '`gross_settlement` net of `interchange_fees` and `visa_charges` (if applicable), in currency''s smallest unit.'
         created:
           type: string
+          description: ISO 8601 timestamp of when the transaction was created
           format: date-time
-          description: RFC 3339 timestamp for when the record was created. UTC time zone.
         updated:
           type: string
+          description: ISO 8601 timestamp of when the transaction was last updated
           format: date-time
-          description: RFC 3339 timestamp for when the record was last updated. UTC time zone.
-      examples:
-        - token: 12cf7505-06a8-435e-b1c7-4c430d02f6c3
-          network: VISA
-          institution_id: '1000000000'
-          settlement_institution_id: '1000000001'
-          settlement_service: '015'
-          report_date: '2025-02-25'
-          currency: CAD
-          is_complete: true
-          amounts:
-            gross_settlement: 100
-            interchange_fees: -25
-            visa_charges: 10
-            net_settlement: 85
-          created: '2025-02-25T13:07:31.419631Z'
-          updated: '2025-02-25T13:07:31.419631Z'
-    network_totals_list:
-      $id: https://lithic.com/schemas/common/2025-02-25/network_totals_list.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Network Totals Response
-      type: object
       required:
-        - data
-        - has_more
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/network_total'
-        has_more:
-          description: Indicates whether there are more network total records to be retrieved.
-          type: boolean
-      examples:
-        - data:
-            - token: 12cf7505-06a8-435e-b1c7-4c430d02f6c3
-              network: VISA
-              institution_id: '1000000000'
-              settlement_institution_id: '1000000001'
-              settlement_service: '015'
-              report_date: '2025-02-25'
-              currency: CAD
-              is_complete: true
-              amounts:
-                gross_settlement: 100
-                interchange_fees: -25
-                visa_charges: 10
-                net_settlement: 85
-              created: '2025-02-25T13:07:31.419631Z'
-              updated: '2025-02-25T13:07:31.419631Z'
-            - token: 0604c316-17f0-456d-9ac7-7d94252acb1a
-              network: INTERLINK
-              institution_id: '1000000000'
-              settlement_institution_id: '1000000001'
-              settlement_service: '001'
-              report_date: '2025-02-25'
-              currency: USD
-              is_complete: true
-              amounts:
-                gross_settlement: 200
-                interchange_fees: -50
-                visa_charges: 10
-                net_settlement: 160
-              created: '2025-02-25T13:07:31.419631Z'
-              updated: '2025-02-25T13:07:31.419631Z'
-            - token: 700a1c78-04ed-47e2-8160-b1e18914ec7b
-              network: MASTERCARD
-              institution_id: '031511'
-              settlement_institution_id: '031511'
-              settlement_service: US00000001
-              report_date: '2025-02-25'
-              currency: USD
-              cycle: 1
-              is_complete: false
-              amounts:
-                gross_settlement: 100
-                interchange_fees: -25
-                net_settlement: 75
-              created: '2025-02-25T13:07:31.419631Z'
-              updated: '2025-02-25T13:07:31.419631Z'
-            - token: e05d5448-210e-4cc3-bd0d-d54d3c6c9a9f
-              network: MASTERCARD
-              institution_id: '031511'
-              settlement_institution_id: '031511'
-              settlement_service: US00000001
-              report_date: '2025-02-25'
-              currency: USD
-              cycle: 2
-              is_complete: true
-              amounts:
-                gross_settlement: 100
-                interchange_fees: -25
-                net_settlement: 75
-              created: '2025-02-25T13:07:31.419631Z'
-              updated: '2025-02-25T13:07:31.419631Z'
-          has_more: false
-    simulate_receipt_request:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_receipt_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Simulate Receipt Request
-      type: object
-      properties:
-        financial_account_token:
-          description: Financial Account Token
-          type: string
-          format: uuid
-        token:
-          description: Customer-generated payment token used to uniquely identify the simulated payment
-          type: string
-          format: uuid
-        receipt_type:
-          description: Receipt Type
-          type: string
-          enum:
-            - RECEIPT_CREDIT
-            - RECEIPT_DEBIT
-        amount:
-          description: Amount
-          type: integer
-          minimum: 0
-        memo:
-          description: Memo
-          type: string
-      required:
-        - financial_account_token
+        - family
+        - status
         - token
-        - receipt_type
-        - amount
-    result:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/result.json
+        - created
+        - updated
+    transaction_result:
+      $id: https://lithic.com/schemas/treasury/ledger/transaction_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Result
       type: string
       enum:
         - APPROVED
         - DECLINED
-      title: Result
-    simulate_payment_response:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_payment_response.json
+    financial-transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/financial-transaction.json
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Simulate Payment Response
-      type: object
-      properties:
-        result:
-          description: Request Result
-          $ref: '#/components/schemas/result'
-        transaction_event_token:
-          description: Transaction Event Token
-          type: string
-          format: uuid
-        debugging_request_id:
-          description: Debugging Request Id
-          type: string
-          format: uuid
-      required:
-        - result
-        - transaction_event_token
-        - debugging_request_id
-    simulate_origination_release_request:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_origination_release_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Simulate Origination Release Request
-      type: object
-      properties:
-        payment_token:
-          description: Payment Token
-          type: string
-          format: uuid
-      required:
-        - payment_token
-    simulate_origination_return_request:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_origination_return_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Simulate Origination Return Request
-      type: object
-      properties:
-        payment_token:
-          description: Payment Token
-          type: string
-          format: uuid
-        return_reason_code:
-          description: Return Reason Code
-          type: string
-          default: R01
-          pattern: ^R[0-9][0-9]$
-      required:
-        - payment_token
-    supported_simulation_types:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/supported_simulation_types.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - ACH_ORIGINATION_REVIEWED
-        - ACH_ORIGINATION_RELEASED
-        - ACH_ORIGINATION_PROCESSED
-        - ACH_ORIGINATION_SETTLED
-        - ACH_RECEIPT_SETTLED
-        - ACH_RECEIPT_RELEASED
-        - ACH_RETURN_INITIATED
-        - ACH_RETURN_PROCESSED
-        - ACH_RETURN_SETTLED
-      title: Supported Simulation Types
-    supported_simulation_decline_reasons:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/supported_simulation_decline_reasons.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
-        - PROGRAM_DAILY_LIMIT_EXCEEDED
-        - PROGRAM_MONTHLY_LIMIT_EXCEEDED
-      title: Supported Simulation Decline Reasons
-    simulate_action_request:
-      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_action_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Simulate Action Request
-      type: object
-      properties:
-        event_type:
-          description: Event Type
-          $ref: '#/components/schemas/supported_simulation_types'
-        return_reason_code:
-          description: Return Reason Code
-          type: string
-        decline_reason:
-          description: Decline reason
-          $ref: '#/components/schemas/supported_simulation_decline_reasons'
-      required:
-        - event_type
-    simulate-enrollment-review-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-review.json
-      title: Simulate account holder enrollment review request body
-      type: object
-      properties:
-        account_holder_token:
-          description: The account holder which to perform the simulation upon.
-          type: string
-        status:
-          description: An account holder's status for use within the simulation.
-          type: string
-          enum:
-            - ACCEPTED
-            - REJECTED
-        status_reasons:
-          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
-          type: array
-          items:
-            type: string
-            enum:
-              - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
-              - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
-              - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
-              - PRIMARY_BUSINESS_ENTITY_CMRA_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_WATCHLIST_FAILURE
-              - PRIMARY_BUSINESS_ENTITY_REGISTERED_AGENT_FAILURE
-              - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
-              - CONTROL_PERSON_ID_VERIFICATION_FAILURE
-              - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
-              - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
-              - BENEFICIAL_OWNER_INDIVIDUAL_DOB_VERIFICATION_FAILURE
-              - BENEFICIAL_OWNER_INDIVIDUAL_BLOCKLIST_ALERT_FAILURE
-              - BENEFICIAL_OWNER_INDIVIDUAL_ID_VERIFICATION_FAILURE
-              - BENEFICIAL_OWNER_INDIVIDUAL_NAME_VERIFICATION_FAILURE
-    account-holder-response:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/account-holder-response.json
-      title: Account Holder
-      type: object
-      properties:
-        token:
-          description: Globally unique identifier for the account holder.
-          type: string
-          format: uuid
-        account_token:
-          description: Globally unique identifier for the account.
-          type: string
-          format: uuid
-        business_account_token:
-          description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
-          type: string
-          format: uuid
-        created:
-          description: Timestamp of when the account holder was created.
-          type: string
-          format: date-time
-        exemption_type:
-          description: The type of KYC exemption for a KYC-Exempt Account Holder. "None" if the account holder is not KYC-Exempt.
-          type: string
-          enum:
-            - AUTHORIZED_USER
-            - PREPAID_CARD_USER
-        external_id:
-          description: Customer-provided token that indicates a relationship with an object outside of the Lithic ecosystem.
-          type: string
-          format: string
-        user_type:
-          description: |-
-            The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
-
-            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals",
-            "nature_of_business", and "website_url" attributes will be present.
-          type: string
-          enum:
-            - BUSINESS
-            - INDIVIDUAL
-        verification_application:
-          $ref: '#/components/schemas/verification-application'
-          description: Information about the most recent identity verification attempt
-        individual:
-          $ref: '#/components/schemas/individual'
-          description: Only present when user_type == "INDIVIDUAL". Information about the individual for which the account is being opened and KYC is being run.
-        business_entity:
-          $ref: '#/components/schemas/kyb-business-entity'
-          description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
-        beneficial_owner_entities:
-          description: Deprecated.
-          type: array
-          items:
-            $ref: '#/components/schemas/kyb-business-entity'
-          minItems: 0
-        beneficial_owner_individuals:
-          description: Only present when user_type == "BUSINESS". You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
-          type: array
-          items:
-            $ref: '#/components/schemas/individual'
-          minItems: 0
-        control_person:
-          $ref: '#/components/schemas/individual'
-          description: |-
-            Only present when user_type == "BUSINESS".
-
-            An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer,
-
-            Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access
-
-            to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
-        nature_of_business:
-          description: Only present when user_type == "BUSINESS". User-submitted description of the business.
-          type: string
-          format: string
-        website_url:
-          description: Only present when user_type == "BUSINESS". Business's primary website.
-          type: string
-          format: string
-        email:
-          description: |
-            (Deprecated. Use control_person.email when user_type == "BUSINESS".
-            Use individual.phone_number when user_type == "INDIVIDUAL".)
-            Primary email of Account Holder.
-          type: string
-        phone_number:
-          description: |
-            (Deprecated. Use control_person.phone_number when user_type == "BUSINESS".
-            Use individual.phone_number when user_type == "INDIVIDUAL".)
-            Primary phone of Account Holder, entered in E.164 format.
-          type: string
-        status:
-          description: |+
-            (Deprecated. Use verification_application.status instead)
-            KYC and KYB evaluation states.
-
-            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
-
-          $ref: '#/components/schemas/status'
-        status_reasons:
-          description: |-
-            (Deprecated. Use verification_application.status_reasons)
-            Reason for the evaluation status.
-          type: array
-          items:
-            $ref: '#/components/schemas/status-reasons'
-        required_documents:
-          description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
-          type: array
-          items:
-            $ref: '#/components/schemas/required-document'
-    simulate-enrollment-document-review-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-document-review.json
-      title: Simulate account holder enrollment document review request body
-      type: object
-      properties:
-        document_upload_token:
-          description: The account holder document upload which to perform the simulation upon.
-          type: string
-        status:
-          description: An account holder document's upload status for use within the simulation.
-          type: string
-          enum:
-            - UPLOADED
-            - ACCEPTED
-            - REJECTED
-            - PARTIAL_APPROVAL
-        status_reason:
-          $ref: '#/components/schemas/document-upload-status-reasons'
-          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status or `PARTIAL_APPROVAL` status.
-        accepted_entity_status_reasons:
-          description: A list of status reasons associated with a KYB account holder in PENDING_REVIEW
-          type: array
-          items:
-            type: string
-      required:
-        - document_upload_token
-        - status
-    simulate-authentication-request:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/3ds/simulate-authentication-request.json
-      title: 3DS Simulation Request object
-      type: object
-      description: Request object for simulating a 3DS authentication
-      properties:
-        merchant:
-          type: object
-          description: Merchant information for the simulated transaction
+      title: Financial Transaction
+      description: Financial transaction with inheritance from unified base transaction
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - type: object
           properties:
-            country:
+            category:
+              $ref: '#/components/schemas/transaction_category'
+              description: Transaction category
+            result:
+              $ref: '#/components/schemas/transaction_result'
+              description: Transaction result
+            currency:
               type: string
-              description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
-              example: USA
-            id:
-              type: string
-              description: Unique identifier to identify the payment card acceptor. Corresponds to `merchant_acceptor_id` in authorization.
-              example: OODKZAPJVN4YS7O
-              maxLength: 15
-              minLength: 1
-            mcc:
-              type: string
-              description: Merchant category code for the transaction to be simulated. A four-digit number listed in ISO 18245. Supported merchant category codes can be found [here](https://docs.lithic.com/docs/transactions#merchant-category-codes-mccs).
-              example: '5812'
-            name:
-              type: string
-              description: Merchant descriptor, corresponds to `descriptor` in authorization. If CHALLENGE keyword is included, Lithic will trigger a challenge.
-              example: COFFEE SHOP
-              maxLength: 25
-              minLength: 1
-          required:
-            - country
-            - id
-            - mcc
-            - name
-        pan:
-          type: string
-          description: Sixteen digit card number.
-          example: '4111111289144142'
-          maxLength: 16
-          minLength: 16
-        transaction:
-          type: object
-          description: Transaction details for the simulation
-          properties:
-            amount:
+              description: Currency of the transaction, represented in ISO 4217 format
+              example: USD
+            settled_amount:
               type: integer
-              description: Amount (in cents) to authenticate.
-              minimum: 0
-            currency:
+              description: Settled amount in cents
+              example: 200
+            pending_amount:
+              type: integer
+              description: Pending amount in cents
+              example: 500
+            events:
+              type: array
+              items:
+                type: object
+              description: List of transaction events
+            descriptor:
               type: string
-              description: 3-character alphabetic ISO 4217 currency code.
-              example: GBP
+              description: Transaction descriptor
+            financial_account_token:
+              type: string
+              format: uuid
+              description: Financial account token associated with the transaction
+              example: 0cc87075-57cf-4607-8722-f42e2cb2c0cd
           required:
-            - amount
+            - category
             - currency
-        card_expiry_check:
-          type: string
-          description: When set will use the following values as part of the Simulated Authentication. When not set defaults to MATCH
-          enum:
-            - MATCH
-            - MISMATCH
-            - NOT_PRESENT
-      required:
-        - merchant
-        - pan
-        - transaction
-    authentication:
+            - result
+            - settled_amount
+            - pending_amount
+            - events
+            - descriptor
+            - financial_account_token
+    transaction_series:
+      $id: https://lithic.com/schemas/treasury/ledger/transaction_series.json
       $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/3ds/authentication.json
-      title: 3DS Authentication object
+      title: Transaction Series
       type: object
-      description: Represents a 3DS authentication
       properties:
-        account_type:
-          type:
-            - string
-            - 'null'
-          description: Type of account/card that is being used for the transaction. Maps to EMV 3DS field `acctType`.
-          enum:
-            - CREDIT
-            - DEBIT
-            - NOT_APPLICABLE
-            - null
-        additional_data:
-          type:
-            - object
-            - 'null'
-          description: Object containing additional data about the 3DS request that is beyond the EMV 3DS standard spec (e.g., specific fields that only certain card networks send but are not required across all 3DS requests).
-          properties:
-            network_decision:
-              type:
-                - string
-                - 'null'
-              description: 'Mastercard only: Indicates whether the network would have considered the authentication request to be low risk or not.'
-              enum:
-                - LOW_RISK
-                - NOT_LOW_RISK
-                - null
-            network_risk_score:
-              type:
-                - integer
-                - 'null'
-              description: 'Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values: Integer between 0-950, in increments of 50.'
-          required: []
-        app:
-          type:
-            - object
-            - 'null'
-          description: Object containing data about the app used in the e-commerce transaction. Present if the channel is 'APP_BASED'.
-          properties:
-            device_info:
-              type:
-                - string
-                - 'null'
-              description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded. Maps to EMV 3DS field `deviceInfo`.
-            ip:
-              anyOf:
-                - type: string
-                  format: ipv4
-                - type: string
-                  format: ipv6
-                - type: 'null'
-              description: External IP address used by the app generating the 3DS authentication request. Maps to EMV 3DS field `appIp`.
-          required: []
-        authentication_request_type:
-          type:
-            - string
-            - 'null'
-          description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field `threeDSRequestorAuthenticationInd`.
-          enum:
-            - ADD_CARD
-            - BILLING_AGREEMENT
-            - DELAYED_SHIPMENT
-            - EMV_TOKEN_CARDHOLDER_VERIFICATION
-            - INSTALLMENT_TRANSACTION
-            - MAINTAIN_CARD
-            - PAYMENT_TRANSACTION
-            - RECURRING_TRANSACTION
-            - SPLIT_PAYMENT
-            - SPLIT_SHIPMENT
-            - null
-        authentication_result:
-          type:
-            - string
-          description: Indicates the outcome of the 3DS authentication process.
-          enum:
-            - DECLINE
-            - SUCCESS
-            - PENDING_CHALLENGE
-            - PENDING_DECISION
-        browser:
-          type:
-            - object
-            - 'null'
-          description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
-          properties:
-            accept_header:
-              type:
-                - string
-                - 'null'
-              description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
-            ip:
-              anyOf:
-                - type: string
-                  format: ipv4
-                - type: string
-                  format: ipv6
-                - type: 'null'
-              description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field `browserIP`.
-            java_enabled:
-              type:
-                - boolean
-                - 'null'
-              description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field `browserJavaEnabled`.
-            javascript_enabled:
-              type:
-                - boolean
-                - 'null'
-              description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field `browserJavascriptEnabled`.
-            language:
-              type:
-                - string
-                - 'null'
-              description: Language of the cardholder's browser as defined in IETF BCP47. Maps to EMV 3DS field `browserLanguage`.
-            time_zone:
-              type:
-                - string
-                - 'null'
-              description: Time zone of the cardholder's browser offset in minutes between UTC and the cardholder browser's local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field `browserTz`.
-            user_agent:
-              type:
-                - string
-                - 'null'
-              description: Content of the HTTP user-agent header. Maps to EMV 3DS field `browserUserAgent`.
-          required: []
-        card_expiry_check:
+        type:
           type: string
-          description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic's record of the card's expiration date.
-          enum:
-            - MATCH
-            - MISMATCH
-            - NOT_PRESENT
-        card_token:
-          type: string
-          description: 'Globally unique identifier for the card on which the 3DS authentication has occurred. Permitted values: 36-digit version 4 UUID (including hyphens).'
-          format: uuid
-        cardholder:
-          type: object
-          description: Object containing data about the cardholder provided during the transaction.
-          properties:
-            address_match:
-              type:
-                - boolean
-                - 'null'
-              description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field `addrMatch`.
-            billing_address:
-              type: object
-              description: Object containing data on the billing address provided during the transaction.
-              properties:
-                address1:
-                  type:
-                    - string
-                    - 'null'
-                  description: First line of the street address provided by the cardholder.
-                address2:
-                  type:
-                    - string
-                    - 'null'
-                  description: Second line of the street address provided by the cardholder.
-                address3:
-                  type:
-                    - string
-                    - 'null'
-                  description: Third line of the street address provided by the cardholder.
-                city:
-                  type:
-                    - string
-                    - 'null'
-                  description: City of the address provided by the cardholder.
-                country:
-                  type:
-                    - string
-                    - 'null'
-                  description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
-                  minLength: 3
-                  maxLength: 3
-                postal_code:
-                  type:
-                    - string
-                    - 'null'
-                  description: Postal code (e.g., ZIP code) of the address provided by the cardholder
-            email:
-              type:
-                - string
-                - 'null'
-              description: Email address that is either provided by the cardholder or is on file with the merchant in a 3RI request. Maps to EMV 3DS field `email`.
-              maxLength: 254
-              minLength: 1
-            name:
-              type:
-                - string
-                - 'null'
-              description: Name of the cardholder. Maps to EMV 3DS field `cardholderName`.
-              maxLength: 36
-              minLength: 1
-            phone_number_home:
-              type:
-                - string
-                - 'null'
-              description: Home phone number provided by the cardholder. Maps to EMV 3DS fields `homePhone.cc` and `homePhone.subscriber`.
-              maxLength: 18
-              minLength: 1
-            phone_number_mobile:
-              type:
-                - string
-                - 'null'
-              description: Mobile/cell phone number provided by the cardholder. Maps to EMV 3DS fields `mobilePhone.cc` and `mobilePhone.subscriber`.
-              maxLength: 18
-              minLength: 1
-            phone_number_work:
-              type:
-                - string
-                - 'null'
-              description: Work phone number provided by the cardholder. Maps to EMV 3DS fields `workPhone.cc` and `workPhone.subscriber`.
-              maxLength: 18
-              minLength: 1
-            shipping_address:
-              type: object
-              description: Object containing data on the shipping address provided during the transaction.
-              properties:
-                address1:
-                  type:
-                    - string
-                    - 'null'
-                  description: First line of the street address provided by the cardholder.
-                address2:
-                  type:
-                    - string
-                    - 'null'
-                  description: Second line of the street address provided by the cardholder.
-                address3:
-                  type:
-                    - string
-                    - 'null'
-                  description: Third line of the street address provided by the cardholder.
-                city:
-                  type:
-                    - string
-                    - 'null'
-                  description: City of the address provided by the cardholder.
-                country:
-                  type:
-                    - string
-                    - 'null'
-                  description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
-                  minLength: 3
-                  maxLength: 3
-                postal_code:
-                  type:
-                    - string
-                    - 'null'
-                  description: Postal code (e.g., ZIP code) of the address provided by the cardholder
-          required: []
-        challenge_metadata:
-          type:
-            - object
-            - 'null'
-          description: Metadata about the challenge method and delivery. Only present when a challenge is triggered.
-          properties:
-            method_type:
-              type: string
-              enum:
-                - SMS_OTP
-                - OUT_OF_BAND
-              description: The type of challenge method used for authentication.
-            phone_number:
-              type:
-                - string
-                - 'null'
-              description: The phone number used for delivering the OTP. Relevant only for SMS_OTP method.
-          required:
-            - method_type
-        challenge_orchestrated_by:
-          type:
-            - string
-            - 'null'
-          description: Entity that orchestrates the challenge. This won't be set for authentications for which a decision has not yet been made (e.g. in-flight customer decisioning request).
-          enum:
-            - LITHIC
-            - CUSTOMER
-            - NO_CHALLENGE
-            - null
-        channel:
-          type: string
-          description: Channel in which the authentication occurs. Maps to EMV 3DS field `deviceChannel`.
-          enum:
-            - APP_BASED
-            - BROWSER
-            - THREE_DS_REQUESTOR_INITIATED
-        created:
-          type: string
-          description: 'Date and time when the authentication was created in Lithic''s system. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
-          format: date-time
-        decision_made_by:
-          type:
-            - string
-            - 'null'
-          description: Entity that made the authentication decision. This won't be set for authentications for which a decision has not yet been made (e.g. in-flight customer decisioning request).
-          enum:
-            - LITHIC_RULES
-            - LITHIC_DEFAULT
-            - CUSTOMER_RULES
-            - CUSTOMER_ENDPOINT
-            - NETWORK
-            - UNKNOWN
-            - null
-        merchant:
-          type: object
-          description: Object containing data about the merchant involved in the e-commerce transaction.
-          properties:
-            country:
-              type: string
-              description: 'Country code of the merchant requesting 3DS authentication. Maps to EMV 3DS field `merchantCountryCode`. Permitted values: ISO 3166-1 alpha-3 country code (e.g., USA).'
-              minLength: 3
-              maxLength: 3
-            id:
-              type: string
-              description: Merchant identifier as assigned by the acquirer. Maps to EMV 3DS field `acquirerMerchantId`.
-            mcc:
-              type: string
-              description: Merchant category code assigned to the merchant that describes its business activity type. Maps to EMV 3DS field `mcc`.
-              minLength: 4
-              maxLength: 4
-            name:
-              type: string
-              description: Name of the merchant. Maps to EMV 3DS field `merchantName`.
-            risk_indicator:
-              type: object
-              description: Object containing additional data indicating additional risk factors related to the e-commerce transaction.
-              properties:
-                delivery_email_address:
-                  type:
-                    - string
-                    - 'null'
-                  description: In transactions with electronic delivery, email address to which merchandise is delivered. Maps to EMV 3DS field `deliveryEmailAddress`.
-                delivery_time_frame:
-                  type:
-                    - string
-                    - 'null'
-                  description: The delivery time frame for the merchandise. Maps to EMV 3DS field `deliveryTimeframe`.
-                  enum:
-                    - ELECTRONIC_DELIVERY
-                    - OVERNIGHT_SHIPPING
-                    - SAME_DAY_SHIPPING
-                    - TWO_DAY_OR_MORE_SHIPPING
-                    - null
-                gift_card_amount:
-                  type:
-                    - integer
-                    - 'null'
-                  description: In prepaid or gift card purchase transactions, purchase amount total in major units (e.g., a purchase of USD $205.10 would be 205). Maps to EMV 3DS field `giftCardAmount`.
-                gift_card_count:
-                  type:
-                    - integer
-                    - 'null'
-                  description: In prepaid or gift card purchase transactions, count of individual prepaid or gift cards/codes purchased. Maps to EMV 3DS field `giftCardCount`.
-                gift_card_currency:
-                  type:
-                    - string
-                    - 'null'
-                  description: 'In prepaid or gift card purchase transactions, currency code of the gift card. Maps to EMV 3DS field `giftCardCurr`. Permitted values: ISO 4217 three-character currency code (e.g., USD).'
-                  minLength: 3
-                  maxLength: 3
-                order_availability:
-                  type:
-                    - string
-                    - 'null'
-                  description: Indicates whether the purchase is for merchandise that is available now or at a future date. Maps to EMV 3DS field `preOrderPurchaseInd`.
-                  enum:
-                    - FUTURE_AVAILABILITY
-                    - MERCHANDISE_AVAILABLE
-                    - null
-                pre_order_available_date:
-                  type:
-                    - string
-                    - 'null'
-                  description: 'In pre-order purchase transactions, the expected date that the merchandise will be available. Maps to EMV 3DS field `preOrderDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ'
-                  format: date-time
-                reorder_items:
-                  type:
-                    - string
-                    - 'null'
-                  description: Indicates whether the cardholder is reordering previously purchased merchandise. Maps to EMV 3DS field `reorderItemsInd`.
-                  enum:
-                    - FIRST_TIME_ORDERED
-                    - REORDERED
-                    - null
-                shipping_method:
-                  type:
-                    - string
-                    - 'null'
-                  description: Shipping method that the cardholder chose for the transaction. If purchase includes one or more item, this indicator is used for the physical goods; if the purchase only includes digital goods, this indicator is used to describe the most expensive item purchased. Maps to EMV 3DS field `shipIndicator`.
-                  enum:
-                    - DIGITAL_GOODS
-                    - LOCKER_DELIVERY
-                    - OTHER
-                    - PICK_UP_AND_GO_DELIVERY
-                    - SHIP_TO_BILLING_ADDRESS
-                    - SHIP_TO_NON_BILLING_ADDRESS
-                    - SHIP_TO_OTHER_VERIFIED_ADDRESS
-                    - SHIP_TO_STORE
-                    - TRAVEL_AND_EVENT_TICKETS
-                    - null
-              required: []
-          required:
-            - country
-            - id
-            - mcc
-            - name
-            - risk_indicator
-        message_category:
-          type: string
-          description: Either PAYMENT_AUTHENTICATION or NON_PAYMENT_AUTHENTICATION. For NON_PAYMENT_AUTHENTICATION, additional_data and transaction fields are not populated.
-          enum:
-            - NON_PAYMENT_AUTHENTICATION
-            - PAYMENT_AUTHENTICATION
-        three_ds_requestor_challenge_indicator:
-          type: string
-          description: |-
-            Indicates whether a challenge is requested for this transaction
-
-            * `NO_PREFERENCE` - No Preference
-            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
-            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
-            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
-            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
-            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
-            * `OTHER` - Other indicators not captured by above. These are rarely used
-          enum:
-            - NO_PREFERENCE
-            - NO_CHALLENGE_REQUESTED
-            - CHALLENGE_PREFERENCE
-            - CHALLENGE_MANDATE
-            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
-            - DATA_SHARE_ONLY
-            - OTHER
-        three_ri_request_type:
-          type:
-            - string
-            - 'null'
-          description: Type of 3DS Requestor Initiated (3RI) request — i.e., a 3DS authentication that takes place at the initiation of the merchant rather than the cardholder. The most common example of this is where a merchant is authenticating before billing for a recurring transaction such as a pay TV subscription or a utility bill. Maps to EMV 3DS field `threeRIInd`.
-          enum:
-            - ACCOUNT_VERIFICATION
-            - ADD_CARD
-            - BILLING_AGREEMENT
-            - CARD_SECURITY_CODE_STATUS_CHECK
-            - DELAYED_SHIPMENT
-            - DEVICE_BINDING_STATUS_CHECK
-            - INSTALLMENT_TRANSACTION
-            - MAIL_ORDER
-            - MAINTAIN_CARD_INFO
-            - OTHER_PAYMENT
-            - RECURRING_TRANSACTION
-            - SPLIT_PAYMENT
-            - SPLIT_SHIPMENT
-            - TELEPHONE_ORDER
-            - TOP_UP
-            - TRUST_LIST_STATUS_CHECK
-            - null
-        token:
-          type: string
-          description: 'Globally unique identifier for the 3DS authentication. Permitted values: 36-digit version 4 UUID (including hyphens).'
-          format: uuid
-        transaction:
-          type:
-            - object
-            - 'null'
-          description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
-          properties:
-            amount:
-              type: number
-              description: Amount of the purchase in minor units of currency with all punctuation removed. Maps to EMV 3DS field `purchaseAmount`.
-            cardholder_amount:
-              type:
-                - number
-                - 'null'
-              description: Approximate amount of the purchase in minor units of cardholder currency. Derived from `amount` using a daily conversion rate.
-            currency:
-              type: string
-              description: 'Currency of the purchase. Maps to EMV 3DS field `purchaseCurrency`. Permitted values: ISO 4217 three-character currency code (e.g., USD).'
-              minLength: 3
-              maxLength: 3
-            currency_exponent:
-              type: number
-              description: Minor units of currency, as specified in ISO 4217 currency exponent. Maps to EMV 3DS field `purchaseExponent`.
-            date_time:
-              type: string
-              description: 'Date and time when the authentication was generated by the merchant/acquirer''s 3DS server. Maps to EMV 3DS field `purchaseDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
-              format: date-time
-            type:
-              type:
-                - string
-                - 'null'
-              description: Type of the transaction for which a 3DS authentication request is occurring. Maps to EMV 3DS field `transType`.
-              enum:
-                - ACCOUNT_FUNDING
-                - CHECK_ACCEPTANCE
-                - GOODS_SERVICE_PURCHASE
-                - PREPAID_ACTIVATION_AND_LOAD
-                - QUASI_CASH_TRANSACTION
-                - null
-          required:
-            - amount
-            - cardholder_amount
-            - currency
-            - currency_exponent
-            - date_time
-            - type
+          example: FEE
+        related_transaction_token:
+          oneOf:
+            - type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            - type: 'null'
+        related_transaction_event_token:
+          oneOf:
+            - type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            - type: 'null'
       required:
-        - account_type
-        - authentication_result
-        - card_expiry_check
-        - card_token
-        - cardholder
-        - channel
-        - created
-        - merchant
-        - message_category
-        - three_ds_requestor_challenge_indicator
-        - token
-    challenge-response:
+        - type
+        - related_transaction_token
+        - related_transaction_event_token
+    external_resource_type:
       $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/3ds/challenge-response.json
-      title: Challenge Response object
-      type: object
-      description: Response from Card Program to a 3DS Authentication challenge
-      properties:
-        token:
-          type: string
-          description: Globally unique identifier for 3DS Authentication that resulted in PENDING_CHALLENGE authentication result.
-          format: uuid
-        challenge_response:
-          type: string
-          description: Whether the Cardholder has approved or declined the issued Challenge
-          enum:
-            - APPROVE
-            - DECLINE_BY_CUSTOMER
-      required:
-        - token
-        - challenge_response
-    card_transaction_status_filter:
-      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction_status_filter.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Card Transaction Status Filter
+      $id: https://schemas.lithic.com/customer-facing/treasury/ledger/external_resource_type.json
+      title: ExternalResourceType
       type: string
       enum:
-        - PENDING
-        - VOIDED
-        - SETTLED
-        - DECLINED
-        - EXPIRED
+        - STATEMENT
+        - COLLECTION
+        - DISPUTE
+        - UNKNOWN
+      description: Type of external resource associated with the management operation
+    external_resource:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://schemas.lithic.com/customer-facing/treasury/ledger/external_resource.json
+      title: ExternalResource
+      type: object
+      required:
+        - external_resource_type
+        - external_resource_token
+      properties:
+        external_resource_type:
+          $ref: '#/components/schemas/external_resource_type'
+        external_resource_token:
+          type: string
+          description: Token identifying the external resource
+        external_resource_sub_token:
+          type: string
+          description: Token identifying the external resource sub-resource
+      description: External resource associated with the management operation
+      additionalProperties: false
+    book-transfer-transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/book-transfer-transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Book Transfer Transaction
+      description: Book transfer transaction
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/transaction_result'
+            category:
+              $ref: '#/components/schemas/transaction_category'
+            currency:
+              type: string
+              description: Currency of the transaction in ISO 4217 format
+              example: USD
+            settled_amount:
+              type: integer
+              description: The settled amount of the transaction in cents
+              example: 500
+            pending_amount:
+              type: integer
+              description: The pending amount of the transaction in cents
+              example: 1000
+            events:
+              type: array
+              items:
+                type: object
+              description: List of events associated with this book transfer
+            from_financial_account_token:
+              type: string
+              format: uuid
+              description: Source account token
+            to_financial_account_token:
+              type: string
+              format: uuid
+              description: Destination account token
+            external_id:
+              type: string
+              description: External identifier for the transaction
+            transaction_series:
+              oneOf:
+                - $ref: '#/components/schemas/transaction_series'
+                - type: 'null'
+            external_resource:
+              oneOf:
+                - $ref: '#/components/schemas/external_resource'
+                - type: 'null'
+          required:
+            - result
+            - category
+            - currency
+            - settled_amount
+            - pending_amount
+            - events
+            - from_financial_account_token
+            - to_financial_account_token
     currency:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/currency.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19984,6 +19252,1708 @@ components:
           token_info:
             wallet_type: APPLE_PAY
           updated: '2023-08-03T18:42:30Z'
+    AchMethodAttributes:
+      type: object
+      properties:
+        sec_code:
+          type: string
+          enum:
+            - CCD
+            - PPD
+            - WEB
+            - TEL
+            - CIE
+            - CTX
+          description: SEC code for ACH transaction
+        return_reason_code:
+          type:
+            - string
+            - 'null'
+          description: Return reason code if the transaction was returned
+        retries:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+          description: Number of retries attempted
+        company_id:
+          type:
+            - string
+            - 'null'
+          description: Company ID for the ACH transaction
+        receipt_routing_number:
+          type:
+            - string
+            - 'null'
+          description: Receipt routing number
+        trace_numbers:
+          type: array
+          items:
+            type: string
+          default: []
+          description: Trace numbers for the ACH transaction
+        addenda:
+          type:
+            - string
+            - 'null'
+          description: Addenda information
+      required:
+        - sec_code
+    WireMethodAttributes:
+      type: object
+      properties:
+        wire_transfer_type:
+          type: string
+          enum:
+            - FEDWIRE
+            - SWIFT
+          description: Type of wire transfer
+        previous_transfer:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID of previous transfer if this is a retry
+        lithic_individual_name:
+          type:
+            - string
+            - 'null'
+          description: Lithic individual name
+        lithic_bank_name:
+          type:
+            - string
+            - 'null'
+          description: Lithic bank name
+        lithic_bank_routing_number:
+          type:
+            - string
+            - 'null'
+          description: Lithic bank routing number
+        external_individual_name:
+          type:
+            - string
+            - 'null'
+          description: External individual name
+        external_bank_name:
+          type:
+            - string
+            - 'null'
+          description: External bank name
+        external_bank_routing_number:
+          type:
+            - string
+            - 'null'
+          description: External bank routing number
+      required:
+        - wire_transfer_type
+    related_account_tokens:
+      $id: https://lithic.com/schemas/treasury/ledger/related_account_tokens.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Related Account Tokens
+      description: Account tokens related to a payment transaction
+      type: object
+      properties:
+        business_account_token:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          title: Business Account Token
+          description: Globally unique identifier for the business account
+        account_token:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          title: Account Token
+          description: Globally unique identifier for the account
+      required:
+        - business_account_token
+        - account_token
+    payment-transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/payment-transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Payment Transaction
+      description: Payment transaction
+      definitions:
+        AchMethodAttributes:
+          type: object
+          properties:
+            sec_code:
+              type: string
+              enum:
+                - CCD
+                - PPD
+                - WEB
+                - TEL
+                - CIE
+                - CTX
+              description: SEC code for ACH transaction
+            return_reason_code:
+              type:
+                - string
+                - 'null'
+              description: Return reason code if the transaction was returned
+            retries:
+              type:
+                - integer
+                - 'null'
+              minimum: 0
+              description: Number of retries attempted
+            company_id:
+              type:
+                - string
+                - 'null'
+              description: Company ID for the ACH transaction
+            receipt_routing_number:
+              type:
+                - string
+                - 'null'
+              description: Receipt routing number
+            trace_numbers:
+              type: array
+              items:
+                type: string
+              default: []
+              description: Trace numbers for the ACH transaction
+            addenda:
+              type:
+                - string
+                - 'null'
+              description: Addenda information
+          required:
+            - sec_code
+        WireMethodAttributes:
+          type: object
+          properties:
+            wire_transfer_type:
+              type: string
+              enum:
+                - FEDWIRE
+                - SWIFT
+              description: Type of wire transfer
+            previous_transfer:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: UUID of previous transfer if this is a retry
+            lithic_individual_name:
+              type:
+                - string
+                - 'null'
+              description: Lithic individual name
+            lithic_bank_name:
+              type:
+                - string
+                - 'null'
+              description: Lithic bank name
+            lithic_bank_routing_number:
+              type:
+                - string
+                - 'null'
+              description: Lithic bank routing number
+            external_individual_name:
+              type:
+                - string
+                - 'null'
+              description: External individual name
+            external_bank_name:
+              type:
+                - string
+                - 'null'
+              description: External bank name
+            external_bank_routing_number:
+              type:
+                - string
+                - 'null'
+              description: External bank routing number
+          required:
+            - wire_transfer_type
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - type: object
+          properties:
+            category:
+              $ref: '#/components/schemas/transaction_category'
+              description: Transaction category
+            currency:
+              type: string
+              description: Currency of the transaction in ISO 4217 format
+              example: USD
+            result:
+              $ref: '#/components/schemas/transaction_result'
+              description: Transaction result
+            method_attributes:
+              oneOf:
+                - $ref: '#/components/schemas/AchMethodAttributes'
+                - $ref: '#/components/schemas/WireMethodAttributes'
+              description: Method-specific attributes
+            financial_account_token:
+              type: string
+              format: uuid
+              description: Financial account token
+            external_bank_account_token:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: External bank account token
+            direction:
+              type: string
+              enum:
+                - CREDIT
+                - DEBIT
+              description: Transfer direction
+            source:
+              type: string
+              enum:
+                - LITHIC
+                - EXTERNAL
+                - CUSTOMER
+              description: Transaction source
+            method:
+              type: string
+              enum:
+                - ACH_NEXT_DAY
+                - ACH_SAME_DAY
+                - WIRE
+              description: Transfer method
+            settled_amount:
+              type: integer
+              description: Settled amount in cents
+              example: 500
+            pending_amount:
+              type: integer
+              description: Pending amount in cents
+              example: 200
+            events:
+              type: array
+              items:
+                type: object
+              description: List of transaction events
+            descriptor:
+              type: string
+              description: Transaction descriptor
+            user_defined_id:
+              type:
+                - string
+                - 'null'
+              description: User-defined identifier
+            expected_release_date:
+              type:
+                - string
+                - 'null'
+              format: date
+              description: Expected release date for the transaction
+            related_account_tokens:
+              $ref: '#/components/schemas/related_account_tokens'
+              description: Related account tokens for the transaction
+          required:
+            - category
+            - result
+            - method_attributes
+            - financial_account_token
+            - direction
+            - source
+            - method
+            - settled_amount
+            - pending_amount
+            - events
+            - descriptor
+            - related_account_tokens
+    external_payment_category:
+      $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: External Payment Category
+      type: string
+      enum:
+        - EXTERNAL_WIRE
+        - EXTERNAL_ACH
+        - EXTERNAL_CHECK
+        - EXTERNAL_TRANSFER
+    external_payment_event_type:
+      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: External Payment Event Type
+      type: string
+      enum:
+        - EXTERNAL_WIRE_INITIATED
+        - EXTERNAL_WIRE_CANCELED
+        - EXTERNAL_WIRE_SETTLED
+        - EXTERNAL_WIRE_REVERSED
+        - EXTERNAL_WIRE_RELEASED
+        - EXTERNAL_ACH_INITIATED
+        - EXTERNAL_ACH_CANCELED
+        - EXTERNAL_ACH_SETTLED
+        - EXTERNAL_ACH_REVERSED
+        - EXTERNAL_ACH_RELEASED
+        - EXTERNAL_TRANSFER_INITIATED
+        - EXTERNAL_TRANSFER_CANCELED
+        - EXTERNAL_TRANSFER_SETTLED
+        - EXTERNAL_TRANSFER_REVERSED
+        - EXTERNAL_TRANSFER_RELEASED
+        - EXTERNAL_CHECK_INITIATED
+        - EXTERNAL_CHECK_CANCELED
+        - EXTERNAL_CHECK_SETTLED
+        - EXTERNAL_CHECK_REVERSED
+        - EXTERNAL_CHECK_RELEASED
+    detailed_results:
+      $id: https://lithic.com/schemas/treasury/ledger/detailed_results.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Detailed Results
+      type: string
+      enum:
+        - APPROVED
+        - INSUFFICIENT_FUNDS
+    external_payment_event:
+      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: External Payment Event
+      type: object
+      properties:
+        amount:
+          type: integer
+        type:
+          $ref: '#/components/schemas/external_payment_event_type'
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        detailed_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/detailed_results'
+        created:
+          type: string
+          format: date-time
+        token:
+          type: string
+          format: uuid
+        memo:
+          type: string
+        effective_date:
+          type: string
+          format: date
+      required:
+        - amount
+        - type
+        - result
+        - detailed_results
+        - created
+        - token
+        - memo
+        - effective_date
+    external_payment_direction:
+      $id: https://lithic.com/schemas/treasury/ledger/external_payment_direction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: External Payment Direction
+      type: string
+      enum:
+        - DEPOSIT
+        - WITHDRAWAL
+    external_payment_response:
+      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: External Payment Response
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/transaction_result'
+            category:
+              $ref: '#/components/schemas/external_payment_category'
+            settled_amount:
+              type: integer
+            pending_amount:
+              type: integer
+            currency:
+              type: string
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/external_payment_event'
+            user_defined_id:
+              type: string
+            financial_account_token:
+              type: string
+              format: uuid
+            payment_type:
+              $ref: '#/components/schemas/external_payment_direction'
+      required:
+        - result
+        - category
+        - settled_amount
+        - pending_amount
+        - currency
+        - events
+        - financial_account_token
+        - payment_type
+    management_operation_category:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_category.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Category
+      type: string
+      enum:
+        - MANAGEMENT_FEE
+        - MANAGEMENT_DISPUTE
+        - MANAGEMENT_REWARD
+        - MANAGEMENT_ADJUSTMENT
+        - MANAGEMENT_DISBURSEMENT
+    management_operation_event_type:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_event_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Event Type
+      type: string
+      enum:
+        - LOSS_WRITE_OFF
+        - CASH_BACK
+        - CASH_BACK_REVERSAL
+        - CURRENCY_CONVERSION
+        - CURRENCY_CONVERSION_REVERSAL
+        - INTEREST
+        - INTEREST_REVERSAL
+        - LATE_PAYMENT
+        - LATE_PAYMENT_REVERSAL
+        - BILLING_ERROR
+        - BILLING_ERROR_REVERSAL
+        - PROVISIONAL_CREDIT
+        - PROVISIONAL_CREDIT_REVERSAL
+        - RETURNED_PAYMENT
+        - RETURNED_PAYMENT_REVERSAL
+        - DISPUTE_WON
+        - DISPUTE_WON_REVERSAL
+        - DISBURSE
+        - DISBURSE_REVERSAL
+    management_operation_event:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Event
+      type: object
+      properties:
+        amount:
+          type: integer
+        type:
+          $ref: '#/components/schemas/management_operation_event_type'
+        subtype:
+          type: string
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        detailed_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/detailed_results'
+        created:
+          type: string
+          format: date-time
+        token:
+          type: string
+          format: uuid
+        memo:
+          type: string
+        effective_date:
+          type: string
+          format: date
+      required:
+        - amount
+        - type
+        - result
+        - detailed_results
+        - created
+        - token
+        - memo
+        - effective_date
+    management_operation_direction:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_direction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Direction
+      type: string
+      enum:
+        - CREDIT
+        - DEBIT
+    management_operation_transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/management_operation_transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Management Operation Transaction
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/transaction_result'
+            category:
+              $ref: '#/components/schemas/management_operation_category'
+            settled_amount:
+              type: integer
+            pending_amount:
+              type: integer
+            currency:
+              type: string
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/management_operation_event'
+            user_defined_id:
+              type: string
+            financial_account_token:
+              type: string
+              format: uuid
+            direction:
+              $ref: '#/components/schemas/management_operation_direction'
+            transaction_series:
+              oneOf:
+                - $ref: '#/components/schemas/transaction_series'
+                - type: 'null'
+            external_resource:
+              oneOf:
+                - $ref: '#/components/schemas/external_resource'
+                - type: 'null'
+      required:
+        - result
+        - category
+        - settled_amount
+        - pending_amount
+        - currency
+        - events
+        - financial_account_token
+        - direction
+        - transaction_series
+    base-transaction-response:
+      $id: https://lithic.com/schemas/treasury/ledger/base-transaction-response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Response
+      description: Response containing multiple transaction types
+      anyOf:
+        - $ref: '#/components/schemas/financial-transaction'
+        - $ref: '#/components/schemas/book-transfer-transaction'
+        - title: Card Transaction
+          allOf:
+            - $ref: '#/components/schemas/base_transaction'
+            - $ref: '#/components/schemas/card_transaction'
+        - $ref: '#/components/schemas/payment-transaction'
+        - $ref: '#/components/schemas/external_payment_response'
+        - $ref: '#/components/schemas/management_operation_transaction'
+    base-transactions-response:
+      $id: https://lithic.com/schemas/treasury/ledger/base-transactions-response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Activity Response
+      description: A response containing a list of transactions
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Indicates if there are more transactions available for pagination
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/base-transaction-response'
+    network_total:
+      $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Total
+      type: object
+      required:
+        - token
+        - network
+        - institution_id
+        - settlement_institution_id
+        - settlement_service
+        - report_date
+        - currency
+        - is_complete
+        - amounts
+        - created
+        - updated
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier.
+        network:
+          type: string
+          enum:
+            - AMEX
+            - VISA
+            - MASTERCARD
+            - MAESTRO
+            - INTERLINK
+          description: Card network where the transaction took place. AMEX, VISA, MASTERCARD, MAESTRO, or INTERLINK.
+        institution_id:
+          type: string
+          description: 'The institution that activity occurred on. For Mastercard: ICA (Interbank Card Association). For Maestro: institution ID. For Visa: lowest level SRE (Settlement Reporting Entity).'
+        settlement_institution_id:
+          type: string
+          description: 'The institution responsible for settlement. For Mastercard: same as `institution_id`. For Maestro: billing ICA. For Visa: Funds Transfer SRE (FTSRE).'
+        settlement_service:
+          type: string
+          description: Settlement service.
+        report_date:
+          type: string
+          format: date
+          description: Date that the network total record applies to. YYYY-MM-DD format.
+        cycle:
+          type: integer
+          description: The clearing cycle that the network total record applies to. Mastercard only.
+        currency:
+          type: string
+          description: 3-character alphabetic ISO 4217 code.
+        is_complete:
+          type: boolean
+          description: Indicates that all settlement records related to this Network Total are available in the details endpoint.
+        amounts:
+          type: object
+          required:
+            - gross_settlement
+            - interchange_fees
+            - net_settlement
+          properties:
+            gross_settlement:
+              type: integer
+              description: Total settlement amount excluding interchange, in currency's smallest unit.
+            interchange_fees:
+              type: integer
+              description: Interchange amount, in currency's smallest unit.
+            visa_charges:
+              type: integer
+              description: Charges specific to Visa/Interlink, in currency's smallest unit.
+            net_settlement:
+              type: integer
+              description: '`gross_settlement` net of `interchange_fees` and `visa_charges` (if applicable), in currency''s smallest unit.'
+        created:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp for when the record was created. UTC time zone.
+        updated:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp for when the record was last updated. UTC time zone.
+      examples:
+        - token: 12cf7505-06a8-435e-b1c7-4c430d02f6c3
+          network: VISA
+          institution_id: '1000000000'
+          settlement_institution_id: '1000000001'
+          settlement_service: '015'
+          report_date: '2025-02-25'
+          currency: CAD
+          is_complete: true
+          amounts:
+            gross_settlement: 100
+            interchange_fees: -25
+            visa_charges: 10
+            net_settlement: 85
+          created: '2025-02-25T13:07:31.419631Z'
+          updated: '2025-02-25T13:07:31.419631Z'
+    network_totals_list:
+      $id: https://lithic.com/schemas/common/2025-02-25/network_totals_list.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Network Totals Response
+      type: object
+      required:
+        - data
+        - has_more
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/network_total'
+        has_more:
+          description: Indicates whether there are more network total records to be retrieved.
+          type: boolean
+      examples:
+        - data:
+            - token: 12cf7505-06a8-435e-b1c7-4c430d02f6c3
+              network: VISA
+              institution_id: '1000000000'
+              settlement_institution_id: '1000000001'
+              settlement_service: '015'
+              report_date: '2025-02-25'
+              currency: CAD
+              is_complete: true
+              amounts:
+                gross_settlement: 100
+                interchange_fees: -25
+                visa_charges: 10
+                net_settlement: 85
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+            - token: 0604c316-17f0-456d-9ac7-7d94252acb1a
+              network: INTERLINK
+              institution_id: '1000000000'
+              settlement_institution_id: '1000000001'
+              settlement_service: '001'
+              report_date: '2025-02-25'
+              currency: USD
+              is_complete: true
+              amounts:
+                gross_settlement: 200
+                interchange_fees: -50
+                visa_charges: 10
+                net_settlement: 160
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+            - token: 700a1c78-04ed-47e2-8160-b1e18914ec7b
+              network: MASTERCARD
+              institution_id: '031511'
+              settlement_institution_id: '031511'
+              settlement_service: US00000001
+              report_date: '2025-02-25'
+              currency: USD
+              cycle: 1
+              is_complete: false
+              amounts:
+                gross_settlement: 100
+                interchange_fees: -25
+                net_settlement: 75
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+            - token: e05d5448-210e-4cc3-bd0d-d54d3c6c9a9f
+              network: MASTERCARD
+              institution_id: '031511'
+              settlement_institution_id: '031511'
+              settlement_service: US00000001
+              report_date: '2025-02-25'
+              currency: USD
+              cycle: 2
+              is_complete: true
+              amounts:
+                gross_settlement: 100
+                interchange_fees: -25
+                net_settlement: 75
+              created: '2025-02-25T13:07:31.419631Z'
+              updated: '2025-02-25T13:07:31.419631Z'
+          has_more: false
+    simulate_receipt_request:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_receipt_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Simulate Receipt Request
+      type: object
+      properties:
+        financial_account_token:
+          description: Financial Account Token
+          type: string
+          format: uuid
+        token:
+          description: Customer-generated payment token used to uniquely identify the simulated payment
+          type: string
+          format: uuid
+        receipt_type:
+          description: Receipt Type
+          type: string
+          enum:
+            - RECEIPT_CREDIT
+            - RECEIPT_DEBIT
+        amount:
+          description: Amount
+          type: integer
+          minimum: 0
+        memo:
+          description: Memo
+          type: string
+      required:
+        - financial_account_token
+        - token
+        - receipt_type
+        - amount
+    result:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - APPROVED
+        - DECLINED
+      title: Result
+    simulate_payment_response:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_payment_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Simulate Payment Response
+      type: object
+      properties:
+        result:
+          description: Request Result
+          $ref: '#/components/schemas/result'
+        transaction_event_token:
+          description: Transaction Event Token
+          type: string
+          format: uuid
+        debugging_request_id:
+          description: Debugging Request Id
+          type: string
+          format: uuid
+      required:
+        - result
+        - transaction_event_token
+        - debugging_request_id
+    simulate_origination_release_request:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_origination_release_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Simulate Origination Release Request
+      type: object
+      properties:
+        payment_token:
+          description: Payment Token
+          type: string
+          format: uuid
+      required:
+        - payment_token
+    simulate_origination_return_request:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_origination_return_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Simulate Origination Return Request
+      type: object
+      properties:
+        payment_token:
+          description: Payment Token
+          type: string
+          format: uuid
+        return_reason_code:
+          description: Return Reason Code
+          type: string
+          default: R01
+          pattern: ^R[0-9][0-9]$
+      required:
+        - payment_token
+    supported_simulation_types:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/supported_simulation_types.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - ACH_ORIGINATION_REVIEWED
+        - ACH_ORIGINATION_RELEASED
+        - ACH_ORIGINATION_PROCESSED
+        - ACH_ORIGINATION_SETTLED
+        - ACH_RECEIPT_SETTLED
+        - ACH_RECEIPT_RELEASED
+        - ACH_RETURN_INITIATED
+        - ACH_RETURN_PROCESSED
+        - ACH_RETURN_SETTLED
+      title: Supported Simulation Types
+    supported_simulation_decline_reasons:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/supported_simulation_decline_reasons.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
+        - PROGRAM_DAILY_LIMIT_EXCEEDED
+        - PROGRAM_MONTHLY_LIMIT_EXCEEDED
+      title: Supported Simulation Decline Reasons
+    simulate_action_request:
+      $id: https://lithic.com/schemas/internal/treasury/simulation-api/simulate_action_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Simulate Action Request
+      type: object
+      properties:
+        event_type:
+          description: Event Type
+          $ref: '#/components/schemas/supported_simulation_types'
+        return_reason_code:
+          description: Return Reason Code
+          type: string
+        decline_reason:
+          description: Decline reason
+          $ref: '#/components/schemas/supported_simulation_decline_reasons'
+      required:
+        - event_type
+    simulate-enrollment-review-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-review.json
+      title: Simulate account holder enrollment review request body
+      type: object
+      properties:
+        account_holder_token:
+          description: The account holder which to perform the simulation upon.
+          type: string
+        status:
+          description: An account holder's status for use within the simulation.
+          type: string
+          enum:
+            - ACCEPTED
+            - REJECTED
+        status_reasons:
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status.
+          type: array
+          items:
+            type: string
+            enum:
+              - PRIMARY_BUSINESS_ENTITY_ID_VERIFICATION_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_NAME_VERIFICATION_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_BUSINESS_OFFICERS_NOT_MATCHED
+              - PRIMARY_BUSINESS_ENTITY_SOS_FILING_INACTIVE
+              - PRIMARY_BUSINESS_ENTITY_SOS_NOT_MATCHED
+              - PRIMARY_BUSINESS_ENTITY_CMRA_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_WATCHLIST_FAILURE
+              - PRIMARY_BUSINESS_ENTITY_REGISTERED_AGENT_FAILURE
+              - CONTROL_PERSON_BLOCKLIST_ALERT_FAILURE
+              - CONTROL_PERSON_ID_VERIFICATION_FAILURE
+              - CONTROL_PERSON_DOB_VERIFICATION_FAILURE
+              - CONTROL_PERSON_NAME_VERIFICATION_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_DOB_VERIFICATION_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_BLOCKLIST_ALERT_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_ID_VERIFICATION_FAILURE
+              - BENEFICIAL_OWNER_INDIVIDUAL_NAME_VERIFICATION_FAILURE
+    account-holder-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/account-holder-response.json
+      title: Account Holder
+      type: object
+      properties:
+        token:
+          description: Globally unique identifier for the account holder.
+          type: string
+          format: uuid
+        account_token:
+          description: Globally unique identifier for the account.
+          type: string
+          format: uuid
+        business_account_token:
+          description: Only applicable for customers using the KYC-Exempt workflow to enroll authorized users of businesses. Pass the account_token of the enrolled business associated with the AUTHORIZED_USER in this field.
+          type: string
+          format: uuid
+        created:
+          description: Timestamp of when the account holder was created.
+          type: string
+          format: date-time
+        exemption_type:
+          description: The type of KYC exemption for a KYC-Exempt Account Holder. "None" if the account holder is not KYC-Exempt.
+          type: string
+          enum:
+            - AUTHORIZED_USER
+            - PREPAID_CARD_USER
+        external_id:
+          description: Customer-provided token that indicates a relationship with an object outside of the Lithic ecosystem.
+          type: string
+          format: string
+        user_type:
+          description: |-
+            The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
+
+            If the type is "BUSINESS" then the "business_entity", "control_person", "beneficial_owner_individuals",
+            "nature_of_business", and "website_url" attributes will be present.
+          type: string
+          enum:
+            - BUSINESS
+            - INDIVIDUAL
+        verification_application:
+          $ref: '#/components/schemas/verification-application'
+          description: Information about the most recent identity verification attempt
+        individual:
+          $ref: '#/components/schemas/individual'
+          description: Only present when user_type == "INDIVIDUAL". Information about the individual for which the account is being opened and KYC is being run.
+        business_entity:
+          $ref: '#/components/schemas/kyb-business-entity'
+          description: Only present when user_type == "BUSINESS". Information about the business for which the account is being opened and KYB is being run.
+        beneficial_owner_entities:
+          description: Deprecated.
+          type: array
+          items:
+            $ref: '#/components/schemas/kyb-business-entity'
+          minItems: 0
+        beneficial_owner_individuals:
+          description: Only present when user_type == "BUSINESS". You must submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information. See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included.
+          type: array
+          items:
+            $ref: '#/components/schemas/individual'
+          minItems: 0
+        control_person:
+          $ref: '#/components/schemas/individual'
+          description: |-
+            Only present when user_type == "BUSINESS".
+
+            An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer,
+
+            Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access
+
+            to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
+        nature_of_business:
+          description: Only present when user_type == "BUSINESS". User-submitted description of the business.
+          type: string
+          format: string
+        website_url:
+          description: Only present when user_type == "BUSINESS". Business's primary website.
+          type: string
+          format: string
+        email:
+          description: |
+            (Deprecated. Use control_person.email when user_type == "BUSINESS".
+            Use individual.phone_number when user_type == "INDIVIDUAL".)
+            Primary email of Account Holder.
+          type: string
+        phone_number:
+          description: |
+            (Deprecated. Use control_person.phone_number when user_type == "BUSINESS".
+            Use individual.phone_number when user_type == "INDIVIDUAL".)
+            Primary phone of Account Holder, entered in E.164 format.
+          type: string
+        status:
+          description: |+
+            (Deprecated. Use verification_application.status instead)
+            KYC and KYB evaluation states.
+
+            Note: `PENDING_RESUBMIT` and `PENDING_DOCUMENT` are only applicable for the `ADVANCED` workflow.
+
+          $ref: '#/components/schemas/status'
+        status_reasons:
+          description: |-
+            (Deprecated. Use verification_application.status_reasons)
+            Reason for the evaluation status.
+          type: array
+          items:
+            $ref: '#/components/schemas/status-reasons'
+        required_documents:
+          description: Only present for "KYB_BASIC" and "KYC_ADVANCED" workflows. A list of documents required for the account holder to be approved.
+          type: array
+          items:
+            $ref: '#/components/schemas/required-document'
+    simulate-enrollment-document-review-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-document-review.json
+      title: Simulate account holder enrollment document review request body
+      type: object
+      properties:
+        document_upload_token:
+          description: The account holder document upload which to perform the simulation upon.
+          type: string
+        status:
+          description: An account holder document's upload status for use within the simulation.
+          type: string
+          enum:
+            - UPLOADED
+            - ACCEPTED
+            - REJECTED
+            - PARTIAL_APPROVAL
+        status_reason:
+          $ref: '#/components/schemas/document-upload-status-reasons'
+          description: Status reason that will be associated with the simulated account holder status. Only required for a `REJECTED` status or `PARTIAL_APPROVAL` status.
+        accepted_entity_status_reasons:
+          description: A list of status reasons associated with a KYB account holder in PENDING_REVIEW
+          type: array
+          items:
+            type: string
+      required:
+        - document_upload_token
+        - status
+    simulate-authentication-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/simulate-authentication-request.json
+      title: 3DS Simulation Request object
+      type: object
+      description: Request object for simulating a 3DS authentication
+      properties:
+        merchant:
+          type: object
+          description: Merchant information for the simulated transaction
+          properties:
+            country:
+              type: string
+              description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+              example: USA
+            id:
+              type: string
+              description: Unique identifier to identify the payment card acceptor. Corresponds to `merchant_acceptor_id` in authorization.
+              example: OODKZAPJVN4YS7O
+              maxLength: 15
+              minLength: 1
+            mcc:
+              type: string
+              description: Merchant category code for the transaction to be simulated. A four-digit number listed in ISO 18245. Supported merchant category codes can be found [here](https://docs.lithic.com/docs/transactions#merchant-category-codes-mccs).
+              example: '5812'
+            name:
+              type: string
+              description: Merchant descriptor, corresponds to `descriptor` in authorization. If CHALLENGE keyword is included, Lithic will trigger a challenge.
+              example: COFFEE SHOP
+              maxLength: 25
+              minLength: 1
+          required:
+            - country
+            - id
+            - mcc
+            - name
+        pan:
+          type: string
+          description: Sixteen digit card number.
+          example: '4111111289144142'
+          maxLength: 16
+          minLength: 16
+        transaction:
+          type: object
+          description: Transaction details for the simulation
+          properties:
+            amount:
+              type: integer
+              description: Amount (in cents) to authenticate.
+              minimum: 0
+            currency:
+              type: string
+              description: 3-character alphabetic ISO 4217 currency code.
+              example: GBP
+          required:
+            - amount
+            - currency
+        card_expiry_check:
+          type: string
+          description: When set will use the following values as part of the Simulated Authentication. When not set defaults to MATCH
+          enum:
+            - MATCH
+            - MISMATCH
+            - NOT_PRESENT
+      required:
+        - merchant
+        - pan
+        - transaction
+    authentication:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/authentication.json
+      title: 3DS Authentication object
+      type: object
+      description: Represents a 3DS authentication
+      properties:
+        account_type:
+          type:
+            - string
+            - 'null'
+          description: Type of account/card that is being used for the transaction. Maps to EMV 3DS field `acctType`.
+          enum:
+            - CREDIT
+            - DEBIT
+            - NOT_APPLICABLE
+            - null
+        additional_data:
+          type:
+            - object
+            - 'null'
+          description: Object containing additional data about the 3DS request that is beyond the EMV 3DS standard spec (e.g., specific fields that only certain card networks send but are not required across all 3DS requests).
+          properties:
+            network_decision:
+              type:
+                - string
+                - 'null'
+              description: 'Mastercard only: Indicates whether the network would have considered the authentication request to be low risk or not.'
+              enum:
+                - LOW_RISK
+                - NOT_LOW_RISK
+                - null
+            network_risk_score:
+              type:
+                - integer
+                - 'null'
+              description: 'Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Permitted values: Integer between 0-950, in increments of 50.'
+          required: []
+        app:
+          type:
+            - object
+            - 'null'
+          description: Object containing data about the app used in the e-commerce transaction. Present if the channel is 'APP_BASED'.
+          properties:
+            device_info:
+              type:
+                - string
+                - 'null'
+              description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded. Maps to EMV 3DS field `deviceInfo`.
+            ip:
+              anyOf:
+                - type: string
+                  format: ipv4
+                - type: string
+                  format: ipv6
+                - type: 'null'
+              description: External IP address used by the app generating the 3DS authentication request. Maps to EMV 3DS field `appIp`.
+          required: []
+        authentication_request_type:
+          type:
+            - string
+            - 'null'
+          description: Type of authentication request - i.e., the type of transaction or interaction is causing the merchant to request an authentication. Maps to EMV 3DS field `threeDSRequestorAuthenticationInd`.
+          enum:
+            - ADD_CARD
+            - BILLING_AGREEMENT
+            - DELAYED_SHIPMENT
+            - EMV_TOKEN_CARDHOLDER_VERIFICATION
+            - INSTALLMENT_TRANSACTION
+            - MAINTAIN_CARD
+            - PAYMENT_TRANSACTION
+            - RECURRING_TRANSACTION
+            - SPLIT_PAYMENT
+            - SPLIT_SHIPMENT
+            - null
+        authentication_result:
+          type:
+            - string
+          description: Indicates the outcome of the 3DS authentication process.
+          enum:
+            - DECLINE
+            - SUCCESS
+            - PENDING_CHALLENGE
+            - PENDING_DECISION
+        browser:
+          type:
+            - object
+            - 'null'
+          description: Object containing data about the browser used in the e-commerce transaction. Present if the channel is 'BROWSER'.
+          properties:
+            accept_header:
+              type:
+                - string
+                - 'null'
+              description: Content of the HTTP accept headers as sent from the cardholder's browser to the 3DS requestor (e.g., merchant or digital wallet).
+            ip:
+              anyOf:
+                - type: string
+                  format: ipv4
+                - type: string
+                  format: ipv6
+                - type: 'null'
+              description: IP address of the browser as returned by the HTTP headers to the 3DS requestor (e.g., merchant or digital wallet). Maps to EMV 3DS field `browserIP`.
+            java_enabled:
+              type:
+                - boolean
+                - 'null'
+              description: Indicates whether the cardholder's browser has the ability to execute Java. Maps to EMV 3DS field `browserJavaEnabled`.
+            javascript_enabled:
+              type:
+                - boolean
+                - 'null'
+              description: Indicates whether the cardholder's browser has the ability to execute JavaScript. Maps to EMV 3DS field `browserJavascriptEnabled`.
+            language:
+              type:
+                - string
+                - 'null'
+              description: Language of the cardholder's browser as defined in IETF BCP47. Maps to EMV 3DS field `browserLanguage`.
+            time_zone:
+              type:
+                - string
+                - 'null'
+              description: Time zone of the cardholder's browser offset in minutes between UTC and the cardholder browser's local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field `browserTz`.
+            user_agent:
+              type:
+                - string
+                - 'null'
+              description: Content of the HTTP user-agent header. Maps to EMV 3DS field `browserUserAgent`.
+          required: []
+        card_expiry_check:
+          type: string
+          description: Indicates whether the expiration date provided by the cardholder during checkout matches Lithic's record of the card's expiration date.
+          enum:
+            - MATCH
+            - MISMATCH
+            - NOT_PRESENT
+        card_token:
+          type: string
+          description: 'Globally unique identifier for the card on which the 3DS authentication has occurred. Permitted values: 36-digit version 4 UUID (including hyphens).'
+          format: uuid
+        cardholder:
+          type: object
+          description: Object containing data about the cardholder provided during the transaction.
+          properties:
+            address_match:
+              type:
+                - boolean
+                - 'null'
+              description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field `addrMatch`.
+            billing_address:
+              type: object
+              description: Object containing data on the billing address provided during the transaction.
+              properties:
+                address1:
+                  type:
+                    - string
+                    - 'null'
+                  description: First line of the street address provided by the cardholder.
+                address2:
+                  type:
+                    - string
+                    - 'null'
+                  description: Second line of the street address provided by the cardholder.
+                address3:
+                  type:
+                    - string
+                    - 'null'
+                  description: Third line of the street address provided by the cardholder.
+                city:
+                  type:
+                    - string
+                    - 'null'
+                  description: City of the address provided by the cardholder.
+                country:
+                  type:
+                    - string
+                    - 'null'
+                  description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+                  minLength: 3
+                  maxLength: 3
+                postal_code:
+                  type:
+                    - string
+                    - 'null'
+                  description: Postal code (e.g., ZIP code) of the address provided by the cardholder
+            email:
+              type:
+                - string
+                - 'null'
+              description: Email address that is either provided by the cardholder or is on file with the merchant in a 3RI request. Maps to EMV 3DS field `email`.
+              maxLength: 254
+              minLength: 1
+            name:
+              type:
+                - string
+                - 'null'
+              description: Name of the cardholder. Maps to EMV 3DS field `cardholderName`.
+              maxLength: 36
+              minLength: 1
+            phone_number_home:
+              type:
+                - string
+                - 'null'
+              description: Home phone number provided by the cardholder. Maps to EMV 3DS fields `homePhone.cc` and `homePhone.subscriber`.
+              maxLength: 18
+              minLength: 1
+            phone_number_mobile:
+              type:
+                - string
+                - 'null'
+              description: Mobile/cell phone number provided by the cardholder. Maps to EMV 3DS fields `mobilePhone.cc` and `mobilePhone.subscriber`.
+              maxLength: 18
+              minLength: 1
+            phone_number_work:
+              type:
+                - string
+                - 'null'
+              description: Work phone number provided by the cardholder. Maps to EMV 3DS fields `workPhone.cc` and `workPhone.subscriber`.
+              maxLength: 18
+              minLength: 1
+            shipping_address:
+              type: object
+              description: Object containing data on the shipping address provided during the transaction.
+              properties:
+                address1:
+                  type:
+                    - string
+                    - 'null'
+                  description: First line of the street address provided by the cardholder.
+                address2:
+                  type:
+                    - string
+                    - 'null'
+                  description: Second line of the street address provided by the cardholder.
+                address3:
+                  type:
+                    - string
+                    - 'null'
+                  description: Third line of the street address provided by the cardholder.
+                city:
+                  type:
+                    - string
+                    - 'null'
+                  description: City of the address provided by the cardholder.
+                country:
+                  type:
+                    - string
+                    - 'null'
+                  description: Country of the address provided by the cardholder in ISO 3166-1 alpha-3 format (e.g. USA)
+                  minLength: 3
+                  maxLength: 3
+                postal_code:
+                  type:
+                    - string
+                    - 'null'
+                  description: Postal code (e.g., ZIP code) of the address provided by the cardholder
+          required: []
+        challenge_metadata:
+          type:
+            - object
+            - 'null'
+          description: Metadata about the challenge method and delivery. Only present when a challenge is triggered.
+          properties:
+            method_type:
+              type: string
+              enum:
+                - SMS_OTP
+                - OUT_OF_BAND
+              description: The type of challenge method used for authentication.
+            phone_number:
+              type:
+                - string
+                - 'null'
+              description: The phone number used for delivering the OTP. Relevant only for SMS_OTP method.
+          required:
+            - method_type
+        challenge_orchestrated_by:
+          type:
+            - string
+            - 'null'
+          description: Entity that orchestrates the challenge. This won't be set for authentications for which a decision has not yet been made (e.g. in-flight customer decisioning request).
+          enum:
+            - LITHIC
+            - CUSTOMER
+            - NO_CHALLENGE
+            - null
+        channel:
+          type: string
+          description: Channel in which the authentication occurs. Maps to EMV 3DS field `deviceChannel`.
+          enum:
+            - APP_BASED
+            - BROWSER
+            - THREE_DS_REQUESTOR_INITIATED
+        created:
+          type: string
+          description: 'Date and time when the authentication was created in Lithic''s system. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
+          format: date-time
+        decision_made_by:
+          type:
+            - string
+            - 'null'
+          description: Entity that made the authentication decision. This won't be set for authentications for which a decision has not yet been made (e.g. in-flight customer decisioning request).
+          enum:
+            - LITHIC_RULES
+            - LITHIC_DEFAULT
+            - CUSTOMER_RULES
+            - CUSTOMER_ENDPOINT
+            - NETWORK
+            - UNKNOWN
+            - null
+        merchant:
+          type: object
+          description: Object containing data about the merchant involved in the e-commerce transaction.
+          properties:
+            country:
+              type: string
+              description: 'Country code of the merchant requesting 3DS authentication. Maps to EMV 3DS field `merchantCountryCode`. Permitted values: ISO 3166-1 alpha-3 country code (e.g., USA).'
+              minLength: 3
+              maxLength: 3
+            id:
+              type: string
+              description: Merchant identifier as assigned by the acquirer. Maps to EMV 3DS field `acquirerMerchantId`.
+            mcc:
+              type: string
+              description: Merchant category code assigned to the merchant that describes its business activity type. Maps to EMV 3DS field `mcc`.
+              minLength: 4
+              maxLength: 4
+            name:
+              type: string
+              description: Name of the merchant. Maps to EMV 3DS field `merchantName`.
+            risk_indicator:
+              type: object
+              description: Object containing additional data indicating additional risk factors related to the e-commerce transaction.
+              properties:
+                delivery_email_address:
+                  type:
+                    - string
+                    - 'null'
+                  description: In transactions with electronic delivery, email address to which merchandise is delivered. Maps to EMV 3DS field `deliveryEmailAddress`.
+                delivery_time_frame:
+                  type:
+                    - string
+                    - 'null'
+                  description: The delivery time frame for the merchandise. Maps to EMV 3DS field `deliveryTimeframe`.
+                  enum:
+                    - ELECTRONIC_DELIVERY
+                    - OVERNIGHT_SHIPPING
+                    - SAME_DAY_SHIPPING
+                    - TWO_DAY_OR_MORE_SHIPPING
+                    - null
+                gift_card_amount:
+                  type:
+                    - integer
+                    - 'null'
+                  description: In prepaid or gift card purchase transactions, purchase amount total in major units (e.g., a purchase of USD $205.10 would be 205). Maps to EMV 3DS field `giftCardAmount`.
+                gift_card_count:
+                  type:
+                    - integer
+                    - 'null'
+                  description: In prepaid or gift card purchase transactions, count of individual prepaid or gift cards/codes purchased. Maps to EMV 3DS field `giftCardCount`.
+                gift_card_currency:
+                  type:
+                    - string
+                    - 'null'
+                  description: 'In prepaid or gift card purchase transactions, currency code of the gift card. Maps to EMV 3DS field `giftCardCurr`. Permitted values: ISO 4217 three-character currency code (e.g., USD).'
+                  minLength: 3
+                  maxLength: 3
+                order_availability:
+                  type:
+                    - string
+                    - 'null'
+                  description: Indicates whether the purchase is for merchandise that is available now or at a future date. Maps to EMV 3DS field `preOrderPurchaseInd`.
+                  enum:
+                    - FUTURE_AVAILABILITY
+                    - MERCHANDISE_AVAILABLE
+                    - null
+                pre_order_available_date:
+                  type:
+                    - string
+                    - 'null'
+                  description: 'In pre-order purchase transactions, the expected date that the merchandise will be available. Maps to EMV 3DS field `preOrderDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ'
+                  format: date-time
+                reorder_items:
+                  type:
+                    - string
+                    - 'null'
+                  description: Indicates whether the cardholder is reordering previously purchased merchandise. Maps to EMV 3DS field `reorderItemsInd`.
+                  enum:
+                    - FIRST_TIME_ORDERED
+                    - REORDERED
+                    - null
+                shipping_method:
+                  type:
+                    - string
+                    - 'null'
+                  description: Shipping method that the cardholder chose for the transaction. If purchase includes one or more item, this indicator is used for the physical goods; if the purchase only includes digital goods, this indicator is used to describe the most expensive item purchased. Maps to EMV 3DS field `shipIndicator`.
+                  enum:
+                    - DIGITAL_GOODS
+                    - LOCKER_DELIVERY
+                    - OTHER
+                    - PICK_UP_AND_GO_DELIVERY
+                    - SHIP_TO_BILLING_ADDRESS
+                    - SHIP_TO_NON_BILLING_ADDRESS
+                    - SHIP_TO_OTHER_VERIFIED_ADDRESS
+                    - SHIP_TO_STORE
+                    - TRAVEL_AND_EVENT_TICKETS
+                    - null
+              required: []
+          required:
+            - country
+            - id
+            - mcc
+            - name
+            - risk_indicator
+        message_category:
+          type: string
+          description: Either PAYMENT_AUTHENTICATION or NON_PAYMENT_AUTHENTICATION. For NON_PAYMENT_AUTHENTICATION, additional_data and transaction fields are not populated.
+          enum:
+            - NON_PAYMENT_AUTHENTICATION
+            - PAYMENT_AUTHENTICATION
+        three_ds_requestor_challenge_indicator:
+          type: string
+          description: |-
+            Indicates whether a challenge is requested for this transaction
+
+            * `NO_PREFERENCE` - No Preference
+            * `NO_CHALLENGE_REQUESTED` - No Challenge Requested
+            * `CHALLENGE_PREFERENCE` - Challenge requested (3DS Requestor preference)
+            * `CHALLENGE_MANDATE` - Challenge requested (Mandate)
+            * `NO_CHALLENGE_RISK_ALREADY_ASSESSED` - No Challenge requested (Transactional risk analysis is already performed)
+            * `DATA_SHARE_ONLY` - No Challenge requested (Data Share Only)
+            * `OTHER` - Other indicators not captured by above. These are rarely used
+          enum:
+            - NO_PREFERENCE
+            - NO_CHALLENGE_REQUESTED
+            - CHALLENGE_PREFERENCE
+            - CHALLENGE_MANDATE
+            - NO_CHALLENGE_RISK_ALREADY_ASSESSED
+            - DATA_SHARE_ONLY
+            - OTHER
+        three_ri_request_type:
+          type:
+            - string
+            - 'null'
+          description: Type of 3DS Requestor Initiated (3RI) request — i.e., a 3DS authentication that takes place at the initiation of the merchant rather than the cardholder. The most common example of this is where a merchant is authenticating before billing for a recurring transaction such as a pay TV subscription or a utility bill. Maps to EMV 3DS field `threeRIInd`.
+          enum:
+            - ACCOUNT_VERIFICATION
+            - ADD_CARD
+            - BILLING_AGREEMENT
+            - CARD_SECURITY_CODE_STATUS_CHECK
+            - DELAYED_SHIPMENT
+            - DEVICE_BINDING_STATUS_CHECK
+            - INSTALLMENT_TRANSACTION
+            - MAIL_ORDER
+            - MAINTAIN_CARD_INFO
+            - OTHER_PAYMENT
+            - RECURRING_TRANSACTION
+            - SPLIT_PAYMENT
+            - SPLIT_SHIPMENT
+            - TELEPHONE_ORDER
+            - TOP_UP
+            - TRUST_LIST_STATUS_CHECK
+            - null
+        token:
+          type: string
+          description: 'Globally unique identifier for the 3DS authentication. Permitted values: 36-digit version 4 UUID (including hyphens).'
+          format: uuid
+        transaction:
+          type:
+            - object
+            - 'null'
+          description: Object containing data about the e-commerce transaction for which the merchant is requesting authentication.
+          properties:
+            amount:
+              type: number
+              description: Amount of the purchase in minor units of currency with all punctuation removed. Maps to EMV 3DS field `purchaseAmount`.
+            cardholder_amount:
+              type:
+                - number
+                - 'null'
+              description: Approximate amount of the purchase in minor units of cardholder currency. Derived from `amount` using a daily conversion rate.
+            currency:
+              type: string
+              description: 'Currency of the purchase. Maps to EMV 3DS field `purchaseCurrency`. Permitted values: ISO 4217 three-character currency code (e.g., USD).'
+              minLength: 3
+              maxLength: 3
+            currency_exponent:
+              type: number
+              description: Minor units of currency, as specified in ISO 4217 currency exponent. Maps to EMV 3DS field `purchaseExponent`.
+            date_time:
+              type: string
+              description: 'Date and time when the authentication was generated by the merchant/acquirer''s 3DS server. Maps to EMV 3DS field `purchaseDate`. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
+              format: date-time
+            type:
+              type:
+                - string
+                - 'null'
+              description: Type of the transaction for which a 3DS authentication request is occurring. Maps to EMV 3DS field `transType`.
+              enum:
+                - ACCOUNT_FUNDING
+                - CHECK_ACCEPTANCE
+                - GOODS_SERVICE_PURCHASE
+                - PREPAID_ACTIVATION_AND_LOAD
+                - QUASI_CASH_TRANSACTION
+                - null
+          required:
+            - amount
+            - cardholder_amount
+            - currency
+            - currency_exponent
+            - date_time
+            - type
+      required:
+        - account_type
+        - authentication_result
+        - card_expiry_check
+        - card_token
+        - cardholder
+        - channel
+        - created
+        - merchant
+        - message_category
+        - three_ds_requestor_challenge_indicator
+        - token
+    challenge-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/3ds/challenge-response.json
+      title: Challenge Response object
+      type: object
+      description: Response from Card Program to a 3DS Authentication challenge
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for 3DS Authentication that resulted in PENDING_CHALLENGE authentication result.
+          format: uuid
+        challenge_response:
+          type: string
+          description: Whether the Cardholder has approved or declined the issued Challenge
+          enum:
+            - APPROVE
+            - DECLINE_BY_CUSTOMER
+      required:
+        - token
+        - challenge_response
+    card_transaction_status_filter:
+      $id: https://lithic.com/schemas/treasury/2024-01-15/card_transaction/card_transactions/card_transaction_status_filter.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Card Transaction Status Filter
+      type: string
+      enum:
+        - PENDING
+        - VOIDED
+        - SETTLED
+        - DECLINED
+        - EXPIRED
     list_transactions_response:
       $id: https://lithic.com/schemas/common/2024-01-15/card_transaction/list_transactions_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20095,192 +21065,6 @@ components:
                 wallet_type: APPLE_PAY
               updated: '2023-08-03T18:42:30Z'
           has_more: false
-    external_payment_category:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Category
-      type: string
-      enum:
-        - EXTERNAL_WIRE
-        - EXTERNAL_ACH
-        - EXTERNAL_CHECK
-        - EXTERNAL_TRANSFER
-    transaction_result:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_result.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Transaction Result
-      type: string
-      enum:
-        - APPROVED
-        - DECLINED
-    transaction_status:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_status.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Transaction Status
-      type: string
-      enum:
-        - PENDING
-        - SETTLED
-        - DECLINED
-        - REVERSED
-        - CANCELED
-    transaction_family_types:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_family_types.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: TransactionFamilyType
-      type: string
-      enum:
-        - CARD
-        - PAYMENT
-        - TRANSFER
-        - INTERNAL
-        - EXTERNAL_PAYMENT
-        - MANAGEMENT_OPERATION
-    base_transaction:
-      $id: https://lithic.com/schemas/treasury/ledger/base_transaction.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: base_transaction
-      description: Base class for all transaction types in the ledger service
-      type: object
-      properties:
-        family:
-          $ref: '#/components/schemas/transaction_family_types'
-        status:
-          $ref: '#/components/schemas/transaction_status'
-          description: The status of the transaction
-        token:
-          type: string
-          description: Unique identifier for the transaction
-          format: uuid
-        created:
-          type: string
-          description: ISO 8601 timestamp of when the transaction was created
-          format: date-time
-        updated:
-          type: string
-          description: ISO 8601 timestamp of when the transaction was last updated
-          format: date-time
-      required:
-        - family
-        - status
-        - token
-        - created
-        - updated
-    external_payment_event_type:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event_type.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Event Type
-      type: string
-      enum:
-        - EXTERNAL_WIRE_INITIATED
-        - EXTERNAL_WIRE_CANCELED
-        - EXTERNAL_WIRE_SETTLED
-        - EXTERNAL_WIRE_REVERSED
-        - EXTERNAL_WIRE_RELEASED
-        - EXTERNAL_ACH_INITIATED
-        - EXTERNAL_ACH_CANCELED
-        - EXTERNAL_ACH_SETTLED
-        - EXTERNAL_ACH_REVERSED
-        - EXTERNAL_ACH_RELEASED
-        - EXTERNAL_TRANSFER_INITIATED
-        - EXTERNAL_TRANSFER_CANCELED
-        - EXTERNAL_TRANSFER_SETTLED
-        - EXTERNAL_TRANSFER_REVERSED
-        - EXTERNAL_TRANSFER_RELEASED
-        - EXTERNAL_CHECK_INITIATED
-        - EXTERNAL_CHECK_CANCELED
-        - EXTERNAL_CHECK_SETTLED
-        - EXTERNAL_CHECK_REVERSED
-        - EXTERNAL_CHECK_RELEASED
-    detailed_results:
-      $id: https://lithic.com/schemas/treasury/ledger/detailed_results.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Detailed Results
-      type: string
-      enum:
-        - APPROVED
-    external_payment_event:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Event
-      type: object
-      properties:
-        amount:
-          type: integer
-        type:
-          $ref: '#/components/schemas/external_payment_event_type'
-        result:
-          $ref: '#/components/schemas/transaction_result'
-        detailed_results:
-          type: array
-          items:
-            $ref: '#/components/schemas/detailed_results'
-        created:
-          type: string
-          format: date-time
-        token:
-          type: string
-          format: uuid
-        memo:
-          type: string
-        effective_date:
-          type: string
-          format: date
-      required:
-        - amount
-        - type
-        - result
-        - detailed_results
-        - created
-        - token
-        - memo
-        - effective_date
-    external_payment_direction:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_direction.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Direction
-      type: string
-      enum:
-        - DEPOSIT
-        - WITHDRAWAL
-    external_payment_response:
-      $id: https://lithic.com/schemas/treasury/ledger/external_payment_response.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: External Payment Response
-      allOf:
-        - $ref: '#/components/schemas/base_transaction'
-        - type: object
-          properties:
-            result:
-              $ref: '#/components/schemas/transaction_result'
-            category:
-              $ref: '#/components/schemas/external_payment_category'
-            settled_amount:
-              type: integer
-            pending_amount:
-              type: integer
-            currency:
-              type: string
-            events:
-              type: array
-              items:
-                $ref: '#/components/schemas/external_payment_event'
-            user_defined_id:
-              type: string
-            financial_account_token:
-              type: string
-              format: uuid
-            payment_type:
-              $ref: '#/components/schemas/external_payment_direction'
-      required:
-        - result
-        - category
-        - settled_amount
-        - pending_amount
-        - currency
-        - events
-        - financial_account_token
-        - payment_type
     external_payments_response:
       $id: https://lithic.com/schemas/treasury/ledger/external_payments_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20365,190 +21149,6 @@ components:
           format: date
       required:
         - effective_date
-    management_operation_category:
-      $id: https://lithic.com/schemas/treasury/ledger/management_operation_category.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Management Operation Category
-      type: string
-      enum:
-        - MANAGEMENT_FEE
-        - MANAGEMENT_DISPUTE
-        - MANAGEMENT_REWARD
-        - MANAGEMENT_ADJUSTMENT
-        - MANAGEMENT_DISBURSEMENT
-    management_operation_event_type:
-      $id: https://lithic.com/schemas/treasury/ledger/management_operation_event_type.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Management Operation Event Type
-      type: string
-      enum:
-        - LOSS_WRITE_OFF
-        - CASH_BACK
-        - CASH_BACK_REVERSAL
-        - CURRENCY_CONVERSION
-        - CURRENCY_CONVERSION_REVERSAL
-        - INTEREST
-        - INTEREST_REVERSAL
-        - LATE_PAYMENT
-        - LATE_PAYMENT_REVERSAL
-        - BILLING_ERROR
-        - BILLING_ERROR_REVERSAL
-        - PROVISIONAL_CREDIT
-        - PROVISIONAL_CREDIT_REVERSAL
-        - RETURNED_PAYMENT
-        - RETURNED_PAYMENT_REVERSAL
-        - DISPUTE_WON
-        - DISPUTE_WON_REVERSAL
-        - DISBURSE
-        - DISBURSE_REVERSAL
-    management_operation_event:
-      $id: https://lithic.com/schemas/treasury/ledger/management_operation_event.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Management Operation Event
-      type: object
-      properties:
-        amount:
-          type: integer
-        type:
-          $ref: '#/components/schemas/management_operation_event_type'
-        subtype:
-          type: string
-        result:
-          $ref: '#/components/schemas/transaction_result'
-        detailed_results:
-          type: array
-          items:
-            $ref: '#/components/schemas/detailed_results'
-        created:
-          type: string
-          format: date-time
-        token:
-          type: string
-          format: uuid
-        memo:
-          type: string
-        effective_date:
-          type: string
-          format: date
-      required:
-        - amount
-        - type
-        - result
-        - detailed_results
-        - created
-        - token
-        - memo
-        - effective_date
-    management_operation_direction:
-      $id: https://lithic.com/schemas/treasury/ledger/management_operation_direction.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Management Operation Direction
-      type: string
-      enum:
-        - CREDIT
-        - DEBIT
-    transaction_series:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_series.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Transaction Series
-      type: object
-      properties:
-        type:
-          type: string
-          example: FEE
-        related_transaction_token:
-          oneOf:
-            - type: string
-              format: uuid
-              example: 123e4567-e89b-12d3-a456-426614174000
-            - type: 'null'
-        related_transaction_event_token:
-          oneOf:
-            - type: string
-              format: uuid
-              example: 123e4567-e89b-12d3-a456-426614174000
-            - type: 'null'
-      required:
-        - type
-        - related_transaction_token
-        - related_transaction_event_token
-    external_resource_type:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://schemas.lithic.com/customer-facing/treasury/ledger/external_resource_type.json
-      title: ExternalResourceType
-      type: string
-      enum:
-        - STATEMENT
-        - COLLECTION
-        - DISPUTE
-        - UNKNOWN
-      description: Type of external resource associated with the management operation
-    external_resource:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://schemas.lithic.com/customer-facing/treasury/ledger/external_resource.json
-      title: ExternalResource
-      type: object
-      required:
-        - external_resource_type
-        - external_resource_token
-      properties:
-        external_resource_type:
-          $ref: '#/components/schemas/external_resource_type'
-        external_resource_token:
-          type: string
-          description: Token identifying the external resource
-        external_resource_sub_token:
-          type: string
-          description: Token identifying the external resource sub-resource
-      description: External resource associated with the management operation
-      additionalProperties: false
-    management_operation_transaction:
-      $id: https://lithic.com/schemas/treasury/ledger/management_operation_transaction.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Management Operation Transaction
-      allOf:
-        - $ref: '#/components/schemas/base_transaction'
-        - type: object
-          properties:
-            result:
-              $ref: '#/components/schemas/transaction_result'
-            category:
-              $ref: '#/components/schemas/management_operation_category'
-            settled_amount:
-              type: integer
-            pending_amount:
-              type: integer
-            currency:
-              type: string
-            events:
-              type: array
-              items:
-                $ref: '#/components/schemas/management_operation_event'
-            user_defined_id:
-              type: string
-            financial_account_token:
-              type: string
-              format: uuid
-            direction:
-              $ref: '#/components/schemas/management_operation_direction'
-            transaction_series:
-              oneOf:
-                - $ref: '#/components/schemas/transaction_series'
-                - type: 'null'
-            external_resource:
-              oneOf:
-                - $ref: '#/components/schemas/external_resource'
-                - type: 'null'
-      required:
-        - result
-        - category
-        - settled_amount
-        - pending_amount
-        - currency
-        - events
-        - financial_account_token
-        - direction
-        - transaction_series
     management_operation_transactions_response:
       $id: https://lithic.com/schemas/treasury/ledger/management_operation_transactions_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
