@@ -13317,7 +13317,7 @@ components:
           type: string
         kyb_passed_timestamp:
           description: |
-            An RFC 3339 timestamp indicating when precomputed KYC was completed on the business with a pass result.
+            An RFC 3339 timestamp indicating when precomputed KYB was completed on the business with a pass result.
 
             This field is required only if workflow type is `KYB_BYO`.
           example: '2022-03-08 08:00:00'
@@ -14724,6 +14724,10 @@ components:
           type: string
           format: date-time
           description: Timestamp of when the application was last updated.
+        ky_passed_at:
+          type: string
+          format: date-time
+          description: Timestamp of when the application passed the verification process. Only present if `status` is `ACCEPTED`
       required:
         - created
         - status
@@ -20673,8 +20677,33 @@ components:
                 - string
                 - 'null'
               description: The phone number used for delivering the OTP. Relevant only for SMS_OTP method.
+            status:
+              type: string
+              enum:
+                - SUCCESS
+                - PENDING
+                - SMS_DELIVERY_FAILED
+                - CARDHOLDER_TIMEOUT
+                - CANCELED_VIA_CHALLENGE_UI
+                - CANCELED_OOB
+                - ATTEMPTS_EXCEEDED
+                - ABORTED
+                - ERROR
+              description: |-
+                Indicates the status of the challenge
+
+                * SUCCESS - Cardholder completed the challenge successfully
+                * PENDING - Challenge was issued to the cardholder and was not completed yet
+                * SMS_DELIVERY_FAILED - Lithic confirmed undeliverability of the SMS to the provided phone number. Relevant only for SMS_OTP method
+                * CARDHOLDER_TIMEOUT - Cardholder failed to complete the challenge within the given challenge TTL
+                * CANCELED_VIA_CHALLENGE_UI - Cardholder canceled the challenge by selecting "cancel" on the challenge UI
+                * CANCELED_OOB - Cardholder canceled the challenge out of band
+                * ATTEMPTS_EXCEEDED - Cardholder failed the challenge by either entering an incorrect OTP more than the allowed number of times or requesting a new OTP more than the allowed number of times
+                * ABORTED - Merchant aborted authentication after a challenge was requested
+                * ERROR - The challenge failed for a reason different than those documented
           required:
             - method_type
+            - status
         challenge_orchestrated_by:
           type:
             - string
@@ -21746,6 +21775,13 @@ components:
           $ref: '#/components/schemas/asa_network_specific_data'
         account_type:
           $ref: '#/components/schemas/account_type'
+        transaction_initiator:
+          type: string
+          description: The entity that initiated the transaction.
+          enum:
+            - CARDHOLDER
+            - MERCHANT
+            - UNKNOWN
       required:
         - acquirer_fee
         - amount
@@ -21763,6 +21799,7 @@ components:
         - settled_amount
         - status
         - token
+        - transaction_initiator
       $defs:
         asa_request_status:
           type: string
