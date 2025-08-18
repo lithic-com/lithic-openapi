@@ -5385,6 +5385,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: account_token
+          in: query
+          description: Filter by account token
+          schema:
+            type: string
+            format: uuid
         - name: category
           in: query
           description: Filter by transaction category
@@ -7717,7 +7723,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/BookTransferResponse'
+                      $ref: '#/components/schemas/book_transfer_response'
                     title: Data
                     type: array
                   has_more:
@@ -7746,93 +7752,14 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                amount:
-                  description: Amount to be transferred in the currency’s smallest unit (e.g., cents for USD). This should always be a positive value.
-                  type: integer
-                  minimum: 1
-                category:
-                  description: Category of the book transfer
-                  enum:
-                    - ADJUSTMENT
-                    - BALANCE_OR_FUNDING
-                    - DERECOGNITION
-                    - DISPUTE
-                    - FEE
-                    - REWARD
-                    - TRANSFER
-                  type: string
-                from_financial_account_token:
-                  description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
-                  format: uuid
-                  type: string
-                memo:
-                  description: Optional descriptor for the transfer.
-                  type: string
-                  maxLength: 512
-                subtype:
-                  description: The program specific subtype code for the specified category/type.
-                  type: string
-                to_financial_account_token:
-                  description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
-                  format: uuid
-                  type: string
-                token:
-                  description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
-                  format: uuid
-                  type: string
-                type:
-                  description: Type of book_transfer
-                  enum:
-                    - ATM_WITHDRAWAL
-                    - ATM_DECLINE
-                    - INTERNATIONAL_ATM_WITHDRAWAL
-                    - INACTIVITY
-                    - STATEMENT
-                    - MONTHLY
-                    - QUARTERLY
-                    - ANNUAL
-                    - CUSTOMER_SERVICE
-                    - ACCOUNT_MAINTENANCE
-                    - ACCOUNT_ACTIVATION
-                    - ACCOUNT_CLOSURE
-                    - CARD_REPLACEMENT
-                    - CARD_DELIVERY
-                    - CARD_CREATE
-                    - CURRENCY_CONVERSION
-                    - INTEREST
-                    - LATE_PAYMENT
-                    - BILL_PAYMENT
-                    - CASH_BACK
-                    - ACCOUNT_TO_ACCOUNT
-                    - CARD_TO_CARD
-                    - DISBURSE
-                    - BILLING_ERROR
-                    - LOSS_WRITE_OFF
-                    - EXPIRED_CARD
-                    - EARLY_DERECOGNITION
-                    - ESCHEATMENT
-                    - INACTIVITY_FEE_DOWN
-                    - PROVISIONAL_CREDIT
-                    - DISPUTE_WON
-                    - SERVICE
-                    - TRANSFER
-                  type: string
-              required:
-                - amount
-                - category
-                - from_financial_account_token
-                - subtype
-                - to_financial_account_token
-                - type
-              type: object
+              $ref: '#/components/schemas/create_book_transfer_request'
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookTransferResponse'
+                $ref: '#/components/schemas/book_transfer_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -7862,7 +7789,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookTransferResponse'
+                $ref: '#/components/schemas/book_transfer_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -7903,7 +7830,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookTransferResponse'
+                $ref: '#/components/schemas/book_transfer_response'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -9050,7 +8977,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/BookTransferResponse'
+                - $ref: '#/components/schemas/book_transfer_response'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -9096,7 +9023,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/BookTransferResponse'
+                - $ref: '#/components/schemas/book_transfer_response'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -10255,6 +10182,7 @@ webhooks:
                   source: CUSTOMER
                   status: PENDING
                   token: 147595d7-45f4-4c91-a950-3436d16847e5
+                  type: ORIGINATION_DEBIT
                   updated: '2023-09-14T12:52:44Z'
                   user_defined_id: null
       responses:
@@ -12812,28 +12740,6 @@ components:
         - token
         - url
       type: object
-    FinancialEvent:
-      properties:
-        amount:
-          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
-          type: integer
-        created:
-          description: Date and time when the financial event occurred. UTC time zone.
-          format: date-time
-          type: string
-        result:
-          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
-          enum:
-            - APPROVED
-            - DECLINED
-          type: string
-        token:
-          description: Globally unique identifier.
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/financial_event_type'
-      type: object
     Fleet:
       title: Fleet
       required:
@@ -13008,49 +12914,9 @@ components:
         - BIODIESEL_BLEND_100_PERCENT_OFF_ROAD_NON_TAXABLE
         - RENEWABLE_DIESEL_BIODIESEL_6_20_PERCENT_OFF_ROAD_NON_TAXABLE
         - MISCELLANEOUS_OTHER_FUEL
-    PaymentEvent:
-      properties:
-        amount:
-          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
-          type: integer
-        created:
-          description: Date and time when the financial event occurred. UTC time zone.
-          format: date-time
-          type: string
-        detailed_results:
-          description: More detailed reasons for the event
-          items:
-            enum:
-              - APPROVED
-              - FUNDS_INSUFFICIENT
-              - ACCOUNT_INVALID
-              - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
-              - PROGRAM_DAILY_LIMIT_EXCEEDED
-              - PROGRAM_MONTHLY_LIMIT_EXCEEDED
-            type: string
-          type: array
-        result:
-          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
-          enum:
-            - APPROVED
-            - DECLINED
-          type: string
-        token:
-          description: Globally unique identifier.
-          format: uuid
-          type: string
-        type:
-          $ref: '#/components/schemas/PaymentEventType'
-      required:
-        - amount
-        - created
-        - result
-        - token
-        - type
-      type: object
     TransferEvent:
       allOf:
-        - $ref: '#/components/schemas/FinancialEvent'
+        - $ref: '#/components/schemas/financial_event'
         - properties:
             subtype:
               description: The program specific subtype code for the specified category/type.
@@ -13074,79 +12940,6 @@ components:
             - token
             - subtype
             - memo
-    BookTransferEvent:
-      properties:
-        amount:
-          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
-          type: integer
-        type:
-          description: Type of the book transfer
-          type: string
-        result:
-          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
-          enum:
-            - APPROVED
-            - DECLINED
-          type: string
-        created:
-          description: Date and time when the financial event occurred. UTC time zone.
-          format: date-time
-          type: string
-        token:
-          description: Globally unique identifier.
-          format: uuid
-          type: string
-        subtype:
-          description: The program specific subtype code for the specified category/type.
-          type: string
-        memo:
-          description: Memo for the transfer.
-          type: string
-        detailed_results:
-          description: Detailed Results
-          type: array
-          items:
-            enum:
-              - APPROVED
-              - FUNDS_INSUFFICIENT
-            type: string
-      required:
-        - amount
-        - type
-        - result
-        - created
-        - token
-        - subtype
-        - memo
-        - detailed_results
-    PaymentEventType:
-      description: |-
-        Event types:
-        * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
-        * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
-        * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
-        * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the Federal Reserve.
-        * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
-        * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
-        * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
-        * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
-        * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
-        * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
-        * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-        * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution. 
-      enum:
-        - ACH_ORIGINATION_CANCELLED
-        - ACH_ORIGINATION_INITIATED
-        - ACH_ORIGINATION_PROCESSED
-        - ACH_ORIGINATION_SETTLED
-        - ACH_ORIGINATION_RELEASED
-        - ACH_ORIGINATION_REVIEWED
-        - ACH_RECEIPT_PROCESSED
-        - ACH_RECEIPT_SETTLED
-        - ACH_RETURN_INITIATED
-        - ACH_RETURN_PROCESSED
-        - ACH_RETURN_SETTLED
-      type: string
     FinancialTransaction:
       properties:
         category:
@@ -13175,7 +12968,7 @@ components:
         events:
           description: A list of all financial events that have modified this financial transaction.
           items:
-            $ref: '#/components/schemas/FinancialEvent'
+            $ref: '#/components/schemas/financial_event'
           type: array
         pending_amount:
           description: |
@@ -13582,7 +13375,7 @@ components:
         events:
           description: A list of all payment events that have modified this payment.
           items:
-            $ref: '#/components/schemas/PaymentEvent'
+            $ref: '#/components/schemas/payment_event'
           type: array
         pending_amount:
           description: |
@@ -13662,6 +13455,9 @@ components:
           type: string
         related_account_tokens:
           $ref: '#/components/schemas/related_account_tokens'
+        type:
+          description: Payment type indicating the specific ACH message or Fedwire transfer type
+          $ref: '#/components/schemas/transfer_type'
       required:
         - direction
         - external_bank_account_token
@@ -14187,7 +13983,7 @@ components:
         events:
           description: A list of all financial events that have modified this trasnfer.
           items:
-            $ref: '#/components/schemas/FinancialEvent'
+            $ref: '#/components/schemas/financial_event'
           type: array
         from_balance:
           description: The updated balance of the sending financial account.
@@ -14237,92 +14033,6 @@ components:
           format: date-time
           type: string
       type: object
-    BookTransferResponse:
-      properties:
-        category:
-          description: Category of the book transfer
-          enum:
-            - ADJUSTMENT
-            - BALANCE_OR_FUNDING
-            - DERECOGNITION
-            - DISPUTE
-            - FEE
-            - REWARD
-            - TRANSFER
-          type: string
-        created:
-          description: Date and time when the transfer occurred. UTC time zone.
-          format: date-time
-          type: string
-        currency:
-          description: 3-character alphabetic ISO 4217 code for the settling currency of the transaction.
-          type: string
-        events:
-          description: A list of all financial events that have modified this transfer.
-          items:
-            $ref: '#/components/schemas/BookTransferEvent'
-          type: array
-        from_financial_account_token:
-          description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
-          format: uuid
-          type: string
-        pending_amount:
-          description: |
-            Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
-            The value of this field will go to zero over time once the financial transaction is settled.
-          type: integer
-        result:
-          description: APPROVED transactions were successful while DECLINED transactions were declined by user, Lithic, or the network.
-          enum:
-            - APPROVED
-            - DECLINED
-          type: string
-        settled_amount:
-          description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
-          type: integer
-        status:
-          description: 'Status types: * `DECLINED` - The transfer was declined. * `REVERSED` - The transfer was reversed * `SETTLED` - The transfer is completed. '
-          enum:
-            - DECLINED
-            - REVERSED
-            - SETTLED
-          type: string
-        to_financial_account_token:
-          description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
-        token:
-          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
-          format: uuid
-          type: string
-        updated:
-          description: Date and time when the financial transaction was last updated. UTC time zone.
-          format: date-time
-          type: string
-        transaction_series:
-          description: A series of transactions that are grouped together.
-          oneOf:
-            - $ref: '#/components/schemas/transaction_series'
-            - type: 'null'
-        external_resource:
-          description: An external resource associated with the transfer.
-          oneOf:
-            - $ref: '#/components/schemas/external_resource'
-            - type: 'null'
-      type: object
-      required:
-        - category
-        - created
-        - currency
-        - events
-        - external_resource
-        - from_financial_account_token
-        - pending_amount
-        - result
-        - settled_amount
-        - status
-        - to_financial_account_token
-        - token
-        - transaction_series
-        - updated
     UpdateFinancialAccountRequest:
       properties:
         nickname:
@@ -16251,6 +15961,32 @@ components:
         - RETURNED_PAYMENT
         - RETURNED_PAYMENT_REVERSAL
         - LITHIC_NETWORK_PAYMENT
+    financial_event:
+      $id: https://lithic.com/schemas/treasury/ledger/financial_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Financial Event
+      description: Financial Event
+      type: object
+      properties:
+        amount:
+          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        created:
+          description: Date and time when the financial event occurred. UTC time zone.
+          type: string
+          format: date-time
+        result:
+          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+        token:
+          description: Globally unique identifier.
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/financial_event_type'
     fraud-report-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/fraud/fraud-report-response.json
@@ -17103,6 +16839,7 @@ components:
         - SECURITY
         - PROGRAM_RECEIVABLES
         - COLLECTION
+        - BANK_ACCOUNTS_PAYABLE
     account-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/account-financial-account-type.json
@@ -18007,7 +17744,7 @@ components:
             events:
               type: array
               items:
-                type: object
+                $ref: '#/components/schemas/financial_event'
               description: List of transaction events
             descriptor:
               type: string
@@ -18026,6 +17763,97 @@ components:
             - events
             - descriptor
             - financial_account_token
+    book_transfer_type:
+      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - ATM_WITHDRAWAL
+        - ATM_DECLINE
+        - INTERNATIONAL_ATM_WITHDRAWAL
+        - INACTIVITY
+        - STATEMENT
+        - MONTHLY
+        - QUARTERLY
+        - ANNUAL
+        - CUSTOMER_SERVICE
+        - ACCOUNT_MAINTENANCE
+        - ACCOUNT_ACTIVATION
+        - ACCOUNT_CLOSURE
+        - CARD_REPLACEMENT
+        - CARD_DELIVERY
+        - CARD_CREATE
+        - CURRENCY_CONVERSION
+        - INTEREST
+        - LATE_PAYMENT
+        - BILL_PAYMENT
+        - CASH_BACK
+        - ACCOUNT_TO_ACCOUNT
+        - CARD_TO_CARD
+        - DISBURSE
+        - BILLING_ERROR
+        - LOSS_WRITE_OFF
+        - EXPIRED_CARD
+        - EARLY_DERECOGNITION
+        - ESCHEATMENT
+        - INACTIVITY_FEE_DOWN
+        - PROVISIONAL_CREDIT
+        - DISPUTE_WON
+        - SERVICE
+        - TRANSFER
+      description: Type of the book transfer
+      title: Book Transfer Type
+    book_transfer_detailed_results:
+      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_detailed_results.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Book Transfer Detailed Results
+      type: string
+      enum:
+        - APPROVED
+        - FUNDS_INSUFFICIENT
+    book_transfer_event:
+      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Book Transfer Event
+      description: Book transfer Event
+      type: object
+      properties:
+        amount:
+          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        type:
+          $ref: '#/components/schemas/book_transfer_type'
+        result:
+          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+        created:
+          description: Date and time when the financial event occurred. UTC time zone.
+          type: string
+          format: date-time
+        token:
+          description: Globally unique identifier.
+          type: string
+          format: uuid
+        subtype:
+          description: The program specific subtype code for the specified category/type.
+          type: string
+        memo:
+          description: Memo for the transfer.
+          type: string
+        detailed_results:
+          $ref: '#/components/schemas/book_transfer_detailed_results'
+      required:
+        - amount
+        - type
+        - result
+        - created
+        - token
+        - subtype
+        - memo
+        - detailed_results
     transaction_series:
       $id: https://lithic.com/schemas/treasury/ledger/transaction_series.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18109,7 +17937,7 @@ components:
             events:
               type: array
               items:
-                type: object
+                $ref: '#/components/schemas/book_transfer_event'
               description: List of events associated with this book transfer
             from_financial_account_token:
               type: string
@@ -19348,8 +19176,94 @@ components:
             - string
             - 'null'
           description: External bank routing number
+        wire_token:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: Wire token
+        imad:
+          type:
+            - string
+            - 'null'
+          description: IMAD
+        omad:
+          type:
+            - string
+            - 'null'
+          description: OMAD
       required:
         - wire_transfer_type
+    payment_event:
+      $id: https://lithic.com/schemas/treasury/ledger/payment_event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Payment Event
+      description: Payment Event
+      type: object
+      properties:
+        amount:
+          description: Amount of the financial event that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        created:
+          description: Date and time when the financial event occurred. UTC time zone.
+          type: string
+          format: date-time
+        detailed_results:
+          description: More detailed reasons for the event
+          type: array
+          items:
+            type: string
+            enum:
+              - APPROVED
+              - FUNDS_INSUFFICIENT
+              - ACCOUNT_INVALID
+              - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
+              - PROGRAM_DAILY_LIMIT_EXCEEDED
+              - PROGRAM_MONTHLY_LIMIT_EXCEEDED
+        result:
+          description: APPROVED financial events were successful while DECLINED financial events were declined by user, Lithic, or the network.
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+        token:
+          description: Globally unique identifier.
+          type: string
+          format: uuid
+        type:
+          description: |-
+            Event types:
+            * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
+            * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
+            * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
+            * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the Federal Reserve.
+            * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
+            * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+            * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
+            * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
+            * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
+            * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
+            * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+            * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution.
+          type: string
+          enum:
+            - ACH_ORIGINATION_CANCELLED
+            - ACH_ORIGINATION_INITIATED
+            - ACH_ORIGINATION_PROCESSED
+            - ACH_ORIGINATION_SETTLED
+            - ACH_ORIGINATION_RELEASED
+            - ACH_ORIGINATION_REVIEWED
+            - ACH_RECEIPT_PROCESSED
+            - ACH_RECEIPT_SETTLED
+            - ACH_RETURN_INITIATED
+            - ACH_RETURN_PROCESSED
+            - ACH_RETURN_SETTLED
+      required:
+        - amount
+        - created
+        - result
+        - token
+        - type
     related_account_tokens:
       $id: https://lithic.com/schemas/treasury/ledger/related_account_tokens.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19472,6 +19386,22 @@ components:
                 - string
                 - 'null'
               description: External bank routing number
+            wire_token:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: Wire token
+            imad:
+              type:
+                - string
+                - 'null'
+              description: IMAD
+            omad:
+              type:
+                - string
+                - 'null'
+              description: OMAD
           required:
             - wire_transfer_type
       allOf:
@@ -19534,7 +19464,7 @@ components:
             events:
               type: array
               items:
-                type: object
+                $ref: '#/components/schemas/payment_event'
               description: List of transaction events
             descriptor:
               type: string
@@ -19850,6 +19780,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/base-transaction-response'
+    transfer_type:
+      $id: https://lithic.com/schemas/internal/treasury/approvals/transfer_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - ORIGINATION_CREDIT
+        - ORIGINATION_DEBIT
+        - RECEIPT_CREDIT
+        - RECEIPT_DEBIT
+        - CUSTOMER_TRANSFER
+        - DRAWDOWN_PAYMENT
+        - REVERSAL_PAYMENT
+        - DRAWDOWN_REQUEST
+        - REVERSAL_REQUEST
+        - DRAWDOWN_REFUSAL
+      title: Transfer Type
     network_total:
       $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -21094,6 +21040,163 @@ components:
                 wallet_type: APPLE_PAY
               updated: '2023-08-03T18:42:30Z'
           has_more: false
+    book_transfer_category:
+      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_category.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - ADJUSTMENT
+        - BALANCE_OR_FUNDING
+        - DERECOGNITION
+        - DISPUTE
+        - FEE
+        - REWARD
+        - TRANSFER
+      description: Category of the book transfer
+      title: Book Transfer Category
+    book_transfer_response:
+      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/book_transfer_category'
+        created:
+          description: Date and time when the transfer occurred. UTC time zone.
+          format: date-time
+          type: string
+        currency:
+          description: 3-character alphabetic ISO 4217 code for the settling currency of the transaction.
+          type: string
+        events:
+          description: A list of all financial events that have modified this transfer.
+          items:
+            $ref: '#/components/schemas/book_transfer_event'
+          type: array
+        external_id:
+          description: External ID defined by the customer
+          oneOf:
+            - type: string
+            - type: 'null'
+        from_financial_account_token:
+          description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
+          format: uuid
+          type: string
+        pending_amount:
+          description: |
+            Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
+
+            The value of this field will go to zero over time once the financial transaction is settled.
+          type: integer
+        result:
+          $ref: '#/components/schemas/transaction_result'
+        settled_amount:
+          description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
+          type: integer
+        status:
+          description: |
+            Status types:
+            * `DECLINED` - The transfer was declined.
+            * `REVERSED` - The transfer was reversed
+            * `SETTLED` - The transfer is completed.
+          enum:
+            - DECLINED
+            - REVERSED
+            - SETTLED
+          type: string
+        to_financial_account_token:
+          description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
+          format: uuid
+          type: string
+        token:
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
+          format: uuid
+          type: string
+        updated:
+          description: Date and time when the financial transaction was last updated. UTC time zone.
+          format: date-time
+          type: string
+        transaction_series:
+          description: A series of transactions that are grouped together.
+          oneOf:
+            - $ref: '#/components/schemas/transaction_series'
+            - type: 'null'
+        external_resource:
+          description: An external resource associated with the transfer.
+          oneOf:
+            - $ref: '#/components/schemas/external_resource'
+            - type: 'null'
+      required:
+        - category
+        - created
+        - currency
+        - events
+        - external_id
+        - external_resource
+        - from_financial_account_token
+        - pending_amount
+        - result
+        - settled_amount
+        - status
+        - to_financial_account_token
+        - token
+        - transaction_series
+        - updated
+    on_closed_account:
+      $id: https://lithic.com/schemas/treasury/ledger/on_closed_account.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: On Closed Account
+      description: What to do if the financial account is closed when posting an operation
+      type: string
+      enum:
+        - FAIL
+        - USE_SUSPENSE
+      default: FAIL
+    create_book_transfer_request:
+      $id: https://lithic.com/schemas/treasury/ledger/create_book_transfer_request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Create Book Transfer Request
+      type: object
+      properties:
+        amount:
+          description: Amount to be transferred in the currency's smallest unit (e.g., cents for USD). This should always be a positive value.
+          type: integer
+          minimum: 1
+        category:
+          $ref: '#/components/schemas/book_transfer_category'
+        from_financial_account_token:
+          description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
+          format: uuid
+          type: string
+        memo:
+          description: Optional descriptor for the transfer.
+          type: string
+          maxLength: 512
+        subtype:
+          description: The program specific subtype code for the specified category/type.
+          type: string
+        to_financial_account_token:
+          description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
+          format: uuid
+          type: string
+        token:
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
+          format: uuid
+          type: string
+        type:
+          $ref: '#/components/schemas/book_transfer_type'
+        external_id:
+          description: External ID defined by the customer
+          type: string
+        on_closed_account:
+          $ref: '#/components/schemas/on_closed_account'
+      required:
+        - amount
+        - category
+        - from_financial_account_token
+        - subtype
+        - to_financial_account_token
+        - type
     external_payments_response:
       $id: https://lithic.com/schemas/treasury/ledger/external_payments_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -21193,16 +21296,6 @@ components:
       required:
         - data
         - has_more
-    on_closed_account:
-      $id: https://lithic.com/schemas/treasury/ledger/on_closed_account.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: On Closed Account
-      description: What to do if the financial account is closed when posting an operation
-      type: string
-      enum:
-        - FAIL
-        - USE_SUSPENSE
-      default: FAIL
     create_management_operation_request:
       $id: https://lithic.com/schemas/treasury/ledger/create_management_operation_request.json
       $schema: https://json-schema.org/draft/2020-12/schema
