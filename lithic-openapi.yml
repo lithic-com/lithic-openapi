@@ -275,6 +275,17 @@ paths:
                   tos_timestamp: '2022-03-08T08:00:00Z'
                   website_url: https://www.mybusiness.com
                   workflow: KYB_BASIC
+              kybDelegatedRequest:
+                summary: Create an account holder with KYB_DELEGATED workflow
+                value:
+                  business_entity:
+                    address:
+                      address1: 123 Old Forest Way
+                      city: Omaha
+                      country: USA
+                      postal_code: '61022'
+                      state: NE
+                    legal_business_name: Busy Business, Inc.
               kycExemptRequest:
                 summary: Create an account holder with KYC Exempt workflow
                 value:
@@ -312,6 +323,7 @@ paths:
             schema:
               oneOf:
                 - $ref: '#/components/schemas/Kyb'
+                - $ref: '#/components/schemas/KybDelegated'
                 - $ref: '#/components/schemas/Kyc'
                 - $ref: '#/components/schemas/KycExempt'
         required: true
@@ -5672,7 +5684,14 @@ paths:
             format: date
             type: string
         - $ref: '#/components/parameters/endingBefore'
-        - $ref: '#/components/parameters/pageSize'
+        - description: Number of records per page.
+          in: query
+          name: page_size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
         - $ref: '#/components/parameters/startingAfter'
       responses:
         '200':
@@ -11998,6 +12017,39 @@ components:
         - legal_business_name
         - phone_numbers
       type: object
+    KybDelegatedBusinessEntity:
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+          description: |
+            Business's physical address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable.
+        dba_business_name:
+          description: Any name that the business operates under that is not its legal business name (if applicable).
+          type: string
+        government_id:
+          description: |
+            Government-issued identification number. US Federal Employer Identification Numbers (EIN) are currently supported, entered as full nine-digits, with or without hyphens.
+          example: 114-123-1513
+          type: string
+        legal_business_name:
+          description: Legal (formal) business name.
+          example: Acme, Inc.
+          type: string
+        parent_company:
+          description: Parent company name (if applicable).
+          type: string
+        phone_numbers:
+          description: One or more of the business's phone number(s), entered as a list in E.164 format.
+          items:
+            description: Business phone number, entered in E.164 format.
+            example: '+15555555555'
+            type: string
+          minItems: 1
+          type: array
+      required:
+        - address
+        - legal_business_name
+      type: object
     CardAggregateBalance:
       description: Card Aggregate Balance across all end-user accounts
       properties:
@@ -13140,6 +13192,49 @@ components:
         - nature_of_business
         - tos_timestamp
         - workflow
+      type: object
+    KybDelegated:
+      properties:
+        beneficial_owner_individuals:
+          description: |-
+            You can submit a list of all direct and indirect individuals with 25% or more ownership in the company. A maximum of 4 beneficial owners can be submitted. If no individual owns 25% of the company you do not need to send beneficial owner information.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section I) for more background on individuals that should be included. 
+          items:
+            $ref: '#/components/schemas/KybIndividual'
+          minItems: 0
+          type: array
+        business_entity:
+          $ref: '#/components/schemas/KybDelegatedBusinessEntity'
+          description: Information for business for which the account is being opened.
+        control_person:
+          $ref: '#/components/schemas/KybIndividual'
+          description: |
+            An individual with significant responsibility for managing the legal entity (e.g., a Chief Executive Officer, Chief Financial Officer, Chief Operating Officer,
+            Managing Member, General Partner, President, Vice President, or Treasurer). This can be an executive, or someone who will have program-wide access
+            to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
+            See [FinCEN requirements](https://www.fincen.gov/sites/default/files/shared/CDD_Rev6.7_Sept_2017_Certificate.pdf) (Section II) for more background.
+        external_id:
+          description: A user provided id that can be used to link an account holder with an external system
+          type: string
+        nature_of_business:
+          description: Short description of the company's line of business (i.e., what does the company do?).
+          example: Software company selling solutions to the restaurant industry
+          type: string
+        tos_timestamp:
+          description: An RFC 3339 timestamp indicating when the account holder accepted the applicable legal agreements (e.g., cardholder terms) as agreed upon during API customer's implementation with Lithic.
+          example: '2022-03-08 08:00:00'
+          type: string
+        website_url:
+          description: Company website URL.
+          example: www.mybusiness.com
+          type: string
+        workflow:
+          description: Specifies the type of KYB workflow to run.
+          enum:
+            - KYB_DELEGATED
+          type: string
+      required:
+        - business_entity
       type: object
     KybIndividual:
       allOf:
@@ -14999,8 +15094,12 @@ components:
                   - IS_NOT_ONE_OF
                   - MATCHES
                   - DOES_NOT_MATCH
+                  - IS_EQUAL_TO
+                  - IS_NOT_EQUAL_TO
                   - IS_GREATER_THAN
+                  - IS_GREATER_THAN_OR_EQUAL_TO
                   - IS_LESS_THAN
+                  - IS_LESS_THAN_OR_EQUAL_TO
               value:
                 anyOf:
                   - title: Regex
@@ -15009,7 +15108,7 @@ components:
                   - title: Number
                     type: integer
                     format: int64
-                    description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
+                    description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
                   - title: List of Strings
                     type: array
                     items:
@@ -15272,8 +15371,12 @@ components:
                   - IS_NOT_ONE_OF
                   - MATCHES
                   - DOES_NOT_MATCH
+                  - IS_EQUAL_TO
+                  - IS_NOT_EQUAL_TO
                   - IS_GREATER_THAN
+                  - IS_GREATER_THAN_OR_EQUAL_TO
                   - IS_LESS_THAN
+                  - IS_LESS_THAN_OR_EQUAL_TO
               value:
                 anyOf:
                   - title: Regex
@@ -15282,7 +15385,7 @@ components:
                   - title: Number
                     type: integer
                     format: int64
-                    description: A number, to be used with `IS_GREATER_THAN` or `IS_LESS_THAN`
+                    description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
                   - title: List of Strings
                     type: array
                     items:
@@ -16839,7 +16942,7 @@ components:
         - SECURITY
         - PROGRAM_RECEIVABLES
         - COLLECTION
-        - BANK_ACCOUNTS_PAYABLE
+        - PROGRAM_BANK_ACCOUNTS_PAYABLE
     account-financial-account-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/account-financial-account-type.json
@@ -17801,6 +17904,7 @@ components:
         - DISPUTE_WON
         - SERVICE
         - TRANSFER
+        - COLLECTION
       description: Type of the book transfer
       title: Book Transfer Type
     book_transfer_detailed_results:
@@ -19084,6 +19188,33 @@ components:
           token_info:
             wallet_type: APPLE_PAY
           updated: '2023-08-03T18:42:30Z'
+    wire_party_details:
+      $id: https://lithic.com/schemas/treasury/ledger/wire_party_details.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Wire Party Details
+      type: object
+      properties:
+        name:
+          type:
+            - string
+            - 'null'
+          description: Name of the person or company
+        account_number:
+          type:
+            - string
+            - 'null'
+          description: Account number
+        agent_name:
+          type:
+            - string
+            - 'null'
+          description: Name of the financial institution
+        agent_id:
+          type:
+            - string
+            - 'null'
+          description: Routing number or BIC of the financial institution
+      required: []
     AchMethodAttributes:
       type: object
       properties:
@@ -19134,65 +19265,31 @@ components:
     WireMethodAttributes:
       type: object
       properties:
-        wire_transfer_type:
+        wire_network:
           type: string
           enum:
             - FEDWIRE
             - SWIFT
           description: Type of wire transfer
-        previous_transfer:
+        wire_message_type:
+          type: string
+          description: Type of wire message
+        debtor:
+          $ref: '#/components/schemas/wire_party_details'
+        creditor:
+          $ref: '#/components/schemas/wire_party_details'
+        message_id:
           type:
             - string
             - 'null'
-          format: uuid
-          description: UUID of previous transfer if this is a retry
-        lithic_individual_name:
+          description: Point to point reference identifier, as assigned by the instructing party, used for tracking the message through the Fedwire system
+        remittance_information:
           type:
             - string
             - 'null'
-          description: Lithic individual name
-        lithic_bank_name:
-          type:
-            - string
-            - 'null'
-          description: Lithic bank name
-        lithic_bank_routing_number:
-          type:
-            - string
-            - 'null'
-          description: Lithic bank routing number
-        external_individual_name:
-          type:
-            - string
-            - 'null'
-          description: External individual name
-        external_bank_name:
-          type:
-            - string
-            - 'null'
-          description: External bank name
-        external_bank_routing_number:
-          type:
-            - string
-            - 'null'
-          description: External bank routing number
-        wire_token:
-          type:
-            - string
-            - 'null'
-          format: uuid
-          description: Wire token
-        imad:
-          type:
-            - string
-            - 'null'
-          description: IMAD
-        omad:
-          type:
-            - string
-            - 'null'
-          description: OMAD
+          description: Payment details or invoice reference
       required:
+        - wire_network
         - wire_transfer_type
     payment_event:
       $id: https://lithic.com/schemas/treasury/ledger/payment_event.json
@@ -19288,6 +19385,20 @@ components:
       required:
         - business_account_token
         - account_token
+    transfer_type:
+      $id: https://lithic.com/schemas/internal/treasury/approvals/transfer_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: string
+      enum:
+        - ORIGINATION_CREDIT
+        - ORIGINATION_DEBIT
+        - RECEIPT_CREDIT
+        - RECEIPT_DEBIT
+        - WIRE_INBOUND_PAYMENT
+        - WIRE_INBOUND_ADMIN
+        - WIRE_OUTBOUND_PAYMENT
+        - WIRE_OUTBOUND_ADMIN
+      title: Transfer Type
     payment-transaction:
       $id: https://lithic.com/schemas/treasury/ledger/payment-transaction.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19344,65 +19455,31 @@ components:
         WireMethodAttributes:
           type: object
           properties:
-            wire_transfer_type:
+            wire_network:
               type: string
               enum:
                 - FEDWIRE
                 - SWIFT
               description: Type of wire transfer
-            previous_transfer:
+            wire_message_type:
+              type: string
+              description: Type of wire message
+            debtor:
+              $ref: '#/components/schemas/wire_party_details'
+            creditor:
+              $ref: '#/components/schemas/wire_party_details'
+            message_id:
               type:
                 - string
                 - 'null'
-              format: uuid
-              description: UUID of previous transfer if this is a retry
-            lithic_individual_name:
+              description: Point to point reference identifier, as assigned by the instructing party, used for tracking the message through the Fedwire system
+            remittance_information:
               type:
                 - string
                 - 'null'
-              description: Lithic individual name
-            lithic_bank_name:
-              type:
-                - string
-                - 'null'
-              description: Lithic bank name
-            lithic_bank_routing_number:
-              type:
-                - string
-                - 'null'
-              description: Lithic bank routing number
-            external_individual_name:
-              type:
-                - string
-                - 'null'
-              description: External individual name
-            external_bank_name:
-              type:
-                - string
-                - 'null'
-              description: External bank name
-            external_bank_routing_number:
-              type:
-                - string
-                - 'null'
-              description: External bank routing number
-            wire_token:
-              type:
-                - string
-                - 'null'
-              format: uuid
-              description: Wire token
-            imad:
-              type:
-                - string
-                - 'null'
-              description: IMAD
-            omad:
-              type:
-                - string
-                - 'null'
-              description: OMAD
+              description: Payment details or invoice reference
           required:
+            - wire_network
             - wire_transfer_type
       allOf:
         - $ref: '#/components/schemas/base_transaction'
@@ -19483,6 +19560,8 @@ components:
             related_account_tokens:
               $ref: '#/components/schemas/related_account_tokens'
               description: Related account tokens for the transaction
+            type:
+              $ref: '#/components/schemas/transfer_type'
           required:
             - category
             - result
@@ -19780,22 +19859,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/base-transaction-response'
-    transfer_type:
-      $id: https://lithic.com/schemas/internal/treasury/approvals/transfer_type.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - ORIGINATION_CREDIT
-        - ORIGINATION_DEBIT
-        - RECEIPT_CREDIT
-        - RECEIPT_DEBIT
-        - CUSTOMER_TRANSFER
-        - DRAWDOWN_PAYMENT
-        - REVERSAL_PAYMENT
-        - DRAWDOWN_REQUEST
-        - REVERSAL_REQUEST
-        - DRAWDOWN_REFUSAL
-      title: Transfer Type
     network_total:
       $id: https://lithic.com/schemas/common/2025-02-25/network_total.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20397,15 +20460,61 @@ components:
               type:
                 - string
                 - 'null'
-              description: Device information gathered from the cardholder's device - JSON name/value pairs that is Base64url encoded. Maps to EMV 3DS field `deviceInfo`.
+              description: Raw device information - base64-encoded JSON object. Maps to EMV 3DS field `deviceInfo`.
             ip:
-              anyOf:
-                - type: string
-                  format: ipv4
-                - type: string
-                  format: ipv6
-                - type: 'null'
-              description: External IP address used by the app generating the 3DS authentication request. Maps to EMV 3DS field `appIp`.
+              type:
+                - string
+                - 'null'
+              description: IP address of the device.
+            platform:
+              type:
+                - string
+                - 'null'
+              description: 'Device platform: Android, iOS, Windows, etc.'
+            device:
+              type:
+                - string
+                - 'null'
+              description: 'Device model: e.g. "Apple iPhone 16".'
+            os:
+              type:
+                - string
+                - 'null'
+              description: 'Operating System: e.g. "Android 12", "iOS 17.1".'
+            locale:
+              type:
+                - string
+                - 'null'
+              description: 'Device locale: e.g. "en-US".'
+            time_zone:
+              type:
+                - string
+                - 'null'
+              description: Time zone offset in minutes between UTC and device local time.
+            screen_width:
+              type:
+                - integer
+                - 'null'
+              description: Screen width in pixels.
+            screen_height:
+              type:
+                - integer
+                - 'null'
+              description: Screen height in pixels.
+            latitude:
+              type:
+                - number
+                - 'null'
+              description: Latitude coordinate of current device location.
+              minimum: -90
+              maximum: 90
+            longitude:
+              type:
+                - number
+                - 'null'
+              description: Longitude coordinate of current device location.
+              minimum: -180
+              maximum: 180
           required: []
         authentication_request_type:
           type:
@@ -20471,7 +20580,7 @@ components:
               type:
                 - string
                 - 'null'
-              description: Time zone of the cardholder's browser offset in minutes between UTC and the cardholder browser's local time. The offset is positive if the local time is behind UTC and negative if it is ahead. Maps to EMV 3DS field `browserTz`.
+              description: Time zone offset in minutes between UTC and browser local time. Maps to EMV 3DS field `browserTz`.
             user_agent:
               type:
                 - string
@@ -21875,6 +21984,34 @@ components:
             - CARDHOLDER
             - MERCHANT
             - UNKNOWN
+        latest_challenge:
+          description: The latest Authorization Challenge that was issued to the cardholder for this merchant.
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - COMPLETED
+                - PENDING
+                - EXPIRED
+                - ERROR
+              description: |-
+                The status of the Authorization Challenge
+
+                * `COMPLETED` - Challenge was successfully completed by the cardholder
+                * `PENDING` - Challenge is still open
+                * `EXPIRED` - Challenge has expired without being completed
+                * `ERROR` - There was an error processing the challenge
+            phone_number:
+              type: string
+              description: The phone number used for sending Authorization Challenge SMS.
+            completed_at:
+              type: string
+              format: date-time
+              description: The date and time when the Authorization Challenge was completed in UTC. Present only if the status is `COMPLETED`.
+          required:
+            - status
+            - phone_number
       required:
         - acquirer_fee
         - amount
@@ -22110,7 +22247,7 @@ components:
       type: object
       properties:
         result:
-          description: Result of the Authorization decision. Provide `APPROVED` to accept the authorization. Any other response will decline the authorization. If a value not present in the enumeration is returned the transaction will be declined with the `CUSTOM_ASA_RESULT` detailed result.
+          description: Result of the Authorization decision. Provide `APPROVED` to accept the authorization. Any other response will decline the authorization. Result `CHALLENGE` is valid only for cardholder-initiated transactions. If a value not present in the enumeration is returned the transaction will be declined with the `CUSTOM_ASA_RESULT` detailed result.
           type: string
           enum:
             - APPROVED
@@ -22122,6 +22259,7 @@ components:
             - VELOCITY_EXCEEDED
             - DRIVER_NUMBER_INVALID
             - VEHICLE_NUMBER_INVALID
+            - CHALLENGE
         token:
           type: string
           description: The transaction token from the ASA request.
@@ -22154,6 +22292,9 @@ components:
                   format: int64
                   description: The balance available for the cardholder to spend. This is calculated as the settled amount minus any pending authorizations on the card.
                 - type: 'null'
+        challenge_phone_number:
+          type: string
+          description: The phone number to use for sending an Authorization Challenge SMS. Relevant only when the result is `CHALLENGE`. The expected format is E.164 without hyphens. For example, "+15555555555" for a US phone number.
       required:
         - result
     device:
