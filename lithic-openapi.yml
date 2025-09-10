@@ -33,6 +33,7 @@ tags:
   - name: Financial Account
   - name: Fraud Report
   - name: Funding Events
+  - name: Managed Disputes
   - name: Management Operations
   - name: Network Program
   - name: Payment
@@ -1081,6 +1082,13 @@ paths:
             type: string
             format: uuid
           required: false
+        - name: business_account_token
+          in: query
+          description: Only return Auth Rules that are bound to the provided business account token.
+          schema:
+            type: string
+            format: uuid
+          required: false
         - name: scope
           in: query
           description: Only return Auth Rules that are bound to the provided scope.
@@ -1088,6 +1096,7 @@ paths:
             enum:
               - PROGRAM
               - ACCOUNT
+              - BUSINESS_ACCOUNT
               - CARD
               - ANY
             type: string
@@ -1345,7 +1354,7 @@ paths:
         The generated backtest report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.backtest_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
         It is also possible to request backtest reports on-demand through the `/v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}` endpoint.
 
-        Lithic currently supports backtesting for `CONDITIONAL_BLOCK` / `CONDITIONAL_3DS_ACTION` rules. Backtesting for `VELOCITY_LIMIT` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
+        Lithic currently supports backtesting for `CONDITIONAL_BLOCK` / `CONDITIONAL_ACTION` rules. Backtesting for `VELOCITY_LIMIT` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
         If a historical transaction does not feature the required inputs to evaluate the rule, then it will not be included in the final backtest report.
       requestBody:
         required: true
@@ -3619,6 +3628,8 @@ paths:
                       - digital_wallet.tokenization_updated
                       - dispute.updated
                       - dispute_evidence.upload_failed
+                      - dispute_transaction.created
+                      - dispute_transaction.updated
                       - external_bank_account.created
                       - external_bank_account.updated
                       - external_payment.created
@@ -3786,6 +3797,8 @@ paths:
                       - digital_wallet.tokenization_updated
                       - dispute.updated
                       - dispute_evidence.upload_failed
+                      - dispute_transaction.created
+                      - dispute_transaction.updated
                       - external_bank_account.created
                       - external_bank_account.updated
                       - external_payment.created
@@ -4054,6 +4067,8 @@ paths:
                 - digital_wallet.tokenization_updated
                 - dispute.updated
                 - dispute_evidence.upload_failed
+                - dispute_transaction.created
+                - dispute_transaction.updated
                 - external_bank_account.created
                 - external_bank_account.updated
                 - external_payment.created
@@ -4607,6 +4622,37 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Set verification method
+      tags:
+        - External Bank Account
+  /v1/external_bank_accounts/{external_bank_account_token}/unpause:
+    post:
+      description: |
+        Unpause an external bank account
+      operationId: unpauseExternalBankAccount
+      parameters:
+        - in: path
+          name: external_bank_account_token
+          required: true
+          schema:
+            format: uuid
+            title: External Bank Account Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bank_account_api_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Unpause external bank account
       tags:
         - External Bank Account
   /v1/credit_products/{credit_product_token}/extended_credit:
@@ -5364,27 +5410,21 @@ paths:
           in: query
           description: Filter by transaction status
           schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - DECLINED
-                - EXPIRED
-                - PENDING
-                - SETTLED
-                - VOIDED
-                - RETURNED
-                - REVERSED
+            enum:
+              - DECLINED
+              - EXPIRED
+              - PENDING
+              - RETURNED
+              - REVERSED
+              - SETTLED
+              - VOIDED
         - name: result
           in: query
           description: Filter by transaction result
           schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - APPROVED
-                - DECLINED
+            enum:
+              - APPROVED
+              - DECLINED
         - name: financial_account_token
           in: query
           description: Filter by financial account token
@@ -6365,6 +6405,8 @@ paths:
                     - digital_wallet.tokenization_updated
                     - dispute.updated
                     - dispute_evidence.upload_failed
+                    - dispute_transaction.created
+                    - dispute_transaction.updated
                     - external_bank_account.created
                     - external_bank_account.updated
                     - external_payment.created
@@ -8451,6 +8493,117 @@ paths:
       summary: Get funding event details
       tags:
         - Funding Events
+  /v2/disputes:
+    get:
+      description: Returns a paginated list of disputes
+      operationId: getDisputesV2
+      parameters:
+        - description: RFC 3339 timestamp for filtering by created date, inclusive
+          in: query
+          name: begin
+          required: false
+          schema:
+            format: date-time
+            type: string
+        - description: RFC 3339 timestamp for filtering by created date, inclusive
+          in: query
+          name: end
+          required: false
+          schema:
+            format: date-time
+            type: string
+        - description: Number of items to return
+          in: query
+          name: page_size
+          required: false
+          schema:
+            default: 50
+            maximum: 100
+            minimum: 1
+            type: integer
+        - description: Pagination token for starting after a specific item
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            type: string
+        - description: Pagination token for ending before a specific item
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            type: string
+        - description: Filter by the token of the transaction being disputed. Corresponds with transaction_series.related_transaction_token
+          in: query
+          name: disputed_transaction_token
+          required: false
+          schema:
+            format: uuid
+            type: string
+        - description: Filter by card token
+          in: query
+          name: card_token
+          required: false
+          schema:
+            format: uuid
+            type: string
+        - description: Filter by account token
+          in: query
+          name: account_token
+          required: false
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/disputes-response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List disputes
+      tags:
+        - Managed Disputes
+  /v2/disputes/{dispute_token}:
+    get:
+      description: Retrieves a specific dispute by its token
+      operationId: getDisputeByTokenV2
+      parameters:
+        - description: Token of the dispute to retrieve
+          in: path
+          name: dispute_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dispute'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a dispute
+      tags:
+        - Managed Disputes
 webhooks:
   account_holder.created:
     post:
@@ -10730,6 +10883,144 @@ webhooks:
                 $ref: '#/components/schemas/three-ds-decisioning'
       tags:
         - 3DS
+  dispute_transaction.created:
+    post:
+      description: Occurs when a new dispute transaction is created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/dispute'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - dispute_transaction.created
+                      example: dispute_transaction.created
+                      type: string
+                  type: object
+            examples:
+              disputeCreated:
+                summary: Dispute Transaction Created Example
+                value:
+                  event_type: dispute_transaction.created
+                  case_id: ROL12345
+                  token: 123e4567-e89b-12d3-a456-426614174000
+                  card_token: 78ddee49-4558-4a79-80ce-339e12cc141c
+                  account_token: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+                  network: VISA
+                  currency: USD
+                  created: '2024-02-07T10:00:00Z'
+                  updated: '2024-02-07T10:00:00Z'
+                  merchant:
+                    acceptor_id: '174030075991'
+                    acquiring_institution_id: '191231'
+                    descriptor: COFFEE SHOP
+                    mcc: '5812'
+                    city: NEW YORK
+                    state: NY
+                    country: USA
+                  transaction_series:
+                    type: DISPUTE
+                    related_transaction_token: 98765432-e89b-12d3-a456-426614174000
+                  liability_allocation:
+                    original_amount: 100000
+                    recovered_amount: 0
+                    written_off_amount: 0
+                    denied_amount: 0
+                    remaining_amount: 100000
+                  events:
+                    - token: 7063f2ae-e806-44dd-9b1f-07e5df61e9e2
+                      type: WORKFLOW
+                      created: '2024-02-07T10:00:00Z'
+                      data:
+                        stage: CLAIM
+                        action: ISSUER_OPENED
+                        reason: Not Sent
+                        amount: 100000
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: dispute_transaction.created
+      tags:
+        - Event Types
+  dispute_transaction.updated:
+    post:
+      description: Occurs when a dispute transaction is updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/dispute'
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      enum:
+                        - dispute_transaction.updated
+                      example: dispute_transaction.updated
+                      type: string
+                  type: object
+            examples:
+              disputeUpdated:
+                summary: Dispute Transaction Updated Example
+                value:
+                  event_type: dispute_transaction.updated
+                  case_id: ROL12345
+                  token: 123e4567-e89b-12d3-a456-426614174000
+                  card_token: 78ddee49-4558-4a79-80ce-339e12cc141c
+                  account_token: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+                  network: VISA
+                  currency: USD
+                  created: '2024-02-07T10:00:00Z'
+                  updated: '2024-02-09T10:00:00Z'
+                  merchant:
+                    acceptor_id: '174030075991'
+                    acquiring_institution_id: '191231'
+                    descriptor: COFFEE SHOP
+                    mcc: '5812'
+                    city: NEW YORK
+                    state: NY
+                    country: USA
+                  transaction_series:
+                    type: DISPUTE
+                    related_transaction_token: 98765432-e89b-12d3-a456-426614174000
+                  liability_allocation:
+                    original_amount: 100000
+                    recovered_amount: 100000
+                    written_off_amount: 0
+                    denied_amount: 0
+                    remaining_amount: 0
+                  events:
+                    - token: 7063f2ae-e806-44dd-9b1f-07e5df61e9e2
+                      type: WORKFLOW
+                      created: '2024-02-07T10:00:00Z'
+                      data:
+                        stage: CLAIM
+                        action: ISSUER_OPENED
+                        reason: Not Sent
+                        amount: 100000
+                    - token: 5b4c53dd-f21d-40f6-bd16-37579b07d3d3
+                      type: CARDHOLDER_LIABILITY
+                      created: '2024-02-07T10:30:00Z'
+                      data:
+                        action: PROVISIONAL_CREDIT_GRANTED
+                        amount: 100000
+                        reason: Provisional Credit
+                    - token: 23189e39-f3d3-4d14-bcdf-9c1c71135c17
+                      type: FINANCIAL
+                      created: '2024-02-09T10:00:00Z'
+                      data:
+                        stage: CHARGEBACK
+                        amount: 100000
+                        polarity: CREDIT
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: dispute_transaction.updated
+      tags:
+        - Event Types
 components:
   parameters:
     accountHolderTokenPath:
@@ -12656,6 +12947,8 @@ components:
             * `card.converted` - Notification that a virtual card has been converted to a physical card.
             * `card_transaction.updated` - Transaction Lifecycle webhook. See https://docs.lithic.com/docs/transaction-webhooks.
             * `dispute.updated` - A dispute has been updated.
+            * `dispute_transaction.created` - A new dispute transaction has been created.
+            * `dispute_transaction.updated` - A dispute transaction has been updated.
             * `digital_wallet.tokenization_approval_request` - Card network's request to Lithic to activate a digital wallet token.
             * `digital_wallet.tokenization_result` - Notification of the end result of a tokenization, whether successful or failed.
             * `digital_wallet.tokenization_two_factor_authentication_code` - A code to be passed to an end user to complete digital wallet authentication. See https://docs.lithic.com/docs/tokenization-control#digital-wallet-tokenization-auth-code.
@@ -12681,6 +12974,8 @@ components:
             - digital_wallet.tokenization_updated
             - dispute.updated
             - dispute_evidence.upload_failed
+            - dispute_transaction.created
+            - dispute_transaction.updated
             - external_bank_account.created
             - external_bank_account.updated
             - external_payment.created
@@ -12751,6 +13046,8 @@ components:
               - digital_wallet.tokenization_updated
               - dispute.updated
               - dispute_evidence.upload_failed
+              - dispute_transaction.created
+              - dispute_transaction.updated
               - external_bank_account.created
               - external_bank_account.updated
               - external_payment.created
@@ -14969,7 +15266,7 @@ components:
       enum:
         - AUTHORIZATION
         - THREE_DS_AUTHENTICATION
-      description: The type of event stream the Auth rule applies to.
+      description: The event stream during which the rule will be evaluated.
     auth-rule-token:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-token.json
@@ -15019,6 +15316,15 @@ components:
       items:
         type: string
         format: uuid
+    business-account-tokens:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/business-account-tokens.json
+      title: Auth Rule Business Account Tokens
+      description: Business Account tokens to which the Auth Rule applies.
+      type: array
+      items:
+        type: string
+        format: uuid
     auth-rule-type:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-type.json
@@ -15028,14 +15334,14 @@ components:
         - CONDITIONAL_BLOCK
         - VELOCITY_LIMIT
         - MERCHANT_LOCK
-        - CONDITIONAL_3DS_ACTION
+        - CONDITIONAL_ACTION
       description: |-
-        The type of Auth Rule. Effectively determines the event stream during which it will be evaluated. 
+        The type of Auth Rule. For certain rule types, this determines the event stream during which it will be evaluated. For rules that can be applied to one of several event streams, the effective one is defined by the separate `event_stream` field.
 
         - `CONDITIONAL_BLOCK`: AUTHORIZATION event stream.
         - `VELOCITY_LIMIT`: AUTHORIZATION event stream.
         - `MERCHANT_LOCK`: AUTHORIZATION event stream.
-        - `CONDITIONAL_3DS_ACTION`: THREE_DS_AUTHENTICATION event stream.
+        - `CONDITIONAL_ACTION`: AUTHORIZATION or THREE_DS_AUTHENTICATION event stream.
     conditional-block-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-block-parameters.json
@@ -15326,7 +15632,7 @@ components:
     conditional-3ds-action-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-3ds-action-parameters.json
-      title: Conditional 3DS Action Parameters
+      title: Conditional Action (3DS) Parameters
       type: object
       properties:
         action:
@@ -15394,6 +15700,95 @@ components:
       required:
         - action
         - conditions
+    conditional-authorization-action-parameters:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/conditional-authorization-action-parameters.json
+      title: Conditional Action (Authorization) Parameters
+      type: object
+      properties:
+        action:
+          type: string
+          description: The action to take if the conditions are met.
+          enum:
+            - DECLINE
+            - CHALLENGE
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              attribute:
+                type: string
+                description: |-
+                  The attribute to target.
+
+                  The following attributes may be targeted:
+                  * `MCC`: A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
+                  * `COUNTRY`: Country of entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.
+                  * `CURRENCY`: 3-character alphabetic ISO 4217 code for the merchant currency of the transaction.
+                  * `MERCHANT_ID`: Unique alphanumeric identifier for the payment card acceptor (merchant).
+                  * `DESCRIPTOR`: Short description of card acceptor.
+                  * `LIABILITY_SHIFT`: Indicates whether chargeback liability shift to the issuer applies to the transaction. Valid values are `NONE`, `3DS_AUTHENTICATED`, or `TOKEN_AUTHENTICATED`.
+                  * `PAN_ENTRY_MODE`: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, `CREDENTIAL_ON_FILE`, or `ECOMMERCE`.
+                  * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
+                  * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+                  * `CARD_TRANSACTION_COUNT_15M`: The number of transactions on the card in the trailing 15 minutes before the authorization.
+                  * `CARD_TRANSACTION_COUNT_1H`: The number of transactions on the card in the trailing hour up and until the authorization.
+                  * `CARD_TRANSACTION_COUNT_24H`: The number of transactions on the card in the trailing 24 hours up and until the authorization.
+                  * `CARD_STATE`: The current state of the card associated with the transaction. Valid values are `CLOSED`, `OPEN`, `PAUSED`, `PENDING_ACTIVATION`, `PENDING_FULFILLMENT`.
+                  * `PIN_ENTERED`: Indicates whether a PIN was entered during the transaction. Valid values are `TRUE`, `FALSE`.
+                  * `PIN_STATUS`: The current state of card's PIN. Valid values are `NOT_SET`, `OK`, `BLOCKED`.
+                  * `WALLET_TYPE`: For transactions using a digital wallet token, indicates the source of the token. Valid values are `APPLE_PAY`, `GOOGLE_PAY`, `SAMSUNG_PAY`, `MASTERPASS`, `MERCHANT`, `OTHER`, `NONE`.
+                  * `TRANSACTION_INITIATOR`: The entity that initiated the transaction indicates the source of the token. Valid values are `CARDHOLDER`, `MERCHANT`, `UNKNOWN`.
+                enum:
+                  - MCC
+                  - COUNTRY
+                  - CURRENCY
+                  - MERCHANT_ID
+                  - DESCRIPTOR
+                  - LIABILITY_SHIFT
+                  - PAN_ENTRY_MODE
+                  - TRANSACTION_AMOUNT
+                  - RISK_SCORE
+                  - CARD_TRANSACTION_COUNT_15M
+                  - CARD_TRANSACTION_COUNT_1H
+                  - CARD_TRANSACTION_COUNT_24H
+                  - CARD_STATE
+                  - PIN_ENTERED
+                  - PIN_STATUS
+                  - WALLET_TYPE
+                  - TRANSACTION_INITIATOR
+              operation:
+                type: string
+                description: The operation to apply to the attribute
+                enum:
+                  - IS_ONE_OF
+                  - IS_NOT_ONE_OF
+                  - MATCHES
+                  - DOES_NOT_MATCH
+                  - IS_EQUAL_TO
+                  - IS_NOT_EQUAL_TO
+                  - IS_GREATER_THAN
+                  - IS_GREATER_THAN_OR_EQUAL_TO
+                  - IS_LESS_THAN
+                  - IS_LESS_THAN_OR_EQUAL_TO
+              value:
+                anyOf:
+                  - title: Regex
+                    type: string
+                    description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
+                  - title: Number
+                    type: integer
+                    format: int64
+                    description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
+                  - title: List of Strings
+                    type: array
+                    items:
+                      type: string
+                    description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+      required:
+        - action
+        - conditions
     auth-rule-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-parameters.json
@@ -15404,6 +15799,7 @@ components:
         - $ref: '#/components/schemas/velocity-limit-parameters'
         - $ref: '#/components/schemas/merchant-lock-parameters'
         - $ref: '#/components/schemas/conditional-3ds-action-parameters'
+        - $ref: '#/components/schemas/conditional-authorization-action-parameters'
     auth-rule-version:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-version.json
@@ -15470,6 +15866,8 @@ components:
           $ref: '#/components/schemas/excluded-card-tokens'
         account_tokens:
           $ref: '#/components/schemas/account-tokens'
+        business_account_tokens:
+          $ref: '#/components/schemas/business-account-tokens'
         type:
           $ref: '#/components/schemas/auth-rule-type'
         current_version:
@@ -15486,6 +15884,7 @@ components:
         - program_level
         - card_tokens
         - account_tokens
+        - business_account_tokens
         - type
         - current_version
         - draft_version
@@ -15507,14 +15906,21 @@ components:
           properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
+            business_account_tokens:
+              $ref: '#/components/schemas/business-account-tokens'
             type:
               $ref: '#/components/schemas/auth-rule-type'
             parameters:
               $ref: '#/components/schemas/auth-rule-parameters'
             name:
               $ref: '#/components/schemas/auth-rule-name'
-          required:
-            - account_tokens
+            event_stream:
+              $ref: '#/components/schemas/event-stream'
+          anyOf:
+            - required:
+                - account_tokens
+            - required:
+                - business_account_tokens
         - title: Card Level Rule
           properties:
             card_tokens:
@@ -15525,6 +15931,8 @@ components:
               $ref: '#/components/schemas/auth-rule-parameters'
             name:
               $ref: '#/components/schemas/auth-rule-name'
+            event_stream:
+              $ref: '#/components/schemas/event-stream'
           required:
             - card_tokens
         - title: Program Level Rule
@@ -15539,6 +15947,8 @@ components:
               $ref: '#/components/schemas/auth-rule-parameters'
             name:
               $ref: '#/components/schemas/auth-rule-name'
+            event_stream:
+              $ref: '#/components/schemas/event-stream'
           required:
             - program_level
       required:
@@ -15565,6 +15975,13 @@ components:
           properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
+            business_account_tokens:
+              $ref: '#/components/schemas/business-account-tokens'
+          anyOf:
+            - required:
+                - account_tokens
+            - required:
+                - business_account_tokens
         - title: Card Level Rule
           type: object
           properties:
@@ -15587,8 +16004,13 @@ components:
           properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
-          required:
-            - account_tokens
+            business_account_tokens:
+              $ref: '#/components/schemas/business-account-tokens'
+          anyOf:
+            - required:
+                - account_tokens
+            - required:
+                - business_account_tokens
         - title: Card Level Rule
           type: object
           properties:
@@ -18527,6 +18949,7 @@ components:
         - ACCOUNT_INACTIVE
         - ACCOUNT_LIFETIME_SPEND_LIMIT_EXCEEDED
         - ACCOUNT_MONTHLY_SPEND_LIMIT_EXCEEDED
+        - ACCOUNT_PAUSED
         - ACCOUNT_UNDER_REVIEW
         - ADDRESS_INCORRECT
         - APPROVED
@@ -18611,6 +19034,7 @@ components:
       title: Result of the transaction
       type: string
       enum:
+        - ACCOUNT_PAUSED
         - ACCOUNT_STATE_TRANSACTION_FAIL
         - APPROVED
         - BANK_CONNECTION_ERROR
@@ -20655,7 +21079,7 @@ components:
                 - string
                 - 'null'
               description: Name of the cardholder. Maps to EMV 3DS field `cardholderName`.
-              maxLength: 36
+              maxLength: 45
               minLength: 1
             phone_number_home:
               type:
@@ -20798,21 +21222,29 @@ components:
           description: Object containing data about the merchant involved in the e-commerce transaction.
           properties:
             country:
-              type: string
-              description: 'Country code of the merchant requesting 3DS authentication. Maps to EMV 3DS field `merchantCountryCode`. Permitted values: ISO 3166-1 alpha-3 country code (e.g., USA).'
+              type:
+                - string
+                - 'null'
+              description: 'Country code of the merchant requesting 3DS authentication. Maps to EMV 3DS field `merchantCountryCode`. Permitted values: ISO 3166-1 alpha-3 country code (e.g., USA). May not be present for non-payment authentications.'
               minLength: 3
               maxLength: 3
             id:
-              type: string
-              description: Merchant identifier as assigned by the acquirer. Maps to EMV 3DS field `acquirerMerchantId`.
+              type:
+                - string
+                - 'null'
+              description: Merchant identifier as assigned by the acquirer. Maps to EMV 3DS field `acquirerMerchantId`. May not be present for non-payment authentications.
             mcc:
-              type: string
-              description: Merchant category code assigned to the merchant that describes its business activity type. Maps to EMV 3DS field `mcc`.
+              type:
+                - string
+                - 'null'
+              description: Merchant category code assigned to the merchant that describes its business activity type. Maps to EMV 3DS field `mcc`. May not be present for non-payment authentications.
               minLength: 4
               maxLength: 4
             name:
-              type: string
-              description: Name of the merchant. Maps to EMV 3DS field `merchantName`.
+              type:
+                - string
+                - 'null'
+              description: Name of the merchant. Maps to EMV 3DS field `merchantName`. May not be present for non-payment authentications.
             risk_indicator:
               type: object
               description: Object containing additional data indicating additional risk factors related to the e-commerce transaction.
@@ -20892,10 +21324,6 @@ components:
                     - null
               required: []
           required:
-            - country
-            - id
-            - mcc
-            - name
             - risk_indicator
         message_category:
           type: string
@@ -21571,6 +21999,265 @@ components:
         - token
         - settlement_details_url
         - settlement_summary_url
+    transaction-series:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/transaction-series.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Transaction Series
+      description: Contains identifiers for the transaction and specific event within being disputed; null if no transaction can be identified
+      type: object
+      properties:
+        type:
+          description: The type of transaction series associating the dispute and the original transaction. Always set to DISPUTE
+          type: string
+          enum:
+            - DISPUTE
+        related_transaction_token:
+          description: Token of the original transaction being disputed, in UUID format
+          type: string
+          format: uuid
+        related_transaction_event_token:
+          description: Token of the specific event in the original transaction being disputed, in UUID format; null if no event can be identified
+          oneOf:
+            - type: string
+              format: uuid
+            - type: 'null'
+      required:
+        - type
+        - related_transaction_token
+        - related_transaction_event_token
+    liability-allocation:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/liability-allocation.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Liability Allocation
+      description: Current breakdown of how liability is allocated for the disputed amount
+      type: object
+      properties:
+        original_amount:
+          description: The initial amount disputed
+          type: integer
+        recovered_amount:
+          description: The amount that has been recovered from the merchant through the dispute process
+          type: integer
+        written_off_amount:
+          description: The amount the issuer has chosen to write off
+          type: integer
+        denied_amount:
+          description: The amount that has been denied to the cardholder
+          type: integer
+        remaining_amount:
+          description: Any disputed amount that is still outstanding, i.e. has not been recovered, written off, or denied
+          type: integer
+      required:
+        - original_amount
+        - recovered_amount
+        - written_off_amount
+        - denied_amount
+        - remaining_amount
+    workflow-event-data:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/workflow-event-data.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Workflow Event Data
+      description: Details specific to workflow events
+      type: object
+      properties:
+        stage:
+          description: Current stage of the dispute workflow
+          type: string
+          enum:
+            - CLAIM
+        action:
+          description: Action taken in this stage
+          type: string
+          enum:
+            - ISSUER_OPENED
+            - ISSUER_CLOSED
+        reason:
+          description: Reason for the action
+          type:
+            - string
+            - 'null'
+        amount:
+          description: Amount in minor units
+          type:
+            - integer
+            - 'null'
+      required:
+        - stage
+        - action
+        - reason
+        - amount
+    financial-event-data:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/financial-event-data.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Financial Event Data
+      description: Details specific to financial events
+      type: object
+      properties:
+        stage:
+          description: Stage at which the financial event occurred
+          type: string
+          enum:
+            - CHARGEBACK
+            - REPRESENTMENT
+            - PREARBITRATION
+            - ARBITRATION
+            - COLLABORATION
+        amount:
+          description: Amount in minor units
+          type: integer
+        polarity:
+          description: Direction of funds flow
+          type: string
+          enum:
+            - CREDIT
+            - DEBIT
+      required:
+        - stage
+        - amount
+        - polarity
+    cardholder-liability-event-data:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/cardholder-liability-event-data.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Cardholder Liability Event Data
+      description: Details specific to cardholder liability events
+      type: object
+      properties:
+        action:
+          description: Action taken regarding cardholder liability
+          type: string
+          enum:
+            - PROVISIONAL_CREDIT_GRANTED
+            - DENIED
+            - WRITTEN_OFF
+        amount:
+          description: Amount in minor units
+          type: integer
+        reason:
+          description: Reason for the action
+          type: string
+      required:
+        - action
+        - amount
+        - reason
+    event:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/event.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Event
+      description: Event that occurred in the dispute lifecycle
+      type: object
+      properties:
+        token:
+          description: Unique identifier for the event, in UUID format
+          type: string
+          format: uuid
+        type:
+          description: Type of event
+          type: string
+          enum:
+            - WORKFLOW
+            - FINANCIAL
+            - CARDHOLDER_LIABILITY
+        created:
+          description: When the event occurred
+          type: string
+          format: date-time
+        data:
+          description: Details specific to the event type
+          oneOf:
+            - $ref: '#/components/schemas/workflow-event-data'
+            - $ref: '#/components/schemas/financial-event-data'
+            - $ref: '#/components/schemas/cardholder-liability-event-data'
+      required:
+        - token
+        - type
+        - created
+        - data
+    dispute:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/dispute.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Dispute
+      description: Lithic's Dispute object tracks the progression of a dispute throughout its lifecycle
+      type: object
+      properties:
+        case_id:
+          description: Identifier assigned by the network for this dispute
+          type:
+            - string
+            - 'null'
+        token:
+          description: Token assigned by Lithic for the dispute, in UUID format
+          type: string
+          format: uuid
+        card_token:
+          description: Token for the card used in the dispute, in UUID format
+          type: string
+          format: uuid
+        account_token:
+          description: Token for the account associated with the dispute, in UUID format
+          type: string
+          format: uuid
+        network:
+          description: Card network handling the dispute
+          type: string
+          enum:
+            - VISA
+            - MASTERCARD
+        currency:
+          description: Three-letter ISO 4217 currency code
+          type: string
+          pattern: ^[A-Z]{3}$
+        created:
+          description: When the dispute was created
+          type: string
+          format: date-time
+        updated:
+          description: When the dispute was last updated
+          type: string
+          format: date-time
+        merchant:
+          $ref: '#/components/schemas/merchant'
+        transaction_series:
+          oneOf:
+            - $ref: '#/components/schemas/transaction-series'
+            - type: 'null'
+        liability_allocation:
+          $ref: '#/components/schemas/liability-allocation'
+        events:
+          description: Chronological list of events that have occurred in the dispute lifecycle
+          type: array
+          items:
+            $ref: '#/components/schemas/event'
+      required:
+        - case_id
+        - token
+        - card_token
+        - account_token
+        - network
+        - currency
+        - created
+        - updated
+        - merchant
+        - transaction_series
+        - liability_allocation
+        - events
+    disputes-response:
+      $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/disputes-response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Disputes Response
+      description: Response for listing disputes
+      type: object
+      properties:
+        data:
+          description: Array of dispute objects
+          type: array
+          items:
+            $ref: '#/components/schemas/dispute'
+        has_more:
+          description: Whether there are more results available
+          type: boolean
+      required:
+        - data
+        - has_more
     asa_network_specific_data_mastercard:
       type: object
       properties:
