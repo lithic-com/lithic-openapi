@@ -6822,7 +6822,7 @@ paths:
             schema:
               properties:
                 amount:
-                  description: Amount (in cents) to void. Typically this will match the amount in the original authorization, but can be less.
+                  description: Amount (in cents) to void. Typically this will match the amount in the original authorization, but can be less. Applies to authorization reversals only. An authorization expiry will always apply to the full pending amount.
                   minimum: 0
                   type: integer
                 token:
@@ -8495,24 +8495,24 @@ paths:
         - Funding Events
   /v2/disputes:
     get:
-      description: Returns a paginated list of disputes
+      description: Returns a paginated list of disputes.
       operationId: getDisputesV2
       parameters:
-        - description: RFC 3339 timestamp for filtering by created date, inclusive
+        - description: RFC 3339 timestamp for filtering by created date, inclusive.
           in: query
           name: begin
           required: false
           schema:
             format: date-time
             type: string
-        - description: RFC 3339 timestamp for filtering by created date, inclusive
+        - description: RFC 3339 timestamp for filtering by created date, inclusive.
           in: query
           name: end
           required: false
           schema:
             format: date-time
             type: string
-        - description: Number of items to return
+        - description: Number of items to return.
           in: query
           name: page_size
           required: false
@@ -8521,33 +8521,33 @@ paths:
             maximum: 100
             minimum: 1
             type: integer
-        - description: Pagination token for starting after a specific item
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
           in: query
           name: starting_after
           required: false
           schema:
             type: string
-        - description: Pagination token for ending before a specific item
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
           in: query
           name: ending_before
           required: false
           schema:
             type: string
-        - description: Filter by the token of the transaction being disputed. Corresponds with transaction_series.related_transaction_token
+        - description: Filter by the token of the transaction being disputed. Corresponds with transaction_series.related_transaction_token in the Dispute.
           in: query
           name: disputed_transaction_token
           required: false
           schema:
             format: uuid
             type: string
-        - description: Filter by card token
+        - description: Filter by card token.
           in: query
           name: card_token
           required: false
           schema:
             format: uuid
             type: string
-        - description: Filter by account token
+        - description: Filter by account token.
           in: query
           name: account_token
           required: false
@@ -8574,10 +8574,10 @@ paths:
         - Managed Disputes
   /v2/disputes/{dispute_token}:
     get:
-      description: Retrieves a specific dispute by its token
+      description: Retrieves a specific dispute by its token.
       operationId: getDisputeByTokenV2
       parameters:
-        - description: Token of the dispute to retrieve
+        - description: Token of the dispute to retrieve.
           in: path
           name: dispute_token
           required: true
@@ -11444,6 +11444,11 @@ components:
         | Rate limited, reached daily limit | User has exceeded their daily rate limit |
         | Rate limited, too many keys tried | One IP has queried too many different API keys |
   schemas:
+    '2':
+      title: Card Transaction
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - $ref: '#/components/schemas/card_transaction'
     AccountConfiguration:
       properties:
         account_holder:
@@ -20259,7 +20264,16 @@ components:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Transaction Response
       description: Response containing multiple transaction types
-      anyOf:
+      discriminator:
+        propertyName: family
+        mapping:
+          INTERNAL: '#/components/schemas/financial-transaction'
+          TRANSFER: '#/components/schemas/book-transfer-transaction'
+          CARD: '#/components/schemas/2'
+          PAYMENT: '#/components/schemas/payment-transaction'
+          EXTERNAL_PAYMENT: '#/components/schemas/external_payment_response'
+          MANAGEMENT_OPERATION: '#/components/schemas/management_operation_transaction'
+      oneOf:
         - $ref: '#/components/schemas/financial-transaction'
         - $ref: '#/components/schemas/book-transfer-transaction'
         - title: Card Transaction
@@ -22176,42 +22190,42 @@ components:
       $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/dispute.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Dispute
-      description: Lithic's Dispute object tracks the progression of a dispute throughout its lifecycle
+      description: The Dispute object tracks the progression of a dispute throughout its lifecycle.
       type: object
       properties:
         case_id:
-          description: Identifier assigned by the network for this dispute
+          description: Identifier assigned by the network for this dispute.
           type:
             - string
             - 'null'
         token:
-          description: Token assigned by Lithic for the dispute, in UUID format
+          description: Token assigned by Lithic for the dispute, in UUID format.
           type: string
           format: uuid
         card_token:
-          description: Token for the card used in the dispute, in UUID format
+          description: Token for the card used in the dispute, in UUID format.
           type: string
           format: uuid
         account_token:
-          description: Token for the account associated with the dispute, in UUID format
+          description: Token for the account associated with the dispute, in UUID format.
           type: string
           format: uuid
         network:
-          description: Card network handling the dispute
+          description: Card network handling the dispute.
           type: string
           enum:
             - VISA
             - MASTERCARD
         currency:
-          description: Three-letter ISO 4217 currency code
+          description: Three-letter ISO 4217 currency code.
           type: string
           pattern: ^[A-Z]{3}$
         created:
-          description: When the dispute was created
+          description: When the dispute was created.
           type: string
           format: date-time
         updated:
-          description: When the dispute was last updated
+          description: When the dispute was last updated.
           type: string
           format: date-time
         merchant:
