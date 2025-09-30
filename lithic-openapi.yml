@@ -1244,6 +1244,40 @@ paths:
           $ref: '#/components/responses/responses-BadRequest'
         '404':
           $ref: '#/components/responses/components-responses-NotFound'
+  /v2/auth_rules/{auth_rule_token}/features:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/authRuleToken'
+        - in: query
+          name: account_token
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: card_token
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - Auth Rules
+      summary: Calculated Feature values
+      description: |
+        Fetches the current calculated Feature values for the given Auth Rule
+
+        This only calculates the features for the active version.
+        - VelocityLimit Rules calculates the current Velocity Feature data. This requires a `card_token` or `account_token` matching what the rule is Scoped to.
+        - ConditionalBlock Rules calculates the CARD_TRANSACTION_COUNT_* attributes on the rule. This requires a `card_token`
+      responses:
+        '200':
+          description: Calculated Feature values for the given Auth Rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/auth-rule-feature-state'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/components-responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/promote:
     post:
       parameters:
@@ -15427,6 +15461,15 @@ components:
                     description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
       required:
         - conditions
+    velocity-scope:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/velocity-scope.json
+      title: Velocity Limits Scope
+      type: string
+      enum:
+        - CARD
+        - ACCOUNT
+      description: The scope the velocity is calculated for
     velocity-limit-period:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-period.json
@@ -15434,9 +15477,13 @@ components:
       oneOf:
         - title: Trailing Window
           type: integer
-          description: The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
+          description: |-
+            DEPRECATED: This has been deprecated in favor of the Trailing Window Objects
+
+            The size of the trailing window to calculate Spend Velocity over in seconds. The minimum value is 10 seconds, and the maximum value is 2678400 seconds (31 days).
           minimum: 10
           maximum: 2678400
+          deprecated: true
         - title: Fixed Window
           type: string
           enum:
@@ -15445,12 +15492,15 @@ components:
             - MONTH
             - YEAR
           description: |-
+            DEPRECATED: This has been deprecated in favor of the other Fixed Window Objects
+
             The window of time to calculate Spend Velocity over.
 
             * `DAY`: Velocity over the current day since midnight Eastern Time.
             * `WEEK`: Velocity over the current week since 00:00 / 12 AM on Monday in Eastern Time.
             * `MONTH`: Velocity over the current month since 00:00 / 12 AM on the first of the month in Eastern Time.
             * `YEAR`: Velocity over the current year since 00:00 / 12 AM on January 1st in Eastern Time.
+          deprecated: true
         - title: Trailing Window Object
           type: object
           properties:
@@ -15514,6 +15564,86 @@ components:
               minimum: 1
               maximum: 12
               default: 1
+    velocity-limit-filters:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-filters.json
+      title: Velocity Limits Filters
+      type: object
+      properties:
+        include_mccs:
+          anyOf:
+            - title: Null (include all MCCs)
+              type: 'null'
+              description: Include all MCCs into the velocity computation.
+            - title: List of MCCs
+              type: array
+              items:
+                type: string
+                pattern: ^[0-9]{4}$
+                example: '5542'
+              description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
+        exclude_mccs:
+          anyOf:
+            - title: Null (do not exclude any MCCs)
+              type: 'null'
+              description: Do not exclude any MCCs from the velocity computation.
+            - title: List of MCCs
+              type: array
+              items:
+                type: string
+                pattern: ^[0-9]{4}$
+                example: '5542'
+              description: Merchant Category Codes to exclude from the velocity calculation. Transactions matching this MCC will be excluded from the calculated velocity.
+        include_countries:
+          anyOf:
+            - title: Null (include all countries)
+              type: 'null'
+              description: Include all countries into the velocity computation.
+            - title: List of Country Codes
+              type: array
+              items:
+                type: string
+                pattern: ^[A-Z]{3}$
+                example: USA
+              description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
+        exclude_countries:
+          anyOf:
+            - title: Null (do not exclude any countries)
+              type: 'null'
+              description: Do not exclude any countries from the velocity computation.
+            - title: List of Country Codes
+              type: array
+              items:
+                type: string
+                pattern: ^[A-Z]{3}$
+                example: USA
+              description: ISO-3166-1 alpha-3 Country Codes to exclude from the velocity calculation. Transactions matching any of the provided will be excluded from the calculated velocity.
+        include_pan_entry_modes:
+          anyOf:
+            - title: Null (include all PAN entry modes)
+              type: 'null'
+              description: Include all PAN entry modes into the velocity computation.
+            - title: List of PAN Entry Modes
+              type: array
+              items:
+                type: string
+                enum:
+                  - AUTO_ENTRY
+                  - BAR_CODE
+                  - CONTACTLESS
+                  - CREDENTIAL_ON_FILE
+                  - ECOMMERCE
+                  - ERROR_KEYED
+                  - ERROR_MAGNETIC_STRIPE
+                  - ICC
+                  - KEY_ENTERED
+                  - MAGNETIC_STRIPE
+                  - MANUAL
+                  - OCR
+                  - SECURE_CARDLESS
+                  - UNSPECIFIED
+                  - UNKNOWN
+              description: PAN entry modes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
     velocity-limit-parameters:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/templated-rules/velocity-limit-parameters.json
@@ -15521,63 +15651,11 @@ components:
       type: object
       properties:
         scope:
-          type: string
-          enum:
-            - CARD
-            - ACCOUNT
+          $ref: '#/components/schemas/velocity-scope'
         period:
           $ref: '#/components/schemas/velocity-limit-period'
         filters:
-          type: object
-          properties:
-            include_mccs:
-              anyOf:
-                - title: Null (include all MCCs)
-                  type: 'null'
-                  description: Include all MCCs into the velocity computation.
-                - title: List of MCCs
-                  type: array
-                  items:
-                    type: string
-                    pattern: ^[0-9]{4}$
-                    example: '5542'
-                  description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
-            exclude_mccs:
-              anyOf:
-                - title: Null (do not exclude any MCCs)
-                  type: 'null'
-                  description: Do not exclude any MCCs from the velocity computation.
-                - title: List of MCCs
-                  type: array
-                  items:
-                    type: string
-                    pattern: ^[0-9]{4}$
-                    example: '5542'
-                  description: Merchant Category Codes to exclude from the velocity calculation. Transactions matching this MCC will be excluded from the calculated velocity.
-            include_countries:
-              anyOf:
-                - title: Null (include all countries)
-                  type: 'null'
-                  description: Include all countries into the velocity computation.
-                - title: List of Country Codes
-                  type: array
-                  items:
-                    type: string
-                    pattern: ^[A-Z]{3}$
-                    example: USA
-                  description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
-            exclude_countries:
-              anyOf:
-                - title: Null (do not exclude any countries)
-                  type: 'null'
-                  description: Do not exclude any countries from the velocity computation.
-                - title: List of Country Codes
-                  type: array
-                  items:
-                    type: string
-                    pattern: ^[A-Z]{3}$
-                    example: USA
-                  description: ISO-3166-1 alpha-3 Country Codes to exclude from the velocity calculation. Transactions matching any of the provided will be excluded from the calculated velocity.
+          $ref: '#/components/schemas/velocity-limit-filters'
         limit_amount:
           anyOf:
             - title: Null (no amount limit)
@@ -15736,6 +15814,7 @@ components:
                   * `LIABILITY_SHIFT`: Indicates whether chargeback liability shift to the issuer applies to the transaction. Valid values are `NONE`, `3DS_AUTHENTICATED`, or `TOKEN_AUTHENTICATED`.
                   * `PAN_ENTRY_MODE`: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, `CREDENTIAL_ON_FILE`, or `ECOMMERCE`.
                   * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
+                  * `CASH_AMOUNT`: The cash amount of the transaction in minor units (cents). This represents the amount of cash being withdrawn or advanced.
                   * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
                   * `CARD_TRANSACTION_COUNT_15M`: The number of transactions on the card in the trailing 15 minutes before the authorization.
                   * `CARD_TRANSACTION_COUNT_1H`: The number of transactions on the card in the trailing hour up and until the authorization.
@@ -15754,6 +15833,7 @@ components:
                   - LIABILITY_SHIFT
                   - PAN_ENTRY_MODE
                   - TRANSACTION_AMOUNT
+                  - CASH_AMOUNT
                   - RISK_SCORE
                   - CARD_TRANSACTION_COUNT_15M
                   - CARD_TRANSACTION_COUNT_1H
@@ -15883,6 +15963,9 @@ components:
           $ref: '#/components/schemas/auth-rule-name'
         event_stream:
           $ref: '#/components/schemas/event-stream'
+        lithic_managed:
+          type: boolean
+          description: Indicates whether this auth rule is managed by Lithic. If true, the rule cannot be modified or deleted by the user
       required:
         - token
         - state
@@ -15895,6 +15978,7 @@ components:
         - draft_version
         - name
         - event_stream
+        - lithic_managed
     schemas-Error:
       type: object
       properties:
@@ -16032,6 +16116,59 @@ components:
               $ref: '#/components/schemas/excluded-card-tokens'
           required:
             - program_level
+    spend-feature-state:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/spend-feature-state.json
+      title: Spend Feature State
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/velocity-scope'
+        period:
+          $ref: '#/components/schemas/velocity-limit-period'
+        filters:
+          $ref: '#/components/schemas/velocity-limit-filters'
+        value:
+          type: object
+          properties:
+            amount:
+              type: integer
+              minimum: 0
+              description: |-
+                Amount (in cents) for the given Auth Rule that is used as input for calculating the rule. 
+                For Velocity Limit rules this would be the calculated Velocity. 
+                For Conditional Rules using CARD_TRANSACTION_COUNT_* this will be 0
+            count:
+              type: integer
+              minimum: 0
+              description: Number of velocity impacting transactions matching the given scope, period and filters
+          required:
+            - amount
+            - count
+      required:
+        - scope
+        - period
+        - filters
+        - value
+    auth-rule-feature-state:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/auth-rule-feature-state.json
+      title: Auth Rule Feature State
+      type: object
+      properties:
+        evaluated:
+          type: string
+          format: date-time
+          description: Timestamp at which the Features were evaluated
+        features:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/spend-feature-state'
+          description: Calculated Features used for evaluation of the provided Auth Rule
+      required:
+        - evaluated
+        - features
     rule-stats:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/rule-stats.json
