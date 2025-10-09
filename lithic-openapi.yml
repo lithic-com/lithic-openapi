@@ -7300,6 +7300,7 @@ paths:
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                     dpan: 5489123487251234
+                    device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
                     payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-08-28T15:57:14.578051'
                 has_more: false
@@ -7356,6 +7357,7 @@ paths:
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                 dpan: 5489123487251234
+                device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
                 payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
@@ -7597,6 +7599,7 @@ paths:
                 token_requestor_name: APPLE_PAY
                 token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                 dpan: 5489123487251234
+                device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
                 payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                 updated_at: '2023-08-28T15:57:14.578051'
               schema:
@@ -7759,15 +7762,7 @@ paths:
           in: query
           name: category
           schema:
-            enum:
-              - BALANCE_OR_FUNDING
-              - FEE
-              - REWARD
-              - ADJUSTMENT
-              - DERECOGNITION
-              - DISPUTE
-              - INTERNAL
-            type: string
+            $ref: '#/components/schemas/book_transfer_category'
         - description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
           in: query
           name: financial_account_token
@@ -9913,6 +9908,7 @@ webhooks:
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                     dpan: 5489123487251234
+                    device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
                     payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
@@ -10861,6 +10857,7 @@ webhooks:
                     token_requestor_name: APPLE_PAY
                     token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
                     dpan: 5489123487251234
+                    device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
                     payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
                     updated_at: '2023-09-13T16:05:09.893241'
                   tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
@@ -13922,17 +13919,17 @@ components:
     SettlementDetail:
       properties:
         account_token:
-          description: The most granular ID the network settles with (e.g., ICA for Mastercard, FTSRE for Visa).
+          description: Globally unique identifier denoting the account that the associated transaction occurred on.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
           type: string
         card_program_token:
-          description: Globally unique identifier denoting the card program that the associated Transaction occurred on.
+          description: Globally unique identifier denoting the card program that the associated transaction occurred on.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
           type: string
         card_token:
-          description: Globally unique identifier denoting the card that the associated Transaction occurred on.
+          description: Globally unique identifier denoting the card that the associated transaction occurred on.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
           type: string
@@ -14284,6 +14281,11 @@ components:
           description: Date and time when the tokenization first occurred. UTC time zone.
           format: date-time
           type: string
+        device_id:
+          description: The device identifier associated with the tokenization.
+          type:
+            - string
+            - 'null'
         digital_card_art_token:
           description: Specifies the digital card art displayed in the user’s digital wallet after tokenization. This will be null if the tokenization was created without an associated digital card art. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
           format: uuid
@@ -14354,6 +14356,7 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
+        - device_id
         - dpan
         - tokenization_channel
         - updated_at
@@ -16564,12 +16567,14 @@ components:
         - ACH_ORIGINATION_INITIATED
         - ACH_ORIGINATION_PROCESSED
         - ACH_ORIGINATION_RELEASED
+        - ACH_ORIGINATION_REJECTED
         - ACH_ORIGINATION_REVIEWED
         - ACH_ORIGINATION_SETTLED
         - ACH_RECEIPT_PROCESSED
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
+        - ACH_RETURN_REJECTED
         - ACH_RETURN_SETTLED
         - AUTHORIZATION
         - AUTHORIZATION_ADVICE
@@ -17559,6 +17564,17 @@ components:
       enum:
         - DELINQUENT
         - FRAUD
+    auto-collection-configuration-response:
+      $id: https://lithic.com/schemas/account/2024-01-15/auto-collection-configuration-response.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Auto Collection Configuration Response
+      type: object
+      properties:
+        auto_collection_enabled:
+          type: boolean
+          description: If auto collection is enabled for this account
+      required:
+        - auto_collection_enabled
     financial-account-credit-config:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config.json
@@ -17596,6 +17612,8 @@ components:
           anyOf:
             - $ref: '#/components/schemas/charged-off-reason'
             - type: 'null'
+        auto_collection_configuration:
+          $ref: '#/components/schemas/auto-collection-configuration-response'
       required:
         - credit_limit
         - external_bank_account_token
@@ -17604,6 +17622,7 @@ components:
         - financial_account_state
         - charged_off_reason
         - is_spend_blocked
+        - auto_collection_configuraiton
     financial-account-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-response.json
@@ -17716,6 +17735,8 @@ components:
           anyOf:
             - $ref: '#/components/schemas/charged-off-reason'
             - type: 'null'
+        auto_collection_configuration:
+          $ref: '#/components/schemas/auto-collection-configuration-response'
       required:
         - account_token
         - is_spend_blocked
@@ -17725,6 +17746,17 @@ components:
         - external_bank_account_token
         - credit_product_token
         - tier
+        - auto_collection_configuration
+    auto-collection-configuration-request:
+      $id: https://lithic.com/schemas/account/2024-01-15/auto-collection-configuration-request.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Auto Collection Configuration Request
+      type: object
+      properties:
+        auto_collection_enabled:
+          type: boolean
+          description: If auto collection is enabled for this account
+      required: []
     financial-account-credit-config-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-credit-config-request.json
@@ -17744,6 +17776,8 @@ components:
           type: string
           description: Tier to assign to a financial account
           minLength: 1
+        auto_collection_configuration:
+          $ref: '#/components/schemas/auto-collection-configuration-request'
       required: []
     register_account_number_request:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/register_account_number_request.json
@@ -18050,6 +18084,11 @@ components:
       enum:
         - ACH
         - BALANCE_OR_FUNDING
+        - FEE
+        - REWARD
+        - ADJUSTMENT
+        - DERECOGNITION
+        - DISPUTE
         - CARD
         - EXTERNAL_ACH
         - EXTERNAL_CHECK
@@ -18430,11 +18469,27 @@ components:
             - events
             - descriptor
             - financial_account_token
+    book_transfer_category:
+      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_category.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Book Transfer Category
+      type: string
+      enum:
+        - ADJUSTMENT
+        - BALANCE_OR_FUNDING
+        - DERECOGNITION
+        - DISPUTE
+        - FEE
+        - INTERNAL
+        - REWARD
+        - PROGRAM_FUNDING
+        - TRANSFER
     book_transfer_type:
       $id: https://lithic.com/schemas/treasury/ledger/book_transfer_type.json
       $schema: https://json-schema.org/draft/2020-12/schema
       type: string
       enum:
+        - ATM_BALANCE_INQUIRY
         - ATM_WITHDRAWAL
         - ATM_DECLINE
         - INTERNATIONAL_ATM_WITHDRAWAL
@@ -18589,7 +18644,7 @@ components:
             result:
               $ref: '#/components/schemas/transaction_result'
             category:
-              $ref: '#/components/schemas/transaction_category'
+              $ref: '#/components/schemas/book_transfer_category'
             currency:
               type: string
               description: Currency of the transaction in ISO 4217 format
@@ -19133,6 +19188,7 @@ components:
         - REVERSAL_UNMATCHED
         - SECURITY_VIOLATION
         - SINGLE_USE_CARD_REATTEMPTED
+        - SUSPECTED_FRAUD
         - TRANSACTION_INVALID
         - TRANSACTION_NOT_PERMITTED_TO_ACQUIRER_OR_TERMINAL
         - TRANSACTION_NOT_PERMITTED_TO_ISSUER_OR_CARDHOLDER
@@ -19186,6 +19242,7 @@ components:
         - DECLINED
         - FRAUD_ADVICE
         - IGNORED_TTL_EXPIRY
+        - SUSPECTED_FRAUD
         - INACTIVE_ACCOUNT
         - INCORRECT_PIN
         - INVALID_CARD_DETAILS
@@ -19566,6 +19623,11 @@ components:
           items:
             $ref: '#/components/schemas/transaction_event'
           type: array
+        financial_account_token:
+          oneOf:
+            - type: 'null'
+            - format: uuid
+              type: string
         merchant:
           $ref: '#/components/schemas/merchant'
         merchant_amount:
@@ -19645,6 +19707,7 @@ components:
         - card_token
         - cardholder_authentication
         - created
+        - financial_account_token
         - merchant_amount
         - merchant_authorization_amount
         - merchant_currency
@@ -19720,6 +19783,7 @@ components:
               rule_results: []
               token: bbbf1e86-322d-11ee-9779-00505685a123
               type: AUTHORIZATION
+          financial_account_token: a3b113e8-01fe-42d3-b900-b9adf3f15496
           merchant:
             acceptor_id: '452322000053360'
             acquiring_institution_id: '333301802529120'
@@ -21728,20 +21792,6 @@ components:
                 wallet_type: APPLE_PAY
               updated: '2023-08-03T18:42:30Z'
           has_more: false
-    book_transfer_category:
-      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_category.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - ADJUSTMENT
-        - BALANCE_OR_FUNDING
-        - DERECOGNITION
-        - DISPUTE
-        - FEE
-        - REWARD
-        - TRANSFER
-      description: Category of the book transfer
-      title: Book Transfer Category
     book_transfer_response:
       $id: https://lithic.com/schemas/treasury/ledger/book_transfer_response.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -23097,6 +23147,7 @@ components:
             - VELOCITY_EXCEEDED
             - DRIVER_NUMBER_INVALID
             - VEHICLE_NUMBER_INVALID
+            - SUSPECTED_FRAUD
             - CHALLENGE
         token:
           type: string
