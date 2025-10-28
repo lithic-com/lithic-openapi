@@ -1334,46 +1334,6 @@ paths:
           $ref: '#/components/responses/responses-BadRequest'
         '404':
           $ref: '#/components/responses/components-responses-NotFound'
-    post:
-      deprecated: true
-      parameters:
-        - $ref: '#/components/parameters/authRuleToken'
-      tags:
-        - Auth Rules
-      summary: Request a performance report
-      description: |
-        This endpoint is deprecated and will be removed in the future.
-        Requests a performance report of an Auth rule to be asynchronously generated. Reports can only be run on rules in draft or active mode and will included approved and declined statistics as well as examples.
-        The generated report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.performance_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
-
-        Reports are generated based on data collected by Lithic's processing system in the trailing week. The performance of the auth rule will be assessed on the configuration of the auth rule at the time the report is requested.
-        This implies that if a performance report is requested, right after updating an auth rule, depending on the number of events processed for a card program, it may be the case that no data is available for the report. Therefore Lithic recommends to decouple making updates to an Auth Rule, and requesting performance reports.
-
-        To make this concrete, consider the following example:
-        1. At time `t`, a new Auth Rule is created, and applies to all auth events on a card program. The Auth Rule has not yet been promoted, causing the draft version of the rule to be applied in shadow mode.
-        2. At time `t + 1 hour` a performance report is requested for the Auth Rule. This performance report will *only* contain data for the Auth Rule being executed in the window between `t` and `t + 1 hour`. This is because Lithic's transaction processing system will only start capturing data for the Auth Rule at the time it is created.
-        3. At time `t + 2 hours` the draft version of the Auth Rule is promoted to the active version of the Auth Rule by calling the `/v2/auth_rules/{auth_rule_token}/promote` endpoint. If a performance report is requested at this moment it will still only contain data for this version of the rule, but the window of available data will now span from `t` to `t + 2 hours`.
-        4. At time `t + 3 hours` a new version of the rule is drafted by calling the `/v2/auth_rules/{auth_rule_token}/draft` endpoint. If a performance report is requested right at this moment, it will only contain data for events to which both the active version and the draft version is applied. Lithic does this to ensure that performance reports represent a fair comparison between rules. Because there may be no events in this window, and because there may be some lag before data is available in a performance report, the requested performance report could contain no to little data.
-        5. At time `t + 4 hours` another performance report is requested: this time the performance report will contain data from the window between `t + 3 hours` and `t + 4 hours`, for any events to which both the current version of the Auth rule (in enforcing mode) and the draft version of the Auth rule (in shadow mode) applied.
-
-        Note that generating a report may take up to 15 minutes and that delivery is not guaranteed. Customers are required to have created an event subscription to receive the webhook.
-        Additionally, there is a delay of approximately 15 minutes between when Lithic's transaction processing systems have processed the transaction, and when a transaction will be included in the report.
-      responses:
-        '200':
-          description: Report generation request received
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  report_token:
-                    $ref: '#/components/schemas/report-token'
-        '400':
-          $ref: '#/components/responses/responses-BadRequest'
-        '404':
-          $ref: '#/components/responses/components-responses-NotFound'
-        '422':
-          description: Returned when the request was syntactically correct, but could not be processed
   /v2/auth_rules/{auth_rule_token}/backtests:
     post:
       parameters:
@@ -2338,12 +2298,21 @@ paths:
         '200':
           content:
             application/json:
-              example:
-                provisioning_payload: eyJjYXJ......
               schema:
                 properties:
                   provisioning_payload:
-                    type: string
+                    oneOf:
+                      - type: string
+                        description: Base64 encoded JSON payload representing a payment card that can be passed to a device's digital wallet. Applies to Google and Samsung Pay wallets.
+                      - type: object
+                        properties:
+                          activationData:
+                            type: string
+                          ephemeralPublicKey:
+                            type: string
+                          encryptedData:
+                            type: string
+                        description: Object containing the fields required to add a card to Apple Pay. Applies only to Apple Pay wallet.
                 type: object
           description: |
             Returns `provisioning_payload`, a cryptographic payload representing a payment card that can be passed to a device's digital wallet. Each digital wallet has a different API; consult the wallet's documentation for more info.
@@ -3646,7 +3615,6 @@ paths:
                       - account_holder.created
                       - account_holder.updated
                       - account_holder.verification
-                      - auth_rules.performance_report.created
                       - balance.updated
                       - book_transfer_transaction.created
                       - card.created
@@ -3815,7 +3783,6 @@ paths:
                       - account_holder.created
                       - account_holder.updated
                       - account_holder.verification
-                      - auth_rules.performance_report.created
                       - balance.updated
                       - book_transfer_transaction.created
                       - card.created
@@ -4085,7 +4052,6 @@ paths:
                 - account_holder.created
                 - account_holder.updated
                 - account_holder.verification
-                - auth_rules.performance_report.created
                 - balance.updated
                 - book_transfer_transaction.created
                 - card.created
@@ -4387,13 +4353,6 @@ paths:
                   routing_number: '011103093'
                   type: CHECKING
                   verification_method: MICRO_DEPOSIT
-              createBankAccountViaPlaid:
-                summary: Add external bank account via Plaid Verification
-                value:
-                  owner: John Doe
-                  owner_type: BUSINESS
-                  processor_token: processor-sandbox-0asd1-a92nc
-                  verification_method: PLAID
               createBankAccountViaPrenote:
                 summary: Add external bank account via Prenote Verification
                 value:
@@ -4418,13 +4377,11 @@ paths:
                 propertyName: verification_method
                 mapping:
                   MICRO_DEPOSIT: '#/components/schemas/bank_verified_create_bank_account_api_request'
-                  PLAID: '#/components/schemas/plaid_verified_create_bank_account_api_request'
                   PRENOTE: '#/components/schemas/bank_verified_create_bank_account_api_request'
                   EXTERNALLY_VERIFIED: '#/components/schemas/externally_verified_create_bank_account_api_request'
                   UNVERIFIED: '#/components/schemas/unverified_create_bank_account_api_request'
               oneOf:
                 - $ref: '#/components/schemas/bank_verified_create_bank_account_api_request'
-                - $ref: '#/components/schemas/plaid_verified_create_bank_account_api_request'
                 - $ref: '#/components/schemas/externally_verified_create_bank_account_api_request'
                 - $ref: '#/components/schemas/unverified_create_bank_account_api_request'
       responses:
@@ -5639,7 +5596,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/PaymentResponse'
+                      $ref: '#/components/schemas/payment-transaction'
                     type: array
                   has_more:
                     description: More data exists.
@@ -5701,7 +5658,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaymentResponse'
+                $ref: '#/components/schemas/payment-transaction'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -6423,7 +6380,6 @@ paths:
                     - account_holder.created
                     - account_holder.updated
                     - account_holder.verification
-                    - auth_rules.performance_report.created
                     - balance.updated
                     - book_transfer_transaction.created
                     - card.created
@@ -7813,7 +7769,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/book_transfer_response'
+                      $ref: '#/components/schemas/book-transfer-transaction'
                     title: Data
                     type: array
                   has_more:
@@ -7849,7 +7805,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/book_transfer_response'
+                $ref: '#/components/schemas/book-transfer-transaction'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -7879,7 +7835,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/book_transfer_response'
+                $ref: '#/components/schemas/book-transfer-transaction'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -7920,7 +7876,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/book_transfer_response'
+                $ref: '#/components/schemas/book-transfer-transaction'
           description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -9101,20 +9057,6 @@ webhooks:
       summary: Tokenization Decisioning Request
       tags:
         - Tokenization
-  auth_rules.performance_report.created:
-    post:
-      description: Auth Rules performance report created.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/performance-report'
-      responses:
-        '200':
-          description: Return a 200 status to indicate that the data was received successfully
-      summary: auth_rules.performance_report.created
-      tags:
-        - Event Types
   auth_rules.backtest_report.created:
     post:
       description: Auth Rules backtest report created.
@@ -9178,7 +9120,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/book_transfer_response'
+                - $ref: '#/components/schemas/book-transfer-transaction'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -9224,7 +9166,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/book_transfer_response'
+                - $ref: '#/components/schemas/book-transfer-transaction'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -10349,7 +10291,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/PaymentResponse'
+                - $ref: '#/components/schemas/payment-transaction'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -10401,7 +10343,7 @@ webhooks:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/PaymentResponse'
+                - $ref: '#/components/schemas/payment-transaction'
                 - properties:
                     event_type:
                       description: The type of event that occurred.
@@ -11475,11 +11417,6 @@ components:
         | Rate limited, reached daily limit | User has exceeded their daily rate limit |
         | Rate limited, too many keys tried | One IP has queried too many different API keys |
   schemas:
-    '2':
-      title: Card Transaction
-      allOf:
-        - $ref: '#/components/schemas/base_transaction'
-        - $ref: '#/components/schemas/card_transaction'
     AccountConfiguration:
       properties:
         account_holder:
@@ -12994,7 +12931,6 @@ components:
             - account_holder.created
             - account_holder.updated
             - account_holder.verification
-            - auth_rules.performance_report.created
             - balance.updated
             - book_transfer_transaction.created
             - card.created
@@ -13066,7 +13002,6 @@ components:
               - account_holder.created
               - account_holder.updated
               - account_holder.verification
-              - auth_rules.performance_report.created
               - balance.updated
               - book_transfer_transaction.created
               - card.created
@@ -13784,133 +13719,10 @@ components:
       title: PaymentMethodRequestAttributes
       type: object
     PaymentResponse:
-      properties:
-        category:
-          description: Payment category
-          enum:
-            - ACH
-          type: string
-        created:
-          description: Date and time when the payment first occurred. UTC time zone.
-          format: date-time
-          type: string
-        currency:
-          description: 3-character alphabetic ISO 4217 code for the settling currency of the payment.
-          type: string
-        descriptor:
-          description: A string that provides a description of the payment; may be useful to display to users.
-          type: string
-        events:
-          description: A list of all payment events that have modified this payment.
-          items:
-            $ref: '#/components/schemas/payment_event'
-          type: array
-        pending_amount:
-          description: |
-            Pending amount of the payment in the currency's smallest unit (e.g., cents).
-            The value of this field will go to zero over time once the payment is settled.
-          type: integer
-        result:
-          description: APPROVED payments were successful while DECLINED payments were declined by Lithic or returned.
-          enum:
-            - APPROVED
-            - DECLINED
-          type: string
-        settled_amount:
-          description: Amount of the payment that has been settled in the currency's smallest unit (e.g., cents).
-          type: integer
-        status:
-          description: |
-            Status types:
-            * `DECLINED` - The payment was declined.
-            * `PENDING` - The payment is being processed and has yet to settle or release (origination debit).
-            * `RETURNED` - The payment has been returned.
-            * `SETTLED` - The payment is completed.
-          enum:
-            - DECLINED
-            - PENDING
-            - RETURNED
-            - SETTLED
-          type: string
-        token:
-          description: Globally unique identifier.
-          format: uuid
-          type: string
-        updated:
-          description: Date and time when the financial transaction was last updated. UTC time zone.
-          format: date-time
-          type: string
-        direction:
-          enum:
-            - CREDIT
-            - DEBIT
-          title: ACH Direction
-          type: string
-        financial_account_token:
-          format: uuid
-          title: Financial Account Token
-          type: string
-        external_bank_account_token:
-          format: uuid
-          title: External Bank Account Token
-          type:
-            - string
-            - 'null'
-        method:
-          enum:
-            - ACH_NEXT_DAY
-            - ACH_SAME_DAY
-          title: Payment Method
-          type: string
-        method_attributes:
-          $ref: '#/components/schemas/PaymentMethodAttributes'
-        source:
-          enum:
-            - CUSTOMER
-            - LITHIC
-          title: Payment Message Source
-          type: string
-        user_defined_id:
-          maxLength: 512
-          title: User Defined Id
-          type:
-            - string
-            - 'null'
-        expected_release_date:
-          description: Date when the financial transaction expected to be released after settlement
-          format: date
-          title: Expected Release Date
-          type: string
-        related_account_tokens:
-          $ref: '#/components/schemas/related_account_tokens'
-        type:
-          description: Payment type indicating the specific ACH message or Fedwire transfer type
-          $ref: '#/components/schemas/transfer_type'
-      required:
-        - direction
-        - external_bank_account_token
-        - financial_account_token
-        - method
-        - method_attributes
-        - source
-        - user_defined_id
-        - category
-        - created
-        - currency
-        - descriptor
-        - events
-        - pending_amount
-        - result
-        - settled_amount
-        - status
-        - token
-        - updated
-        - related_account_tokens
-      type: object
-      title: PaymentResponse
+      $ref: '#/components/schemas/payment-transaction'
     PostPaymentResponse:
       allOf:
-        - $ref: '#/components/schemas/PaymentResponse'
+        - $ref: '#/components/schemas/payment-transaction'
         - properties:
             balance:
               $ref: '#/components/schemas/Balance'
@@ -14368,20 +14180,7 @@ components:
           format: date-time
           type: string
         result:
-          description: Enum representing the result of the tokenization event
-          enum:
-            - APPROVED
-            - DECLINED
-            - NOTIFICATION_DELIVERED
-            - REQUIRE_ADDITIONAL_AUTHENTICATION
-            - TOKEN_ACTIVATED
-            - TOKEN_CREATED
-            - TOKEN_DEACTIVATED
-            - TOKEN_INACTIVE
-            - TOKEN_STATE_UNKNOWN
-            - TOKEN_SUSPENDED
-            - TOKEN_UPDATED
-          type: string
+          $ref: '#/components/schemas/tokenization-event-outcome'
         token:
           description: Globally unique identifier for a Tokenization Event
           format: uuid
@@ -15417,6 +15216,7 @@ components:
                   * `PIN_ENTERED`: Indicates whether a PIN was entered during the transaction. Valid values are `TRUE`, `FALSE`.
                   * `PIN_STATUS`: The current state of card's PIN. Valid values are `NOT_SET`, `OK`, `BLOCKED`.
                   * `WALLET_TYPE`: For transactions using a digital wallet token, indicates the source of the token. Valid values are `APPLE_PAY`, `GOOGLE_PAY`, `SAMSUNG_PAY`, `MASTERPASS`, `MERCHANT`, `OTHER`, `NONE`.
+                  * `ADDRESS_MATCH`: Lithic's evaluation result comparing transaction's address data with the cardholder KYC data if it exists. Valid values are `MATCH`, `MATCH_ADDRESS_ONLY`, `MATCH_ZIP_ONLY`,`MISMATCH`,`NOT_PRESENT`.
                 enum:
                   - MCC
                   - COUNTRY
@@ -15434,6 +15234,7 @@ components:
                   - PIN_ENTERED
                   - PIN_STATUS
                   - WALLET_TYPE
+                  - ADDRESS_MATCH
               operation:
                 type: string
                 description: The operation to apply to the attribute
@@ -15746,6 +15547,7 @@ components:
                   * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
                   * `RISK_SCORE`: Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk.
                   * `MESSAGE_CATEGORY`: The category of the authentication being processed.
+                  * `ADDRESS_MATCH`: Lithic's evaluation result comparing transaction's address data with the cardholder KYC data if it exists. Valid values are `MATCH`, `MATCH_ADDRESS_ONLY`, `MATCH_ZIP_ONLY`,`MISMATCH`,`NOT_PRESENT`.
                 enum:
                   - MCC
                   - COUNTRY
@@ -15755,6 +15557,7 @@ components:
                   - TRANSACTION_AMOUNT
                   - RISK_SCORE
                   - MESSAGE_CATEGORY
+                  - ADDRESS_MATCH
               operation:
                 type: string
                 description: The operation to apply to the attribute
@@ -15827,6 +15630,7 @@ components:
                   * `PIN_STATUS`: The current state of card's PIN. Valid values are `NOT_SET`, `OK`, `BLOCKED`.
                   * `WALLET_TYPE`: For transactions using a digital wallet token, indicates the source of the token. Valid values are `APPLE_PAY`, `GOOGLE_PAY`, `SAMSUNG_PAY`, `MASTERPASS`, `MERCHANT`, `OTHER`, `NONE`.
                   * `TRANSACTION_INITIATOR`: The entity that initiated the transaction indicates the source of the token. Valid values are `CARDHOLDER`, `MERCHANT`, `UNKNOWN`.
+                  * `ADDRESS_MATCH`: Lithic's evaluation result comparing transaction's address data with the cardholder KYC data if it exists. Valid values are `MATCH`, `MATCH_ADDRESS_ONLY`, `MATCH_ZIP_ONLY`,`MISMATCH`,`NOT_PRESENT`.
                 enum:
                   - MCC
                   - COUNTRY
@@ -15846,6 +15650,7 @@ components:
                   - PIN_STATUS
                   - WALLET_TYPE
                   - TRANSACTION_INITIATOR
+                  - ADDRESS_MATCH
               operation:
                 type: string
                 description: The operation to apply to the attribute
@@ -16260,12 +16065,6 @@ components:
         - begin
         - end
         - daily_statistics
-    report-token:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/report-token.json
-      title: Auth Rule Performance Report Token
-      type: string
-      format: uuid
     backtest-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-request.json
@@ -16794,7 +16593,6 @@ components:
       enum:
         - MANUAL
         - MICRO_DEPOSIT
-        - PLAID
         - PRENOTE
         - EXTERNALLY_VERIFIED
         - UNVERIFIED
@@ -17050,65 +16848,6 @@ components:
         - owner_type
         - owner
         - financial_account_token
-    plaid_verified_verification_method:
-      $id: https://lithic.com/schemas/customer-facing/treasury/cies/plaid_verified_verification_method.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: string
-      enum:
-        - PLAID
-      title: Plaid Verified Verification Methods
-    plaid_verified_create_bank_account_api_request:
-      $id: https://lithic.com/schemas/customer-facing/treasury/cies/plaid_verified_create_bank_account_api_request.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Plaid Verified Create Bank Account Api Request
-      type: object
-      properties:
-        verification_method:
-          description: Verification Method
-          $ref: '#/components/schemas/plaid_verified_verification_method'
-        owner_type:
-          description: Owner Type
-          $ref: '#/components/schemas/owner_type'
-        owner:
-          description: Legal Name of the business or individual who owns the external account. This will appear in statements
-          type: string
-          minLength: 1
-          maxLength: 100
-          pattern: ^[!-~ ]*$
-        account_token:
-          description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
-          type: string
-          format: uuid
-        company_id:
-          description: Optional field that helps identify bank accounts in receipts
-          type: string
-          minLength: 1
-          maxLength: 10
-          pattern: ^[a-zA-Z0-9]*$
-        doing_business_as:
-          description: Doing Business As
-          type: string
-          minLength: 1
-          maxLength: 40
-        dob:
-          description: Date of Birth of the Individual that owns the external bank account
-          title: Date of Birth
-          type: string
-          format: date
-        user_defined_id:
-          description: User Defined ID
-          title: User Defined ID
-          type: string
-          minLength: 1
-          maxLength: 256
-        processor_token:
-          type: string
-          minLength: 1
-      required:
-        - processor_token
-        - verification_method
-        - owner_type
-        - owner
     externally_verified_verification_method:
       $id: https://lithic.com/schemas/customer-facing/treasury/cies/externally_verified_verification_method.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -17428,7 +17167,6 @@ components:
       type: string
       enum:
         - MICRO_DEPOSIT
-        - PLAID
         - PRENOTE
         - EXTERNALLY_VERIFIED
       title: Set Verification Method Allowed Verification Methods
@@ -17446,10 +17184,6 @@ components:
           description: The financial account token of the operating account to fund the micro deposits. Required when verification_method is MICRO_DEPOSIT or PRENOTE.
           type: string
           format: uuid
-        processor_token:
-          description: Plaid processor token for the bank account. Required when verification_method is PLAID.
-          type: string
-          minLength: 1
       required:
         - verification_method
     extended_credit:
@@ -17603,12 +17337,15 @@ components:
             - 'null'
           description: Tier assigned to the financial account
         is_spend_blocked:
+          deprecated: true
           type: boolean
         financial_account_state:
+          deprecated: true
           anyOf:
             - $ref: '#/components/schemas/financial-account-state'
             - type: 'null'
         charged_off_reason:
+          deprecated: true
           anyOf:
             - $ref: '#/components/schemas/charged-off-reason'
             - type: 'null'
@@ -17619,10 +17356,7 @@ components:
         - external_bank_account_token
         - credit_product_token
         - tier
-        - financial_account_state
-        - charged_off_reason
-        - is_spend_blocked
-        - auto_collection_configuraiton
+        - auto_collection_configuration
     financial-account-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account/2024-01-15/financial-account-response.json
@@ -17728,10 +17462,13 @@ components:
             - 'null'
           description: Tier assigned to the financial account
         financial_account_state:
+          deprecated: true
           $ref: '#/components/schemas/financial-account-state'
         is_spend_blocked:
+          deprecated: true
           type: boolean
         charged_off_reason:
+          deprecated: true
           anyOf:
             - $ref: '#/components/schemas/charged-off-reason'
             - type: 'null'
@@ -17739,10 +17476,7 @@ components:
           $ref: '#/components/schemas/auto-collection-configuration-response'
       required:
         - account_token
-        - is_spend_blocked
-        - charged_off_reason
         - credit_limit
-        - financial_account_state
         - external_bank_account_token
         - credit_product_token
         - tier
@@ -18359,18 +18093,6 @@ components:
       examples:
         - status: CLOSED
           substatus: END_USER_REQUEST
-    transaction_family_types:
-      $id: https://lithic.com/schemas/treasury/ledger/transaction_family_types.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: TransactionFamilyType
-      type: string
-      enum:
-        - CARD
-        - PAYMENT
-        - TRANSFER
-        - INTERNAL
-        - EXTERNAL_PAYMENT
-        - MANAGEMENT_OPERATION
     transaction_status:
       $id: https://lithic.com/schemas/treasury/ledger/transaction_status.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -18389,8 +18111,6 @@ components:
       description: Base class for all transaction types in the ledger service
       type: object
       properties:
-        family:
-          $ref: '#/components/schemas/transaction_family_types'
         status:
           $ref: '#/components/schemas/transaction_status'
           description: The status of the transaction
@@ -18407,7 +18127,6 @@ components:
           description: ISO 8601 timestamp of when the transaction was last updated
           format: date-time
       required:
-        - family
         - status
         - token
         - created
@@ -18429,6 +18148,10 @@ components:
         - $ref: '#/components/schemas/base_transaction'
         - type: object
           properties:
+            family:
+              type: string
+              const: INTERNAL
+              description: INTERNAL - Financial Transaction
             category:
               $ref: '#/components/schemas/transaction_category'
               description: Transaction category
@@ -18463,6 +18186,7 @@ components:
           required:
             - category
             - currency
+            - family
             - result
             - settled_amount
             - pending_amount
@@ -18641,47 +18365,59 @@ components:
         - $ref: '#/components/schemas/base_transaction'
         - type: object
           properties:
+            family:
+              type: string
+              const: TRANSFER
+              description: TRANSFER - Book Transfer Transaction
             result:
               $ref: '#/components/schemas/transaction_result'
             category:
               $ref: '#/components/schemas/book_transfer_category'
             currency:
               type: string
-              description: Currency of the transaction in ISO 4217 format
+              description: 3-character alphabetic ISO 4217 code for the settling currency of the transaction
               example: USD
             settled_amount:
               type: integer
-              description: The settled amount of the transaction in cents
+              description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents)
               example: 500
             pending_amount:
               type: integer
-              description: The pending amount of the transaction in cents
+              description: |
+                Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
+
+                The value of this field will go to zero over time once the financial transaction is settled.
               example: 1000
             events:
               type: array
               items:
                 $ref: '#/components/schemas/book_transfer_event'
-              description: List of events associated with this book transfer
+              description: A list of all financial events that have modified this transfer
             from_financial_account_token:
               type: string
               format: uuid
-              description: Source account token
+              description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case
             to_financial_account_token:
               type: string
               format: uuid
-              description: Destination account token
+              description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case
             external_id:
-              type: string
-              description: External identifier for the transaction
+              description: External ID defined by the customer
+              oneOf:
+                - type: string
+                - type: 'null'
             transaction_series:
+              description: A series of transactions that are grouped together
               oneOf:
                 - $ref: '#/components/schemas/transaction_series'
                 - type: 'null'
             external_resource:
+              description: An external resource associated with the transfer
               oneOf:
                 - $ref: '#/components/schemas/external_resource'
                 - type: 'null'
           required:
+            - family
             - result
             - category
             - currency
@@ -19195,6 +18931,8 @@ components:
         - TRANSACTION_PREVIOUSLY_COMPLETED
         - UNAUTHORIZED_MERCHANT
         - VEHICLE_NUMBER_INVALID
+        - CARDHOLDER_CHALLENGED
+        - CARDHOLDER_CHALLENGE_FAILED
     rule_result:
       $id: https://lithic.com/schemas/treasury/2024-01-15/card_transactions/rule_result.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19818,6 +19556,22 @@ components:
           token_info:
             wallet_type: APPLE_PAY
           updated: '2023-08-03T18:42:30Z'
+    card-transaction:
+      $id: https://lithic.com/schemas/treasury/ledger/card-transaction.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Card Transaction
+      description: Card transaction with ledger base properties
+      allOf:
+        - $ref: '#/components/schemas/base_transaction'
+        - $ref: '#/components/schemas/card_transaction'
+        - type: object
+          properties:
+            family:
+              type: string
+              const: CARD
+              description: CARD - Card Transaction
+        - required:
+            - family
     wire_party_details:
       $id: https://lithic.com/schemas/treasury/ledger/wire_party_details.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -20115,6 +19869,10 @@ components:
         - $ref: '#/components/schemas/base_transaction'
         - type: object
           properties:
+            family:
+              type: string
+              const: PAYMENT
+              description: PAYMENT - Payment Transaction
             category:
               $ref: '#/components/schemas/transaction_category'
               description: Transaction category
@@ -20196,6 +19954,7 @@ components:
             - category
             - result
             - method_attributes
+            - family
             - financial_account_token
             - direction
             - source
@@ -20301,6 +20060,10 @@ components:
         - $ref: '#/components/schemas/base_transaction'
         - type: object
           properties:
+            family:
+              type: string
+              const: EXTERNAL_PAYMENT
+              description: EXTERNAL_PAYMENT - External Payment Response
             result:
               $ref: '#/components/schemas/transaction_result'
             category:
@@ -20325,6 +20088,7 @@ components:
       required:
         - result
         - category
+        - family
         - settled_amount
         - pending_amount
         - currency
@@ -20421,6 +20185,10 @@ components:
         - $ref: '#/components/schemas/base_transaction'
         - type: object
           properties:
+            family:
+              type: string
+              const: MANAGEMENT_OPERATION
+              description: MANAGEMENT_OPERATION - Management Operation Transaction
             result:
               $ref: '#/components/schemas/transaction_result'
             category:
@@ -20453,6 +20221,7 @@ components:
       required:
         - result
         - category
+        - family
         - settled_amount
         - pending_amount
         - currency
@@ -20464,23 +20233,20 @@ components:
       $id: https://lithic.com/schemas/treasury/ledger/base-transaction-response.json
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Transaction Response
-      description: Response containing multiple transaction types
+      description: 'Response containing multiple transaction types. The `family` field determines which transaction type is returned: INTERNAL returns FinancialTransaction, TRANSFER returns BookTransferTransaction, CARD returns CardTransaction, PAYMENT returns PaymentTransaction, EXTERNAL_PAYMENT returns ExternalPaymentResponse, and MANAGEMENT_OPERATION returns ManagementOperationTransaction'
       discriminator:
         propertyName: family
         mapping:
           INTERNAL: '#/components/schemas/financial-transaction'
           TRANSFER: '#/components/schemas/book-transfer-transaction'
-          CARD: '#/components/schemas/2'
+          CARD: '#/components/schemas/card-transaction'
           PAYMENT: '#/components/schemas/payment-transaction'
           EXTERNAL_PAYMENT: '#/components/schemas/external_payment_response'
           MANAGEMENT_OPERATION: '#/components/schemas/management_operation_transaction'
       oneOf:
         - $ref: '#/components/schemas/financial-transaction'
         - $ref: '#/components/schemas/book-transfer-transaction'
-        - title: Card Transaction
-          allOf:
-            - $ref: '#/components/schemas/base_transaction'
-            - $ref: '#/components/schemas/card_transaction'
+        - $ref: '#/components/schemas/card-transaction'
         - $ref: '#/components/schemas/payment-transaction'
         - $ref: '#/components/schemas/external_payment_response'
         - $ref: '#/components/schemas/management_operation_transaction'
@@ -20804,6 +20570,25 @@ components:
           $ref: '#/components/schemas/supported_simulation_decline_reasons'
       required:
         - event_type
+    tokenization-event-outcome:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-event-outcome.json
+      title: Tokenization Event Outcome
+      description: Enum representing the result of the tokenization event
+      type: string
+      enum:
+        - APPROVED
+        - DECLINED
+        - NOTIFICATION_DELIVERED
+        - REQUIRE_ADDITIONAL_AUTHENTICATION
+        - TOKEN_ACTIVATED
+        - TOKEN_CREATED
+        - TOKEN_DEACTIVATED
+        - TOKEN_DELETED_FROM_CONSUMER_APP
+        - TOKEN_INACTIVE
+        - TOKEN_STATE_UNKNOWN
+        - TOKEN_SUSPENDED
+        - TOKEN_UPDATED
     simulate-enrollment-review-request:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/account-holder/2024-01-15/kyc/simulations/simulate-enrollment-review.json
@@ -21051,6 +20836,18 @@ components:
         - merchant
         - pan
         - transaction
+    address_match_result:
+      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/address_match_result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Address Match Result
+      description: Lithic's evaluation result comparing the transaction's address data with the cardholder KYC data if it exists. In the event Lithic does not have any Cardholder KYC data, or the transaction does not contain any address data, NOT_PRESENT will be returned
+      type: string
+      enum:
+        - MATCH
+        - MATCH_ADDRESS_ONLY
+        - MATCH_ZIP_ONLY
+        - MISMATCH
+        - NOT_PRESENT
     authentication:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/3ds/authentication.json
@@ -21246,6 +21043,8 @@ components:
                 - boolean
                 - 'null'
               description: Indicates whether the shipping address and billing address provided by the cardholder are the same. This value - and assessment of whether the addresses match - is provided directly in the 3DS request and is not determined by Lithic. Maps to EMV 3DS field `addrMatch`.
+            address_on_file_match:
+              $ref: '#/components/schemas/address_match_result'
             billing_address:
               type: object
               description: Object containing data on the billing address provided during the transaction.
@@ -21792,94 +21591,6 @@ components:
                 wallet_type: APPLE_PAY
               updated: '2023-08-03T18:42:30Z'
           has_more: false
-    book_transfer_response:
-      $id: https://lithic.com/schemas/treasury/ledger/book_transfer_response.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      type: object
-      properties:
-        category:
-          $ref: '#/components/schemas/book_transfer_category'
-        created:
-          description: Date and time when the transfer occurred. UTC time zone.
-          format: date-time
-          type: string
-        currency:
-          description: 3-character alphabetic ISO 4217 code for the settling currency of the transaction.
-          type: string
-        events:
-          description: A list of all financial events that have modified this transfer.
-          items:
-            $ref: '#/components/schemas/book_transfer_event'
-          type: array
-        external_id:
-          description: External ID defined by the customer
-          oneOf:
-            - type: string
-            - type: 'null'
-        from_financial_account_token:
-          description: Globally unique identifier for the financial account or card that will send the funds. Accepted type dependent on the program's use case.
-          format: uuid
-          type: string
-        pending_amount:
-          description: |
-            Pending amount of the transaction in the currency's smallest unit (e.g., cents), including any acquirer fees.
-
-            The value of this field will go to zero over time once the financial transaction is settled.
-          type: integer
-        result:
-          $ref: '#/components/schemas/transaction_result'
-        settled_amount:
-          description: Amount of the transaction that has been settled in the currency's smallest unit (e.g., cents).
-          type: integer
-        status:
-          description: |
-            Status types:
-            * `DECLINED` - The transfer was declined.
-            * `REVERSED` - The transfer was reversed
-            * `SETTLED` - The transfer is completed.
-          enum:
-            - DECLINED
-            - REVERSED
-            - SETTLED
-          type: string
-        to_financial_account_token:
-          description: Globally unique identifier for the financial account or card that will receive the funds. Accepted type dependent on the program's use case.
-          format: uuid
-          type: string
-        token:
-          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
-          format: uuid
-          type: string
-        updated:
-          description: Date and time when the financial transaction was last updated. UTC time zone.
-          format: date-time
-          type: string
-        transaction_series:
-          description: A series of transactions that are grouped together.
-          oneOf:
-            - $ref: '#/components/schemas/transaction_series'
-            - type: 'null'
-        external_resource:
-          description: An external resource associated with the transfer.
-          oneOf:
-            - $ref: '#/components/schemas/external_resource'
-            - type: 'null'
-      required:
-        - category
-        - created
-        - currency
-        - events
-        - external_id
-        - external_resource
-        - from_financial_account_token
-        - pending_amount
-        - result
-        - settled_amount
-        - status
-        - to_financial_account_token
-        - token
-        - transaction_series
-        - updated
     on_closed_account:
       $id: https://lithic.com/schemas/treasury/ledger/on_closed_account.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -22766,7 +22477,20 @@ components:
         merchant:
           $ref: '#/components/schemas/merchant'
         avs:
-          $ref: '#/components/schemas/avs'
+          type: object
+          properties:
+            address:
+              description: Cardholder address
+              type: string
+            zipcode:
+              description: Cardholder ZIP code
+              type: string
+            address_on_file_match:
+              $ref: '#/components/schemas/address_match_result'
+          required:
+            - address_on_file_match
+            - address
+            - zipcode
         card:
           $ref: '#/components/schemas/asa_request_card'
         cardholder_authentication:
@@ -23434,43 +23158,6 @@ components:
           phone_number: '+15555555555'
           email: test@example.com
           mobile_application_name: Wells Fargo
-    performance-report:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/performance-report.json
-      title: Auth Rule Performance Report
-      type: object
-      properties:
-        auth_rule_token:
-          $ref: '#/components/schemas/auth-rule-token'
-        report_token:
-          $ref: '#/components/schemas/report-token'
-        from:
-          description: The start of the time range for the performance report.
-          type: string
-          format: date-time
-        to:
-          description: The end of the time range for the performance report.
-          type: string
-          format: date-time
-        current_version_statistics:
-          oneOf:
-            - type: 'null'
-              description: No active version of the Auth Rule is impacting the Authorization stream.
-            - description: Statistics for the active version of the Auth Rule that is impacting the Authorization stream.
-              $ref: '#/components/schemas/rule-stats'
-        draft_version_statistics:
-          oneOf:
-            - type: 'null'
-              description: No draft version of the Auth Rule is running in shadow mode.
-            - description: Statistics for the draft version of the Auth Rule that is running in shadow mode in the authorization stream.
-              $ref: '#/components/schemas/rule-stats'
-      required:
-        - auth_rule_token
-        - report_token
-        - from
-        - to
-        - current_version_statistics
-        - draft_version_statistics
     backtest-report:
       $schema: https://json-schema.org/draft/2020-12/schema
       $id: https://lithic.com/schemas/authorization/rules-engine/auth-rules/v2/backtest-report.json
