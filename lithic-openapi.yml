@@ -16370,6 +16370,7 @@ components:
         - ACH_ORIGINATION_REVIEWED
         - ACH_ORIGINATION_SETTLED
         - ACH_RECEIPT_PROCESSED
+        - ACH_RECEIPT_RELEASED
         - ACH_RECEIPT_SETTLED
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
@@ -19675,6 +19676,42 @@ components:
       required:
         - wire_network
         - wire_transfer_type
+    payment_event_type:
+      $id: https://lithic.com/schemas/treasury/ledger/payment_event_type.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Payment Event Type
+      description: |-
+        Event types:
+        * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
+        * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
+        * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
+        * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the Federal Reserve.
+        * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
+        * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
+        * `ACH_ORIGINATION_REJECTED` - ACH origination was rejected and not sent to the Federal Reserve.
+        * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
+        * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
+        * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
+        * `ACH_RETURN_INITIATED` - ACH initiated return for an ACH receipt.
+        * `ACH_RETURN_PROCESSED` - ACH receipt returned by the Receiving Depository Financial Institution.
+        * `ACH_RETURN_SETTLED` - ACH return settled by the Receiving Depository Financial Institution.
+        * `ACH_RETURN_REJECTED` - ACH return was rejected by the Receiving Depository Financial Institution.
+      type: string
+      enum:
+        - ACH_ORIGINATION_CANCELLED
+        - ACH_ORIGINATION_INITIATED
+        - ACH_ORIGINATION_PROCESSED
+        - ACH_ORIGINATION_REJECTED
+        - ACH_ORIGINATION_RELEASED
+        - ACH_ORIGINATION_REVIEWED
+        - ACH_ORIGINATION_SETTLED
+        - ACH_RECEIPT_PROCESSED
+        - ACH_RECEIPT_RELEASED
+        - ACH_RECEIPT_SETTLED
+        - ACH_RETURN_INITIATED
+        - ACH_RETURN_PROCESSED
+        - ACH_RETURN_REJECTED
+        - ACH_RETURN_SETTLED
     payment_event:
       $id: https://lithic.com/schemas/treasury/ledger/payment_event.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -19712,33 +19749,7 @@ components:
           type: string
           format: uuid
         type:
-          description: |-
-            Event types:
-            * `ACH_ORIGINATION_INITIATED` - ACH origination received and pending approval/release from an ACH hold.
-            * `ACH_ORIGINATION_REVIEWED` - ACH origination has completed the review process.
-            * `ACH_ORIGINATION_CANCELLED` - ACH origination has been cancelled.
-            * `ACH_ORIGINATION_PROCESSED` - ACH origination has been processed and sent to the Federal Reserve.
-            * `ACH_ORIGINATION_SETTLED` - ACH origination has settled.
-            * `ACH_ORIGINATION_RELEASED` - ACH origination released from pending to available balance.
-            * `ACH_RETURN_PROCESSED` - ACH origination returned by the Receiving Depository Financial Institution.
-            * `ACH_RECEIPT_PROCESSED` - ACH receipt pending release from an ACH holder.
-            * `ACH_RETURN_INITIATED` - ACH initiated return for a ACH receipt.
-            * `ACH_RECEIPT_SETTLED` - ACH receipt funds have settled.
-            * `ACH_RECEIPT_RELEASED` - ACH receipt released from pending to available balance.
-            * `ACH_RETURN_SETTLED` - ACH receipt return settled by the Receiving Depository Financial Institution.
-          type: string
-          enum:
-            - ACH_ORIGINATION_CANCELLED
-            - ACH_ORIGINATION_INITIATED
-            - ACH_ORIGINATION_PROCESSED
-            - ACH_ORIGINATION_SETTLED
-            - ACH_ORIGINATION_RELEASED
-            - ACH_ORIGINATION_REVIEWED
-            - ACH_RECEIPT_PROCESSED
-            - ACH_RECEIPT_SETTLED
-            - ACH_RETURN_INITIATED
-            - ACH_RETURN_PROCESSED
-            - ACH_RETURN_SETTLED
+          $ref: '#/components/schemas/payment_event_type'
       required:
         - amount
         - created
@@ -19964,6 +19975,139 @@ components:
             - events
             - descriptor
             - related_account_tokens
+      examples:
+        - family: PAYMENT
+          status: PENDING
+          token: bd4efddb-771b-49e3-9af9-49b077ab5eb8
+          created: '2025-10-27T20:12:22Z'
+          updated: '2025-10-27T20:12:25Z'
+          category: ACH
+          result: APPROVED
+          method_attributes:
+            sec_code: CCD
+            return_reason_code: null
+            retries: 0
+            company_id: '1111111111'
+            receipt_routing_number: null
+            trace_numbers: []
+            addenda: null
+          financial_account_token: 35b0c466-a3e3-519a-9549-ead6a6a2277d
+          external_bank_account_token: feb4fee1-2414-4c38-a5f6-9deac293c8f4
+          direction: CREDIT
+          source: LITHIC
+          method: ACH_NEXT_DAY
+          settled_amount: 0
+          pending_amount: -1588
+          currency: USD
+          events:
+            - amount: -1588
+              type: ACH_ORIGINATION_INITIATED
+              result: APPROVED
+              created: '2025-10-27T20:12:22Z'
+              token: 327dccc3-fe42-54d2-962c-7f8135805464
+              detailed_results:
+                - APPROVED
+            - amount: -1588
+              type: ACH_ORIGINATION_REVIEWED
+              result: APPROVED
+              created: '2025-10-27T20:12:25Z'
+              token: f9165477-7cfc-53c6-98f1-84e9ec856a60
+              detailed_results:
+                - APPROVED
+          descriptor: ach_origination_credit
+          user_defined_id: null
+          expected_release_date: null
+          related_account_tokens: null
+          type: ORIGINATION_CREDIT
+        - family: PAYMENT
+          status: PENDING
+          token: cb35759d-8c18-4b7f-bb91-7c37936662c2
+          created: '2025-10-27T20:12:15Z'
+          updated: '2025-10-27T20:12:18Z'
+          category: ACH
+          result: APPROVED
+          method_attributes:
+            sec_code: CCD
+            return_reason_code: null
+            retries: 0
+            company_id: '1111111111'
+            receipt_routing_number: null
+            trace_numbers: []
+            addenda: null
+          financial_account_token: f012262b-d18f-5c26-ad63-a09a11e633a6
+          external_bank_account_token: feb4fee1-2414-4c38-a5f6-9deac293c8f4
+          direction: DEBIT
+          source: LITHIC
+          method: ACH_NEXT_DAY
+          settled_amount: 0
+          pending_amount: 1588
+          currency: USD
+          events:
+            - amount: 1588
+              type: ACH_ORIGINATION_INITIATED
+              result: APPROVED
+              created: '2025-10-27T20:12:15Z'
+              token: 38dc6bc5-d18f-594e-9ab9-ef1cfdcfbf82
+              detailed_results:
+                - APPROVED
+            - amount: 1588
+              type: ACH_ORIGINATION_REVIEWED
+              result: APPROVED
+              created: '2025-10-27T20:12:18Z'
+              token: e466f34a-d648-5a8f-8bc7-1d4d1e703db3
+              detailed_results:
+                - APPROVED
+          descriptor: ach_origination_debit
+          user_defined_id: null
+          expected_release_date: null
+          related_account_tokens:
+            business_account_token: null
+            account_token: d11bca22-39e2-475c-bbb3-6ba21e38b0d3
+          type: ORIGINATION_DEBIT
+        - family: PAYMENT
+          status: SETTLED
+          token: dd72f435-9633-46f3-b871-47d4af684654
+          created: '2024-10-08T21:39:27Z'
+          updated: '2024-10-08T21:39:28Z'
+          category: ACH
+          result: APPROVED
+          method_attributes:
+            sec_code: CCD
+            return_reason_code: null
+            retries: 0
+            company_id: '1111111111'
+            receipt_routing_number: '1234567890'
+            trace_numbers:
+              - '316779406684861'
+            addenda: null
+          financial_account_token: 0d6b1b9f-b90f-5f03-9c45-8930d5a6aac0
+          external_bank_account_token: null
+          direction: DEBIT
+          source: LITHIC
+          method: ACH_SAME_DAY
+          settled_amount: 1000
+          pending_amount: 0
+          currency: USD
+          events:
+            - amount: 1000
+              type: ACH_RECEIPT_PROCESSED
+              result: APPROVED
+              created: '2024-10-08T21:39:27Z'
+              token: 99ff8ea0-2355-57fc-aa9d-0e953f64ba4f
+              detailed_results:
+                - APPROVED
+            - amount: 1000
+              type: ACH_RECEIPT_SETTLED
+              result: APPROVED
+              created: '2024-10-08T21:39:28Z'
+              token: 33d0ae98-310c-5b50-a012-1bcd8edb9254
+              detailed_results:
+                - APPROVED
+          descriptor: ach_receipt_credit
+          user_defined_id: null
+          expected_release_date: null
+          related_account_tokens: null
+          type: RECEIPT_CREDIT
     external_payment_category:
       $id: https://lithic.com/schemas/treasury/ledger/external_payment_category.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -21981,8 +22125,9 @@ components:
           description: Action taken in this stage
           type: string
           enum:
-            - ISSUER_OPENED
-            - ISSUER_CLOSED
+            - OPENED
+            - CLOSED
+            - REOPENED
         reason:
           description: Reason for the action
           type:
@@ -21993,11 +22138,24 @@ components:
           type:
             - integer
             - 'null'
+        disposition:
+          description: Dispute resolution outcome
+          type:
+            - string
+            - 'null'
+          enum:
+            - WON
+            - LOST
+            - PARTIALLY_WON
+            - WITHDRAWN
+            - DENIED
+            - null
       required:
         - stage
         - action
         - reason
         - amount
+        - disposition
     financial-event-data:
       $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/financial-event-data.json
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -22039,7 +22197,7 @@ components:
           type: string
           enum:
             - PROVISIONAL_CREDIT_GRANTED
-            - DENIED
+            - PROVISIONAL_CREDIT_REVERSED
             - WRITTEN_OFF
         amount:
           description: Amount in minor units
@@ -22134,6 +22292,27 @@ components:
             - type: 'null'
         liability_allocation:
           $ref: '#/components/schemas/liability-allocation'
+        status:
+          description: Current status of the dispute.
+          type:
+            - string
+            - 'null'
+          enum:
+            - OPEN
+            - CLOSED
+            - null
+        disposition:
+          description: Dispute resolution outcome
+          type:
+            - string
+            - 'null'
+          enum:
+            - WON
+            - LOST
+            - PARTIALLY_WON
+            - WITHDRAWN
+            - DENIED
+            - null
         events:
           description: Chronological list of events that have occurred in the dispute lifecycle
           type: array
@@ -22151,6 +22330,8 @@ components:
         - merchant
         - transaction_series
         - liability_allocation
+        - status
+        - disposition
         - events
     disputes-response:
       $id: https://lithic.com/schemas/customer-facing/dispute-transactions/2024-01-15/disputes-response.json
