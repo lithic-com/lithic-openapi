@@ -599,7 +599,7 @@ paths:
                       postal_code: '68023'
                     government_id: 111-23-1413
             schema:
-              oneOf:
+              anyOf:
                 - $ref: '#/components/schemas/kyb-patch-request'
                 - $ref: '#/components/schemas/kyc-patch-request'
                 - $ref: '#/components/schemas/patch-request'
@@ -14271,6 +14271,19 @@ components:
           type: string
       required:
         - account_number
+    payment_details:
+      title: Payment Details
+      description: Breakdown of payments
+      type: object
+      patternProperties:
+        ^.*$:
+          type: object
+          patternProperties:
+            ^.*$:
+              type: integer
+              description: Amount in cents for this payment category and event type combination
+          additionalProperties: false
+      additionalProperties: false
     debit_details:
       title: Debit Details
       description: Breakdown of debits
@@ -14304,6 +14317,8 @@ components:
         payments:
           type: integer
           description: Any funds transfers which affective the balance in cents
+        payment_details:
+          $ref: '#/components/schemas/payment_details'
         purchases:
           type: integer
           description: Net card transaction volume less any cash advances in cents
