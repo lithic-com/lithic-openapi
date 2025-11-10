@@ -7117,6 +7117,9 @@ paths:
                         result: APPROVED
                         token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
                         type: TOKENIZATION_AUTHORIZATION
+                        tokenization_decline_reasons: []
+                        tokenization_tfa_reasons: []
+                        rule_results: []
                     status: ACTIVE
                     token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                     token_requestor_name: APPLE_PAY
@@ -7174,6 +7177,9 @@ paths:
                     result: APPROVED
                     token: 2b2a1038-45f3-42e4-98bb-e745be3f1de1
                     type: TOKENIZATION_AUTHORIZATION
+                    tokenization_decline_reasons: []
+                    tokenization_tfa_reasons: []
+                    rule_results: []
                 status: ACTIVE
                 token: 3e9a10da-11be-4a62-a510-d43548bfcec1
                 token_requestor_name: APPLE_PAY
@@ -13150,11 +13156,11 @@ components:
         quantity:
           title: Quantity
           description: The quantity of the item purchased.
-          type: number
+          type: string
         amount:
           title: Amount
           description: The price of the item purchased in merchant currency.
-          type: number
+          type: string
     common-data:
       title: CommonData
       required:
@@ -13332,7 +13338,7 @@ components:
         quantity:
           title: Quantity
           description: The quantity of fuel purchased.
-          type: number
+          type: string
         unit_price:
           title: Unit Price
           description: The price per unit of fuel.
@@ -14265,6 +14271,32 @@ components:
           type: string
       required:
         - account_number
+    debit_details:
+      title: Debit Details
+      description: Breakdown of debits
+      type: object
+      patternProperties:
+        ^.*$:
+          type: object
+          patternProperties:
+            ^.*$:
+              type: integer
+              description: Amount in cents for this debit category and event type combination
+          additionalProperties: false
+      additionalProperties: false
+    credit_details:
+      title: Credit Details
+      description: Breakdown of credits
+      type: object
+      patternProperties:
+        ^.*$:
+          type: object
+          patternProperties:
+            ^.*$:
+              type: integer
+              description: Amount in cents for this credit category and event type combination
+          additionalProperties: false
+      additionalProperties: false
     statement_totals:
       title: Statement Totals
       type: object
@@ -14278,9 +14310,16 @@ components:
         fees:
           type: integer
           description: Volume of debit management operation transactions less any interest in cents
+        debits:
+          type: integer
+          description: Volume of debit management operation transactions less any interest in cents
+        debit_details:
+          $ref: '#/components/schemas/debit_details'
         credits:
           type: integer
           description: Volume of credit management operation transactions less any balance transfers in cents
+        credit_details:
+          $ref: '#/components/schemas/credit_details'
         interest:
           type: integer
           description: Interest accrued in cents
@@ -14294,6 +14333,7 @@ components:
         - payments
         - purchases
         - fees
+        - debits
         - credits
         - interest
         - cash_advances
@@ -17019,6 +17059,12 @@ components:
           pattern: ^R(0[1-9]|[1-4][0-9]|5[0-3]|8[0-5])$
           description: ACH return reason code indicating the reason for returning the payment. Supported codes include R01-R53 and R80-R85. For a complete list of return codes and their meanings, see [ACH Return Reasons](https://docs.lithic.com/docs/ach-overview#ach-return-reasons)
           example: R01
+        memo:
+          type:
+            - string
+            - 'null'
+          maxLength: 10
+          description: Optional memo for the return. Limited to 10 characters
         addenda:
           type:
             - string
@@ -17521,9 +17567,11 @@ components:
             - string
             - 'null'
         digital_card_art_token:
-          description: Specifies the digital card art displayed in the user’s digital wallet after tokenization. This will be null if the tokenization was created without an associated digital card art. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
+          description: Specifies the digital card art displayed in the user's digital wallet after tokenization. This will be null if the tokenization was created without an associated digital card art. See [Flexible Card Art Guide](https://docs.lithic.com/docs/about-digital-wallets#flexible-card-art).
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         events:
           description: A list of events related to the tokenization.
           items:
@@ -17545,20 +17593,27 @@ components:
           format: uuid
           type: string
         token_requestor_name:
-          description: The entity that requested the tokenization. Represents a Digital Wallet or merchant.
-          enum:
-            - AMAZON_ONE
-            - ANDROID_PAY
-            - APPLE_PAY
-            - FACEBOOK
-            - FITBIT_PAY
-            - GARMIN_PAY
-            - MICROSOFT_PAY
-            - NETFLIX
-            - SAMSUNG_PAY
-            - UNKNOWN
-            - VISA_CHECKOUT
-          type: string
+          description: The entity that requested the tokenization. For digital wallets, this will be one of the defined wallet types. For merchant tokenizations, this will be a free-form merchant name string.
+          anyOf:
+            - title: Digital wallet type
+              description: Digital wallet type
+              enum:
+                - AMAZON_ONE
+                - ANDROID_PAY
+                - APPLE_PAY
+                - FACEBOOK
+                - FITBIT_PAY
+                - GARMIN_PAY
+                - GOOGLE_PAY
+                - MICROSOFT_PAY
+                - NETFLIX
+                - SAMSUNG_PAY
+                - UNKNOWN
+                - VISA_CHECKOUT
+              type: string
+            - title: Merchant name
+              description: Merchant name for merchant tokenizations
+              type: string
         token_unique_reference:
           description: The network's unique reference for the tokenization.
           type: string
@@ -17590,7 +17645,6 @@ components:
         - token
         - token_requestor_name
         - token_unique_reference
-        - device_id
         - dpan
         - tokenization_channel
         - updated_at
@@ -19261,6 +19315,9 @@ components:
             external_id:
               description: A user provided id that can be used to link an account holder with an external system
               type: string
+          required:
+            - token
+            - update_request
         - title: KYC Payload
           description: KYC payload for an updated account holder.
           type: object
@@ -19280,6 +19337,9 @@ components:
             external_id:
               description: A user provided id that can be used to link an account holder with an external system
               type: string
+          required:
+            - token
+            - update_request
         - title: Legacy Payload
           description: Legacy payload for an updated account holder.
           type: object
@@ -19288,7 +19348,9 @@ components:
               description: If applicable, represents the business account token associated with the account_holder.
               example: 00000000-0000-0000-0000-000000000001
               format: uuid
-              type: string
+              type:
+                - string
+                - 'null'
             created:
               description: When the account_holder updated event was created
               format: date-time
@@ -19300,8 +19362,9 @@ components:
             external_id:
               description: If applicable, represents the external_id associated with the account_holder.
               example: 00000000-0000-0000-0000-000000000001
-              format: uuid
-              type: string
+              type:
+                - string
+                - 'null'
             first_name:
               description: If applicable, represents the account_holder's first name.
               example: Johnny
@@ -19323,6 +19386,8 @@ components:
               example: 00000000-0000-0000-0000-000000000001
               format: uuid
               type: string
+          required:
+            - token
     account-holder-verification:
       title: Account Holder Verification
       examples:
@@ -20186,20 +20251,26 @@ components:
       type: object
       properties:
         imei:
-          description: The IMEI number of the device being provisioned
+          description: The IMEI number of the device being provisioned. For Amex, this field contains device ID instead as IMEI is not provided
           example: '123456789012345'
-          maxLength: 15
-          type: string
+          maxLength: 64
+          type:
+            - string
+            - 'null'
         ip_address:
           description: The IP address of the device initiating the request
           example: 1.1.1.1
           maxLength: 64
-          type: string
+          type:
+            - string
+            - 'null'
         location:
           description: Latitude and longitude where the device is located during the authorization attempt
           example: 37.3860517/-122.0838511
           maxLength: 64
-          type: string
+          type:
+            - string
+            - 'null'
       required:
         - imei
         - ip_address
@@ -20218,25 +20289,35 @@ components:
               properties:
                 phone_number:
                   description: The phone number, may contain country code along with phone number when countryDialInCode is not present
-                  type: string
+                  type:
+                    - string
+                    - 'null'
                   maxLength: 20
             pan_unique_reference:
               description: Reference to the PAN that is unique per Wallet Provider
-              type: string
+              type:
+                - string
+                - 'null'
               maxLength: 64
             payment_account_reference:
               description: The unique account reference assigned to the PAN
-              type: string
+              type:
+                - string
+                - 'null'
               maxLength: 29
             token_unique_reference:
               description: A unique reference assigned following the allocation of a token used to identify the token for the duration of its lifetime.
-              type: string
+              type:
+                - string
+                - 'null'
               maxLength: 64
           required:
             - account_holder_data
         payment_app_instance_id:
           description: The identifier of the Payment App instance within a device that will be provisioned with a token
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 48
         status:
           description: The current status of the digital wallet token. Pending or declined.
@@ -20250,7 +20331,17 @@ components:
           description: Human-readable name of the wallet that the token_requestor_id maps to.
           type: string
           enum:
+            - AMAZON_ONE
+            - ANDROID_PAY
             - APPLE_PAY
+            - FACEBOOK
+            - FITBIT_PAY
+            - GARMIN_PAY
+            - MICROSOFT_PAY
+            - NETFLIX
+            - SAMSUNG_PAY
+            - UNKNOWN
+            - VISA_CHECKOUT
           example: APPLE_PAY
       required:
         - payment_account_info
@@ -20262,22 +20353,30 @@ components:
           description: Score given to the account by the Wallet Provider
           example: '100'
           maxLength: 64
-          type: string
+          type:
+            - string
+            - 'null'
         device_score:
           description: Score given to the device by the Wallet Provider
           example: '100'
           maxLength: 64
-          type: string
+          type:
+            - string
+            - 'null'
         recommendation_reasons:
           description: Reasons provided to the Wallet Provider on how the recommended decision was reached
-          type: array
+          type:
+            - array
+            - 'null'
           items:
             type: string
         recommended_decision:
           description: The decision recommended by the Wallet Provider
           example: Decision1
           maxLength: 64
-          type: string
+          type:
+            - string
+            - 'null'
       required:
         - account_score
         - device_score
@@ -20321,8 +20420,11 @@ components:
           description: The source of the tokenization.
           enum:
             - ACCOUNT_ON_FILE
+            - CONTACTLESS_TAP
             - MANUAL_PROVISION
             - PUSH_PROVISION
+            - TOKEN
+            - UNKNOWN
           example: PUSH_PROVISION
           type: string
         tokenization_token:
@@ -20334,7 +20436,6 @@ components:
         - account_token
         - card_token
         - created
-        - digital_wallet_token_metadata
         - issuer_decision
         - tokenization_channel
         - tokenization_token
@@ -20613,7 +20714,13 @@ components:
         tracking_number:
           description: The tracking number of the shipment.
           example: 1Z9999999999999999
-          type: string
+          type:
+            - string
+            - 'null'
+      required:
+        - card_token
+        - shipping_method
+        - tracking_number
       type: object
     card_transaction_updated_event:
       title: Card Transaction Updated Event
@@ -20818,6 +20925,83 @@ components:
       required:
         - outcome
         - responder_url
+    tokenization-decline-reason:
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-decline-reason.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tokenization Decline Reason
+      description: Reason code for why a tokenization was declined
+      type: string
+      enum:
+        - ACCOUNT_SCORE_1
+        - DEVICE_SCORE_1
+        - ALL_WALLET_DECLINE_REASONS_PRESENT
+        - WALLET_RECOMMENDED_DECISION_RED
+        - CVC_MISMATCH
+        - CARD_EXPIRY_MONTH_MISMATCH
+        - CARD_EXPIRY_YEAR_MISMATCH
+        - CARD_INVALID_STATE
+        - CUSTOMER_RED_PATH
+        - INVALID_CUSTOMER_RESPONSE
+        - NETWORK_FAILURE
+        - GENERIC_DECLINE
+        - DIGITAL_CARD_ART_REQUIRED
+    tokenization-tfa-reason:
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-tfa-reason.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tokenization TFA Reason
+      description: Reason code for why a tokenization required two-factor authentication
+      type: string
+      enum:
+        - WALLET_RECOMMENDED_TFA
+        - SUSPICIOUS_ACTIVITY
+        - DEVICE_RECENTLY_LOST
+        - TOO_MANY_RECENT_ATTEMPTS
+        - TOO_MANY_RECENT_TOKENS
+        - TOO_MANY_DIFFERENT_CARDHOLDERS
+        - OUTSIDE_HOME_TERRITORY
+        - HAS_SUSPENDED_TOKENS
+        - HIGH_RISK
+        - ACCOUNT_SCORE_LOW
+        - DEVICE_SCORE_LOW
+        - CARD_STATE_TFA
+        - HARDCODED_TFA
+        - CUSTOMER_RULE_TFA
+        - DEVICE_HOST_CARD_EMULATION
+    tokenization-rule-result:
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-rule-result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tokenization Rule Result
+      type: object
+      properties:
+        auth_rule_token:
+          description: The Auth Rule Token associated with the rule. If this is set to null, then the result was not associated with a customer-configured rule. This may happen in cases where a tokenization is declined or requires TFA due to a Lithic-configured security or compliance rule, for example.
+          oneOf:
+            - type: 'null'
+            - type: string
+              format: uuid
+        result:
+          description: The result associated with this rule
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+            - REQUIRE_TFA
+            - ERROR
+        name:
+          description: The name for the rule, if any was configured
+          oneOf:
+            - type: 'null'
+            - type: string
+        explanation:
+          description: A human-readable explanation outlining the motivation for the rule's result
+          oneOf:
+            - type: 'null'
+            - type: string
+      required:
+        - auth_rule_token
+        - result
+        - name
+        - explanation
     digital-wallet-tokenization-approval-request:
       description: An event webhook (no responder) to inform that a Tokenization Request was decisioned on.
       allOf:
@@ -20825,13 +21009,30 @@ components:
         - type: object
           properties:
             customer_tokenization_decision:
-              $ref: '#/components/schemas/customer-tokenization-decision'
+              oneOf:
+                - type: 'null'
+                - $ref: '#/components/schemas/customer-tokenization-decision'
             event_type:
               description: The name of this event
               enum:
                 - digital_wallet.tokenization_approval_request
               example: digital_wallet.tokenization_approval_request
               type: string
+            tokenization_decline_reasons:
+              description: List of decline reasons if the tokenization was declined
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-decline-reason'
+            tokenization_tfa_reasons:
+              description: List of reasons why two-factor authentication was required
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-tfa-reason'
+            rule_results:
+              description: Results from rules that were evaluated for this tokenization
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-rule-result'
           required:
             - customer_tokenization_decision
             - event_type
@@ -20870,6 +21071,14 @@ components:
                 recommendation_reasons:
                   - Reason1
                 recommended_decision: Decision1
+              tokenization_decline_reasons:
+                - ACCOUNT_SCORE_1
+              tokenization_tfa_reasons: []
+              rule_results:
+                - auth_rule_token: 550e8400-e29b-41d4-a716-446655440003
+                  result: DECLINED
+                  name: CustomerAccountRule
+                  explanation: Account risk too high
     digital-wallet-tokenization-result:
       title: Digital Wallet Tokenization Result
       examples:
@@ -20903,7 +21112,9 @@ components:
           properties:
             customer_decision:
               description: The customer's tokenization decision if applicable.
-              type: string
+              type:
+                - string
+                - 'null'
             issuer_decision:
               description: Lithic's tokenization decision.
               type: string
@@ -20911,7 +21122,9 @@ components:
               description: An RFC 3339 timestamp indicating when the tokenization succeeded.
               example: '2020-01-01T00:00:00Z'
               format: date-time
-              type: string
+              type:
+                - string
+                - 'null'
             tokenization_decline_reasons:
               description: A list of reasons the tokenization failed.
               example:
@@ -20927,15 +21140,28 @@ components:
                   - CUSTOMER_RED_PATH
                   - CVC_MISMATCH
                   - DEVICE_SCORE_1
+                  - GENERIC_DECLINE
                   - INVALID_CUSTOMER_RESPONSE
                   - NETWORK_FAILURE
                   - WALLET_RECOMMENDED_DECISION_RED
                 type: string
               type: array
+            tokenization_tfa_reasons:
+              description: List of reasons why two-factor authentication was required
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-tfa-reason'
+            rule_results:
+              description: Results from rules that were evaluated for this tokenization
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-rule-result'
             wallet_decision:
               description: The wallet's recommended decision.
               example: APPROVED
-              type: string
+              type:
+                - string
+                - 'null'
           required:
             - issuer_decision
             - tokenization_decline_reasons
@@ -21375,13 +21601,30 @@ components:
         - type: object
           properties:
             customer_tokenization_decision:
-              $ref: '#/components/schemas/customer-tokenization-decision'
+              oneOf:
+                - type: 'null'
+                - $ref: '#/components/schemas/customer-tokenization-decision'
             event_type:
               description: The name of this event
               enum:
                 - tokenization.approval_request
               example: tokenization.approval_request
               type: string
+            tokenization_decline_reasons:
+              description: List of decline reasons if the tokenization was declined
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-decline-reason'
+            tokenization_tfa_reasons:
+              description: List of reasons why two-factor authentication was required
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-tfa-reason'
+            rule_results:
+              description: Results from rules that were evaluated for this tokenization
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-rule-result'
           required:
             - customer_tokenization_decision
             - event_type
@@ -21420,6 +21663,14 @@ components:
                 recommendation_reasons:
                   - Reason1
                 recommended_decision: Decision1
+              tokenization_decline_reasons: []
+              tokenization_tfa_reasons:
+                - WALLET_RECOMMENDED_TFA
+              rule_results:
+                - auth_rule_token: 550e8400-e29b-41d4-a716-446655440001
+                  result: REQUIRE_TFA
+                  name: CustomerRiskRule
+                  explanation: High risk transaction detected
     tokenization-result:
       title: Tokenization Result
       examples:
@@ -21453,7 +21704,9 @@ components:
           properties:
             customer_decision:
               description: The customer's tokenization decision if applicable.
-              type: string
+              type:
+                - string
+                - 'null'
             issuer_decision:
               description: Lithic's tokenization decision.
               type: string
@@ -21461,7 +21714,9 @@ components:
               description: An RFC 3339 timestamp indicating when the tokenization succeeded.
               example: '2020-01-01T00:00:00Z'
               format: date-time
-              type: string
+              type:
+                - string
+                - 'null'
             tokenization_decline_reasons:
               description: A list of reasons the tokenization failed.
               example:
@@ -21477,15 +21732,28 @@ components:
                   - CUSTOMER_RED_PATH
                   - CVC_MISMATCH
                   - DEVICE_SCORE_1
+                  - GENERIC_DECLINE
                   - INVALID_CUSTOMER_RESPONSE
                   - NETWORK_FAILURE
                   - WALLET_RECOMMENDED_DECISION_RED
                 type: string
               type: array
+            tokenization_tfa_reasons:
+              description: List of reasons why two-factor authentication was required
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-tfa-reason'
+            rule_results:
+              description: Results from rules that were evaluated for this tokenization
+              type: array
+              items:
+                $ref: '#/components/schemas/tokenization-rule-result'
             wallet_decision:
               description: The wallet's recommended decision.
               example: APPROVED
-              type: string
+              type:
+                - string
+                - 'null'
           required:
             - issuer_decision
             - tokenization_decline_reasons
