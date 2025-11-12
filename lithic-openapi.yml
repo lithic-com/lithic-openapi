@@ -12127,7 +12127,7 @@ components:
     create-auth-rule-request:
       title: Auth Rule Parameters
       type: object
-      oneOf:
+      anyOf:
         - title: Account Level Rule
           properties:
             account_tokens:
@@ -12142,11 +12142,9 @@ components:
               $ref: '#/components/schemas/auth-rule-name'
             event_stream:
               $ref: '#/components/schemas/event-stream'
-          anyOf:
-            - required:
-                - account_tokens
-            - required:
-                - business_account_tokens
+          required:
+            - type
+            - parameters
         - title: Card Level Rule
           properties:
             card_tokens:
@@ -12160,6 +12158,8 @@ components:
             event_stream:
               $ref: '#/components/schemas/event-stream'
           required:
+            - type
+            - parameters
             - card_tokens
         - title: Program Level Rule
           properties:
@@ -12176,10 +12176,9 @@ components:
             event_stream:
               $ref: '#/components/schemas/event-stream'
           required:
+            - type
+            - parameters
             - program_level
-      required:
-        - parameters
-        - type
     patch-auth-rule-request:
       title: Auth Rule Patch Request
       type: object
@@ -12201,11 +12200,6 @@ components:
               $ref: '#/components/schemas/account-tokens'
             business_account_tokens:
               $ref: '#/components/schemas/business-account-tokens'
-          anyOf:
-            - required:
-                - account_tokens
-            - required:
-                - business_account_tokens
         - title: Card Level Rule
           type: object
           properties:
@@ -15243,28 +15237,6 @@ components:
       title: Cardholder Authentication
       type: object
       properties:
-        3ds_version:
-          oneOf:
-            - type: 'null'
-              description: 3DS version not available
-            - type: string
-              example: '2'
-              description: The 3DS version used for the authentication
-          deprecated: true
-        acquirer_exemption:
-          description: Whether an acquirer exemption applied to the transaction. Not currently populated and will be removed in the future.
-          enum:
-            - AUTHENTICATION_OUTAGE_EXCEPTION
-            - LOW_VALUE
-            - MERCHANT_INITIATED_TRANSACTION
-            - NONE
-            - RECURRING_PAYMENT
-            - SECURE_CORPORATE_PAYMENT
-            - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
-            - TRANSACTION_RISK_ANALYSIS
-          example: NONE
-          type: string
-          deprecated: true
         authentication_result:
           description: Indicates the outcome of the 3DS authentication process.
           enum:
@@ -15299,6 +15271,7 @@ components:
               * `3DS_AUTHENTICATED`: The transaction was fully authenticated through a 3-D Secure flow, chargeback liability shift applies.
               * `NONE`: Chargeback liability shift has not shifted to the issuer, i.e. the merchant is liable.
               * `TOKEN_AUTHENTICATED`: The transaction was a tokenized payment with validated cryptography, possibly recurring. Chargeback liability shift to the issuer applies.
+          example: 3DS_AUTHENTICATED
           enum:
             - 3DS_AUTHENTICATED
             - TOKEN_AUTHENTICATED
@@ -15312,35 +15285,12 @@ components:
               example: a6e372d0-b40a-43eb-b0d1-4e1aebef5875
               format: uuid
               description: Unique identifier you can use to match a given 3DS authentication (available via the three_ds_authentication.created event webhook) and the transaction. Note that in cases where liability shift does not occur, this token is matched to the transaction on a best-effort basis.
-        verification_attempted:
-          description: Indicates whether a 3DS challenge flow was used, and if so, what the verification method was. (deprecated, use `authentication_result`)
-          enum:
-            - NONE
-            - OTHER
-          example: NONE
-          type: string
-          deprecated: true
-        verification_result:
-          description: Indicates whether a transaction is considered 3DS authenticated. (deprecated, use `authentication_result`)
-          enum:
-            - CANCELLED
-            - FAILED
-            - FRICTIONLESS
-            - NOT_ATTEMPTED
-            - REJECTED
-            - SUCCESS
-          example: FRICTIONLESS
-          type: string
-          deprecated: true
       required:
-        - 3ds_version
-        - acquirer_exemption
         - authentication_result
+        - authentication_method
         - decision_made_by
         - liability_shift
         - three_ds_authentication_token
-        - verification_attempted
-        - verification_result
     account_type:
       title: Account Type
       type:
@@ -16174,12 +16124,9 @@ components:
             address: 123 Evergreen Terrace
           card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
           cardholder_authentication:
-            verification_attempted: OTHER
-            verification_result: SUCCESS
             liability_shift: 3DS_AUTHENTICATED
-            3ds_version: null
-            acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
             authentication_result: SUCCESS
+            authentication_method: FRICTIONLESS
             three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
             decision_made_by: NETWORK
           created: '2023-08-03T18:42:30Z'
@@ -17539,6 +17486,83 @@ components:
         - TOKEN_STATE_UNKNOWN
         - TOKEN_SUSPENDED
         - TOKEN_UPDATED
+    tokenization-decline-reason:
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-decline-reason.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tokenization Decline Reason
+      description: Reason code for why a tokenization was declined
+      type: string
+      enum:
+        - ACCOUNT_SCORE_1
+        - DEVICE_SCORE_1
+        - ALL_WALLET_DECLINE_REASONS_PRESENT
+        - WALLET_RECOMMENDED_DECISION_RED
+        - CVC_MISMATCH
+        - CARD_EXPIRY_MONTH_MISMATCH
+        - CARD_EXPIRY_YEAR_MISMATCH
+        - CARD_INVALID_STATE
+        - CUSTOMER_RED_PATH
+        - INVALID_CUSTOMER_RESPONSE
+        - NETWORK_FAILURE
+        - GENERIC_DECLINE
+        - DIGITAL_CARD_ART_REQUIRED
+    tokenization-tfa-reason:
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-tfa-reason.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tokenization TFA Reason
+      description: Reason code for why a tokenization required two-factor authentication
+      type: string
+      enum:
+        - WALLET_RECOMMENDED_TFA
+        - SUSPICIOUS_ACTIVITY
+        - DEVICE_RECENTLY_LOST
+        - TOO_MANY_RECENT_ATTEMPTS
+        - TOO_MANY_RECENT_TOKENS
+        - TOO_MANY_DIFFERENT_CARDHOLDERS
+        - OUTSIDE_HOME_TERRITORY
+        - HAS_SUSPENDED_TOKENS
+        - HIGH_RISK
+        - ACCOUNT_SCORE_LOW
+        - DEVICE_SCORE_LOW
+        - CARD_STATE_TFA
+        - HARDCODED_TFA
+        - CUSTOMER_RULE_TFA
+        - DEVICE_HOST_CARD_EMULATION
+    tokenization-rule-result:
+      $id: https://lithic.com/schemas/tokenization/shared/tokenization-rule-result.json
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tokenization Rule Result
+      type: object
+      properties:
+        auth_rule_token:
+          description: The Auth Rule Token associated with the rule. If this is set to null, then the result was not associated with a customer-configured rule. This may happen in cases where a tokenization is declined or requires TFA due to a Lithic-configured security or compliance rule, for example.
+          oneOf:
+            - type: 'null'
+            - type: string
+              format: uuid
+        result:
+          description: The result associated with this rule
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+            - REQUIRE_TFA
+            - ERROR
+        name:
+          description: The name for the rule, if any was configured
+          oneOf:
+            - type: 'null'
+            - type: string
+        explanation:
+          description: A human-readable explanation outlining the motivation for the rule's result
+          oneOf:
+            - type: 'null'
+            - type: string
+      required:
+        - auth_rule_token
+        - result
+        - name
+        - explanation
     tokenization-event:
       title: Tokenization Event
       properties:
@@ -17561,6 +17585,21 @@ components:
             - TOKENIZATION_ELIGIBILITY_CHECK
             - TOKENIZATION_UPDATED
           type: string
+        tokenization_decline_reasons:
+          description: List of reasons why the tokenization was declined
+          type: array
+          items:
+            $ref: '#/components/schemas/tokenization-decline-reason'
+        tokenization_tfa_reasons:
+          description: List of reasons why two-factor authentication was required
+          type: array
+          items:
+            $ref: '#/components/schemas/tokenization-tfa-reason'
+        rule_results:
+          description: Results from rules that were evaluated for this tokenization
+          type: array
+          items:
+            $ref: '#/components/schemas/tokenization-rule-result'
     tokenization:
       title: Tokenization
       properties:
@@ -18576,12 +18615,9 @@ components:
                 address: 123 Evergreen Terrace
               card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
               cardholder_authentication:
-                verification_attempted: OTHER
-                verification_result: SUCCESS
                 liability_shift: 3DS_AUTHENTICATED
-                3ds_version: null
-                acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
                 authentication_result: SUCCESS
+                authentication_method: FRICTIONLESS
                 three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
                 decision_made_by: NETWORK
               created: '2023-08-03T18:42:30Z'
@@ -20777,12 +20813,9 @@ components:
             address: 123 Evergreen Terrace
           card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
           cardholder_authentication:
-            verification_attempted: OTHER
-            verification_result: SUCCESS
             liability_shift: 3DS_AUTHENTICATED
-            3ds_version: null
-            acquirer_exemption: MERCHANT_INITIATED_TRANSACTION
             authentication_result: SUCCESS
+            authentication_method: FRICTIONLESS
             three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
             decision_made_by: NETWORK
           created: '2023-08-03T18:42:30Z'
@@ -20940,83 +20973,6 @@ components:
       required:
         - outcome
         - responder_url
-    tokenization-decline-reason:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-decline-reason.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Tokenization Decline Reason
-      description: Reason code for why a tokenization was declined
-      type: string
-      enum:
-        - ACCOUNT_SCORE_1
-        - DEVICE_SCORE_1
-        - ALL_WALLET_DECLINE_REASONS_PRESENT
-        - WALLET_RECOMMENDED_DECISION_RED
-        - CVC_MISMATCH
-        - CARD_EXPIRY_MONTH_MISMATCH
-        - CARD_EXPIRY_YEAR_MISMATCH
-        - CARD_INVALID_STATE
-        - CUSTOMER_RED_PATH
-        - INVALID_CUSTOMER_RESPONSE
-        - NETWORK_FAILURE
-        - GENERIC_DECLINE
-        - DIGITAL_CARD_ART_REQUIRED
-    tokenization-tfa-reason:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-tfa-reason.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Tokenization TFA Reason
-      description: Reason code for why a tokenization required two-factor authentication
-      type: string
-      enum:
-        - WALLET_RECOMMENDED_TFA
-        - SUSPICIOUS_ACTIVITY
-        - DEVICE_RECENTLY_LOST
-        - TOO_MANY_RECENT_ATTEMPTS
-        - TOO_MANY_RECENT_TOKENS
-        - TOO_MANY_DIFFERENT_CARDHOLDERS
-        - OUTSIDE_HOME_TERRITORY
-        - HAS_SUSPENDED_TOKENS
-        - HIGH_RISK
-        - ACCOUNT_SCORE_LOW
-        - DEVICE_SCORE_LOW
-        - CARD_STATE_TFA
-        - HARDCODED_TFA
-        - CUSTOMER_RULE_TFA
-        - DEVICE_HOST_CARD_EMULATION
-    tokenization-rule-result:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-rule-result.json
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Tokenization Rule Result
-      type: object
-      properties:
-        auth_rule_token:
-          description: The Auth Rule Token associated with the rule. If this is set to null, then the result was not associated with a customer-configured rule. This may happen in cases where a tokenization is declined or requires TFA due to a Lithic-configured security or compliance rule, for example.
-          oneOf:
-            - type: 'null'
-            - type: string
-              format: uuid
-        result:
-          description: The result associated with this rule
-          type: string
-          enum:
-            - APPROVED
-            - DECLINED
-            - REQUIRE_TFA
-            - ERROR
-        name:
-          description: The name for the rule, if any was configured
-          oneOf:
-            - type: 'null'
-            - type: string
-        explanation:
-          description: A human-readable explanation outlining the motivation for the rule's result
-          oneOf:
-            - type: 'null'
-            - type: string
-      required:
-        - auth_rule_token
-        - result
-        - name
-        - explanation
     digital-wallet-tokenization-approval-request:
       description: An event webhook (no responder) to inform that a Tokenization Request was decisioned on.
       allOf:
@@ -21034,7 +20990,7 @@ components:
               example: digital_wallet.tokenization_approval_request
               type: string
             tokenization_decline_reasons:
-              description: List of decline reasons if the tokenization was declined
+              description: List of reasons why the tokenization was declined
               type: array
               items:
                 $ref: '#/components/schemas/tokenization-decline-reason'
@@ -21141,7 +21097,7 @@ components:
                 - string
                 - 'null'
             tokenization_decline_reasons:
-              description: A list of reasons the tokenization failed.
+              description: List of reasons why the tokenization was declined
               example:
                 - ACCOUNT_SCORE_1
                 - DEVICE_SCORE_1
@@ -21626,7 +21582,7 @@ components:
               example: tokenization.approval_request
               type: string
             tokenization_decline_reasons:
-              description: List of decline reasons if the tokenization was declined
+              description: List of reasons why the tokenization was declined
               type: array
               items:
                 $ref: '#/components/schemas/tokenization-decline-reason'
@@ -21733,7 +21689,7 @@ components:
                 - string
                 - 'null'
             tokenization_decline_reasons:
-              description: A list of reasons the tokenization failed.
+              description: List of reasons why the tokenization was declined
               example:
                 - ACCOUNT_SCORE_1
                 - DEVICE_SCORE_1
