@@ -11497,6 +11497,9 @@ components:
       enum:
         - AUTHORIZATION
         - THREE_DS_AUTHENTICATION
+        - TOKENIZATION
+        - ACH_CREDIT_RECEIPT
+        - ACH_DEBIT_RECEIPT
       description: The event stream during which the rule will be evaluated.
     auth-rule-token:
       title: Auth Rule Token
@@ -11556,7 +11559,37 @@ components:
         - `CONDITIONAL_BLOCK`: AUTHORIZATION event stream.
         - `VELOCITY_LIMIT`: AUTHORIZATION event stream.
         - `MERCHANT_LOCK`: AUTHORIZATION event stream.
-        - `CONDITIONAL_ACTION`: AUTHORIZATION or THREE_DS_AUTHENTICATION event stream.
+        - `CONDITIONAL_ACTION`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, or ACH_DEBIT_RECEIPT event stream.
+    conditional-operation:
+      title: Conditional Operation
+      type: string
+      description: The operation to apply to the attribute
+      enum:
+        - IS_ONE_OF
+        - IS_NOT_ONE_OF
+        - MATCHES
+        - DOES_NOT_MATCH
+        - IS_EQUAL_TO
+        - IS_NOT_EQUAL_TO
+        - IS_GREATER_THAN
+        - IS_GREATER_THAN_OR_EQUAL_TO
+        - IS_LESS_THAN
+        - IS_LESS_THAN_OR_EQUAL_TO
+    conditional-value:
+      title: Conditional Value
+      anyOf:
+        - title: Regex
+          type: string
+          description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
+        - title: Number
+          type: integer
+          format: int64
+          description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
+        - title: List of Strings
+          type: array
+          items:
+            type: string
+          description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
     conditional-block-parameters:
       title: Conditional Block Parameters
       type: object
@@ -11608,33 +11641,13 @@ components:
                   - WALLET_TYPE
                   - ADDRESS_MATCH
               operation:
-                type: string
-                description: The operation to apply to the attribute
-                enum:
-                  - IS_ONE_OF
-                  - IS_NOT_ONE_OF
-                  - MATCHES
-                  - DOES_NOT_MATCH
-                  - IS_EQUAL_TO
-                  - IS_NOT_EQUAL_TO
-                  - IS_GREATER_THAN
-                  - IS_GREATER_THAN_OR_EQUAL_TO
-                  - IS_LESS_THAN
-                  - IS_LESS_THAN_OR_EQUAL_TO
+                $ref: '#/components/schemas/conditional-operation'
               value:
-                anyOf:
-                  - title: Regex
-                    type: string
-                    description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - title: Number
-                    type: integer
-                    format: int64
-                    description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
-                  - title: List of Strings
-                    type: array
-                    items:
-                      type: string
-                    description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
       required:
         - conditions
     velocity-scope:
@@ -11904,33 +11917,13 @@ components:
                   - MESSAGE_CATEGORY
                   - ADDRESS_MATCH
               operation:
-                type: string
-                description: The operation to apply to the attribute
-                enum:
-                  - IS_ONE_OF
-                  - IS_NOT_ONE_OF
-                  - MATCHES
-                  - DOES_NOT_MATCH
-                  - IS_EQUAL_TO
-                  - IS_NOT_EQUAL_TO
-                  - IS_GREATER_THAN
-                  - IS_GREATER_THAN_OR_EQUAL_TO
-                  - IS_LESS_THAN
-                  - IS_LESS_THAN_OR_EQUAL_TO
+                $ref: '#/components/schemas/conditional-operation'
               value:
-                anyOf:
-                  - title: Regex
-                    type: string
-                    description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - title: Number
-                    type: integer
-                    format: int64
-                    description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
-                  - title: List of Strings
-                    type: array
-                    items:
-                      type: string
-                    description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
       required:
         - action
         - conditions
@@ -11995,33 +11988,254 @@ components:
                   - TRANSACTION_INITIATOR
                   - ADDRESS_MATCH
               operation:
-                type: string
-                description: The operation to apply to the attribute
-                enum:
-                  - IS_ONE_OF
-                  - IS_NOT_ONE_OF
-                  - MATCHES
-                  - DOES_NOT_MATCH
-                  - IS_EQUAL_TO
-                  - IS_NOT_EQUAL_TO
-                  - IS_GREATER_THAN
-                  - IS_GREATER_THAN_OR_EQUAL_TO
-                  - IS_LESS_THAN
-                  - IS_LESS_THAN_OR_EQUAL_TO
+                $ref: '#/components/schemas/conditional-operation'
               value:
-                anyOf:
-                  - title: Regex
-                    type: string
-                    description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-                  - title: Number
-                    type: integer
-                    format: int64
-                    description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
-                  - title: List of Strings
-                    type: array
-                    items:
-                      type: string
-                    description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
+      required:
+        - action
+        - conditions
+    conditional-ach-action-parameters:
+      title: Conditional Action (ACH) Parameters
+      type: object
+      properties:
+        action:
+          description: The action to take if the conditions are met
+          oneOf:
+            - type: object
+              title: Approve Action
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - APPROVE
+                  description: Approve the ACH transaction
+              required:
+                - type
+            - type: object
+              title: Return Action
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - RETURN
+                  description: Return the ACH transaction
+                code:
+                  type: string
+                  description: NACHA return code to use when returning the transaction. Note that the list of available return codes is subject to an allowlist configured at the program level
+                  enum:
+                    - R01
+                    - R02
+                    - R03
+                    - R04
+                    - R05
+                    - R06
+                    - R07
+                    - R08
+                    - R09
+                    - R10
+                    - R11
+                    - R12
+                    - R13
+                    - R14
+                    - R15
+                    - R16
+                    - R17
+                    - R18
+                    - R19
+                    - R20
+                    - R21
+                    - R22
+                    - R23
+                    - R24
+                    - R25
+                    - R26
+                    - R27
+                    - R28
+                    - R29
+                    - R30
+                    - R31
+                    - R32
+                    - R33
+                    - R34
+                    - R35
+                    - R36
+                    - R37
+                    - R38
+                    - R39
+                    - R40
+                    - R41
+                    - R42
+                    - R43
+                    - R44
+                    - R45
+                    - R46
+                    - R47
+                    - R50
+                    - R51
+                    - R52
+                    - R53
+                    - R61
+                    - R62
+                    - R67
+                    - R68
+                    - R69
+                    - R70
+                    - R71
+                    - R72
+                    - R73
+                    - R74
+                    - R75
+                    - R76
+                    - R77
+                    - R80
+                    - R81
+                    - R82
+                    - R83
+                    - R84
+                    - R85
+              required:
+                - type
+                - code
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              attribute:
+                type: string
+                description: |-
+                  The attribute to target.
+
+                  The following attributes may be targeted:
+                  * `COMPANY_NAME`: The name of the company initiating the ACH transaction.
+                  * `COMPANY_ID`: The company ID (also known as Standard Entry Class (SEC) Company ID) of the entity initiating the ACH transaction.
+                  * `TIMESTAMP`: The timestamp of the ACH transaction in ISO 8601 format.
+                  * `TRANSACTION_AMOUNT`: The amount of the ACH transaction in minor units (cents).
+                  * `SEC_CODE`: Standard Entry Class code indicating the type of ACH transaction. Valid values include PPD (Prearranged Payment and Deposit Entry), CCD (Corporate Credit or Debit Entry), WEB (Internet-Initiated/Mobile Entry), TEL (Telephone-Initiated Entry), and others.
+                  * `MEMO`: Optional memo or description field included with the ACH transaction.
+                enum:
+                  - COMPANY_NAME
+                  - COMPANY_ID
+                  - TIMESTAMP
+                  - TRANSACTION_AMOUNT
+                  - SEC_CODE
+                  - MEMO
+              operation:
+                $ref: '#/components/schemas/conditional-operation'
+              value:
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
+      required:
+        - action
+        - conditions
+    conditional-tokenization-action-parameters:
+      title: Conditional Action (Tokenization) Parameters
+      type: object
+      properties:
+        action:
+          description: The action to take if the conditions are met
+          oneOf:
+            - type: object
+              title: Decline Action
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - DECLINE
+                  description: Decline the tokenization request
+                reason:
+                  type: string
+                  description: Reason code for declining the tokenization request
+                  enum:
+                    - ACCOUNT_SCORE_1
+                    - DEVICE_SCORE_1
+                    - ALL_WALLET_DECLINE_REASONS_PRESENT
+                    - WALLET_RECOMMENDED_DECISION_RED
+                    - CVC_MISMATCH
+                    - CARD_EXPIRY_MONTH_MISMATCH
+                    - CARD_EXPIRY_YEAR_MISMATCH
+                    - CARD_INVALID_STATE
+                    - CUSTOMER_RED_PATH
+                    - INVALID_CUSTOMER_RESPONSE
+                    - NETWORK_FAILURE
+                    - GENERIC_DECLINE
+                    - DIGITAL_CARD_ART_REQUIRED
+              required:
+                - type
+            - type: object
+              title: Require TFA Action
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - REQUIRE_TFA
+                  description: Require two-factor authentication for the tokenization request
+                reason:
+                  type: string
+                  description: Reason code for requiring two-factor authentication
+                  enum:
+                    - WALLET_RECOMMENDED_TFA
+                    - SUSPICIOUS_ACTIVITY
+                    - DEVICE_RECENTLY_LOST
+                    - TOO_MANY_RECENT_ATTEMPTS
+                    - TOO_MANY_RECENT_TOKENS
+                    - TOO_MANY_DIFFERENT_CARDHOLDERS
+                    - OUTSIDE_HOME_TERRITORY
+                    - HAS_SUSPENDED_TOKENS
+                    - HIGH_RISK
+                    - ACCOUNT_SCORE_LOW
+                    - DEVICE_SCORE_LOW
+                    - CARD_STATE_TFA
+                    - HARDCODED_TFA
+                    - CUSTOMER_RULE_TFA
+                    - DEVICE_HOST_CARD_EMULATION
+              required:
+                - type
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              attribute:
+                type: string
+                description: |-
+                  The attribute to target.
+
+                  The following attributes may be targeted:
+                  * `TIMESTAMP`: The timestamp of the tokenization request in ISO 8601 format.
+                  * `TOKENIZATION_CHANNEL`: The channel through which the tokenization request was initiated (e.g., DIGITAL_WALLET, ECOMMERCE).
+                  * `TOKENIZATION_SOURCE`: The source of the tokenization request.
+                  * `TOKEN_REQUESTOR_NAME`: The name of the entity requesting the token. Valid values are `ALT_ID`, `AMAZON_ONE`, `AMERICAN_EXPRESS_TOKEN_SERVICE`, `ANDROID_PAY`, `APPLE_PAY`, `FACEBOOK`, `FITBIT_PAY`, `GARMIN_PAY`, `GOOGLE_PAY`, `GOOGLE_VCN`, `ISSUER_HCE`, `MICROSOFT_PAY`, `NETFLIX`, `SAMSUNG_PAY`, `UNKNOWN`, `VISA_CHECKOUT`.
+                  * `WALLET_ACCOUNT_SCORE`: Risk score for the account in the digital wallet. Numeric value where lower numbers indicate higher risk (e.g., 1 = high risk, 2 = medium risk).
+                  * `WALLET_DEVICE_SCORE`: Risk score for the device in the digital wallet. Numeric value where lower numbers indicate higher risk (e.g., 1 = high risk, 2 = medium risk).
+                  * `WALLET_RECOMMENDED_DECISION`: The decision recommended by the digital wallet provider. Valid values include APPROVE, DECLINE, REQUIRE_ADDITIONAL_AUTHENTICATION.
+                  * `TOKEN_REQUESTOR_ID`: Unique identifier for the entity requesting the token.
+                  * `WALLET_TOKEN_STATUS`: The current status of the wallet token.
+                enum:
+                  - TIMESTAMP
+                  - TOKENIZATION_CHANNEL
+                  - TOKENIZATION_SOURCE
+                  - TOKEN_REQUESTOR_NAME
+                  - WALLET_ACCOUNT_SCORE
+                  - WALLET_DEVICE_SCORE
+                  - WALLET_RECOMMENDED_DECISION
+                  - TOKEN_REQUESTOR_ID
+                  - WALLET_TOKEN_STATUS
+              operation:
+                $ref: '#/components/schemas/conditional-operation'
+              value:
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
       required:
         - action
         - conditions
@@ -12034,6 +12248,8 @@ components:
         - $ref: '#/components/schemas/merchant-lock-parameters'
         - $ref: '#/components/schemas/conditional-3ds-action-parameters'
         - $ref: '#/components/schemas/conditional-authorization-action-parameters'
+        - $ref: '#/components/schemas/conditional-ach-action-parameters'
+        - $ref: '#/components/schemas/conditional-tokenization-action-parameters'
     auth-rule-version:
       title: Auth Rule Version
       type: integer
@@ -12925,6 +13141,7 @@ components:
             - WON_ARBITRATION
             - WON_FIRST_CHARGEBACK
             - WON_PREARBITRATION
+            - null
           type:
             - string
             - 'null'
@@ -13115,10 +13332,14 @@ components:
     tax-exempt-indicator:
       title: TaxExemptIndicator
       description: A flag indicating whether the transaction is tax exempt or not.
+      type:
+        - string
+        - 'null'
       enum:
         - TAX_INCLUDED
         - TAX_NOT_INCLUDED
         - NOT_SUPPORTED
+        - null
     tax-data:
       title: TaxData
       type: object
@@ -13126,14 +13347,18 @@ components:
         amount:
           title: Amount
           description: The amount of tax collected.
-          type: integer
+          type:
+            - integer
+            - 'null'
         exempt:
           title: Exempt
           $ref: '#/components/schemas/tax-exempt-indicator'
         merchant_tax_id:
           title: Merchant Tax ID
           description: The tax ID of the merchant.
-          type: string
+          type:
+            - string
+            - 'null'
     line-item:
       title: LineItem
       description: An L2/L3 enhanced commercial data line item.
@@ -13142,19 +13367,27 @@ components:
         product_code:
           title: Product Code
           description: An identifier for the item purchased.
-          type: string
+          type:
+            - string
+            - 'null'
         description:
           title: Description
           description: A human-readable description of the item.
-          type: string
+          type:
+            - string
+            - 'null'
         quantity:
           title: Quantity
           description: The quantity of the item purchased.
-          type: string
+          type:
+            - string
+            - 'null'
         amount:
           title: Amount
           description: The price of the item purchased in merchant currency.
-          type: string
+          type:
+            - string
+            - 'null'
     common-data:
       title: CommonData
       required:
@@ -13165,15 +13398,21 @@ components:
         customer_reference_number:
           title: Customer Reference Number
           description: A customer identifier.
-          type: string
+          type:
+            - string
+            - 'null'
         merchant_reference_number:
           title: Merchant Reference Number
           description: A merchant identifier.
-          type: string
+          type:
+            - string
+            - 'null'
         order_date:
           title: Order Date
           description: The date of the order.
-          type: string
+          type:
+            - string
+            - 'null'
           format: date
         tax:
           $ref: '#/components/schemas/tax-data'
@@ -13194,6 +13433,9 @@ components:
     fuel-type:
       title: FuelType
       description: The type of fuel purchased.
+      type:
+        - string
+        - 'null'
       enum:
         - UNKNOWN
         - REGULAR
@@ -13312,9 +13554,13 @@ components:
         - BIODIESEL_BLEND_100_PERCENT_OFF_ROAD_NON_TAXABLE
         - RENEWABLE_DIESEL_BIODIESEL_6_20_PERCENT_OFF_ROAD_NON_TAXABLE
         - MISCELLANEOUS_OTHER_FUEL
+        - null
     fuel-unit-of-measure:
       title: FuelUnitOfMeasure
       description: Unit of measure for fuel disbursement.
+      type:
+        - string
+        - 'null'
       enum:
         - GALLONS
         - LITERS
@@ -13323,6 +13569,7 @@ components:
         - IMPERIAL_GALLONS
         - NOT_APPLICABLE
         - UNKNOWN
+        - null
     fuel-data:
       title: FuelData
       type: object
@@ -13332,11 +13579,15 @@ components:
         quantity:
           title: Quantity
           description: The quantity of fuel purchased.
-          type: string
+          type:
+            - string
+            - 'null'
         unit_price:
           title: Unit Price
           description: The price per unit of fuel.
-          type: integer
+          type:
+            - integer
+            - 'null'
         unit_of_measure:
           $ref: '#/components/schemas/fuel-unit-of-measure'
     amount-totals:
@@ -13346,15 +13597,21 @@ components:
         gross_sale:
           title: Gross Sale
           description: The gross sale amount.
-          type: integer
+          type:
+            - integer
+            - 'null'
         discount:
           title: Discount
           description: The discount applied to the gross sale amount.
-          type: integer
+          type:
+            - integer
+            - 'null'
         net_sale:
           title: Net Sale
           description: The amount after discount.
-          type: integer
+          type:
+            - integer
+            - 'null'
     fleet:
       title: Fleet
       required:
@@ -13368,15 +13625,21 @@ components:
         odometer:
           title: Odometer
           description: The odometer reading entered into the terminal at the time of sale.
-          type: integer
+          type:
+            - integer
+            - 'null'
         vehicle_number:
           title: Vehicle Number
           description: The vehicle number entered into the terminal at the time of sale, with leading zeros stripped.
-          type: string
+          type:
+            - string
+            - 'null'
         driver_number:
           title: Driver Number
           description: The driver number entered into the terminal at the time of sale, with leading zeros stripped.
-          type: string
+          type:
+            - string
+            - 'null'
         fuel:
           $ref: '#/components/schemas/fuel-data'
         amount_totals:
@@ -13458,7 +13721,9 @@ components:
           minLength: 1
           maxLength: 40
         address2:
-          type: string
+          type:
+            - string
+            - 'null'
           minLength: 1
           maxLength: 40
         city:
@@ -13504,7 +13769,9 @@ components:
           type: string
         name:
           description: The nickname for this External Bank Account
-          type: string
+          type:
+            - string
+            - 'null'
         currency:
           description: currency of the external account 3-character alphabetic ISO 4217 code
           type: string
@@ -13513,7 +13780,9 @@ components:
           type: string
         account_token:
           description: Indicates which Lithic account the external account is associated with. For external accounts that are associated with the program, account_token field returned will be null
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
         created:
           description: An ISO 8601 string representing when this funding source was added to the Lithic account.
@@ -13521,28 +13790,40 @@ components:
           format: date-time
         company_id:
           description: Optional field that helps identify bank accounts in receipts
-          type: string
+          type:
+            - string
+            - 'null'
         dob:
           description: Date of Birth of the Individual that owns the external bank account
           title: Date of Birth
-          type: string
+          type:
+            - string
+            - 'null'
           format: date
         doing_business_as:
           description: Doing Business As
-          type: string
+          type:
+            - string
+            - 'null'
         user_defined_id:
           description: User Defined ID
           title: User Defined ID
-          type: string
+          type:
+            - string
+            - 'null'
         verification_failed_reason:
           description: Optional free text description of the reason for the failed verification. For ACH micro-deposits returned, this field will display the reason return code sent by the ACH network
-          type: string
+          type:
+            - string
+            - 'null'
         verification_attempts:
           description: The number of attempts at verification
           type: integer
         financial_account_token:
           description: The financial account token of the operating account to fund the micro deposits
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
         type:
           description: Account Type
@@ -13561,7 +13842,9 @@ components:
           $ref: '#/components/schemas/verification_state'
         address:
           description: Address
-          $ref: '#/components/schemas/external_bank_account_address'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/external_bank_account_address'
       required:
         - token
         - type
@@ -14115,7 +14398,9 @@ components:
             - 'null'
           description: Tier assigned to the financial account
         auto_collection_configuration:
-          $ref: '#/components/schemas/auto-collection-configuration-response'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/auto-collection-configuration-response'
       required:
         - credit_limit
         - external_bank_account_token
@@ -14138,7 +14423,7 @@ components:
           type: string
           format: date-time
         type:
-          oneOf:
+          anyOf:
             - $ref: '#/components/schemas/instance-financial-account-type'
             - $ref: '#/components/schemas/account-financial-account-type'
         routing_number:
@@ -14771,7 +15056,9 @@ components:
           type: string
         tier:
           description: Interest tier to which this account belongs to
-          type: string
+          type:
+            - string
+            - 'null'
         payment_allocation:
           $ref: '#/components/schemas/category_balances'
         minimum_payment_balance:
@@ -14851,6 +15138,7 @@ components:
         - DECLINED
         - REVERSED
         - CANCELED
+        - RETURNED
     base_transaction:
       title: base_transaction
       description: Base class for all transaction types in the ledger service
@@ -16149,9 +16437,12 @@ components:
                 acquirer:
                   acquirer_reference_number: null
                   retrieval_reference_number: '064386558597'
+                amex: null
                 mastercard:
                   banknet_reference_number: U1HSCJ
                   switch_serial_number: null
+                  original_banknet_reference_number: null
+                  original_switch_serial_number: null
                 visa: null
               result: APPROVED
               rule_results: []
@@ -16204,7 +16495,7 @@ components:
               type: string
               const: CARD
               description: CARD - Card Transaction
-        - required:
+          required:
             - family
     wire_party_details:
       title: Wire Party Details
@@ -16362,6 +16653,7 @@ components:
             type: string
             enum:
               - APPROVED
+              - DECLINED
               - FUNDS_INSUFFICIENT
               - ACCOUNT_INVALID
               - PROGRAM_TRANSACTION_LIMIT_EXCEEDED
@@ -16582,7 +16874,9 @@ components:
               format: date
               description: Expected release date for the transaction
             related_account_tokens:
-              $ref: '#/components/schemas/related_account_tokens'
+              oneOf:
+                - $ref: '#/components/schemas/related_account_tokens'
+                - type: 'null'
               description: Related account tokens for the transaction
             type:
               $ref: '#/components/schemas/transfer_type'
@@ -16836,7 +17130,9 @@ components:
               items:
                 $ref: '#/components/schemas/external_payment_event'
             user_defined_id:
-              type: string
+              type:
+                - string
+                - 'null'
             financial_account_token:
               type: string
               format: uuid
@@ -16893,7 +17189,9 @@ components:
         type:
           $ref: '#/components/schemas/management_operation_event_type'
         subtype:
-          type: string
+          type:
+            - string
+            - 'null'
         result:
           $ref: '#/components/schemas/transaction_result'
         detailed_results:
@@ -16951,7 +17249,9 @@ components:
               items:
                 $ref: '#/components/schemas/management_operation_event'
             user_defined_id:
-              type: string
+              type:
+                - string
+                - 'null'
             financial_account_token:
               type: string
               format: uuid
@@ -17487,8 +17787,6 @@ components:
         - TOKEN_SUSPENDED
         - TOKEN_UPDATED
     tokenization-decline-reason:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-decline-reason.json
-      $schema: https://json-schema.org/draft/2020-12/schema
       title: Tokenization Decline Reason
       description: Reason code for why a tokenization was declined
       type: string
@@ -17507,8 +17805,6 @@ components:
         - GENERIC_DECLINE
         - DIGITAL_CARD_ART_REQUIRED
     tokenization-tfa-reason:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-tfa-reason.json
-      $schema: https://json-schema.org/draft/2020-12/schema
       title: Tokenization TFA Reason
       description: Reason code for why a tokenization required two-factor authentication
       type: string
@@ -17529,8 +17825,6 @@ components:
         - CUSTOMER_RULE_TFA
         - DEVICE_HOST_CARD_EMULATION
     tokenization-rule-result:
-      $id: https://lithic.com/schemas/tokenization/shared/tokenization-rule-result.json
-      $schema: https://json-schema.org/draft/2020-12/schema
       title: Tokenization Rule Result
       type: object
       properties:
@@ -18200,22 +18494,22 @@ components:
               type:
                 - string
                 - 'null'
-              description: Home phone number provided by the cardholder. Maps to EMV 3DS fields `homePhone.cc` and `homePhone.subscriber`.
-              maxLength: 18
+              description: Home phone number in E.164 format provided by the cardholder. Maps to EMV 3DS fields `homePhone.cc` and `homePhone.subscriber`.
+              maxLength: 16
               minLength: 1
             phone_number_mobile:
               type:
                 - string
                 - 'null'
-              description: Mobile/cell phone number provided by the cardholder. Maps to EMV 3DS fields `mobilePhone.cc` and `mobilePhone.subscriber`.
-              maxLength: 18
+              description: Mobile/cell phone number in E.164 format provided by the cardholder. Maps to EMV 3DS fields `mobilePhone.cc` and `mobilePhone.subscriber`.
+              maxLength: 16
               minLength: 1
             phone_number_work:
               type:
                 - string
                 - 'null'
-              description: Work phone number provided by the cardholder. Maps to EMV 3DS fields `workPhone.cc` and `workPhone.subscriber`.
-              maxLength: 18
+              description: Work phone number in E.164 format provided by the cardholder. Maps to EMV 3DS fields `workPhone.cc` and `workPhone.subscriber`.
+              maxLength: 16
               minLength: 1
             shipping_address:
               type: object
@@ -18640,14 +18934,18 @@ components:
                     acquirer:
                       acquirer_reference_number: null
                       retrieval_reference_number: '064386558597'
+                    amex: null
                     mastercard:
                       banknet_reference_number: U1HSCJ
                       switch_serial_number: null
+                      original_banknet_reference_number: null
+                      original_switch_serial_number: null
                     visa: null
                   result: APPROVED
                   rule_results: []
                   token: bbbf1e86-322d-11ee-9779-00505685a123
                   type: AUTHORIZATION
+              financial_account_token: a3b113e8-01fe-42d3-b900-b9adf3f15496
               merchant:
                 acceptor_id: '452322000053360'
                 acquiring_institution_id: '333301802529120'
@@ -19030,6 +19328,10 @@ components:
       description: Details specific to workflow events
       type: object
       properties:
+        type:
+          description: Event type discriminator
+          type: string
+          const: WORKFLOW
         stage:
           description: Current stage of the dispute workflow
           type: string
@@ -19065,6 +19367,7 @@ components:
             - DENIED
             - null
       required:
+        - type
         - stage
         - action
         - reason
@@ -19075,6 +19378,10 @@ components:
       description: Details specific to financial events
       type: object
       properties:
+        type:
+          description: Event type discriminator
+          type: string
+          const: FINANCIAL
         stage:
           description: Stage at which the financial event occurred
           type: string
@@ -19094,6 +19401,7 @@ components:
             - CREDIT
             - DEBIT
       required:
+        - type
         - stage
         - amount
         - polarity
@@ -19102,6 +19410,10 @@ components:
       description: Details specific to cardholder liability events
       type: object
       properties:
+        type:
+          description: Event type discriminator
+          type: string
+          const: CARDHOLDER_LIABILITY
         action:
           description: Action taken regarding cardholder liability
           type: string
@@ -19116,6 +19428,7 @@ components:
           description: Reason for the action
           type: string
       required:
+        - type
         - action
         - amount
         - reason
@@ -19145,6 +19458,8 @@ components:
             - $ref: '#/components/schemas/workflow-event-data'
             - $ref: '#/components/schemas/financial-event-data'
             - $ref: '#/components/schemas/cardholder-liability-event-data'
+          discriminator:
+            propertyName: type
       required:
         - token
         - type
@@ -19493,7 +19808,7 @@ components:
               token: 9e1d69a1-377b-463a-b991-01b3c81519b6
               updated: '2024-08-05 21:08:23.635573'
             - accepted_entity_status_reasons: []
-              created: 2024-08-04 001:32:44.113765
+              created: '2024-08-04 01:32:44.113765'
               image_type: FRONT
               rejected_entity_status_reasons:
                 - PRIMARY_BUSINESS_ENTITY_ADDRESS_VERIFICATION_FAILURE
@@ -19520,7 +19835,7 @@ components:
           example: c5f2d594-d957-4781-8877-fbea31f5944a
           format: uuid
           type: string
-        required_doucment_uploads:
+        required_document_uploads:
           items:
             description: A document upload that belongs to the overall account holder document
             properties:
@@ -20505,36 +20820,36 @@ components:
               type: string
           required:
             - event_type
-          examples:
-            - account_token: 00000000-0000-0000-0000-000000000002
-              card_token: 00000000-0000-0000-0000-000000000001
-              created: '2023-09-18T12:34:56Z'
-              device:
-                imei: '123456789012345'
-                ip_address: 1.1.1.1
-                location: 37.3860517/-122.0838511
-              digital_wallet_token_metadata:
-                payment_account_info:
-                  account_holder_data:
-                    phone_number: '+15555555555'
-                  pan_unique_reference: pan_unique_ref_1234567890123456789012345678
-                  payment_account_reference: ref_1234567890123456789012
-                  token_unique_reference: token_unique_ref_1234567890123456789012345678
-                payment_app_instance_id: app_instance_123456789012345678901234567890
-                status: Pending
-                token_requestor_id: '12345678901'
-                token_requestor_name: APPLE_PAY
-              event_type: tokenization.approval_request
-              issuer_decision: APPROVED
-              tokenization_channel: DIGITAL_WALLET
-              tokenization_source: PUSH_PROVISION
-              tokenization_token: tok_1234567890abcdef
-              wallet_decisioning_info:
-                account_score: '100'
-                device_score: '100'
-                recommendation_reasons:
-                  - Reason1
-                recommended_decision: Decision1
+      examples:
+        - account_token: 00000000-0000-0000-0000-000000000002
+          card_token: 00000000-0000-0000-0000-000000000001
+          created: '2023-09-18T12:34:56Z'
+          device:
+            imei: '123456789012345'
+            ip_address: 1.1.1.1
+            location: 37.3860517/-122.0838511
+          digital_wallet_token_metadata:
+            payment_account_info:
+              account_holder_data:
+                phone_number: '+15555555555'
+              pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+              payment_account_reference: ref_1234567890123456789012
+              token_unique_reference: token_unique_ref_1234567890123456789012345678
+            payment_app_instance_id: app_instance_123456789012345678901234567890
+            status: Pending
+            token_requestor_id: '12345678901'
+            token_requestor_name: APPLE_PAY
+          event_type: digital_wallet.tokenization_approval_request
+          issuer_decision: APPROVED
+          tokenization_channel: DIGITAL_WALLET
+          tokenization_source: PUSH_PROVISION
+          tokenization_token: tok_1234567890abcdef
+          wallet_decisioning_info:
+            account_score: '100'
+            device_score: '100'
+            recommendation_reasons:
+              - Reason1
+            recommended_decision: Decision1
     tokenization-decisioning-response:
       description: The response payload that a Tokenization Decisioning responder may respond with in response to a request.
       type: object
@@ -20602,7 +20917,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/book-transfer-transaction'
       examples:
-        - category: BALANCE_OR_FUNDING
+        - family: TRANSFER
+          category: BALANCE_OR_FUNDING
           created: '2023-09-14T12:52:44Z'
           currency: USD
           events:
@@ -20628,7 +20944,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/book-transfer-transaction'
       examples:
-        - category: BALANCE_OR_FUNDING
+        - family: TRANSFER
+          category: BALANCE_OR_FUNDING
           created: '2023-09-14T12:52:44Z'
           currency: USD
           events:
@@ -20645,7 +20962,7 @@ components:
               created: '2023-09-14T12:52:44Z'
               result: APPROVED
               token: f274f723-b156-5b15-a96d-5ba8d5241b09
-              type: ACCOUNT_TO_ACCOUNT_REVERSAL
+              type: ACCOUNT_TO_ACCOUNT
               subtype: CUSTOM
               detailed_results:
                 - APPROVED
@@ -20839,14 +21156,18 @@ components:
                 acquirer:
                   acquirer_reference_number: null
                   retrieval_reference_number: '064386558597'
+                amex: null
                 mastercard:
                   banknet_reference_number: U1HSCJ
                   switch_serial_number: null
+                  original_banknet_reference_number: null
+                  original_switch_serial_number: null
                 visa: null
               result: APPROVED
               rule_results: []
               token: bbbf1e86-322d-11ee-9779-00505685a123
               type: AUTHORIZATION
+          financial_account_token: a3b113e8-01fe-42d3-b900-b9adf3f15496
           merchant:
             acceptor_id: '452322000053360'
             acquiring_institution_id: '333301802529120'
@@ -21007,49 +21328,49 @@ components:
           required:
             - customer_tokenization_decision
             - event_type
-          examples:
-            - account_token: 00000000-0000-0000-0000-000000000002
-              card_token: 00000000-0000-0000-0000-000000000001
-              created: '2023-09-18T12:34:56Z'
-              customer_tokenization_decision:
-                latency: '100'
-                outcome: APPROVED
-                responder_url: https://example.com
-                response_code: '123456'
-              device:
-                imei: '123456789012345'
-                ip_address: 1.1.1.1
-                location: 37.3860517/-122.0838511
-              digital_wallet_token_metadata:
-                payment_account_info:
-                  account_holder_data:
-                    phone_number: '+15555555555'
-                  pan_unique_reference: pan_unique_ref_1234567890123456789012345678
-                  payment_account_reference: ref_1234567890123456789012
-                  token_unique_reference: token_unique_ref_1234567890123456789012345678
-                payment_app_instance_id: app_instance_123456789012345678901234567890
-                status: Pending
-                token_requestor_id: '12345678901'
-                token_requestor_name: APPLE_PAY
-              event_type: digital_wallet.tokenization_approval_request
-              issuer_decision: APPROVED
-              tokenization_channel: DIGITAL_WALLET
-              tokenization_source: PUSH_PROVISION
-              tokenization_token: tok_1234567890abcdef
-              wallet_decisioning_info:
-                account_score: '100'
-                device_score: '100'
-                recommendation_reasons:
-                  - Reason1
-                recommended_decision: Decision1
-              tokenization_decline_reasons:
-                - ACCOUNT_SCORE_1
-              tokenization_tfa_reasons: []
-              rule_results:
-                - auth_rule_token: 550e8400-e29b-41d4-a716-446655440003
-                  result: DECLINED
-                  name: CustomerAccountRule
-                  explanation: Account risk too high
+      examples:
+        - account_token: 00000000-0000-0000-0000-000000000002
+          card_token: 00000000-0000-0000-0000-000000000001
+          created: '2023-09-18T12:34:56Z'
+          customer_tokenization_decision:
+            latency: '100'
+            outcome: APPROVED
+            responder_url: https://example.com
+            response_code: '123456'
+          device:
+            imei: '123456789012345'
+            ip_address: 1.1.1.1
+            location: 37.3860517/-122.0838511
+          digital_wallet_token_metadata:
+            payment_account_info:
+              account_holder_data:
+                phone_number: '+15555555555'
+              pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+              payment_account_reference: ref_1234567890123456789012
+              token_unique_reference: token_unique_ref_1234567890123456789012345678
+            payment_app_instance_id: app_instance_123456789012345678901234567890
+            status: Pending
+            token_requestor_id: '12345678901'
+            token_requestor_name: APPLE_PAY
+          event_type: digital_wallet.tokenization_approval_request
+          issuer_decision: APPROVED
+          tokenization_channel: DIGITAL_WALLET
+          tokenization_source: PUSH_PROVISION
+          tokenization_token: tok_1234567890abcdef
+          wallet_decisioning_info:
+            account_score: '100'
+            device_score: '100'
+            recommendation_reasons:
+              - Reason1
+            recommended_decision: Decision1
+          tokenization_decline_reasons:
+            - ACCOUNT_SCORE_1
+          tokenization_tfa_reasons: []
+          rule_results:
+            - auth_rule_token: 550e8400-e29b-41d4-a716-446655440003
+              result: DECLINED
+              name: CustomerAccountRule
+              explanation: Account risk too high
     digital-wallet-tokenization-result:
       title: Digital Wallet Tokenization Result
       examples:
@@ -21155,8 +21476,8 @@ components:
         - account_token: 00000000-0000-0000-0000-000000000002
           activation_method:
             type: TEXT_TO_CARDHOLDER_NUMBER
-            value: 15555555555
-          authentication_code: 123456
+            value: '+15555555555'
+          authentication_code: '123456'
           card_token: 00000000-0000-0000-0000-000000000001
           created: '2020-01-01T00:00:00Z'
           tokenization_token: 00000000-0000-0000-0000-000000000003
@@ -21220,7 +21541,7 @@ components:
         - account_token: 00000000-0000-0000-0000-000000000002
           activation_method:
             type: TEXT_TO_CARDHOLDER_NUMBER
-            value: 15555555555
+            value: '+15555555555'
           card_token: 00000000-0000-0000-0000-000000000001
           created: '2020-01-01T00:00:00Z'
           tokenization_token: 00000000-0000-0000-0000-000000000003
@@ -21281,6 +21602,7 @@ components:
           tokenization:
             account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
             card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+            tokenization_channel: DIGITAL_WALLET
             created_at: '2023-09-13T15:30:11.948371'
             events:
               - created_at: '2023-09-13T16:05:09.893241'
@@ -21295,11 +21617,10 @@ components:
             token: 3e9a10da-11be-4a62-a510-d43548bfcec1
             token_requestor_name: APPLE_PAY
             token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-            dpan: 5489123487251234
+            dpan: '5489123487251234'
             device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
             payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
             updated_at: '2023-09-13T16:05:09.893241'
-          tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
       properties:
         account_token:
           description: Account token
@@ -21442,6 +21763,7 @@ components:
         - $ref: '#/components/schemas/payment-transaction'
       examples:
         - category: ACH
+          family: PAYMENT
           created: '2023-09-14T12:52:44Z'
           currency: USD
           descriptor: custom description
@@ -21451,9 +21773,10 @@ components:
               created: '2023-09-14T12:52:44Z'
               result: APPROVED
               token: f274f723-b156-5b15-a96d-5ba8d5241b09
-              type: ACH_ORIGINATION_PENDING
+              type: ACH_ORIGINATION_INITIATED
           external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
           financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+          related_account_tokens: null
           method: ACH_NEXT_DAY
           method_attributes:
             retries: 0
@@ -21474,6 +21797,7 @@ components:
         - $ref: '#/components/schemas/payment-transaction'
       examples:
         - category: ACH
+          family: PAYMENT
           created: '2023-09-14T12:52:44Z'
           currency: USD
           descriptor: custom description
@@ -21483,7 +21807,7 @@ components:
               created: '2023-09-14T12:52:44Z'
               result: APPROVED
               token: f274f723-b156-5b15-a96d-5ba8d5241b09
-              type: ACH_ORIGINATION_PENDING
+              type: ACH_ORIGINATION_INITIATED
             - amount: 4103
               created: '2023-09-14T12:52:46Z'
               result: APPROVED
@@ -21496,6 +21820,7 @@ components:
               type: ACH_ORIGINATION_RELEASED
           external_bank_account_token: b05c313e-35db-4b47-a33b-7b268d72b1f5
           financial_account_token: 39ec6bf0-c101-520e-965a-a4fffce1d755
+          related_account_tokens: null
           method: ACH_NEXT_DAY
           method_attributes:
             retries: 0
@@ -21599,49 +21924,49 @@ components:
           required:
             - customer_tokenization_decision
             - event_type
-          examples:
-            - account_token: 00000000-0000-0000-0000-000000000002
-              card_token: 00000000-0000-0000-0000-000000000001
-              created: '2023-09-18T12:34:56Z'
-              customer_tokenization_decision:
-                latency: '100'
-                outcome: APPROVED
-                responder_url: https://example.com
-                response_code: '123456'
-              device:
-                imei: '123456789012345'
-                ip_address: 1.1.1.1
-                location: 37.3860517/-122.0838511
-              digital_wallet_token_metadata:
-                payment_account_info:
-                  account_holder_data:
-                    phone_number: '+15555555555'
-                  pan_unique_reference: pan_unique_ref_1234567890123456789012345678
-                  payment_account_reference: ref_1234567890123456789012
-                  token_unique_reference: token_unique_ref_1234567890123456789012345678
-                payment_app_instance_id: app_instance_123456789012345678901234567890
-                status: Pending
-                token_requestor_id: '12345678901'
-                token_requestor_name: APPLE_PAY
-              event_type: tokenization.approval_request
-              issuer_decision: APPROVED
-              tokenization_channel: DIGITAL_WALLET
-              tokenization_source: PUSH_PROVISION
-              tokenization_token: tok_1234567890abcdef
-              wallet_decisioning_info:
-                account_score: '100'
-                device_score: '100'
-                recommendation_reasons:
-                  - Reason1
-                recommended_decision: Decision1
-              tokenization_decline_reasons: []
-              tokenization_tfa_reasons:
-                - WALLET_RECOMMENDED_TFA
-              rule_results:
-                - auth_rule_token: 550e8400-e29b-41d4-a716-446655440001
-                  result: REQUIRE_TFA
-                  name: CustomerRiskRule
-                  explanation: High risk transaction detected
+      examples:
+        - account_token: 00000000-0000-0000-0000-000000000002
+          card_token: 00000000-0000-0000-0000-000000000001
+          created: '2023-09-18T12:34:56Z'
+          customer_tokenization_decision:
+            latency: '100'
+            outcome: APPROVED
+            responder_url: https://example.com
+            response_code: '123456'
+          device:
+            imei: '123456789012345'
+            ip_address: 1.1.1.1
+            location: 37.3860517/-122.0838511
+          digital_wallet_token_metadata:
+            payment_account_info:
+              account_holder_data:
+                phone_number: '+15555555555'
+              pan_unique_reference: pan_unique_ref_1234567890123456789012345678
+              payment_account_reference: ref_1234567890123456789012
+              token_unique_reference: token_unique_ref_1234567890123456789012345678
+            payment_app_instance_id: app_instance_123456789012345678901234567890
+            status: Pending
+            token_requestor_id: '12345678901'
+            token_requestor_name: APPLE_PAY
+          event_type: tokenization.approval_request
+          issuer_decision: APPROVED
+          tokenization_channel: DIGITAL_WALLET
+          tokenization_source: PUSH_PROVISION
+          tokenization_token: tok_1234567890abcdef
+          wallet_decisioning_info:
+            account_score: '100'
+            device_score: '100'
+            recommendation_reasons:
+              - Reason1
+            recommended_decision: Decision1
+          tokenization_decline_reasons: []
+          tokenization_tfa_reasons:
+            - WALLET_RECOMMENDED_TFA
+          rule_results:
+            - auth_rule_token: 550e8400-e29b-41d4-a716-446655440001
+              result: REQUIRE_TFA
+              name: CustomerRiskRule
+              explanation: High risk transaction detected
     tokenization-result:
       title: Tokenization Result
       examples:
@@ -21747,8 +22072,8 @@ components:
         - account_token: 00000000-0000-0000-0000-000000000002
           activation_method:
             type: TEXT_TO_CARDHOLDER_NUMBER
-            value: 15555555555
-          authentication_code: 123456
+            value: '+15555555555'
+          authentication_code: '123456'
           card_token: 00000000-0000-0000-0000-000000000001
           created: '2020-01-01T00:00:00Z'
           tokenization_token: 00000000-0000-0000-0000-000000000003
@@ -21812,7 +22137,7 @@ components:
         - account_token: 00000000-0000-0000-0000-000000000002
           activation_method:
             type: TEXT_TO_CARDHOLDER_NUMBER
-            value: 15555555555
+            value: '+15555555555'
           card_token: 00000000-0000-0000-0000-000000000001
           created: '2020-01-01T00:00:00Z'
           tokenization_token: 00000000-0000-0000-0000-000000000003
@@ -21873,6 +22198,7 @@ components:
           tokenization:
             account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
             card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+            tokenization_channel: DIGITAL_WALLET
             created_at: '2023-09-13T15:30:11.948371'
             events:
               - created_at: '2023-09-13T16:05:09.893241'
@@ -21887,11 +22213,10 @@ components:
             token: 3e9a10da-11be-4a62-a510-d43548bfcec1
             token_requestor_name: APPLE_PAY
             token_unique_reference: DM4MMC0000332872ef1029f38fa0184b5c9260383da192b22
-            dpan: 5489123487251234
+            dpan: '5489123487251234'
             device_id: ba6f05c312d4a5789b2e04f05c1f9d3b81GJ4AG1
             payment_account_reference_id: 50019T0AL7DEFGJ4AGGT8BQDOABCD
             updated_at: '2023-09-13T16:05:09.893241'
-          tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
       properties:
         account_token:
           description: Account token
