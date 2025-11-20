@@ -5559,7 +5559,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ach_response'
+                $ref: '#/components/schemas/payment-transaction'
           description: Accepted
         '400':
           description: Bad Request
@@ -14700,6 +14700,32 @@ components:
       required:
         - amount
         - past_due
+    payoff_details:
+      title: Payoff Details
+      description: Details on number and size of payments to pay off balance
+      type: object
+      properties:
+        minimum_payment_months:
+          description: The number of months it would take to pay off the balance in full by only paying the minimum payment. "NA" will signal negative or zero amortization
+          type: string
+        minimum_payment_total:
+          description: The sum of all interest and principal paid, in cents, when only paying minimum monthly payment. "NA" will signal negative or zero amortization
+          type: string
+        payoff_period_length_months:
+          description: Number of months to full pay off
+          type: integer
+        payoff_period_monthly_payment_amount:
+          description: The amount needed to be paid, in cents, each month in order to pay off current balance in the payoff period
+          type: integer
+        payoff_period_payment_total:
+          description: The sum of all interest and principal paid, in cents, when paying off in the payoff period
+          type: integer
+      required:
+        - minimum_payment_months
+        - minimum_payment_total
+        - payoff_period_length_months
+        - payoff_period_monthly_payment_amount
+        - payoff_period_payment_total
     interest_calculation_method:
       type: string
       enum:
@@ -14826,6 +14852,10 @@ components:
           $ref: '#/components/schemas/account_standing'
         amount_due:
           $ref: '#/components/schemas/amount_due'
+        payoff_details:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/payoff_details'
         interest_details:
           anyOf:
             - type: 'null'
@@ -17343,26 +17373,6 @@ components:
       required:
         - financial_account_token
         - return_reason_code
-    ach_response:
-      title: ACH Response
-      description: Response from ACH operations including returns
-      type: object
-      properties:
-        result:
-          $ref: '#/components/schemas/transaction_result'
-          description: Transaction result
-        transaction_group_uuid:
-          type: string
-          format: uuid
-          description: Globally unique identifier for the transaction group
-        transaction_uuid:
-          type: string
-          format: uuid
-          description: Globally unique identifier for the transaction
-      required:
-        - result
-        - transaction_group_uuid
-        - transaction_uuid
     settlement-summary-details:
       title: settlement Summary Details
       properties:
