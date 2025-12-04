@@ -1648,6 +1648,11 @@ paths:
                   example: 5e9483eb-8103-4e16-9794-2106111b2eca
                   format: uuid
                   type: string
+                bulk_order_token:
+                  description: Globally unique identifier for an existing bulk order to associate this card with. When specified, the card will be added to the bulk order for batch shipment. Only applicable to cards of type PHYSICAL
+                  example: 5e9483eb-8103-4e16-9794-2106111b2eca
+                  format: uuid
+                  type: string
                 carrier:
                   $ref: '#/components/schemas/Carrier'
                 digital_card_art_token:
@@ -1731,8 +1736,10 @@ paths:
                     * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
                     * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
                     * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
+                    * `BULK_EXPEDITED` - Bulk shipment with Expedited shipping
                   enum:
                     - 2_DAY
+                    - BULK_EXPEDITED
                     - EXPEDITED
                     - EXPRESS
                     - PRIORITY
@@ -2402,8 +2409,10 @@ paths:
                     * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
                     * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
                     * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
+                    * `BULK_EXPEDITED` - Bulk shipment with Expedited shipping
                   enum:
                     - 2_DAY
+                    - BULK_EXPEDITED
                     - EXPEDITED
                     - EXPRESS
                     - PRIORITY
@@ -2524,8 +2533,10 @@ paths:
                     * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
                     * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
                     * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
+                    * `BULK_EXPEDITED` - Bulk shipment with Expedited shipping
                   enum:
                     - 2_DAY
+                    - BULK_EXPEDITED
                     - EXPEDITED
                     - EXPRESS
                     - PRIORITY
@@ -2637,8 +2648,10 @@ paths:
                     * `EXPRESS` - FedEx or UPS depending on card manufacturer, Express, 3-day shipping, with tracking
                     * `2_DAY` - FedEx or UPS depending on card manufacturer, 2-day shipping, with tracking
                     * `EXPEDITED` - FedEx or UPS depending on card manufacturer, Standard Overnight or similar international option, with tracking
+                    * `BULK_EXPEDITED` - Bulk shipment with Expedited shipping
                   enum:
                     - 2_DAY
+                    - BULK_EXPEDITED
                     - EXPEDITED
                     - EXPRESS
                     - PRIORITY
@@ -2719,6 +2732,144 @@ paths:
       summary: Get card's available spend limit
       tags:
         - Card
+  /v1/card_bulk_orders:
+    get:
+      description: List bulk orders for physical card shipments **[BETA]**
+      operationId: getCardBulkOrders
+      parameters:
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/startingAfter'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/bulk-order-response'
+                    type: array
+                  has_more:
+                    description: More data exists.
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List bulk orders
+      tags:
+        - Card Bulk Orders
+    post:
+      description: Create a new bulk order for physical card shipments **[BETA]**. Cards can be added to the order via the POST /v1/cards endpoint by specifying the bulk_order_token. Lock the order via PATCH /v1/card_bulk_orders/{bulk_order_token} to prepare for shipment. Please work with your Customer Success Manager and card personalization bureau to ensure bulk shipping is supported for your program.
+      operationId: postCardBulkOrder
+      requestBody:
+        content:
+          application/json:
+            example:
+              shipping_address:
+                address1: 123 Main Street
+                city: NEW YORK
+                country: USA
+                first_name: Johnny
+                last_name: Appleseed
+                postal_code: '10001'
+                state: NY
+              shipping_method: BULK_EXPEDITED
+              customer_product_id: custom-card-design-123
+            schema:
+              $ref: '#/components/schemas/create-bulk-order-request'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bulk-order-response'
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create bulk order
+      tags:
+        - Card Bulk Orders
+  /v1/card_bulk_orders/{bulk_order_token}:
+    get:
+      description: Retrieve a specific bulk order by token **[BETA]**
+      operationId: getCardBulkOrder
+      parameters:
+        - description: Globally unique identifier for the bulk order
+          in: path
+          name: bulk_order_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bulk-order-response'
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get bulk order
+      tags:
+        - Card Bulk Orders
+    patch:
+      description: Update a bulk order **[BETA]**. Primarily used to lock the order, preventing additional cards from being added
+      operationId: patchCardBulkOrder
+      parameters:
+        - description: Globally unique identifier for the bulk order
+          in: path
+          name: bulk_order_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              status: LOCKED
+            schema:
+              $ref: '#/components/schemas/update-bulk-order-request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bulk-order-response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Update bulk order
+      tags:
+        - Card Bulk Orders
   /v1/digital_card_art:
     get:
       description: List digital card art.
@@ -12636,6 +12787,13 @@ components:
           description: Globally unique identifier for the card program on which the card exists.
           example: 5e9483eb-8103-4e16-9794-2106111b2eca
           type: string
+        bulk_order_token:
+          description: Globally unique identifier for the bulk order associated with this card. Only applicable to physical cards that are part of a bulk shipment
+          example: 5e9483eb-8103-4e16-9794-2106111b2eca
+          format: uuid
+          type:
+            - string
+            - 'null'
         replacement_for:
           description: If the card is a replacement for another card, the globally unique identifier for the card that was replaced.
           example: 5e9483eb-8103-4e16-9794-2106111b2eca
@@ -12940,6 +13098,97 @@ components:
           format: uuid
         type:
           $ref: '#/components/schemas/financial_event_type'
+    bulk-order-response:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Bulk Order Response
+      description: Represents a bulk order for physical card shipments
+      type: object
+      properties:
+        token:
+          description: Globally unique identifier for the bulk order
+          example: 7ef7d65c-9023-4da3-b113-3b8583fd7951
+          format: uuid
+          type: string
+        status:
+          description: Status of the bulk order. OPEN indicates the order is accepting cards. LOCKED indicates the order is finalized and no more cards can be added
+          enum:
+            - OPEN
+            - LOCKED
+          type: string
+        shipping_address:
+          description: Shipping address for all cards in this bulk order
+          type: object
+        shipping_method:
+          description: Shipping method for all cards in this bulk order
+          enum:
+            - BULK_EXPEDITED
+          type: string
+        customer_product_id:
+          description: Customer-specified product configuration for physical card manufacturing. This must be configured with Lithic before use
+          example: custom-card-design-123
+          type:
+            - string
+            - 'null'
+        card_tokens:
+          description: List of card tokens associated with this bulk order
+          type: array
+          items:
+            type: string
+            format: uuid
+        created:
+          description: An RFC 3339 timestamp for when the bulk order was created. UTC time zone
+          example: '2021-06-28T22:53:15Z'
+          format: date-time
+          type: string
+        updated:
+          description: An RFC 3339 timestamp for when the bulk order was last updated. UTC time zone
+          example: '2021-06-28T22:53:15Z'
+          format: date-time
+          type: string
+      required:
+        - token
+        - status
+        - shipping_address
+        - shipping_method
+        - customer_product_id
+        - card_tokens
+        - created
+        - updated
+    create-bulk-order-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Create Bulk Order Request
+      description: Request to create a new bulk order for physical card shipments. Please work with your Customer Success Manager and card personalization bureau to ensure bulk shipping is supported for your program.
+      type: object
+      properties:
+        shipping_address:
+          description: Shipping address for all cards in this bulk order
+          type: object
+        shipping_method:
+          description: Shipping method for all cards in this bulk order
+          enum:
+            - BULK_EXPEDITED
+          type: string
+        customer_product_id:
+          description: Customer-specified product configuration for physical card manufacturing. This must be configured with Lithic before use
+          example: custom-card-design-123
+          type: string
+      required:
+        - shipping_address
+        - shipping_method
+        - customer_product_id
+    update-bulk-order-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Update Bulk Order Request
+      description: Request to update a bulk order, primarily to lock it
+      type: object
+      properties:
+        status:
+          description: Status to update the bulk order to. Use LOCKED to finalize the order
+          enum:
+            - LOCKED
+          type: string
+      required:
+        - status
     dispute-v1:
       title: Dispute
       description: Dispute.
@@ -20245,16 +20494,6 @@ components:
           format: uuid
         fleet_info:
           $ref: '#/components/schemas/asa_request_fleet_info'
-        events:
-          description: A list of all events that have modified this transaction. Note that this will always be an empty array in all authorization requests originated by Lithic.
-          type: array
-          maxItems: 0
-          deprecated: true
-        funding:
-          description: A list of objects that describe how this transaction was funded, with the amount represented in cents. Note that this will always be an empty array in all authorization requests originated by Lithic.
-          type: array
-          maxItems: 0
-          deprecated: true
         network_specific_data:
           $ref: '#/components/schemas/asa_network_specific_data'
         account_type:
@@ -20303,8 +20542,6 @@ components:
         - cardholder_currency
         - cash_amount
         - created
-        - events
-        - funding
         - merchant
         - merchant_amount
         - merchant_currency
@@ -21021,12 +21258,20 @@ components:
         - card_token: 00000000-0000-0000-0000-000000000001
           shipping_method: USPS without tracking envelope
           tracking_number: 1Z9999999999999999
+          bulk_order_token: null
       properties:
         card_token:
           description: The token of the card that was shipped.
           example: 00000000-0000-0000-0000-000000000001
           format: uuid
           type: string
+        bulk_order_token:
+          description: The token of the bulk order associated with this card shipment, if applicable.
+          example: 00000000-0000-0000-0000-000000000002
+          format: uuid
+          type:
+            - string
+            - 'null'
         shipping_method:
           description: The specific shipping method used to ship the card.
           enum:
@@ -21051,121 +21296,10 @@ components:
             - 'null'
       required:
         - card_token
+        - bulk_order_token
         - shipping_method
         - tracking_number
       type: object
-    card_transaction_updated_event:
-      title: Card Transaction Updated Event
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/card_transaction'
-        - type: object
-          properties:
-            event_type:
-              description: The type of event that occurred.
-              enum:
-                - card_transaction.updated
-              type: string
-          required:
-            - event_type
-      examples:
-        - account_token: db3942f0-0627-4887-a190-1ea83b46d091
-          acquirer_fee: 0
-          acquirer_reference_number: null
-          amount: 1800
-          amounts:
-            cardholder:
-              amount: 0
-              conversion_rate: '1.000000'
-              currency: USD
-            hold:
-              amount: -1800
-              currency: USD
-            merchant:
-              amount: 0
-              currency: USD
-            settlement:
-              amount: 0
-              currency: USD
-          authorization_amount: 1800
-          authorization_code: '071471'
-          avs:
-            zipcode: '95006'
-            address: 123 Evergreen Terrace
-          card_token: aac502f9-aecc-458a-954e-4bcf6edb6123
-          cardholder_authentication:
-            liability_shift: 3DS_AUTHENTICATED
-            authentication_result: SUCCESS
-            authentication_method: FRICTIONLESS
-            three_ds_authentication_token: fc60d37d-95f7-419c-b628-dd9fbf9d80d0
-            decision_made_by: NETWORK
-          created: '2023-08-03T18:42:30Z'
-          event_type: card_transaction.updated
-          events:
-            - amount: 1800
-              amounts:
-                cardholder:
-                  amount: 1800
-                  conversion_rate: '1.000000'
-                  currency: USD
-                merchant:
-                  amount: 1800
-                  currency: USD
-                settlement: null
-              created: '2023-08-03T18:42:30Z'
-              detailed_results:
-                - APPROVED
-              effective_polarity: DEBIT
-              network_info:
-                acquirer:
-                  acquirer_reference_number: null
-                  retrieval_reference_number: '064386558597'
-                amex: null
-                mastercard:
-                  banknet_reference_number: U1HSCJ
-                  switch_serial_number: null
-                  original_banknet_reference_number: null
-                  original_switch_serial_number: null
-                visa: null
-              result: APPROVED
-              rule_results: []
-              token: bbbf1e86-322d-11ee-9779-00505685a123
-              type: AUTHORIZATION
-          financial_account_token: a3b113e8-01fe-42d3-b900-b9adf3f15496
-          merchant:
-            acceptor_id: '452322000053360'
-            acquiring_institution_id: '333301802529120'
-            city: gosq.com
-            country: USA
-            descriptor: SQ *SOMA EATS
-            mcc: '5812'
-            state: CA
-          merchant_amount: 1800
-          merchant_authorization_amount: 1800
-          merchant_currency: USD
-          network: MASTERCARD
-          network_risk_score: 5
-          pos:
-            entry_mode:
-              card: NOT_PRESENT
-              cardholder: NOT_PRESENT
-              pan: ECOMMERCE
-              pin_entered: false
-            terminal:
-              attended: false
-              card_retention_capable: false
-              on_premise: false
-              operator: UNKNOWN
-              partial_approval_capable: false
-              pin_capability: NOT_CAPABLE
-              type: UNKNOWN
-          result: APPROVED
-          settled_amount: 0
-          status: PENDING
-          token: c30c2182-1e69-4e0d-b40f-eec0d2a19123
-          token_info:
-            wallet_type: APPLE_PAY
-          updated: '2023-08-03T18:42:30Z'
     card-transaction-enhanced-data-created:
       title: Card Transaction Enhanced Data Created
       allOf:
@@ -22660,7 +22794,7 @@ webhooks:
                   type: object
                   required:
                     - event_type
-                - $ref: '#/components/schemas/card_transaction_updated_event'
+                - $ref: '#/components/schemas/card_transaction'
       responses:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
