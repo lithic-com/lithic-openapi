@@ -1107,9 +1107,18 @@ paths:
             type: string
         - name: event_stream
           in: query
-          description: Only return Auth rules that are executed during the provided event stream.
+          description: 'Deprecated: Use event_streams instead. Only return Auth rules that are executed during the provided event stream.'
+          deprecated: true
           schema:
             $ref: '#/components/schemas/event-stream'
+          required: false
+        - name: event_streams
+          in: query
+          description: Only return Auth rules that are executed during any of the provided event streams. If event_streams and event_stream are specified, the values will be combined.
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/event-stream'
           required: false
       responses:
         '200':
@@ -10530,6 +10539,12 @@ components:
             - WEB
           title: SEC Code
           type: string
+        ach_hold__period:
+          description: Number of days to hold the ACH payment
+          example: 0
+          minimum: 0
+          title: ACH Hold Period
+          type: integer
         addenda:
           title: Addenda
           type:
@@ -13046,6 +13061,16 @@ components:
         - EXTERNAL_CHECK_RELEASED
         - EXTERNAL_CHECK_REVERSED
         - EXTERNAL_CHECK_SETTLED
+        - EXTERNAL_FEDNOW_CANCELED
+        - EXTERNAL_FEDNOW_INITIATED
+        - EXTERNAL_FEDNOW_RELEASED
+        - EXTERNAL_FEDNOW_REVERSED
+        - EXTERNAL_FEDNOW_SETTLED
+        - EXTERNAL_RTP_CANCELED
+        - EXTERNAL_RTP_INITIATED
+        - EXTERNAL_RTP_RELEASED
+        - EXTERNAL_RTP_REVERSED
+        - EXTERNAL_RTP_SETTLED
         - EXTERNAL_TRANSFER_CANCELED
         - EXTERNAL_TRANSFER_INITIATED
         - EXTERNAL_TRANSFER_RELEASED
@@ -13074,6 +13099,12 @@ components:
         - RETURNED_PAYMENT
         - RETURNED_PAYMENT_REVERSAL
         - LITHIC_NETWORK_PAYMENT
+        - ANNUAL
+        - ANNUAL_REVERSAL
+        - QUARTERLY
+        - QUARTERLY_REVERSAL
+        - MONTHLY
+        - MONTHLY_REVERSAL
     financial_event:
       title: Financial Event
       description: Financial Event
@@ -15109,6 +15140,8 @@ components:
         - CARD
         - EXTERNAL_ACH
         - EXTERNAL_CHECK
+        - EXTERNAL_FEDNOW
+        - EXTERNAL_RTP
         - EXTERNAL_TRANSFER
         - EXTERNAL_WIRE
         - MANAGEMENT_ADJUSTMENT
@@ -16771,6 +16804,12 @@ components:
             - string
             - 'null'
           description: Return reason code if the transaction was returned
+        ach_hold_period:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+          description: Number of days the ACH transaction is on hold
         retries:
           type:
             - integer
@@ -16964,6 +17003,12 @@ components:
                 - string
                 - 'null'
               description: Return reason code if the transaction was returned
+            ach_hold_period:
+              type:
+                - integer
+                - 'null'
+              minimum: 0
+              description: Number of days the ACH transaction is on hold
             retries:
               type:
                 - integer
@@ -17136,6 +17181,7 @@ components:
           method_attributes:
             sec_code: CCD
             return_reason_code: null
+            ach_hold_period: 1
             retries: 0
             company_id: '1111111111'
             receipt_routing_number: null
@@ -17179,6 +17225,7 @@ components:
           method_attributes:
             sec_code: CCD
             return_reason_code: null
+            ach_hold_period: 2
             retries: 0
             company_id: '1111111111'
             receipt_routing_number: null
@@ -17224,6 +17271,7 @@ components:
           method_attributes:
             sec_code: CCD
             return_reason_code: null
+            ach_hold_period: 2
             retries: 0
             company_id: '1111111111'
             receipt_routing_number: '1234567890'
@@ -17265,6 +17313,8 @@ components:
         - EXTERNAL_WIRE
         - EXTERNAL_ACH
         - EXTERNAL_CHECK
+        - EXTERNAL_FEDNOW
+        - EXTERNAL_RTP
         - EXTERNAL_TRANSFER
     external_payment_event_type:
       title: External Payment Event Type
@@ -17290,6 +17340,16 @@ components:
         - EXTERNAL_CHECK_SETTLED
         - EXTERNAL_CHECK_REVERSED
         - EXTERNAL_CHECK_RELEASED
+        - EXTERNAL_FEDNOW_INITIATED
+        - EXTERNAL_FEDNOW_CANCELED
+        - EXTERNAL_FEDNOW_SETTLED
+        - EXTERNAL_FEDNOW_REVERSED
+        - EXTERNAL_FEDNOW_RELEASED
+        - EXTERNAL_RTP_INITIATED
+        - EXTERNAL_RTP_CANCELED
+        - EXTERNAL_RTP_SETTLED
+        - EXTERNAL_RTP_REVERSED
+        - EXTERNAL_RTP_RELEASED
     detailed_results:
       title: Detailed Results
       type: string
@@ -17411,6 +17471,12 @@ components:
         - DISPUTE_WON_REVERSAL
         - DISBURSE
         - DISBURSE_REVERSAL
+        - ANNUAL
+        - ANNUAL_REVERSAL
+        - QUARTERLY
+        - QUARTERLY_REVERSAL
+        - MONTHLY
+        - MONTHLY_REVERSAL
     management_operation_event:
       title: Management Operation Event
       type: object
