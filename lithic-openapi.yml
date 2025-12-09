@@ -2337,12 +2337,32 @@ paths:
                 summary: Web push provision a card in Apple Pay
                 value:
                   digital_wallet: APPLE_PAY
+              webProvisionGoogleCard:
+                summary: Web push provision a card in Google Pay
+                value:
+                  digital_wallet: GOOGLE_PAY
+                  server_session_id: d3538acf-e5df-4446-8ce6-588fa4472ac1
+                  client_device_id: d3538acf-e5df-4446-8ce6-588fa4472ac1
+                  client_wallet_account_id: d3538acf-e5df-4446-8ce6-588fa4472ac1
             schema:
               properties:
                 digital_wallet:
                   description: Name of digital wallet provider.
                   enum:
                     - APPLE_PAY
+                    - GOOGLE_PAY
+                  type: string
+                server_session_id:
+                  description: Only applicable if `digital_wallet` is GOOGLE_PAY. Google Pay Web Push Provisioning session identifier required for the FPAN flow.
+                  format: uuid
+                  type: string
+                client_device_id:
+                  description: Only applicable if `digital_wallet` is GOOGLE_PAY. Google Pay Web Push Provisioning device identifier required for the tokenization flow
+                  format: uuid
+                  type: string
+                client_wallet_account_id:
+                  description: Only applicable if `digital_wallet` is GOOGLE_PAY. Google Pay Web Push Provisioning wallet account identifier required for the tokenization flow
+                  format: uuid
                   type: string
               type: object
         description: Update request.
@@ -7176,6 +7196,12 @@ paths:
           description: Invalid request body
         '404':
           description: The provided token was not found
+        '422':
+          description: Challenge Response could not be actioned because a response was already set, or the status was updated by the upstream 3DS Service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/challenge-response-unprocessable'
         '500':
           description: Lithic Error
       tags:
@@ -10881,6 +10907,10 @@ components:
         - default_product_code
       type: object
     WebPushProvisioningResponse:
+      oneOf:
+        - $ref: '#/components/schemas/AppleWebPushProvisioningResponse'
+        - $ref: '#/components/schemas/GoogleWebPushProvisioningResponse'
+    AppleWebPushProvisioningResponse:
       properties:
         jws:
           $ref: '#/components/schemas/WebPushProvisioningResponseJws'
@@ -10888,6 +10918,17 @@ components:
         state:
           description: A unique identifier for the JWS object.
           example: 3cc4c292-727b-4ca8-b9a8-f96c15485f4e
+          type: string
+      type: object
+    GoogleWebPushProvisioningResponse:
+      properties:
+        google_opc:
+          description: A base64 encoded and encrypted payload representing card data for the Google Pay UWPP FPAN flow.
+          example: WW91ciBTdHJpbmcgSGVyZQ==
+          type: string
+        tsp_opc:
+          description: A base64 encoded and encrypted payload representing card data for the Google Pay UWPP tokenization flow.
+          example: WW91ciBTdHJpbmcgSGVyZQ==
           type: string
       type: object
     WebPushProvisioningResponseJws:
@@ -11682,6 +11723,8 @@ components:
         - IS_GREATER_THAN_OR_EQUAL_TO
         - IS_LESS_THAN
         - IS_LESS_THAN_OR_EQUAL_TO
+        - IS_AFTER
+        - IS_BEFORE
         - CONTAINS_ANY
         - CONTAINS_ALL
         - CONTAINS_NONE
@@ -11700,6 +11743,10 @@ components:
           items:
             type: string
           description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+        - title: Timestamp
+          type: string
+          format: date-time
+          description: A timestamp, to be used with `IS_AFTER` or `IS_BEFORE`
     conditional-block-parameters:
       title: Conditional Block Parameters
       type: object
@@ -19139,6 +19186,16 @@ components:
       required:
         - token
         - challenge_response
+    challenge-response-unprocessable:
+      title: Challenge Response Unprocessable
+      type: object
+      description: Error response when a challenge cannot be completed because it has already been marked complete. Common causes include challenge timeout, too many attempts, or cancellation. Refer to the message parameter for the specific reason
+      properties:
+        message:
+          type: string
+          description: Error message explaining why the challenge could not be completed
+      required:
+        - message
     card_transaction_status_filter:
       title: Card Transaction Status Filter
       type: string
