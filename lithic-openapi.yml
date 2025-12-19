@@ -17,11 +17,11 @@ servers:
 tags:
   - name: 3DS
   - name: Account
-  - name: Book Transfer
   - name: Account Holder
   - name: Auth Stream Access (ASA)
   - name: Auth Rules
   - name: Balance
+  - name: Book Transfer
   - name: Card
   - name: Credit Product
   - name: Dispute
@@ -7686,6 +7686,37 @@ paths:
       summary: Transfer funds within Lithic
       tags:
         - Book Transfer
+  /v1/transfer_limits:
+    get:
+      description: Get transfer limits for a specified date
+      operationId: getTransferLimits
+      parameters:
+        - description: Date for which to retrieve transfer limits (ISO 8601 format)
+          example: '2025-11-10'
+          in: query
+          name: date
+          required: false
+          schema:
+            format: date
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/transfer_limits_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get transfer limits
+      tags:
+        - Transfer Limits
   /v1/book_transfers:
     get:
       description: List book transfers
@@ -7822,6 +7853,42 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Get book transfer by token
+      tags:
+        - Book Transfer
+  /v1/book_transfers/{book_transfer_token}/retry:
+    post:
+      description: Retry a book transfer that has been declined
+      parameters:
+        - description: Token of the book transfer to retry
+          in: path
+          name: book_transfer_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      operationId: retryBookTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/retry_book_transfer_request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/book-transfer-transaction'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retry book transfer
       tags:
         - Book Transfer
   /v1/book_transfers/{book_transfer_token}/reverse:
@@ -16795,6 +16862,11 @@ components:
           format: uuid
         type:
           $ref: '#/components/schemas/payment_event_type'
+        external_id:
+          description: Payment event external ID, for example, ACH trace number.
+          type:
+            - string
+            - 'null'
       required:
         - amount
         - created
@@ -19122,6 +19194,78 @@ components:
                 wallet_type: APPLE_PAY
               updated: '2023-08-03T18:42:30Z'
           has_more: false
+    limit_with_progress:
+      title: Limit With Progress
+      type: object
+      properties:
+        limit:
+          description: The limit amount
+          type: integer
+          minimum: 0
+        amount_originated:
+          description: Amount originated towards limit
+          type: integer
+          minimum: 0
+      required:
+        - limit
+    directional_limits:
+      title: Directional Limits
+      type: object
+      properties:
+        credit:
+          description: Credit limits
+          $ref: '#/components/schemas/limit_with_progress'
+        debit:
+          description: Debit limits
+          $ref: '#/components/schemas/limit_with_progress'
+      required:
+        - credit
+        - debit
+    transfer_limit_item:
+      title: Transfer Limit Item
+      type: object
+      properties:
+        company_id:
+          description: Company ID
+          type: string
+        is_fbo:
+          description: Whether the company is a FBO; based on the company ID prefix
+          type: boolean
+        date:
+          description: The date for the limit view (ISO format)
+          type: string
+          format: date
+        program_limit_per_transaction:
+          description: Program transaction limits
+          $ref: '#/components/schemas/directional_limits'
+        daily_limit:
+          description: Daily limits with progress
+          $ref: '#/components/schemas/directional_limits'
+        monthly_limit:
+          description: Monthly limits with progress
+          $ref: '#/components/schemas/directional_limits'
+      required:
+        - company_id
+        - is_fbo
+        - date
+        - program_limit_per_transaction
+        - daily_limit
+        - monthly_limit
+    transfer_limits_response:
+      title: Transfer Limits Response
+      type: object
+      properties:
+        data:
+          description: List of transfer limits
+          type: array
+          items:
+            $ref: '#/components/schemas/transfer_limit_item'
+        has_more:
+          description: Whether there are more transfer limits
+          type: boolean
+      required:
+        - data
+        - has_more
     on_closed_account:
       title: On Closed Account
       description: What to do if the financial account is closed when posting an operation
@@ -19173,6 +19317,16 @@ components:
         - subtype
         - to_financial_account_token
         - type
+    retry_book_transfer_request:
+      title: Retry Book Transfer Request
+      type: object
+      properties:
+        retry_token:
+          description: Globally unique identifier for the retry.
+          format: uuid
+          type: string
+      required:
+        - retry_token
     external_payments_response:
       title: External Payments Response
       type: object
