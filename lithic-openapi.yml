@@ -16906,6 +16906,7 @@ components:
         - WIRE_INBOUND_ADMIN
         - WIRE_OUTBOUND_PAYMENT
         - WIRE_OUTBOUND_ADMIN
+        - WIRE_DRAWDOWN_REQUEST
       title: Transfer Type
     payment-transaction:
       title: Payment Transaction
@@ -19322,7 +19323,7 @@ components:
       type: object
       properties:
         retry_token:
-          description: Globally unique identifier for the retry.
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
           format: uuid
           type: string
       required:
@@ -19365,6 +19366,7 @@ components:
           type: string
           format: date
         token:
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
           type: string
           format: uuid
         payment_type:
@@ -19438,6 +19440,7 @@ components:
           type: string
           format: date
         token:
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
           type: string
           format: uuid
         direction:
