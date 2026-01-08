@@ -2231,7 +2231,7 @@ paths:
   /v1/cards/{card_token}/web_provision:
     post:
       description: |
-        Allow your cardholders to directly add payment cards to the device's digital wallet from a browser on the web. Currently only suported for Apple Pay.
+        Allow your cardholders to directly add payment cards to the device's digital wallet from a browser on the web.
 
         This requires some additional setup and configuration. Please [Contact Us](https://lithic.com/contact) or your Customer Success representative for more information.
       operationId: postCardWebProvision
@@ -2242,11 +2242,11 @@ paths:
           application/json:
             examples:
               webProvisionAppleCard:
-                summary: Web push provision a card in Apple Pay
+                summary: Web push provision a card for Apple Pay
                 value:
                   digital_wallet: APPLE_PAY
               webProvisionGoogleCard:
-                summary: Web push provision a card in Google Pay
+                summary: Web push provision a card for Google Pay
                 value:
                   digital_wallet: GOOGLE_PAY
                   server_session_id: d3538acf-e5df-4446-8ce6-588fa4472ac1
@@ -2279,6 +2279,22 @@ paths:
         '200':
           content:
             application/json:
+              examples:
+                applePayResponse:
+                  summary: Web push provision response for Apple Pay
+                  value:
+                    jws:
+                      header:
+                        kid: 8dc7aed4-29e3-41e4-9cdb-673a05e6615c
+                      protected: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9
+                      payload: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9
+                      signature: SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                    state: 3cc4c292-727b-4ca8-b9a8-f96c15485f4e
+                googlePayResponse:
+                  summary: Web push provision response for Google Pay
+                  value:
+                    google_opc: WW91ciBTdHJpbmcgSGVyZQ==
+                    tsp_opc: WW91ciBTdHJpbmcgSGVyZQ==
               schema:
                 $ref: '#/components/schemas/WebPushProvisioningResponse'
           description: OK
@@ -12250,6 +12266,7 @@ components:
                   * `WALLET_RECOMMENDATION_REASONS`: List of reasons provided by the digital wallet provider for the recommended decision. Valid values are `ACCOUNT_CARD_TOO_NEW`, `ACCOUNT_RECENTLY_CHANGED`, `ACCOUNT_TOO_NEW`, `ACCOUNT_TOO_NEW_SINCE_LAUNCH`, `DEVICE_RECENTLY_LOST`, `HAS_SUSPENDED_TOKENS`, `HIGH_RISK`, `INACTIVE_ACCOUNT`, `LOW_ACCOUNT_SCORE`, `LOW_DEVICE_SCORE`, `OUTSIDE_HOME_TERRITORY`, `SUSPICIOUS_ACTIVITY`, `TOO_MANY_DIFFERENT_CARDHOLDERS`, `TOO_MANY_RECENT_ATTEMPTS`, `TOO_MANY_RECENT_TOKENS`, `UNABLE_TO_ASSESS`.
                   * `TOKEN_REQUESTOR_ID`: Unique identifier for the entity requesting the token.
                   * `WALLET_TOKEN_STATUS`: The current status of the wallet token.
+                  * `CARD_STATE`: The state of the card being tokenized. Valid values are `CLOSED`, `OPEN`, `PAUSED`, `PENDING_ACTIVATION`, `PENDING_FULFILLMENT`.
                 enum:
                   - TIMESTAMP
                   - TOKENIZATION_CHANNEL
@@ -12261,6 +12278,7 @@ components:
                   - WALLET_RECOMMENDATION_REASONS
                   - TOKEN_REQUESTOR_ID
                   - WALLET_TOKEN_STATUS
+                  - CARD_STATE
               operation:
                 $ref: '#/components/schemas/conditional-operation'
               value:
@@ -14596,6 +14614,11 @@ components:
           oneOf:
             - type: 'null'
             - $ref: '#/components/schemas/financial-account-substatus'
+        user_defined_status:
+          type:
+            - string
+            - 'null'
+          description: User-defined status for the financial account
         is_for_benefit_of:
           type: boolean
           description: Whether financial account is for the benefit of another entity
@@ -14611,6 +14634,8 @@ components:
         - account_token
         - credit_configuration
         - status
+        - substatus
+        - user_defined_status
     financial-accounts-response:
       title: Financial Accounts Response
       type: object
@@ -15173,6 +15198,38 @@ components:
         - due
         - past_statements_due
         - next_statement_due
+    payment_allocation:
+      title: Payment Allocation
+      type: object
+      properties:
+        interest:
+          type: integer
+          description: Amount allocated to interest in cents
+        principal:
+          type: integer
+          description: Amount allocated to principal in cents
+        fees:
+          type: integer
+          description: Amount allocated to fees in cents
+        interest_details:
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/category_details'
+        principal_details:
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/category_details'
+        fee_details:
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/category_details'
+      required:
+        - interest
+        - principal
+        - fees
+        - interest_details
+        - principal_details
+        - fee_details
     balance_details:
       title: Balance Details
       type: object
@@ -15245,7 +15302,7 @@ components:
             - string
             - 'null'
         payment_allocation:
-          $ref: '#/components/schemas/category_balances'
+          $ref: '#/components/schemas/payment_allocation'
         minimum_payment_balance:
           $ref: '#/components/schemas/balance_details'
         previous_statement_balance:
@@ -15308,6 +15365,11 @@ components:
           oneOf:
             - type: 'null'
             - $ref: '#/components/schemas/update-financial-account-substatus'
+        user_defined_status:
+          type: string
+          description: User-defined status for the financial account
+          pattern: ^[A-Z0-9_ ]*$
+          maxLength: 100
       required:
         - status
         - substatus
@@ -16024,6 +16086,7 @@ components:
         - AUTH_RULE_ALLOWED_MCC
         - AUTH_RULE_BLOCKED_COUNTRY
         - AUTH_RULE_BLOCKED_MCC
+        - AUTH_RULE
         - CARD_CLOSED
         - CARD_CRYPTOGRAM_VALIDATION_FAILURE
         - CARD_EXPIRED
@@ -22602,7 +22665,7 @@ webhooks:
       summary: account_holder_document.updated
       tags:
         - Event Types
-  asa.request:
+  card_authorization.approval_request:
     post:
       description: Auth Stream Access Request
       parameters:
@@ -22613,7 +22676,16 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/asa-request'
+              allOf:
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      const: card_authorization.approval_request
+                      example: card_authorization.approval_request
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/asa-request'
       responses:
         '200':
           description: Return a HTTP 200 status to indicate that the ASA responder was able to handle the request.
@@ -23764,7 +23836,7 @@ webhooks:
       summary: tokenization.updated
       tags:
         - Event Types
-  three_ds_decisioning:
+  three_ds_authentication.approval_request:
     post:
       description: Webhook for Card Programs to decision on 3DS Authentication Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
       summary: 3DS Decisioning Request
@@ -23772,7 +23844,16 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/authentication'
+              allOf:
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      const: three_ds_authentication.approval_request
+                      example: three_ds_authentication.approval_request
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/authentication'
       responses:
         '200':
           description: Information on whether the Request was Approved/Declined and if a Challenge should be created.
