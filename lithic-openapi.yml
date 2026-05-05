@@ -11827,6 +11827,7 @@ components:
                   * `CONSECUTIVE_DECLINES`: The number of consecutive declined transactions for the entity over the last 30 days (rolling). Requires `parameters.scope`. Not supported for `BUSINESS_ACCOUNT` scope.
                   * `TIME_SINCE_LAST_TRANSACTION`: The number of days since the last approved transaction for the entity. Requires `parameters.scope`.
                   * `DISTINCT_COUNTRY_COUNT`: The number of distinct merchant countries seen in the entity's transaction history. Requires `parameters.scope`.
+                  * `IS_NEW_MERCHANT`: Whether the card acceptor ID has not been seen in the card's approved transaction history (capped at the 1000 most recently seen merchants). Valid values are `TRUE`, `FALSE`. Card-scoped only; no `parameters` required.
                   * `THREE_DS_SUCCESS_RATE`: The 3DS authentication success rate for the card, as a percentage from 0.0 to 100.0. Card-scoped only; no `parameters` required.
                 enum:
                   - MCC
@@ -11864,6 +11865,7 @@ components:
                   - CONSECUTIVE_DECLINES
                   - TIME_SINCE_LAST_TRANSACTION
                   - DISTINCT_COUNTRY_COUNT
+                  - IS_NEW_MERCHANT
                   - THREE_DS_SUCCESS_RATE
               parameters:
                 type: object
@@ -13140,6 +13142,13 @@ components:
           items:
             type: string
           description: The set of MCCs seen in the entity's transaction history. Clients can use this to determine whether a new transaction's MCC is novel (i.e. compute `is_new_mcc`).
+        seen_merchants:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+          description: The set of card acceptor IDs seen in the card's approved transaction history, capped at the 1000 most recently seen. Null for account responses. Clients can use this to determine whether a new transaction's merchant is novel (i.e. compute `is_new_merchant`).
         first_txn_at:
           type:
             - string
@@ -13218,6 +13227,7 @@ components:
         - distinct_mcc_count
         - seen_countries
         - seen_mccs
+        - seen_merchants
         - first_txn_at
         - last_txn_approved_at
         - last_cp_country
