@@ -11306,6 +11306,7 @@ components:
         - TOKENIZATION
         - ACH_CREDIT_RECEIPT
         - ACH_DEBIT_RECEIPT
+        - CARD_TRANSACTION_UPDATE
       description: The event stream during which the rule will be evaluated.
     auth-rule-token:
       title: Auth Rule Token
@@ -11380,7 +11381,7 @@ components:
         - `CONDITIONAL_BLOCK`: Deprecated. Use `CONDITIONAL_ACTION` instead. AUTHORIZATION event stream.
         - `VELOCITY_LIMIT`: AUTHORIZATION event stream.
         - `MERCHANT_LOCK`: AUTHORIZATION event stream.
-        - `CONDITIONAL_ACTION`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, or ACH_DEBIT_RECEIPT event stream.
+        - `CONDITIONAL_ACTION`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, or CARD_TRANSACTION_UPDATE event stream.
         - `TYPESCRIPT_CODE`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, or ACH_DEBIT_RECEIPT event stream.
     conditional-operation:
       title: Conditional Operation
@@ -11573,84 +11574,69 @@ components:
       type: object
       properties:
         include_mccs:
-          anyOf:
-            - title: Null (include all MCCs)
-              type: 'null'
-              description: Include all MCCs into the velocity computation.
-            - title: List of MCCs
-              type: array
-              minItems: 1
-              items:
-                type: string
-                pattern: ^[0-9]{4}$
-                example: '5542'
-              description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            pattern: ^[0-9]{4}$
+            example: '5542'
+          description: Merchant Category Codes to include in the velocity calculation. Transactions not matching this MCC will not be included in the calculated velocity.
         exclude_mccs:
-          anyOf:
-            - title: Null (do not exclude any MCCs)
-              type: 'null'
-              description: Do not exclude any MCCs from the velocity computation.
-            - title: List of MCCs
-              type: array
-              minItems: 1
-              items:
-                type: string
-                pattern: ^[0-9]{4}$
-                example: '5542'
-              description: Merchant Category Codes to exclude from the velocity calculation. Transactions matching this MCC will be excluded from the calculated velocity.
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            pattern: ^[0-9]{4}$
+            example: '5542'
+          description: Merchant Category Codes to exclude from the velocity calculation. Transactions matching this MCC will be excluded from the calculated velocity.
         include_countries:
-          anyOf:
-            - title: Null (include all countries)
-              type: 'null'
-              description: Include all countries into the velocity computation.
-            - title: List of Country Codes
-              type: array
-              minItems: 1
-              items:
-                type: string
-                pattern: ^[A-Z]{3}$
-                example: USA
-              description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            pattern: ^[A-Z]{3}$
+            example: USA
+          description: ISO-3166-1 alpha-3 Country Codes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
         exclude_countries:
-          anyOf:
-            - title: Null (do not exclude any countries)
-              type: 'null'
-              description: Do not exclude any countries from the velocity computation.
-            - title: List of Country Codes
-              type: array
-              minItems: 1
-              items:
-                type: string
-                pattern: ^[A-Z]{3}$
-                example: USA
-              description: ISO-3166-1 alpha-3 Country Codes to exclude from the velocity calculation. Transactions matching any of the provided will be excluded from the calculated velocity.
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            pattern: ^[A-Z]{3}$
+            example: USA
+          description: ISO-3166-1 alpha-3 Country Codes to exclude from the velocity calculation. Transactions matching any of the provided will be excluded from the calculated velocity.
         include_pan_entry_modes:
-          anyOf:
-            - title: Null (include all PAN entry modes)
-              type: 'null'
-              description: Include all PAN entry modes into the velocity computation.
-            - title: List of PAN Entry Modes
-              type: array
-              minItems: 1
-              items:
-                type: string
-                enum:
-                  - AUTO_ENTRY
-                  - BAR_CODE
-                  - CONTACTLESS
-                  - CREDENTIAL_ON_FILE
-                  - ECOMMERCE
-                  - ERROR_KEYED
-                  - ERROR_MAGNETIC_STRIPE
-                  - ICC
-                  - KEY_ENTERED
-                  - MAGNETIC_STRIPE
-                  - MANUAL
-                  - OCR
-                  - SECURE_CARDLESS
-                  - UNSPECIFIED
-                  - UNKNOWN
-              description: PAN entry modes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            enum:
+              - AUTO_ENTRY
+              - BAR_CODE
+              - CONTACTLESS
+              - CREDENTIAL_ON_FILE
+              - ECOMMERCE
+              - ERROR_KEYED
+              - ERROR_MAGNETIC_STRIPE
+              - ICC
+              - KEY_ENTERED
+              - MAGNETIC_STRIPE
+              - MANUAL
+              - OCR
+              - SECURE_CARDLESS
+              - UNSPECIFIED
+              - UNKNOWN
+          description: PAN entry modes to include in the velocity calculation. Transactions not matching any of the provided will not be included in the calculated velocity.
     velocity-limit-parameters:
       title: Velocity Limit Parameters
       type: object
@@ -12156,6 +12142,149 @@ components:
       required:
         - action
         - conditions
+    card-transaction-update-action:
+      title: Card Transaction Update Action
+      oneOf:
+        - title: Tag Action
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - TAG
+              description: Tag the transaction with key-value metadata
+            key:
+              type: string
+              description: The key of the tag to apply to the transaction
+            value:
+              type: string
+              description: The value of the tag to apply to the transaction
+          required:
+            - type
+            - key
+            - value
+        - title: Create Case Action
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - CREATE_CASE
+              description: Create a case for the transaction
+            scope:
+              type: string
+              enum:
+                - CARD
+                - ACCOUNT
+              description: The scope of the case to create
+            queue_token:
+              type: string
+              format: uuid
+              description: The token of the queue to create the case in
+          required:
+            - type
+            - scope
+            - queue_token
+    spend-velocity-filters:
+      title: Spend Velocity Filters
+      allOf:
+        - $ref: '#/components/schemas/velocity-limit-filters'
+        - type: object
+          properties:
+            include_tags:
+              type:
+                - 'null'
+                - object
+              additionalProperties:
+                type: string
+              description: Tag key-value pairs to include in the velocity calculation. Only transactions matching all specified tag key-value pairs will be included in the calculated velocity.
+            exclude_tags:
+              type:
+                - 'null'
+                - object
+              additionalProperties:
+                type: string
+              description: Tag key-value pairs to exclude from the velocity calculation. Transactions matching all specified tag key-value pairs will be excluded from the calculated velocity.
+    conditional-card-transaction-update-action-parameters:
+      title: Conditional Action (Card Transaction Update) Parameters
+      type: object
+      properties:
+        action:
+          description: The action to take if the conditions are met.
+          $ref: '#/components/schemas/card-transaction-update-action'
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              attribute:
+                type: string
+                description: |-
+                  The attribute to target.
+
+                  The following attributes may be targeted:
+                  * `MCC`: A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
+                  * `COUNTRY`: Country of entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.
+                  * `CURRENCY`: 3-character alphabetic ISO 4217 code for the merchant currency of the transaction.
+                  * `MERCHANT_ID`: Unique alphanumeric identifier for the payment card acceptor (merchant).
+                  * `DESCRIPTOR`: Short description of card acceptor.
+                  * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
+                  * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
+                  * `TRANSACTION_STATUS`: The status of the transaction. Valid values are `PENDING`, `VOIDED`, `SETTLING`, `SETTLED`, `BOUNCED`, `RETURNED`, `DECLINED`, `EXPIRED`.
+                  * `LAST_EVENT_TYPE`: The type of the most recent event on the transaction. Valid values are `AUTHORIZATION`, `AUTHORIZATION_ADVICE`, `AUTHORIZATION_EXPIRY`, `AUTHORIZATION_REVERSAL`, `BALANCE_INQUIRY`, `CLEARING`, `CORRECTION_CREDIT`, `CORRECTION_DEBIT`, `CREDIT_AUTHORIZATION`, `CREDIT_AUTHORIZATION_ADVICE`, `FINANCIAL_AUTHORIZATION`, `FINANCIAL_CREDIT_AUTHORIZATION`, `RETURN`, `RETURN_REVERSAL`.
+                  * `LIABILITY_SHIFT`: Indicates whether chargeback liability shift to the issuer applies to the transaction. Valid values are `NONE`, `3DS_AUTHENTICATED`, or `TOKEN_AUTHENTICATED`.
+                  * `PAN_ENTRY_MODE`: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, or `CREDENTIAL_ON_FILE`.
+                  * `WALLET_TYPE`: For transactions using a digital wallet token, indicates the source of the token. Valid values are `APPLE_PAY`, `GOOGLE_PAY`, `SAMSUNG_PAY`, `MASTERPASS`, `MERCHANT`, `OTHER`, `NONE`.
+                  * `CARD_AGE`: The age of the card in seconds at the time of the transaction.
+                  * `ACCOUNT_AGE`: The age of the account in seconds at the time of the transaction.
+                  * `SPEND_VELOCITY_COUNT`: The number of transactions matching the specified filters within the given period. Requires `parameters` with `scope`, `period`, and optional `filters`.
+                  * `SPEND_VELOCITY_AMOUNT`: The total spend amount (in cents) of transactions matching the specified filters within the given period. Requires `parameters` with `scope`, `period`, and optional `filters`.
+                enum:
+                  - MCC
+                  - COUNTRY
+                  - CURRENCY
+                  - MERCHANT_ID
+                  - DESCRIPTOR
+                  - TRANSACTION_AMOUNT
+                  - RISK_SCORE
+                  - TRANSACTION_STATUS
+                  - LAST_EVENT_TYPE
+                  - LIABILITY_SHIFT
+                  - PAN_ENTRY_MODE
+                  - WALLET_TYPE
+                  - CARD_AGE
+                  - ACCOUNT_AGE
+                  - SPEND_VELOCITY_COUNT
+                  - SPEND_VELOCITY_AMOUNT
+              parameters:
+                type: object
+                description: |-
+                  Additional parameters for spend velocity attributes. Required when `attribute` is
+                  `SPEND_VELOCITY_COUNT` or `SPEND_VELOCITY_AMOUNT`. Not used for other attributes.
+                properties:
+                  scope:
+                    type: string
+                    description: The entity scope to evaluate the attribute against.
+                    enum:
+                      - CARD
+                      - ACCOUNT
+                      - GLOBAL
+                  period:
+                    description: The time period over which to calculate the spend velocity.
+                    $ref: '#/components/schemas/velocity-limit-period'
+                  filters:
+                    $ref: '#/components/schemas/spend-velocity-filters'
+              operation:
+                $ref: '#/components/schemas/conditional-operation'
+              value:
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
+      required:
+        - action
+        - conditions
     rule-feature:
       title: Rule Feature
       description: |-
@@ -12296,6 +12425,7 @@ components:
         - $ref: '#/components/schemas/conditional-authorization-action-parameters'
         - $ref: '#/components/schemas/conditional-ach-action-parameters'
         - $ref: '#/components/schemas/conditional-tokenization-action-parameters'
+        - $ref: '#/components/schemas/conditional-card-transaction-update-action-parameters'
         - $ref: '#/components/schemas/typescript-code-parameters'
     auth-rule-version-id:
       title: Auth Rule Version
