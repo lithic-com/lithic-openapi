@@ -11815,6 +11815,8 @@ components:
                   * `DISTINCT_COUNTRY_COUNT`: The number of distinct merchant countries seen in the entity's transaction history. Requires `parameters.scope`.
                   * `IS_NEW_MERCHANT`: Whether the card acceptor ID has not been seen in the card's approved transaction history (capped at the 1000 most recently seen merchants). Valid values are `TRUE`, `FALSE`. Card-scoped only; no `parameters` required.
                   * `THREE_DS_SUCCESS_RATE`: The 3DS authentication success rate for the card, as a percentage from 0.0 to 100.0. Card-scoped only; no `parameters` required.
+                  * `TRAVEL_SPEED`: The estimated speed of travel derived from the distance between the postal code centers of the last card-present transaction and the current transaction, divided by the elapsed time. Null if there is no prior card-present transaction, if either postal code cannot be geocoded, or if elapsed time is zero. Requires `parameters.unit` set to `MPH` or `KPH`.
+                  * `DISTANCE_FROM_LAST_TRANSACTION`: The estimated distance between the postal code centers of the last card-present transaction and the current transaction. Null if there is no prior card-present transaction or if either postal code cannot be geocoded. Requires `parameters.unit` set to `MILES` or `KILOMETERS`.
                 enum:
                   - MCC
                   - COUNTRY
@@ -11853,13 +11855,16 @@ components:
                   - DISTINCT_COUNTRY_COUNT
                   - IS_NEW_MERCHANT
                   - THREE_DS_SUCCESS_RATE
+                  - TRAVEL_SPEED
+                  - DISTANCE_FROM_LAST_TRANSACTION
               parameters:
                 type: object
                 description: |-
-                  Additional parameters required for transaction history signal attributes. Required when
-                  `attribute` is one of `AMOUNT_Z_SCORE`, `AVG_TRANSACTION_AMOUNT`,
-                  `STDEV_TRANSACTION_AMOUNT`, `IS_NEW_COUNTRY`, `IS_NEW_MCC`, `IS_FIRST_TRANSACTION`,
-                  `CONSECUTIVE_DECLINES`, `TIME_SINCE_LAST_TRANSACTION`, or `DISTINCT_COUNTRY_COUNT`.
+                  Additional parameters for certain attributes. Required when `attribute` is one of
+                  `AMOUNT_Z_SCORE`, `AVG_TRANSACTION_AMOUNT`, `STDEV_TRANSACTION_AMOUNT`,
+                  `IS_NEW_COUNTRY`, `IS_NEW_MCC`, `IS_FIRST_TRANSACTION`, `CONSECUTIVE_DECLINES`,
+                  `TIME_SINCE_LAST_TRANSACTION`, or `DISTINCT_COUNTRY_COUNT` (require `scope`);
+                  or `TRAVEL_SPEED` or `DISTANCE_FROM_LAST_TRANSACTION` (require `unit`).
                   Not used for other attributes.
                 properties:
                   scope:
@@ -11877,6 +11882,19 @@ components:
                       - 7D
                       - 30D
                       - 90D
+                  unit:
+                    type: string
+                    description: |-
+                      The unit for impossible travel attributes. Required when `attribute` is `TRAVEL_SPEED` or `DISTANCE_FROM_LAST_TRANSACTION`.
+
+                      For `TRAVEL_SPEED`: `MPH` (miles per hour) or `KPH` (kilometers per hour).
+
+                      For `DISTANCE_FROM_LAST_TRANSACTION`: `MILES` or `KILOMETERS`.
+                    enum:
+                      - MPH
+                      - KPH
+                      - MILES
+                      - KILOMETERS
               operation:
                 $ref: '#/components/schemas/conditional-operation'
               value:
@@ -13295,7 +13313,7 @@ components:
           type:
             - string
             - 'null'
-          description: The merchant country of the last card-present transaction. Clients can use this together with `last_cp_timestamp` to detect impossible travel.
+          description: The merchant country of the last card-present transaction.
         last_cp_postal_code:
           type:
             - string
