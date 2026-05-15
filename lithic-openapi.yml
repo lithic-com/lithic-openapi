@@ -18229,9 +18229,7 @@ components:
         - terminal
     token_info:
       title: Token Info
-      type:
-        - object
-        - 'null'
+      type: object
       properties:
         wallet_type:
           description: The wallet_type field will indicate the source of the token. Possible token sources include digital wallets (Apple, Google, or Samsung Pay), merchant tokenization, and “other” sources like in-flight commerce. Masterpass is not currently supported and is included for future use.
@@ -22822,7 +22820,9 @@ components:
           format: int64
           description: Deprecated, use `cash_amount`.
         token_info:
-          $ref: '#/components/schemas/token_info'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/token_info'
         ttl:
           description: 'Deprecated: approximate time-to-live for the authorization.'
           type: string
