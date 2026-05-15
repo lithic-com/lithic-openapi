@@ -11855,7 +11855,7 @@ components:
                   * `SERVICE_LOCATION_STATE`: The state/province code (ISO 3166-2) where the cardholder received the service, e.g. "NY". When a service location is present in the network data, the service location state is used. Otherwise, falls back to the card acceptor state.
                   * `SERVICE_LOCATION_POSTAL_CODE`: The postal code where the cardholder received the service, e.g. "10001". When a service location is present in the network data, the service location postal code is used. Otherwise, falls back to the card acceptor postal code.
                   * `CARD_AGE`: The age of the card in seconds at the time of the authorization. Use an integer value.
-                  * `ACCOUNT_AGE`: The age of the account holder's account in seconds at the time of the authorization. Use an integer value.
+                  * `ACCOUNT_AGE`: The age of the account holder's account in seconds at the time of the authorization. Use an integer value. For programs where Lithic does not manage or retain account holder data, this attribute does not evaluate.
                   * `AMOUNT_Z_SCORE`: The z-score of the transaction amount relative to the entity's transaction history. Null if fewer than 30 approved transactions in the specified window. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
                   * `AVG_TRANSACTION_AMOUNT`: The average approved transaction amount for the entity over the specified window, in cents. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
                   * `STDEV_TRANSACTION_AMOUNT`: The standard deviation of approved transaction amounts for the entity over the specified window, in cents. Null if fewer than 30 approved transactions in the specified window. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
@@ -12306,7 +12306,7 @@ components:
                   * `PAN_ENTRY_MODE`: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, or `CREDENTIAL_ON_FILE`.
                   * `WALLET_TYPE`: For transactions using a digital wallet token, indicates the source of the token. Valid values are `APPLE_PAY`, `GOOGLE_PAY`, `SAMSUNG_PAY`, `MASTERPASS`, `MERCHANT`, `OTHER`, `NONE`.
                   * `CARD_AGE`: The age of the card in seconds at the time of the transaction. Use an integer value.
-                  * `ACCOUNT_AGE`: The age of the account in seconds at the time of the transaction. Use an integer value.
+                  * `ACCOUNT_AGE`: The age of the account in seconds at the time of the transaction. Use an integer value. For programs where Lithic does not manage or retain account holder data, this attribute does not evaluate.
                   * `SPEND_VELOCITY_COUNT`: The number of transactions matching the specified filters within the given period. Requires `parameters` with `scope`, `period`, and optional `filters`. Use an integer value.
                   * `SPEND_VELOCITY_AMOUNT`: The total spend amount (in cents) of transactions matching the specified filters within the given period. Requires `parameters` with `scope`, `period`, and optional `filters`. Use an integer value.
                 enum:
