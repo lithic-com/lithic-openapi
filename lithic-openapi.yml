@@ -23,6 +23,7 @@ tags:
   - name: Balance
   - name: Book Transfer
   - name: Card
+  - name: Card Authorizations
   - name: Card Bulk Orders
   - name: Credit Product
   - name: Chargeback
@@ -3000,6 +3001,55 @@ paths:
       summary: Get card's available spend limit
       tags:
         - Card
+  /v1/card_authorizations/{event_token}/challenge_response:
+    post:
+      description: |-
+        Card program's response to Authorization Challenge.
+        Programs that have Authorization Challenges configured as Out of Band receive a [card_authorization.challenge](https://docs.lithic.com/reference/post_card-authorization-challenge) webhook when an authorization attempt triggers a challenge.
+        The card program should respond using this endpoint after the cardholder completes the challenge.
+      summary: Respond to Authorization Challenge
+      operationId: respondToAuthorizationChallenge
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: event_token
+          in: path
+          required: true
+          description: Globally unique identifier for the authorization event that triggered the challenge
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Authorization Challenge Response
+              type: object
+              description: Card program's response to Authorization Challenge
+              properties:
+                response:
+                  type: string
+                  description: Whether the cardholder has approved or declined the issued challenge
+                  enum:
+                    - APPROVE
+                    - DECLINE
+              required:
+                - response
+      responses:
+        '200':
+          description: Challenge response recorded
+        '400':
+          description: Invalid request (e.g. challenge method does not support this endpoint)
+        '404':
+          description: Challenge not found
+        '409':
+          description: Challenge has already been completed
+        '410':
+          description: Challenge has expired
+        '500':
+          description: Lithic Error
+      tags:
+        - Card Authorizations
   /v1/card_bulk_orders:
     get:
       description: List bulk orders for physical card shipments
@@ -15016,6 +15066,7 @@ components:
         - balance.updated
         - book_transfer_transaction.created
         - book_transfer_transaction.updated
+        - card_authorization.challenge
         - card_authorization.challenge_response
         - card_transaction.enhanced_data.created
         - card_transaction.enhanced_data.updated
@@ -15072,6 +15123,7 @@ components:
         - balance.updated: Financial Account Balance Update
         - book_transfer_transaction.created: Occurs when a book transfer transaction is created.
         - book_transfer_transaction.updated: Occurs when a book transfer transaction is updated.
+        - card_authorization.challenge: Occurs when an Out of Band challenge is issued during card authorization. The card program should issue its own challenge to the cardholder and then respond via [/v1/card_authorizations/{event_token}/challenge_response](https://docs.lithic.com/reference/respondtoauthorizationchallenge).
         - card_authorization.challenge_response: Occurs when a cardholder responds to an SMS challenge during card authorization.
         - card_transaction.enhanced_data.created: Occurs when L2/L3 enhanced commercial data is processed for a transaction event.
         - card_transaction.enhanced_data.updated: Occurs when L2/L3 enhanced commercial data is reprocessed for a transaction event.
@@ -22703,8 +22755,9 @@ components:
             - type: 'null'
               description: There was no Visa-specific data available for this transaction.
             - $ref: '#/components/schemas/asa_network_specific_data_visa'
-    asa-request:
-      description: The Auth Stream Access request payload that was sent to the ASA responder.
+    authorization:
+      title: Card Authorization
+      description: Card Authorization
       type: object
       properties:
         merchant:
@@ -23169,6 +23222,40 @@ components:
           description: The phone number to use for sending an Authorization Challenge SMS. Relevant only when the result is `CHALLENGE`. The expected format is E.164 without hyphens. For example, "+15555555555" for a US phone number.
       required:
         - result
+    authorization-challenge:
+      title: Authorization Challenge
+      type: object
+      description: Details of the Authorization Challenge issued during card authorization
+      properties:
+        event_token:
+          type: string
+          description: Globally unique identifier for the event that triggered the challenge. Use this token when calling the challenge response endpoint
+          format: uuid
+        start_time:
+          type: string
+          description: ISO-8601 time at which the challenge was issued
+          format: date-time
+        expiry_time:
+          type: string
+          description: ISO-8601 time at which the challenge expires
+          format: date-time
+      required:
+        - event_token
+        - start_time
+        - expiry_time
+    authorization-challenge-event:
+      title: Authorization Challenge webhook event
+      type: object
+      description: Webhook event emitted when an Out of Band Authorization Challenge is issued during card authorization
+      properties:
+        authorization:
+          description: The authorization that triggered the challenge
+          $ref: '#/components/schemas/authorization'
+        challenge:
+          $ref: '#/components/schemas/authorization-challenge'
+      required:
+        - authorization
+        - challenge
     card-authorization-challenge-response:
       title: Card Authorization Challenge Response
       examples:
@@ -25092,7 +25179,8 @@ webhooks:
                       example: card_authorization.approval_request
                   required:
                     - event_type
-                - $ref: '#/components/schemas/asa-request'
+                - description: The Auth Stream Access request payload that was sent to the ASA responder.
+                  $ref: '#/components/schemas/authorization'
       responses:
         '200':
           description: Return a HTTP 200 status to indicate that the ASA responder was able to handle the request.
@@ -25105,6 +25193,30 @@ webhooks:
       summary: Auth Stream Access Request
       tags:
         - Auth Stream Access (ASA)
+  card_authorization.challenge:
+    post:
+      description: Occurs when an Out of Band challenge is issued during card authorization. The card program should issue its own challenge to the cardholder and then respond via [/v1/card_authorizations/{event_token}/challenge_response](https://docs.lithic.com/reference/respondtoauthorizationchallenge).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: card_authorization.challenge
+                      example: card_authorization.challenge
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/authorization-challenge-event'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: card_authorization.challenge
+      tags:
+        - Event Types
   card_authorization.challenge_response:
     post:
       description: Occurs when a cardholder responds to an SMS challenge during card authorization.
