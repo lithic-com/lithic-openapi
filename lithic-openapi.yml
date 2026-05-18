@@ -10707,7 +10707,9 @@ components:
           type: string
         parent_company:
           description: Parent company name (if applicable).
-          type: string
+          type:
+            - string
+            - 'null'
         phone_numbers:
           description: One or more of the business's phone number(s), entered as a list in E.164 format.
           items:
@@ -20413,7 +20415,9 @@ components:
             - PREPAID_CARD_USER
         external_id:
           description: Customer-provided token that indicates a relationship with an object outside of the Lithic ecosystem.
-          type: string
+          type:
+            - string
+            - 'null'
         user_type:
           description: |-
             The type of Account Holder. If the type is "INDIVIDUAL", the "individual" attribute will be present.
@@ -20451,7 +20455,9 @@ components:
             to the cards that Lithic will provide. In some cases, this individual could also be a beneficial owner listed above.
         naics_code:
           description: Only present when user_type == "BUSINESS". 6-digit North American Industry Classification System (NAICS) code for the business.
-          type: string
+          type:
+            - string
+            - 'null'
         nature_of_business:
           description: Only present when user_type == "BUSINESS". User-submitted description of the business.
           type: string
