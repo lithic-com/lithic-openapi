@@ -15126,7 +15126,7 @@ components:
         - book_transfer_transaction.created: Occurs when a book transfer transaction is created.
         - book_transfer_transaction.updated: Occurs when a book transfer transaction is updated.
         - card_authorization.challenge: Occurs when an Out of Band challenge is issued during card authorization. The card program should issue its own challenge to the cardholder and then respond via [/v1/card_authorizations/{event_token}/challenge_response](https://docs.lithic.com/reference/respondtoauthorizationchallenge).
-        - card_authorization.challenge_response: Occurs when a cardholder responds to an SMS challenge during card authorization.
+        - card_authorization.challenge_response: Occurs when a cardholder responds to a challenge during card authorization.
         - card_transaction.enhanced_data.created: Occurs when L2/L3 enhanced commercial data is processed for a transaction event.
         - card_transaction.enhanced_data.updated: Occurs when L2/L3 enhanced commercial data is reprocessed for a transaction event.
         - card_transaction.updated: Occurs when a card transaction happens.
@@ -22920,6 +22920,7 @@ components:
               type: string
               enum:
                 - COMPLETED
+                - DECLINED
                 - PENDING
                 - EXPIRED
                 - ERROR
@@ -22927,18 +22928,32 @@ components:
                 The status of the Authorization Challenge
 
                 * `COMPLETED` - Challenge was successfully completed by the cardholder
+                * `DECLINED` - Challenge was declined by the cardholder
                 * `PENDING` - Challenge is still open
                 * `EXPIRED` - Challenge has expired without being completed
                 * `ERROR` - There was an error processing the challenge
-            phone_number:
+            method:
               type: string
-              description: The phone number used for sending Authorization Challenge SMS.
+              enum:
+                - SMS
+                - OUT_OF_BAND
+              description: |-
+                The method used to deliver the challenge to the cardholder
+
+                * `SMS` - Challenge was delivered via SMS
+                * `OUT_OF_BAND` - Challenge was delivered via an out-of-band method
+            phone_number:
+              type:
+                - string
+                - 'null'
+              description: The phone number used for sending the Authorization Challenge. Present only when the challenge method is `SMS`.
             completed_at:
               type: string
               format: date-time
               description: The date and time when the Authorization Challenge was completed in UTC. Present only if the status is `COMPLETED`.
           required:
             - status
+            - method
             - phone_number
       required:
         - acquirer_fee
@@ -23302,6 +23317,7 @@ components:
           description: The method used to deliver the challenge to the cardholder
           enum:
             - SMS
+            - OUT_OF_BAND
           example: SMS
           type: string
         response:
@@ -25225,7 +25241,7 @@ webhooks:
         - Event Types
   card_authorization.challenge_response:
     post:
-      description: Occurs when a cardholder responds to an SMS challenge during card authorization.
+      description: Occurs when a cardholder responds to a challenge during card authorization.
       requestBody:
         content:
           application/json:
