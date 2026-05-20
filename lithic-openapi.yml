@@ -20153,6 +20153,7 @@ components:
         - NETWORK_FAILURE
         - GENERIC_DECLINE
         - DIGITAL_CARD_ART_REQUIRED
+        - INVALID_PAN
     tokenization-tfa-reason:
       title: Tokenization TFA Reason
       description: Reason code for why a tokenization required two-factor authentication
