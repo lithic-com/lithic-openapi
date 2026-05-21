@@ -13505,7 +13505,9 @@ components:
         cardholder_currency:
           description: 3-character alphabetic ISO 4217 code for the currency of the cardholder.
           example: USD
-          type: string
+          type:
+            - string
+            - 'null'
         created:
           description: Timestamp of when the card program was created.
           format: date-time
