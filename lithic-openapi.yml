@@ -13462,19 +13462,25 @@ components:
         financial_account_type:
           description: Type of financial account.
           enum:
+            - CARD
             - ISSUING
             - OPERATING
+            - PROGRAM_RECEIVABLES
             - RESERVE
             - SECURITY
           type: string
         last_transaction_event_token:
           description: Globally unique identifier for the last financial transaction event that impacted this balance.
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         last_transaction_token:
           description: Globally unique identifier for the last financial transaction that impacted this balance.
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         pending_amount:
           description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD).
           type: integer
@@ -14016,6 +14022,7 @@ components:
         - QUARTERLY_REVERSAL
         - MONTHLY
         - MONTHLY_REVERSAL
+        - ACCOUNT_TO_ACCOUNT
     financial_event:
       title: Financial Event
       description: Financial Event
@@ -15784,7 +15791,9 @@ components:
           description: Explanation of error response.
         context:
           description: context
-          $ref: '#/components/schemas/create_external_bank_account_error_response_context'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/create_external_bank_account_error_response_context'
       required:
         - debugging_request_id
         - message
@@ -16446,7 +16455,9 @@ components:
           type: integer
           description: Any funds transfers which affective the balance in cents
         payment_details:
-          $ref: '#/components/schemas/payment_details'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/payment_details'
         purchases:
           type: integer
           description: Net card transaction volume less any cash advances in cents
@@ -16457,12 +16468,16 @@ components:
           type: integer
           description: Volume of debit management operation transactions less any interest in cents
         debit_details:
-          $ref: '#/components/schemas/debit_details'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/debit_details'
         credits:
           type: integer
           description: Volume of credit management operation transactions less any balance transfers in cents
         credit_details:
-          $ref: '#/components/schemas/credit_details'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/credit_details'
         interest:
           type: integer
           description: Interest accrued in cents
@@ -16661,7 +16676,9 @@ components:
           format: date
         next_statement_end_date:
           description: Date when the next billing period will end
-          type: string
+          type:
+            - string
+            - 'null'
           format: date
         payment_due_date:
           oneOf:
@@ -16671,7 +16688,9 @@ components:
               format: date
         next_payment_due_date:
           description: Date when the next payment is due
-          type: string
+          type:
+            - string
+            - 'null'
           format: date
         days_in_billing_cycle:
           description: Number of days in the billing cycle
@@ -16793,7 +16812,9 @@ components:
           format: uuid
         card_token:
           description: Globally unique identifier for a card
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
         financial_transaction_token:
           description: Globally unique identifier for a financial transaction
@@ -17925,7 +17946,9 @@ components:
         network_info:
           $ref: '#/components/schemas/network_info'
         network_specific_data:
-          $ref: '#/components/schemas/network_specific_data'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/network_specific_data'
         detailed_results:
           items:
             $ref: '#/components/schemas/detailed_result'
@@ -19577,17 +19600,23 @@ components:
           description: Globally unique identifier denoting the account that the associated transaction occurred on.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         card_program_token:
           description: Globally unique identifier denoting the card program that the associated transaction occurred on.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         card_token:
           description: Globally unique identifier denoting the card that the associated transaction occurred on.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         created:
           description: Date and time when the transaction first occurred. UTC time zone.
           example: '2023-06-01T00:00:00'
@@ -19662,10 +19691,12 @@ components:
           format: uuid
           type: string
         transaction_token:
-          description: Globally unique identifier denoting the associated transaction. For settlement records with type `CLEARING`, `FINANCIAL`, or `NON-FINANCIAL`, this references a card transaction token. For settlement records with type `CHARGEBACK`, `REPRESENTMENT`, `PREARBITRATION`, `ARBITRATION`, or `COLLABORATION`, this references the dispute transaction token. May be null for certain settlement types.
+          description: Globally unique identifier denoting the associated transaction. For settlement records with type `CLEARING`, `FINANCIAL`, or `NON_FINANCIAL`, this references a card transaction token. For settlement records with type `CHARGEBACK`, `REPRESENTMENT`, `PREARBITRATION`, `ARBITRATION`, or `COLLABORATION`, this references the dispute transaction token. May be null for certain settlement types.
           example: e34a817f-119d-4976-9fb3-8b020b8bbec3
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         transactions_gross_amount:
           description: The total amount of settlement impacting transactions (excluding interchange, fees, and disputes).
           example: 1900
@@ -19680,7 +19711,7 @@ components:
             - COLLABORATION
             - FEE
             - FINANCIAL
-            - NON-FINANCIAL
+            - NON_FINANCIAL
             - PREARBITRATION
             - REPRESENTMENT
           example: CLEARING
@@ -21435,7 +21466,9 @@ components:
           minimum: 0
         amount_originated:
           description: Amount originated towards limit
-          type: integer
+          type:
+            - integer
+            - 'null'
           minimum: 0
       required:
         - limit
