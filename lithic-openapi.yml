@@ -23189,14 +23189,22 @@ components:
                 - string
                 - 'null'
               description: The phone number used for sending the Authorization Challenge. Present only when the challenge method is `SMS`.
-            completed_at:
+            created:
               type: string
               format: date-time
-              description: The date and time when the Authorization Challenge was completed in UTC. Present only if the status is `COMPLETED`.
+              description: The date and time when the Authorization Challenge was created in UTC
+            completed_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: The date and time when the Authorization Challenge was completed in UTC. Filled only if the challenge has been completed.
           required:
             - status
             - method
             - phone_number
+            - created
+            - completed_at
       required:
         - acquirer_fee
         - amount
