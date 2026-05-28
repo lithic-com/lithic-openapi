@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   contact:
-    email: support@lithic.com
+    url: https://support.lithic.com/
   description: |
     The Lithic Developer API is designed to provide a predictable programmatic interface for accessing your Lithic account through an API and transaction webhooks.
     Note that your API key is a secret and should be treated as such. Don't share it with anyone, including us. We will never ask you for it.
@@ -2111,7 +2111,7 @@ paths:
   /v1/cards/search_by_pan:
     post:
       description: |-
-        Get card configuration such as spend limit and state. Customers must be PCI compliant to use this endpoint. Please contact [support@lithic.com](mailto:support@lithic.com) for questions.
+        Get card configuration such as spend limit and state. Customers must be PCI compliant to use this endpoint. Please contact [support.lithic.com](https://support.lithic.com/) for questions.
         *Note: this is a `POST` endpoint because it is more secure to send sensitive data in a request body than in a URL.*
       operationId: searchCardByPan
       requestBody:
@@ -11246,7 +11246,7 @@ components:
               * `PAUSED` - Account will not be able to transact or create new cards. It can be set back
             to `ACTIVE`.
               * `CLOSED` - Account will not be able to transact or create new cards. `CLOSED` accounts
-            are unable to be transitioned to `ACTIVE` or `PAUSED` states. Accounts can be manually set to `CLOSED`, or this can be done by Lithic due to failure to pass KYB/KYC or for risk/compliance reasons. Please contact [support@lithic.com](mailto:support@lithic.com) if you believe this was done by mistake.
+            are unable to be transitioned to `ACTIVE` or `PAUSED` states. Accounts can be manually set to `CLOSED`, or this can be done by Lithic due to failure to pass KYB/KYC or for risk/compliance reasons. Please contact [support.lithic.com](https://support.lithic.com/) if you believe this was done by mistake.
           enum:
             - ACTIVE
             - PAUSED
@@ -14066,7 +14066,7 @@ components:
         - type: object
           properties:
             pan:
-              description: Primary Account Number (PAN) (i.e. the card number). Customers must be PCI compliant to have PAN returned as a field in production. Please contact support@lithic.com for questions.
+              description: Primary Account Number (PAN) (i.e. the card number). Customers must be PCI compliant to have PAN returned as a field in production. Please contact https://support.lithic.com/ for questions.
               example: '4111111289144142'
               maxLength: 16
               minLength: 16
