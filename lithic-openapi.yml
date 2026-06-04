@@ -23001,6 +23001,21 @@ components:
             - type: 'null'
               description: There was no Visa-specific data available for this transaction.
             - $ref: '#/components/schemas/asa_network_specific_data_visa'
+    name_validation_result:
+      title: Name Validation Result
+      description: Name match result comparing the cardholder name provided by the card network with the name on file from KYC data. Unverified is returned when Lithic does not have KYC data on file.
+      type: object
+      properties:
+        full_name:
+          description: Overall name match result.
+          type: string
+          enum:
+            - MATCH
+            - PARTIAL_MATCH
+            - NO_MATCH
+            - UNVERIFIED
+      required:
+        - full_name
     authorization:
       title: Card Authorization
       description: Card Authorization
@@ -23205,6 +23220,37 @@ components:
             - phone_number
             - created
             - completed_at
+        name_validation:
+          description: Network name validation data, present when the card network requested name validation for this transaction. Contains the cardholder name provided by the network and Lithic's computed match result against KYC data on file.
+          type:
+            - object
+            - 'null'
+          properties:
+            name:
+              description: Cardholder name as provided by the card network.
+              type: object
+              properties:
+                first:
+                  description: First name
+                  type: string
+                middle:
+                  description: Middle name
+                  type:
+                    - string
+                    - 'null'
+                last:
+                  description: Last name
+                  type: string
+              required:
+                - first
+                - middle
+                - last
+            name_on_file_match:
+              description: Lithic's computed match result comparing the network-provided name to the name on file.
+              $ref: '#/components/schemas/name_validation_result'
+          required:
+            - name
+            - name_on_file_match
       required:
         - acquirer_fee
         - amount
@@ -23216,6 +23262,7 @@ components:
         - cash_amount
         - created
         - merchant
+        - name_validation
         - service_location
         - merchant_amount
         - merchant_currency
@@ -23491,6 +23538,9 @@ components:
         challenge_phone_number:
           type: string
           description: The phone number to use for sending an Authorization Challenge SMS. Relevant only when the result is `CHALLENGE`. The expected format is E.164 without hyphens. For example, "+15555555555" for a US phone number.
+        name_validation_result:
+          description: Name validation result returned by the ASA responder. When present, overrides Lithic's internally computed result. If no response is provided, the `name_on_file_match` value sent on the request will be the value returned to the Network.
+          $ref: '#/components/schemas/name_validation_result'
       required:
         - result
     authorization-challenge:
