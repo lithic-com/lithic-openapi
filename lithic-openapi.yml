@@ -17182,6 +17182,12 @@ components:
           description: Date of transactions that this loan tape covers
           type: string
           format: date
+        day_of_period:
+          description: Day of the billing period that this loan tape covers, starting at 1
+          type:
+            - integer
+            - 'null'
+          default: null
         created:
           description: Timestamp of when the loan tape was created
           type: string
