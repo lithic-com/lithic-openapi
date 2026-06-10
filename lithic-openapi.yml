@@ -44,6 +44,7 @@ tags:
   - name: Status
   - name: Tokenization
   - name: Transaction
+  - name: Transaction Monitoring
   - name: Transfer Limits
 paths:
   /v1/account_holders:
@@ -8492,6 +8493,448 @@ paths:
       summary: Get card transaction
       tags:
         - Transaction
+  /v1/transaction_monitoring/cases:
+    get:
+      operationId: listTransactionMonitoringCases
+      summary: List cases
+      description: Lists transaction monitoring cases, optionally filtered.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - name: queue_token
+          in: query
+          required: false
+          description: Only return cases belonging to the provided queue.
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          description: Only return cases with the provided status.
+          schema:
+            $ref: '#/components/schemas/case-status'
+        - name: assignee
+          in: query
+          required: false
+          description: Only return cases assigned to the provided value. Pass an empty string to return only unassigned cases.
+          schema:
+            type: string
+        - name: rule_token
+          in: query
+          required: false
+          description: Only return cases triggered by the provided transaction monitoring rule.
+          schema:
+            type: string
+            format: uuid
+        - name: transaction_token
+          in: query
+          required: false
+          description: Only return cases that include the provided transaction.
+          schema:
+            type: string
+            format: uuid
+        - name: card_token
+          in: query
+          required: false
+          description: Only return cases that include transactions on the provided card.
+          schema:
+            type: string
+            format: uuid
+        - name: account_token
+          in: query
+          required: false
+          description: Only return cases that include transactions on the provided account.
+          schema:
+            type: string
+            format: uuid
+        - name: entity_token
+          in: query
+          required: false
+          description: Only return cases associated with the provided entity.
+          schema:
+            type: string
+            format: uuid
+        - name: sort_by
+          in: query
+          required: false
+          description: Sort order for the returned cases.
+          schema:
+            $ref: '#/components/schemas/case-sort-by'
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/EndingBefore'
+        - $ref: '#/components/parameters/parameters-PageSize'
+      responses:
+        '200':
+          description: Cases
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/monitoring-case'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+  /v1/transaction_monitoring/cases/{case_token}:
+    get:
+      operationId: getTransactionMonitoringCase
+      summary: Get case
+      description: Retrieves a single transaction monitoring case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+      responses:
+        '200':
+          $ref: '#/components/responses/Case'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+    patch:
+      operationId: updateTransactionMonitoringCase
+      summary: Update case
+      description: Updates a transaction monitoring case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update-case-request'
+      responses:
+        '200':
+          $ref: '#/components/responses/Case'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/activity:
+    get:
+      operationId: listTransactionMonitoringCaseActivity
+      summary: List case activity
+      description: Lists the activity feed for a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/EndingBefore'
+        - $ref: '#/components/parameters/parameters-PageSize'
+      responses:
+        '200':
+          description: Case activity entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/case-activity'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/transactions:
+    get:
+      operationId: listTransactionMonitoringCaseTransactions
+      summary: List case transactions
+      description: Lists the transactions associated with a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/EndingBefore'
+        - $ref: '#/components/parameters/parameters-PageSize'
+      responses:
+        '200':
+          description: Case transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/case-transaction'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/cards:
+    get:
+      operationId: listTransactionMonitoringCaseCards
+      summary: List case cards
+      description: Lists the cards involved in a case, with per-card transaction counts.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+      responses:
+        '200':
+          description: Case cards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/case-card'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/comments:
+    post:
+      operationId: createTransactionMonitoringCaseComment
+      summary: Add case comment
+      description: Adds a comment to a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/add-comment-request'
+      responses:
+        '201':
+          $ref: '#/components/responses/CaseActivityEntry'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/comments/{comment_token}:
+    patch:
+      operationId: updateTransactionMonitoringCaseComment
+      summary: Update case comment
+      description: Edits an existing comment on a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/CommentToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/edit-comment-request'
+      responses:
+        '200':
+          $ref: '#/components/responses/CaseActivityEntry'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+    delete:
+      operationId: deleteTransactionMonitoringCaseComment
+      summary: Delete case comment
+      description: Deletes a comment from a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/CommentToken'
+      responses:
+        '204':
+          description: Comment deleted
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/files:
+    post:
+      operationId: createTransactionMonitoringCaseFile
+      summary: Create case file
+      description: Creates a file record and returns a presigned URL for uploading the file to the case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create-file-request'
+      responses:
+        '201':
+          $ref: '#/components/responses/CaseFile'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+    get:
+      operationId: listTransactionMonitoringCaseFiles
+      summary: List case files
+      description: Lists the files attached to a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/EndingBefore'
+        - $ref: '#/components/parameters/parameters-PageSize'
+      responses:
+        '200':
+          description: Case files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/file'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/cases/{case_token}/files/{file_token}:
+    get:
+      operationId: getTransactionMonitoringCaseFile
+      summary: Get case file
+      description: Retrieves a single file attached to a case, including a presigned download URL when the file is ready.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/FileToken'
+      responses:
+        '200':
+          $ref: '#/components/responses/CaseFile'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+    delete:
+      operationId: deleteTransactionMonitoringCaseFile
+      summary: Delete case file
+      description: Deletes a file from a case.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/CaseToken'
+        - $ref: '#/components/parameters/FileToken'
+      responses:
+        '204':
+          description: File deleted
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v1/transaction_monitoring/queues:
+    post:
+      operationId: createTransactionMonitoringQueue
+      summary: Create queue
+      description: Creates a new queue for grouping transaction monitoring cases.
+      tags:
+        - Transaction Monitoring
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create-queue-request'
+      responses:
+        '201':
+          $ref: '#/components/responses/Queue'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+    get:
+      operationId: listTransactionMonitoringQueues
+      summary: List queues
+      description: Lists transaction monitoring queues.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/EndingBefore'
+        - $ref: '#/components/parameters/parameters-PageSize'
+      responses:
+        '200':
+          description: Queues
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/queue'
+                  has_more:
+                    type: boolean
+                required:
+                  - data
+                  - has_more
+  /v1/transaction_monitoring/queues/{queue_token}:
+    get:
+      operationId: getTransactionMonitoringQueue
+      summary: Get queue
+      description: Retrieves a single transaction monitoring queue.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/QueueToken'
+      responses:
+        '200':
+          $ref: '#/components/responses/Queue'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+    patch:
+      operationId: updateTransactionMonitoringQueue
+      summary: Update queue
+      description: Updates a transaction monitoring queue.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/QueueToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update-queue-request'
+      responses:
+        '200':
+          $ref: '#/components/responses/Queue'
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+    delete:
+      operationId: deleteTransactionMonitoringQueue
+      summary: Delete queue
+      description: Deletes a transaction monitoring queue.
+      tags:
+        - Transaction Monitoring
+      parameters:
+        - $ref: '#/components/parameters/QueueToken'
+      responses:
+        '204':
+          description: Queue deleted
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
   /v1/transfer:
     post:
       deprecated: true
@@ -9612,10 +10055,10 @@ components:
         format: uuid
         type: string
     EndingBefore:
-      description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
-      in: query
       name: ending_before
+      in: query
       required: false
+      description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
       schema:
         type: string
         format: uuid
@@ -9629,10 +10072,10 @@ components:
         minimum: 1
         type: integer
     StartingAfter:
-      description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
-      in: query
       name: starting_after
+      in: query
       required: false
+      description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
       schema:
         type: string
         format: uuid
@@ -9763,6 +10206,48 @@ components:
       schema:
         format: uuid
         type: string
+    parameters-PageSize:
+      name: page_size
+      in: query
+      required: false
+      description: Page size (for pagination).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+    CaseToken:
+      name: case_token
+      in: path
+      required: true
+      description: Globally unique identifier for the case.
+      schema:
+        type: string
+        format: uuid
+    CommentToken:
+      name: comment_token
+      in: path
+      required: true
+      description: Globally unique identifier for the comment.
+      schema:
+        type: string
+        format: uuid
+    FileToken:
+      name: file_token
+      in: path
+      required: true
+      description: Globally unique identifier for the file.
+      schema:
+        type: string
+        format: uuid
+    QueueToken:
+      name: queue_token
+      in: path
+      required: true
+      description: Globally unique identifier for the queue.
+      schema:
+        type: string
+        format: uuid
   securitySchemes:
     ApiKeyAuth:
       in: header
@@ -21599,6 +22084,595 @@ components:
                 wallet_type: APPLE_PAY
               updated: '2023-08-03T18:42:30Z'
           has_more: false
+    case-status:
+      title: Case Status
+      type: string
+      description: |
+        Status of a case as it progresses through the review workflow:
+          - `OPEN` - The case has been created and is still collecting matching transactions
+          - `ASSIGNED` - An analyst has been assigned and transaction collection has stopped
+          - `IN_REVIEW` - The case is actively being investigated
+          - `ESCALATED` - The case has been reviewed and requires additional oversight
+          - `RESOLVED` - A determination has been made and a resolution recorded
+          - `CLOSED` - The case is finalized
+      enum:
+        - OPEN
+        - ASSIGNED
+        - IN_REVIEW
+        - ESCALATED
+        - RESOLVED
+        - CLOSED
+    case-sort-by:
+      title: Case Sort Order
+      type: string
+      description: |
+        Sort order for listing cases. Defaults to `CREATED_DESC` (newest first):
+          - `CREATED_ASC` - Oldest first
+          - `CREATED_DESC` - Newest first
+          - `PRIORITY_DESC` - Highest priority first
+          - `PRIORITY_ASC` - Lowest priority first
+          - `STATUS_DESC` - Furthest workflow stage first
+          - `STATUS_ASC` - Earliest workflow stage first
+      enum:
+        - CREATED_ASC
+        - CREATED_DESC
+        - PRIORITY_DESC
+        - PRIORITY_ASC
+        - STATUS_DESC
+        - STATUS_ASC
+    priority:
+      title: Case Priority
+      type: string
+      description: Priority level of a case, controlling queue ordering and SLA urgency
+      enum:
+        - LOW
+        - MEDIUM
+        - HIGH
+        - CRITICAL
+    resolution-outcome:
+      title: Resolution Outcome
+      type: string
+      description: |
+        Outcome recorded when a case is resolved:
+          - `CONFIRMED_FRAUD` - The reviewed activity was confirmed to be fraudulent
+          - `SUSPICIOUS_ACTIVITY` - The activity is suspicious but not confirmed fraud
+          - `FALSE_POSITIVE` - The activity was legitimate and the alert was a false positive
+          - `NO_ACTION_REQUIRED` - No further action is required
+          - `ESCALATED_EXTERNAL` - The case was escalated to an external party
+      enum:
+        - CONFIRMED_FRAUD
+        - SUSPICIOUS_ACTIVITY
+        - FALSE_POSITIVE
+        - NO_ACTION_REQUIRED
+        - ESCALATED_EXTERNAL
+    entity-type-2:
+      title: Entity Type
+      type: string
+      description: |
+        The type of entity a case is associated with:
+          - `CARD` - The case is associated with a card
+          - `ACCOUNT` - The case is associated with an account
+      enum:
+        - CARD
+        - ACCOUNT
+    case-entity:
+      title: Case Entity
+      type: object
+      description: The entity a case is associated with
+      properties:
+        entity_type:
+          $ref: '#/components/schemas/entity-type-2'
+        entity_token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the associated entity
+      required:
+        - entity_type
+        - entity_token
+    monitoring-case:
+      title: Monitoring Case
+      type: object
+      description: A transaction monitoring case
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the case
+        title:
+          type:
+            - string
+            - 'null'
+          description: Short, human-readable summary of the case
+        status:
+          $ref: '#/components/schemas/case-status'
+        queue_token:
+          type: string
+          format: uuid
+          description: Token of the queue the case belongs to
+        priority:
+          $ref: '#/components/schemas/priority'
+        assignee:
+          type:
+            - string
+            - 'null'
+          description: Identifier of the user the case is currently assigned to
+        rule_token:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: Token of the transaction monitoring rule that triggered the case
+        resolution:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/resolution-outcome'
+          description: Outcome recorded when the case was resolved
+        resolution_notes:
+          type:
+            - string
+            - 'null'
+          description: Free-form notes describing the resolution
+        sla_deadline:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: Deadline by which the case is expected to be resolved
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: Arbitrary key-value metadata associated with the case
+        created:
+          type: string
+          format: date-time
+          description: Date and time at which the case was created
+        updated:
+          type: string
+          format: date-time
+          description: Date and time at which the case was last updated
+        resolved:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: Date and time at which the case was resolved
+        collection_stopped:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: Date and time at which transaction collection stopped for the case
+        entity:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/case-entity'
+          description: The entity the case is associated with
+        pending_transactions:
+          type: boolean
+          description: Whether the case still has transaction scopes pending resolution
+      required:
+        - token
+        - title
+        - status
+        - queue_token
+        - priority
+        - assignee
+        - rule_token
+        - resolution
+        - resolution_notes
+        - sla_deadline
+        - tags
+        - created
+        - updated
+        - resolved
+        - collection_stopped
+        - entity
+        - pending_transactions
+    update-case-request:
+      title: Update Case Request
+      type: object
+      description: |
+        Parameters for updating a case. All fields are optional; omitted fields are left unchanged.
+        The nullable fields `title`, `assignee`, and `sla_deadline` can be cleared by sending `null`.
+      properties:
+        status:
+          $ref: '#/components/schemas/case-status'
+        title:
+          type:
+            - string
+            - 'null'
+          description: New title for the case, or `null` to clear it
+        assignee:
+          type:
+            - string
+            - 'null'
+          description: New assignee for the case, or `null` to unassign
+        resolution:
+          $ref: '#/components/schemas/resolution-outcome'
+        resolution_notes:
+          type: string
+          description: Notes describing the resolution
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: Arbitrary key-value metadata to set on the case
+        priority:
+          $ref: '#/components/schemas/priority'
+        sla_deadline:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: New SLA deadline for the case, or `null` to clear it
+        actor_token:
+          type: string
+          description: |
+            Optional client-provided identifier for the actor performing this action,
+            recorded on the resulting activity entry. This value is supplied by the
+            client (for example, your own internal user ID) and is not authenticated
+            by Lithic
+    case-activity-type:
+      title: Case Activity Type
+      type: string
+      description: |
+        The case field that changed, or the action that was taken, in an activity entry:
+          - `STATUS` - The case status changed
+          - `TITLE` - The case title changed
+          - `ASSIGNED_TO` - The case assignee changed
+          - `RESOLUTION_OUTCOME` - The resolution outcome was set or changed
+          - `RESOLUTION_NOTES` - The resolution notes were set or changed
+          - `TAGS` - The case tags changed
+          - `PRIORITY` - The case priority changed
+          - `COMMENT` - A comment was added or edited
+          - `FILE` - A file was attached to the case
+      enum:
+        - STATUS
+        - TITLE
+        - ASSIGNED_TO
+        - RESOLUTION_OUTCOME
+        - RESOLUTION_NOTES
+        - TAGS
+        - PRIORITY
+        - COMMENT
+        - FILE
+    case-activity:
+      title: Case Activity Entry
+      type: object
+      description: A single entry in a case's activity feed
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the activity entry
+        entry_type:
+          $ref: '#/components/schemas/case-activity-type'
+        actor_token:
+          type:
+            - string
+            - 'null'
+          description: Identifier of the actor that produced the activity entry
+        previous_value:
+          type:
+            - string
+            - 'null'
+          description: Previous value of the changed field, when applicable
+        new_value:
+          type:
+            - string
+            - 'null'
+          description: New value of the changed field, when applicable
+        created:
+          type: string
+          format: date-time
+          description: Date and time at which the activity entry was created
+      required:
+        - token
+        - entry_type
+        - actor_token
+        - previous_value
+        - new_value
+        - created
+    case-transaction:
+      title: Case Transaction
+      type: object
+      description: A single transaction associated with a case
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the transaction
+        card_token:
+          type: string
+          format: uuid
+          description: Token of the card the transaction was made on
+        account_token:
+          type: string
+          format: uuid
+          description: Token of the account the transaction belongs to
+        transaction_created_at:
+          type: string
+          format: date-time
+          description: Date and time at which the transaction was created
+        added_at:
+          type: string
+          format: date-time
+          description: Date and time at which the transaction was added to the case
+      required:
+        - token
+        - card_token
+        - account_token
+        - transaction_created_at
+        - added_at
+    case-card:
+      title: Case Card
+      type: object
+      description: Summary of a card's involvement in a case, aggregated across the case's transactions
+      properties:
+        card_token:
+          type: string
+          format: uuid
+          description: Token of the card
+        account_token:
+          type: string
+          format: uuid
+          description: Token of the account the card belongs to
+        transaction_count:
+          type: integer
+          format: int64
+          description: Number of the card's transactions associated with the case
+      required:
+        - card_token
+        - account_token
+        - transaction_count
+    add-comment-request:
+      title: Add Comment Request
+      type: object
+      description: Parameters for adding a comment to a case
+      properties:
+        comment:
+          type: string
+          description: Text of the comment
+        actor_token:
+          type: string
+          description: |
+            Optional client-provided identifier for the actor performing this action,
+            recorded on the resulting activity entry. This value is supplied by the
+            client (for example, your own internal user ID) and is not authenticated
+            by Lithic
+      required:
+        - comment
+    edit-comment-request:
+      title: Edit Comment Request
+      type: object
+      description: Parameters for editing an existing comment on a case
+      properties:
+        comment:
+          type: string
+          description: New text of the comment
+        actor_token:
+          type: string
+          description: |
+            Optional client-provided identifier for the actor performing this action,
+            recorded on the resulting activity entry. This value is supplied by the
+            client (for example, your own internal user ID) and is not authenticated
+            by Lithic
+      required:
+        - comment
+    file-status:
+      title: File Status
+      type: string
+      description: |
+        Lifecycle status of a case file:
+          - `PENDING` - An upload URL has been issued and the file is awaiting upload
+          - `READY` - The file has been uploaded and validated; a download URL is available
+          - `REJECTED` - File validation failed; see `failure_reason` for details
+      enum:
+        - PENDING
+        - READY
+        - REJECTED
+    upload-constraints:
+      title: Upload Constraints
+      type: object
+      description: Constraints applied to a file upload, returned alongside the upload URL so clients can validate before uploading
+      properties:
+        accepted_mime_types:
+          type: array
+          items:
+            type: string
+          description: MIME types accepted for the upload
+        max_size_bytes:
+          type: integer
+          format: int64
+          description: Maximum accepted file size, in bytes
+      required:
+        - accepted_mime_types
+        - max_size_bytes
+    file:
+      title: Case File
+      type: object
+      description: |
+        A file attached to a case. Status-dependent fields are always present but may be `null`:
+          - `upload_url`, `upload_url_expires`, and `upload_constraints` are populated when `status` is `PENDING` or `REJECTED`
+          - `download_url` and `download_url_expires` are populated when `status` is `READY`
+          - `failure_reason` is populated when `status` is `REJECTED`
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the file
+        name:
+          type: string
+          description: Name of the file
+        mime_type:
+          type:
+            - string
+            - 'null'
+          description: MIME type of the file, available once the file is ready
+        size_bytes:
+          type:
+            - integer
+            - 'null'
+          format: int64
+          description: Size of the file in bytes, available once the file is ready
+        status:
+          $ref: '#/components/schemas/file-status'
+        upload_url:
+          type:
+            - string
+            - 'null'
+          description: Presigned URL the client uses to upload the file
+        upload_url_expires:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: Date and time at which the upload URL expires
+        upload_constraints:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/upload-constraints'
+          description: Constraints that the uploaded file must satisfy
+        download_url:
+          type:
+            - string
+            - 'null'
+          description: Presigned URL the client uses to download the file
+        download_url_expires:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: Date and time at which the download URL expires
+        failure_reason:
+          type:
+            - string
+            - 'null'
+          description: Reason the file was rejected, when applicable
+        created:
+          type: string
+          format: date-time
+          description: Date and time at which the file record was created
+        updated:
+          type: string
+          format: date-time
+          description: Date and time at which the file record was last updated
+      required:
+        - token
+        - name
+        - mime_type
+        - size_bytes
+        - status
+        - upload_url
+        - upload_url_expires
+        - upload_constraints
+        - download_url
+        - download_url_expires
+        - failure_reason
+        - created
+        - updated
+    create-file-request:
+      title: Create File Request
+      type: object
+      description: Parameters for creating a case file and starting an upload
+      properties:
+        name:
+          type: string
+          description: Name of the file to upload
+      required:
+        - name
+    queue:
+      title: Queue
+      type: object
+      description: A queue that groups transaction monitoring cases for review
+      properties:
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the queue
+        name:
+          type: string
+          description: Human-readable name of the queue
+        description:
+          type:
+            - string
+            - 'null'
+          description: Optional description of the queue
+        created:
+          type: string
+          format: date-time
+          description: Date and time at which the queue was created
+        updated:
+          type: string
+          format: date-time
+          description: Date and time at which the queue was last updated
+        case_counts:
+          type: object
+          description: |
+            Number of cases in the queue, broken down by status. A status is omitted
+            when the queue has no cases in that status
+          properties:
+            OPEN:
+              type: integer
+              format: int64
+              description: Number of cases in the queue with status `OPEN`
+            ASSIGNED:
+              type: integer
+              format: int64
+              description: Number of cases in the queue with status `ASSIGNED`
+            IN_REVIEW:
+              type: integer
+              format: int64
+              description: Number of cases in the queue with status `IN_REVIEW`
+            ESCALATED:
+              type: integer
+              format: int64
+              description: Number of cases in the queue with status `ESCALATED`
+            RESOLVED:
+              type: integer
+              format: int64
+              description: Number of cases in the queue with status `RESOLVED`
+            CLOSED:
+              type: integer
+              format: int64
+              description: Number of cases in the queue with status `CLOSED`
+          additionalProperties: false
+      required:
+        - token
+        - name
+        - description
+        - created
+        - updated
+        - case_counts
+    create-queue-request:
+      title: Create Queue Request
+      type: object
+      description: Parameters for creating a queue
+      properties:
+        name:
+          type: string
+          description: Human-readable name of the queue
+        description:
+          type:
+            - string
+            - 'null'
+          description: Optional description of the queue
+      required:
+        - name
+    update-queue-request:
+      title: Update Queue Request
+      type: object
+      description: Parameters for updating a queue. All fields are optional; omitted fields are left unchanged
+      properties:
+        name:
+          type: string
+          description: New name for the queue
+        description:
+          type:
+            - string
+            - 'null'
+          description: New description for the queue, or `null` to clear it
     Transfer:
       properties:
         category:
@@ -25339,6 +26413,30 @@ components:
                     type: string
                 type: object
       description: Unprocessable Entity.
+    Case:
+      description: Case
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/monitoring-case'
+    CaseActivityEntry:
+      description: Case activity entry
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/case-activity'
+    CaseFile:
+      description: Case file
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/file'
+    Queue:
+      description: Queue
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/queue'
 webhooks:
   account_holder.created:
     post:
