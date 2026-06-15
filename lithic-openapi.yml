@@ -19766,6 +19766,8 @@ components:
               description: Related account tokens for the transaction
             type:
               $ref: '#/components/schemas/transfer_type'
+            tags:
+              $ref: '#/components/schemas/tags'
           required:
             - category
             - result
