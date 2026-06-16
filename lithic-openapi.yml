@@ -3945,6 +3945,50 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /v1/transactions/{transaction_token}/route:
+    post:
+      summary: Route a transaction
+      description: Route a card transaction to a financial account. Only available for select use cases and programs.
+      operationId: routeTransaction
+      tags:
+        - Transaction
+      parameters:
+        - required: true
+          schema:
+            title: Transaction Token
+            type: string
+            format: uuid
+          name: transaction_token
+          description: The token of the transaction to route.
+          in: path
+          example: 00000000-0000-0000-0000-000000000000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - financial_account_token
+              properties:
+                financial_account_token:
+                  description: The token of the financial account to route the transaction to.
+                  type: string
+                  format: uuid
+                  example: 00000000-0000-0000-0000-000000000000
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /v1/transactions/events/{event_token}/enhanced_commercial_data:
     get:
       description: Get L2/L3 enhanced commercial data associated with a transaction event. Not available in sandbox.
