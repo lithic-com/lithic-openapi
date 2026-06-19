@@ -11919,6 +11919,7 @@ components:
         - ACH_CREDIT_RECEIPT
         - ACH_DEBIT_RECEIPT
         - CARD_TRANSACTION_UPDATE
+        - ACH_PAYMENT_UPDATE
       description: The event stream during which the rule will be evaluated.
     auth-rule-token:
       title: Auth Rule Token
@@ -11993,8 +11994,8 @@ components:
         - `CONDITIONAL_BLOCK`: Deprecated. Use `CONDITIONAL_ACTION` instead. AUTHORIZATION event stream.
         - `VELOCITY_LIMIT`: AUTHORIZATION event stream.
         - `MERCHANT_LOCK`: AUTHORIZATION event stream.
-        - `CONDITIONAL_ACTION`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, or CARD_TRANSACTION_UPDATE event stream.
-        - `TYPESCRIPT_CODE`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, or CARD_TRANSACTION_UPDATE event stream.
+        - `CONDITIONAL_ACTION`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, CARD_TRANSACTION_UPDATE, or ACH_PAYMENT_UPDATE event stream.
+        - `TYPESCRIPT_CODE`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, CARD_TRANSACTION_UPDATE, or ACH_PAYMENT_UPDATE event stream.
     conditional-operation:
       title: Conditional Operation
       type: string
@@ -12972,6 +12973,94 @@ components:
       required:
         - action
         - conditions
+    ach-payment-update-action:
+      title: ACH Payment Update Action
+      oneOf:
+        - title: Tag Action
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - TAG
+              description: Tag the payment with key-value metadata
+            key:
+              type: string
+              description: The key of the tag to apply to the payment
+            value:
+              type: string
+              description: The value of the tag to apply to the payment
+          required:
+            - type
+            - key
+            - value
+        - title: Create Case Action
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - CREATE_CASE
+              description: Create a case for the payment
+            scope:
+              type: string
+              enum:
+                - FINANCIAL_ACCOUNT
+              description: The scope of the case to create
+            queue_token:
+              type: string
+              format: uuid
+              description: The token of the queue to create the case in
+          required:
+            - type
+            - scope
+            - queue_token
+    conditional-ach-payment-update-action-parameters:
+      title: Conditional Action (ACH Payment Update) Parameters
+      type: object
+      properties:
+        action:
+          description: The action to take if the conditions are met.
+          $ref: '#/components/schemas/ach-payment-update-action'
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              attribute:
+                type: string
+                description: |-
+                  The attribute to target.
+
+                  The following attributes may be targeted:
+                  * `TRANSACTION_AMOUNT`: The total amount of the ACH payment in minor units (cents), calculated as the sum of the settled and pending amounts. Use an integer value.
+                  * `SEC_CODE`: Standard Entry Class code indicating the type of ACH transaction. Valid values include PPD (Prearranged Payment and Deposit Entry), CCD (Corporate Credit or Debit Entry), WEB (Internet-Initiated/Mobile Entry), TEL (Telephone-Initiated Entry), and others.
+                  * `RETURN_REASON_CODE`: NACHA return reason code associated with the payment (for example, `R01`).
+                  * `ACCOUNT_AGE`: The age of the account in seconds at the time of the payment. Use an integer value. For programs where Lithic does not manage or retain account holder data, this attribute does not evaluate.
+                  * `EXTERNAL_BANK_ACCOUNT_AGE`: The age of the external bank account in seconds at the time of the payment. Use an integer value.
+                  * `EXTERNAL_BANK_ACCOUNT_VERIFICATION_METHOD`: The method used to verify the external bank account. Valid values are `MANUAL`, `MICRO_DEPOSIT`, `PRENOTE`, `EXTERNALLY_VERIFIED`, or `UNVERIFIED`.
+                  * `EXTERNAL_BANK_ACCOUNT_VERIFICATION_STATE`: The verification state of the external bank account. Valid values are `PENDING`, `ENABLED`, `FAILED_VERIFICATION`, or `INSUFFICIENT_FUNDS`.
+                  * `EXTERNAL_BANK_ACCOUNT_OWNER_TYPE`: The owner type of the external bank account. Valid values are `INDIVIDUAL` or `BUSINESS`.
+                enum:
+                  - TRANSACTION_AMOUNT
+                  - SEC_CODE
+                  - RETURN_REASON_CODE
+                  - ACCOUNT_AGE
+                  - EXTERNAL_BANK_ACCOUNT_AGE
+                  - EXTERNAL_BANK_ACCOUNT_VERIFICATION_METHOD
+                  - EXTERNAL_BANK_ACCOUNT_VERIFICATION_STATE
+                  - EXTERNAL_BANK_ACCOUNT_OWNER_TYPE
+              operation:
+                $ref: '#/components/schemas/conditional-operation'
+              value:
+                $ref: '#/components/schemas/conditional-value'
+            required:
+              - attribute
+              - operation
+              - value
+      required:
+        - action
+        - conditions
     rule-feature:
       title: Rule Feature
       description: |-
@@ -12982,8 +13071,9 @@ components:
         - `TOKENIZATION`: The tokenization request being evaluated. Only available for TOKENIZATION event stream rules.
         - `ACH_RECEIPT`: The ACH receipt being evaluated. Only available for ACH_CREDIT_RECEIPT and ACH_DEBIT_RECEIPT event stream rules.
         - `CARD_TRANSACTION`: The card transaction being evaluated. Only available for CARD_TRANSACTION_UPDATE event stream rules.
+        - `ACH_PAYMENT`: The ACH payment being evaluated. Only available for ACH_PAYMENT_UPDATE event stream rules.
         - `CARD`: The card associated with the event. Available for AUTHORIZATION, THREE_DS_AUTHENTICATION, and CARD_TRANSACTION_UPDATE event stream rules.
-        - `ACCOUNT_HOLDER`: The account holder associated with the card. Available for AUTHORIZATION, THREE_DS_AUTHENTICATION, and CARD_TRANSACTION_UPDATE event stream rules.
+        - `ACCOUNT_HOLDER`: The account holder associated with the event. Available for AUTHORIZATION, THREE_DS_AUTHENTICATION, CARD_TRANSACTION_UPDATE, and ACH_PAYMENT_UPDATE event stream rules.
         - `IP_METADATA`: IP address metadata for the request. Available for THREE_DS_AUTHENTICATION event stream rules.
         - `SPEND_VELOCITY`: Spend velocity data for the card or account. Requires `scope`, `period`, and optionally `filters` to configure the velocity calculation. Available for AUTHORIZATION event stream rules.
         - `TRANSACTION_HISTORY_SIGNALS`: Behavioral feature state derived from the entity's transaction history. Requires `scope` to specify whether to load card, account, or business account history. Available for AUTHORIZATION and CARD_TRANSACTION_UPDATE event stream rules.
@@ -13034,6 +13124,14 @@ components:
                 type:
                   type: string
                   const: CARD_TRANSACTION
+              required:
+                - type
+            - title: ACH Payment Feature
+              type: object
+              properties:
+                type:
+                  type: string
+                  const: ACH_PAYMENT
               required:
                 - type
             - title: Card Feature
@@ -13299,6 +13397,7 @@ components:
         - $ref: '#/components/schemas/conditional-ach-action-parameters'
         - $ref: '#/components/schemas/conditional-tokenization-action-parameters'
         - $ref: '#/components/schemas/conditional-card-transaction-update-action-parameters'
+        - $ref: '#/components/schemas/conditional-ach-payment-update-action-parameters'
         - $ref: '#/components/schemas/typescript-code-parameters'
         - $ref: '#/components/schemas/conditional-authorization-adjustment-parameters'
     auth-rule-version-id:
@@ -14017,6 +14116,50 @@ components:
               items:
                 allOf:
                   - $ref: '#/components/schemas/ach-action'
+                  - $ref: '#/components/schemas/action_explanation'
+          required:
+            - token
+            - auth_rule_token
+            - event_token
+            - transaction_token
+            - evaluation_time
+            - rule_version
+            - mode
+            - actions
+            - event_stream
+        - title: Card Transaction Update Result
+          properties:
+            event_stream:
+              const: CARD_TRANSACTION_UPDATE
+              description: The event stream during which the rule was evaluated
+            actions:
+              type: array
+              description: Actions returned by the rule evaluation
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/card-transaction-update-action'
+                  - $ref: '#/components/schemas/action_explanation'
+          required:
+            - token
+            - auth_rule_token
+            - event_token
+            - transaction_token
+            - evaluation_time
+            - rule_version
+            - mode
+            - actions
+            - event_stream
+        - title: ACH Payment Update Result
+          properties:
+            event_stream:
+              const: ACH_PAYMENT_UPDATE
+              description: The event stream during which the rule was evaluated
+            actions:
+              type: array
+              description: Actions returned by the rule evaluation
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/ach-payment-update-action'
                   - $ref: '#/components/schemas/action_explanation'
           required:
             - token
