@@ -13063,6 +13063,68 @@ components:
       required:
         - action
         - conditions
+    payment-velocity-filters:
+      title: Payment Velocity Filters
+      type: object
+      description: Optional filters applied when aggregating ACH payment velocity. Payments not matching the provided filters are excluded from the calculated velocity.
+      properties:
+        include_polarities:
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            enum:
+              - CREDIT
+              - DEBIT
+          description: Payment polarities to include in the velocity calculation.
+        include_payment_types:
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            enum:
+              - ORIGINATION
+              - RECEIPT
+          description: Payment types to include in the velocity calculation.
+        include_statuses:
+          type:
+            - 'null'
+            - array
+          minItems: 1
+          items:
+            type: string
+            enum:
+              - PENDING
+              - SETTLED
+              - DECLINED
+              - REVERSED
+              - CANCELED
+              - RETURNED
+          description: Payment statuses to include in the velocity calculation.
+        result:
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+          description: Only include payments with the given result.
+        include_tags:
+          type:
+            - 'null'
+            - object
+          additionalProperties:
+            type: string
+          description: Only include payments matching all of the provided tag key-value pairs.
+        exclude_tags:
+          type:
+            - 'null'
+            - object
+          additionalProperties:
+            type: string
+          description: Exclude payments matching any of the provided tag key-value pairs.
     rule-feature:
       title: Rule Feature
       description: |-
@@ -13074,10 +13136,14 @@ components:
         - `ACH_RECEIPT`: The ACH receipt being evaluated. Only available for ACH_CREDIT_RECEIPT and ACH_DEBIT_RECEIPT event stream rules.
         - `CARD_TRANSACTION`: The card transaction being evaluated. Only available for CARD_TRANSACTION_UPDATE event stream rules.
         - `ACH_PAYMENT`: The ACH payment being evaluated. Only available for ACH_PAYMENT_UPDATE event stream rules.
+        - `EXTERNAL_BANK_ACCOUNT`: The external bank account tied to the ACH payment being evaluated. Only available for ACH_PAYMENT_UPDATE event stream rules.
         - `CARD`: The card associated with the event. Available for AUTHORIZATION, THREE_DS_AUTHENTICATION, and CARD_TRANSACTION_UPDATE event stream rules.
         - `ACCOUNT_HOLDER`: The account holder associated with the event. Available for AUTHORIZATION, THREE_DS_AUTHENTICATION, CARD_TRANSACTION_UPDATE, and ACH_PAYMENT_UPDATE event stream rules.
         - `IP_METADATA`: IP address metadata for the request. Available for THREE_DS_AUTHENTICATION event stream rules.
-        - `SPEND_VELOCITY`: Spend velocity data for the card or account. Requires `scope`, `period`, and optionally `filters` to configure the velocity calculation. Available for AUTHORIZATION event stream rules.
+        - `SPEND_VELOCITY`: Spend velocity data for the card or account. Requires `scope`, `period`, and optionally `filters` to configure the velocity calculation. Available for AUTHORIZATION and CARD_TRANSACTION_UPDATE event stream rules.
+        - `PAYMENT_VELOCITY`: ACH payment velocity data, aggregated over the given scope. Requires `scope`, `period`, and optionally `filters` to configure the velocity calculation. Available for ACH_PAYMENT_UPDATE event stream rules.
+        - `CONSECUTIVE_DECLINES`: The number of consecutive declined transactions since the last approval for the card or account. Requires `scope`. Available for AUTHORIZATION and CARD_TRANSACTION_UPDATE event stream rules.
+        - `ACH_PAYMENT_HISTORY`: Windowed settled-amount statistics derived from the financial account's ACH payment history. Requires `scope`. Available for ACH_PAYMENT_UPDATE event stream rules.
         - `TRANSACTION_HISTORY_SIGNALS`: Behavioral feature state derived from the entity's transaction history. Requires `scope` to specify whether to load card, account, or business account history. Available for AUTHORIZATION and CARD_TRANSACTION_UPDATE event stream rules.
       allOf:
         - type: object
@@ -13136,6 +13202,14 @@ components:
                   const: ACH_PAYMENT
               required:
                 - type
+            - title: External Bank Account Feature
+              type: object
+              properties:
+                type:
+                  type: string
+                  const: EXTERNAL_BANK_ACCOUNT
+              required:
+                - type
             - title: Card Feature
               type: object
               properties:
@@ -13176,6 +13250,26 @@ components:
                 - type
                 - scope
                 - period
+            - title: Payment Velocity Feature
+              type: object
+              properties:
+                type:
+                  type: string
+                  const: PAYMENT_VELOCITY
+                scope:
+                  type: string
+                  description: The scope over which the ACH payment velocity is aggregated.
+                  enum:
+                    - FINANCIAL_ACCOUNT
+                    - GLOBAL
+                period:
+                  $ref: '#/components/schemas/velocity-limit-period'
+                filters:
+                  $ref: '#/components/schemas/payment-velocity-filters'
+              required:
+                - type
+                - scope
+                - period
             - title: Transaction History Signals Feature
               type: object
               properties:
@@ -13189,6 +13283,35 @@ components:
                     - CARD
                     - ACCOUNT
                     - BUSINESS_ACCOUNT
+              required:
+                - type
+                - scope
+            - title: Consecutive Declines Feature
+              type: object
+              properties:
+                type:
+                  type: string
+                  const: CONSECUTIVE_DECLINES
+                scope:
+                  type: string
+                  description: The entity scope to count consecutive declines for.
+                  enum:
+                    - CARD
+                    - ACCOUNT
+              required:
+                - type
+                - scope
+            - title: ACH Payment History Feature
+              type: object
+              properties:
+                type:
+                  type: string
+                  const: ACH_PAYMENT_HISTORY
+                scope:
+                  type: string
+                  description: The entity scope to load ACH payment history for.
+                  enum:
+                    - FINANCIAL_ACCOUNT
               required:
                 - type
                 - scope
