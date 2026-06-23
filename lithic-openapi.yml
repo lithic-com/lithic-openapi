@@ -16035,6 +16035,11 @@ components:
         - card.renewed
         - card.shipped
         - card.updated
+        - claim_document.accepted
+        - claim_document.rejected
+        - claim_document.uploaded
+        - claim.created
+        - claim.updated
         - digital_wallet.tokenization_result
         - digital_wallet.tokenization_two_factor_authentication_code
         - digital_wallet.tokenization_two_factor_authentication_code_sent
@@ -16092,6 +16097,11 @@ components:
         - card.renewed: Occurs when a card is renewed.
         - card.shipped: Occurs when a card is shipped.
         - card.updated: Occurs when a card is updated.
+        - claim_document.accepted: Occurs when a claim document passes validation and is accepted.
+        - claim_document.rejected: Occurs when a claim document fails validation and is rejected.
+        - claim_document.uploaded: Occurs when a claim document is uploaded and begins validation.
+        - claim.created: Occurs when a dispute intake claim is created.
+        - claim.updated: Occurs when a dispute intake claim is updated, such as a status change or a change to its outstanding requirements.
         - digital_wallet.tokenization_result: Occurs when a tokenization request succeeded or failed.
 
         This event will be deprecated in the future. We recommend using `tokenization.result` instead.
@@ -25290,6 +25300,233 @@ components:
                 type: PREMIUM_SUPER
                 unit_of_measure: GALLONS
                 unit_price: 4300
+    disputed-transaction:
+      title: Disputed Transaction
+      description: A transaction included in a claim, along with the specific events being disputed.
+      type: object
+      properties:
+        transaction_token:
+          description: Token for the transaction being disputed, in UUID format
+          type: string
+          format: uuid
+        event_tokens:
+          description: Tokens for the specific events within the transaction being disputed. Lithic creates one dispute per event token
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - transaction_token
+        - event_tokens
+    claim:
+      title: Claim
+      description: A claim represents a dispute filing initiated through the Dispute Intake API.
+      type: object
+      properties:
+        token:
+          description: Unique identifier for the claim, in UUID format
+          type: string
+          format: uuid
+        card_tokens:
+          description: Tokens for the cards associated with the disputed transactions
+          type: array
+          items:
+            type: string
+            format: uuid
+        account_token:
+          description: Token for the account associated with the claim
+          type:
+            - string
+            - 'null'
+          format: uuid
+        account_holder_token:
+          description: Token for the account holder that filed the claim
+          type:
+            - string
+            - 'null'
+          format: uuid
+        created:
+          description: When the claim was created
+          type: string
+          format: date-time
+        updated:
+          description: When the claim was last updated
+          type: string
+          format: date-time
+        disputed_transactions:
+          description: Transactions included in this claim
+          type: array
+          items:
+            $ref: '#/components/schemas/disputed-transaction'
+        reason:
+          description: Dispute reason code provided when creating the claim
+          type: string
+          enum:
+            - CARD_NOT_PRESENT
+            - CARD_LOST
+            - CARD_STOLEN
+            - CARD_NEVER_RECEIVED
+            - COUNTERFEIT
+            - ACCOUNT_TAKEOVER
+            - PRODUCT_NOT_RECEIVED
+            - NOT_AS_DESCRIBED
+            - CREDIT_NOT_PROCESSED
+            - CANCELLED_RECURRING
+            - PAID_BY_OTHER_MEANS
+            - DUPLICATE_CHARGE
+            - LATE_PRESENTMENT
+            - INCORRECT_TRANSACTION_CODE
+            - NO_AUTHORIZATION
+            - DECLINED
+            - INCORRECT_AMOUNT
+            - ATM_CASH_NOT_DISPENSED
+            - ATM_DEPOSIT_WRONG_AMOUNT
+            - ATM_DEPOSIT_MISSING
+        status:
+          description: Current lifecycle status of the claim
+          type: string
+          enum:
+            - INITIALIZING
+            - AWAITING_INFO
+            - SUBMITTED
+            - RESOLVED
+            - ABANDONED
+        outstanding_requirements:
+          description: Requirements that must be fulfilled before the claim can be submitted
+          type: array
+          items:
+            type: string
+            enum:
+              - QUESTIONNAIRE
+              - DOCUMENTS
+        submitted:
+          description: When the claim was submitted. Null until the claim reaches `SUBMITTED` status
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - token
+        - card_tokens
+        - account_token
+        - account_holder_token
+        - created
+        - updated
+        - disputed_transactions
+        - reason
+        - status
+        - outstanding_requirements
+        - submitted
+    upload-constraints-2:
+      title: Upload Constraints
+      description: Constraints that an uploaded file must satisfy.
+      type: object
+      properties:
+        accepted_mime_types:
+          description: MIME types accepted for upload
+          type: array
+          items:
+            type: string
+        max_size_bytes:
+          description: Maximum file size in bytes. Null if there is no enforced size limit
+          type:
+            - integer
+            - 'null'
+          format: int64
+      required:
+        - accepted_mime_types
+        - max_size_bytes
+    claim-document:
+      title: Claim Document
+      description: A document uploaded as evidence for a claim.
+      type: object
+      properties:
+        token:
+          description: Unique identifier for the document, in UUID format
+          type: string
+          format: uuid
+        created:
+          description: When the document was created
+          type: string
+          format: date-time
+        updated:
+          description: When the document was last updated
+          type: string
+          format: date-time
+        requirement_id:
+          description: |
+            Identifier of the document requirement this document satisfies. Null for supplemental documents
+            not tied to a specific requirement
+          type:
+            - string
+            - 'null'
+        name:
+          description: Name provided when the upload intent was created
+          type: string
+        status:
+          description: Current validation status of the document
+          type: string
+          enum:
+            - PENDING
+            - VALIDATING
+            - ACCEPTED
+            - REJECTED
+        failure_reason:
+          description: Reason the document failed validation. Null unless `status` is `REJECTED`
+          type:
+            - string
+            - 'null'
+          enum:
+            - INVALID_MIME_TYPE
+            - FILE_TOO_LARGE
+            - FILE_EMPTY
+            - CORRUPT_FILE
+            - OTHER
+            - null
+        upload_url:
+          description: |
+            Presigned URL for uploading the file via HTTP PUT. Null after the upload window expires or after
+            the document has been validated
+          type:
+            - string
+            - 'null'
+        upload_url_expires_at:
+          description: When the upload URL expires
+          type:
+            - string
+            - 'null'
+          format: date-time
+        upload_constraints:
+          description: Constraints the uploaded file must satisfy
+          oneOf:
+            - $ref: '#/components/schemas/upload-constraints-2'
+            - type: 'null'
+        download_url:
+          description: |
+            Presigned URL for downloading the uploaded document. Available once the document is being validated
+            or has been accepted (`VALIDATING` or `ACCEPTED`)
+          type:
+            - string
+            - 'null'
+        download_url_expires_at:
+          description: When the download URL expires
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - token
+        - created
+        - updated
+        - requirement_id
+        - name
+        - status
+        - failure_reason
+        - upload_url
+        - upload_url_expires_at
+        - upload_constraints
+        - download_url
+        - download_url_expires_at
     device:
       type: object
       properties:
@@ -27235,6 +27472,126 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: card_transaction.enhanced_data.updated
+      tags:
+        - Event Types
+  claim.created:
+    post:
+      description: Occurs when a dispute intake claim is created.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: claim.created
+                      example: claim.created
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/claim'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: claim.created
+      tags:
+        - Event Types
+  claim.updated:
+    post:
+      description: Occurs when a dispute intake claim is updated, such as a status change or a change to its outstanding requirements.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: claim.updated
+                      example: claim.updated
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/claim'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: claim.updated
+      tags:
+        - Event Types
+  claim_document.uploaded:
+    post:
+      description: Occurs when a claim document is uploaded and begins validation.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: claim_document.uploaded
+                      example: claim_document.uploaded
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/claim-document'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: claim_document.uploaded
+      tags:
+        - Event Types
+  claim_document.accepted:
+    post:
+      description: Occurs when a claim document passes validation and is accepted.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: claim_document.accepted
+                      example: claim_document.accepted
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/claim-document'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: claim_document.accepted
+      tags:
+        - Event Types
+  claim_document.rejected:
+    post:
+      description: Occurs when a claim document fails validation and is rejected.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: claim_document.rejected
+                      example: claim_document.rejected
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/claim-document'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: claim_document.rejected
       tags:
         - Event Types
   digital_wallet.tokenization_approval_request:
