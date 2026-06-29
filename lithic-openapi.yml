@@ -22762,15 +22762,18 @@ components:
         - previous_value
         - new_value
         - created
-    case-transaction:
-      title: Case Transaction
+    card_case_transaction:
+      title: Card Case Transaction
+      description: A card transaction associated with a case
       type: object
-      description: A single transaction associated with a case
       properties:
+        category:
+          type: string
+          const: CARD
         token:
           type: string
           format: uuid
-          description: Globally unique identifier for the transaction
+          description: Globally unique identifier for the card transaction
         card_token:
           type: string
           format: uuid
@@ -22788,11 +22791,129 @@ components:
           format: date-time
           description: Date and time at which the transaction was added to the case
       required:
+        - category
         - token
         - card_token
         - account_token
         - transaction_created_at
         - added_at
+    payment_case_transaction:
+      title: Payment Case Transaction
+      description: A payment (ACH) transaction associated with a case
+      type: object
+      properties:
+        category:
+          type: string
+          const: PAYMENT
+        token:
+          type: string
+          format: uuid
+          description: Globally unique identifier for the payment transaction
+        financial_account_token:
+          type: string
+          format: uuid
+          description: Token of the financial account the payment belongs to
+        account_token:
+          type: string
+          format: uuid
+          description: Token of the account the payment belongs to, if applicable
+        transaction_created_at:
+          type: string
+          format: date-time
+          description: Date and time at which the transaction was created
+        added_at:
+          type: string
+          format: date-time
+          description: Date and time at which the transaction was added to the case
+      required:
+        - category
+        - token
+        - financial_account_token
+        - transaction_created_at
+        - added_at
+    case-transaction:
+      title: Case Transaction
+      description: |
+        A single transaction associated with a case. The `category` field identifies whether this is a
+        card transaction or a payment transaction.
+      oneOf:
+        - $ref: '#/components/schemas/card_case_transaction'
+        - $ref: '#/components/schemas/payment_case_transaction'
+      discriminator:
+        propertyName: category
+        mapping:
+          CARD TRANSACTION: '#/components/schemas/card_case_transaction'
+          PAYMENT TRANSACTION: '#/components/schemas/payment_case_transaction'
+      $defs:
+        card_case_transaction:
+          title: Card Case Transaction
+          description: A card transaction associated with a case
+          type: object
+          properties:
+            category:
+              type: string
+              const: CARD
+            token:
+              type: string
+              format: uuid
+              description: Globally unique identifier for the card transaction
+            card_token:
+              type: string
+              format: uuid
+              description: Token of the card the transaction was made on
+            account_token:
+              type: string
+              format: uuid
+              description: Token of the account the transaction belongs to
+            transaction_created_at:
+              type: string
+              format: date-time
+              description: Date and time at which the transaction was created
+            added_at:
+              type: string
+              format: date-time
+              description: Date and time at which the transaction was added to the case
+          required:
+            - category
+            - token
+            - card_token
+            - account_token
+            - transaction_created_at
+            - added_at
+        payment_case_transaction:
+          title: Payment Case Transaction
+          description: A payment (ACH) transaction associated with a case
+          type: object
+          properties:
+            category:
+              type: string
+              const: PAYMENT
+            token:
+              type: string
+              format: uuid
+              description: Globally unique identifier for the payment transaction
+            financial_account_token:
+              type: string
+              format: uuid
+              description: Token of the financial account the payment belongs to
+            account_token:
+              type: string
+              format: uuid
+              description: Token of the account the payment belongs to, if applicable
+            transaction_created_at:
+              type: string
+              format: date-time
+              description: Date and time at which the transaction was created
+            added_at:
+              type: string
+              format: date-time
+              description: Date and time at which the transaction was added to the case
+          required:
+            - category
+            - token
+            - financial_account_token
+            - transaction_created_at
+            - added_at
     case-card:
       title: Case Card
       type: object
