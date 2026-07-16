@@ -9281,7 +9281,7 @@ paths:
     get:
       description: List external payments
       parameters:
-        - description: External Payment category to be returned.
+        - description: The external rail the funds moved on
           in: query
           name: category
           schema:
