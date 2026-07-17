@@ -3002,6 +3002,55 @@ paths:
       summary: Get card's available spend limit
       tags:
         - Card
+  /v1/cards/{card_token}/embed:
+    post:
+      description: |
+        Creates a short-lived session for displaying card details or setting a card PIN in
+        Lithic-hosted iframes. Create the session on your backend to not expose your API key in browser code.
+
+        A session token can only be used to reveal card details (per embed type) or submit a pin a single time. Attempting to
+        re-use session tokens will result in 401's.
+      operationId: createCardEmbedSession
+      parameters:
+        - $ref: '#/components/parameters/cardToken'
+      requestBody:
+        content:
+          application/json:
+            examples:
+              cardEmbed:
+                summary: Create a card details embed session
+                value:
+                  target_origin: https://example.com
+                  type: CARD_EMBED
+              pinSettingEmbed:
+                summary: Create a PIN setting embed session
+                value:
+                  target_origin: https://example.com
+                  type: PIN_SETTING_EMBED
+            schema:
+              $ref: '#/components/schemas/create-embed-session-request'
+        description: Card embed session parameters.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/embed-session-response'
+          description: A short-lived card embed session.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create card embed session
+      tags:
+        - Card
   /v1/card_authorizations/{event_token}/challenge_response:
     post:
       description: |-
@@ -3633,7 +3682,10 @@ paths:
         - Chargeback
   /v1/embed/card:
     get:
+      deprecated: true
       description: |
+        **Deprecated.** Use the modern embedded card flow instead: create a session with `POST /v1/cards/{card_token}/embed` and render it via `GET /v1/embed`.
+
         Handling full card PANs and CVV codes requires that you comply with the Payment Card Industry Data Security Standards (PCI DSS). Some clients choose to reduce their compliance obligations by leveraging our embedded card UI solution documented below.
 
         In this setup, PANs and CVV codes are presented to the end-user via a card UI that we provide, optionally styled in the customer's branding using a specified css stylesheet. A user's browser makes the request directly to api.lithic.com, so card PANs and CVVs never touch the API customer's servers while full card data is displayed to their end-users. The response contains an HTML document (see Embedded Card UI or Changelog for upcoming changes in January). This means that the url for the request can be inserted straight into the `src` attribute of an iframe.
@@ -3777,6 +3829,78 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Embedded card UI
+      tags:
+        - Card
+  /v1/embed:
+    get:
+      description: |
+        Returns a Lithic-hosted HTML document for a single card detail or PIN setting control. Use
+        the URL, including its query parameters, as the `src` of an iframe. The session must be created
+        on your server with `POST /v1/cards/{card_token}/embed`.
+      operationId: getCardEmbed
+      parameters:
+        - description: |
+            The short-lived credential returned by the session creation endpoint. Treat it as
+            sensitive and use it only in the iframe `src`.
+          example: eyJhb...
+          in: query
+          name: session
+          required: true
+          schema:
+            type: string
+        - description: |
+            The type of embed to return.
+            `CARD_EMBED` sessions support `PAN`, `CVV`, `EXP_MONTH`, and `EXP_YEAR`.
+            `PIN_SETTING_EMBED` sessions support only `PIN_SETTING`.
+          example: PAN
+          in: query
+          name: type
+          required: true
+          schema:
+            enum:
+              - PAN
+              - CVV
+              - EXP_MONTH
+              - EXP_YEAR
+              - PIN_SETTING
+            type: string
+        - description: |
+            Optional base64-encoded JSON object containing CSS property and value pairs to apply to
+            the iframe. URL-encode the base64 value when adding it to the query string. Styles that
+            load external resources are not permitted. The encoded value cannot exceed 4096 characters.
+          example: eyJjb2xvciI6IiMxQTFBMUEiLCJmb250U2l6ZSI6IjE2cHgifQ==
+          in: query
+          name: styles
+          required: false
+          schema:
+            format: byte
+            maxLength: 4096
+            type: string
+      responses:
+        '200':
+          content:
+            text/html:
+              examples:
+                html:
+                  summary: Card embed iframe
+                  value: <!doctype html><html><body><div id="app"></div></body></html>
+              schema:
+                type: string
+          description: Lithic-hosted card embed HTML.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: The embed session is missing, invalid, expired, or not authorized for the requested type.
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+      summary: Get card embed iframe
       tags:
         - Card
   /v1/fraud/transactions/{transaction_token}:
@@ -15309,6 +15433,52 @@ components:
       required:
         - available_spend_limit
       type: object
+    create-embed-session-request:
+      title: Create Embed Session Request
+      description: Parameters for creating a short-lived card embed session.
+      type: object
+      properties:
+        type:
+          description: |
+            The type of card embed session to create.
+
+            `CARD_EMBED` sessions can load `PAN`, `CVV`, `EXP_MONTH`, and `EXP_YEAR` iframes.
+
+            `PIN_SETTING_EMBED` sessions can load only the `PIN_SETTING` iframe.
+          type: string
+          enum:
+            - CARD_EMBED
+            - PIN_SETTING_EMBED
+          example: CARD_EMBED
+        expiration:
+          description: |
+            Unix timestamp at which the session expires. The value must be in the future and no more than
+            10 minutes after the request. If omitted, the session expires 10 minutes after the request.
+          type: integer
+          format: int64
+        target_origin:
+          description: |
+            Canonical HTTPS origin of the page that will embed the iframe. Lithic embeds will verify the `target_origin` against the parent application's origin.
+            The origin must not contain a path, query parameters, fragment, or credentials.
+          type: string
+          format: uri
+          example: https://example.com
+      required:
+        - target_origin
+        - type
+    embed-session-response:
+      title: Embed Session Response
+      description: A short-lived session used to load Lithic-hosted card embed iframes.
+      type: object
+      properties:
+        session:
+          description: |
+            Opaque, short-lived credential used to load card embed iframes. Treat this value as sensitive.
+            Do not log, persist, include in analytics, or share it.
+          type: string
+          example: eyJhb...
+      required:
+        - session
     bulk-order-response:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Bulk Order Response
@@ -16171,6 +16341,8 @@ components:
         - dispute_transaction.created
         - dispute_transaction.updated
         - dispute.updated
+        - embed.session_generated
+        - embed.viewed
         - external_bank_account.created
         - external_bank_account.updated
         - external_payment.created
@@ -16245,6 +16417,8 @@ components:
         - dispute.updated: Occurs when a dispute filed through the Chargebacks API (`/v1/disputes`) is created or updated.
 
         This event is not emitted for Managed Disputes. Use `dispute_transaction.created` and `dispute_transaction.updated` instead.
+        - embed.session_generated: Occurs when a card embed session is successfully generated.
+        - embed.viewed: Occurs when a card detail is successfully revealed through an embed.
         - external_bank_account.created: Occurs when an external bank account is created.
         - external_bank_account.updated: Occurs when an external bank account is updated.
         - external_payment.created: Occurs when an external payment is created.
@@ -26447,6 +26621,119 @@ components:
           dispute_token: f7a74167-d6d5-4f7d-8501-36df11ba371b
           token: 48b8e42c-a645-44f6-8604-20c3127e9008
           upload_status: REJECTED
+    embed-device-details:
+      title: Embed Device Details
+      description: Device details about the request associated with an embed webhook event.
+      type: object
+      properties:
+        ip_address:
+          description: The IP address recorded for the request that generated the event
+          type: string
+          example: 192.0.2.1
+      required:
+        - ip_address
+    embed-session-generated:
+      title: Embed Session Generated
+      description: Notification that a card embed session was successfully generated.
+      type: object
+      examples:
+        - event_type: embed.session_generated
+          session_id: 4273ff06-3ce4-4092-8a1f-0340e33b6375
+          card_token: 4df9a19c-9e1e-40d1-b27a-05e01152ee07
+          account_token: 9a352526-4e69-469a-80b8-e22c71ba3cf0
+          session_type: CARD_EMBED
+          device_details:
+            ip_address: 192.0.2.1
+      properties:
+        event_type:
+          description: The type of event
+          type: string
+          const: embed.session_generated
+          example: embed.session_generated
+        session_id:
+          description: The identifier shared by webhook events for the same embed session.
+          type: string
+          format: uuid
+          example: 4273ff06-3ce4-4092-8a1f-0340e33b6375
+        card_token:
+          description: The token of the card associated with the embed session
+          type: string
+          format: uuid
+          example: 4df9a19c-9e1e-40d1-b27a-05e01152ee07
+        account_token:
+          description: The token of the account associated with the card
+          type: string
+          format: uuid
+          example: 9a352526-4e69-469a-80b8-e22c71ba3cf0
+        session_type:
+          description: The type of embed session that was generated
+          type: string
+          enum:
+            - CARD_EMBED
+            - PIN_SETTING_EMBED
+          example: CARD_EMBED
+        device_details:
+          description: Details about the request that generated the embed session
+          $ref: '#/components/schemas/embed-device-details'
+      required:
+        - event_type
+        - session_id
+        - card_token
+        - account_token
+        - session_type
+        - device_details
+    embed-viewed:
+      title: Embed Viewed
+      description: Notification that card details were successfully revealed through an embed.
+      type: object
+      examples:
+        - event_type: embed.viewed
+          session_id: 4273ff06-3ce4-4092-8a1f-0340e33b6375
+          card_token: 4df9a19c-9e1e-40d1-b27a-05e01152ee07
+          account_token: 9a352526-4e69-469a-80b8-e22c71ba3cf0
+          embed_type: PAN
+          device_details:
+            ip_address: 192.0.2.1
+      properties:
+        event_type:
+          description: The type of event
+          type: string
+          const: embed.viewed
+          example: embed.viewed
+        session_id:
+          description: The identifier shared by webhook events for the same embed session.
+          type: string
+          format: uuid
+          example: 4273ff06-3ce4-4092-8a1f-0340e33b6375
+        card_token:
+          description: The token of the card whose details were revealed
+          type: string
+          format: uuid
+          example: 4df9a19c-9e1e-40d1-b27a-05e01152ee07
+        account_token:
+          description: The token of the account associated with the card
+          type: string
+          format: uuid
+          example: 9a352526-4e69-469a-80b8-e22c71ba3cf0
+        embed_type:
+          description: The type of card detail that was revealed
+          type: string
+          enum:
+            - PAN
+            - CVV
+            - EXP_MONTH
+            - EXP_YEAR
+          example: PAN
+        device_details:
+          description: Details about the request that revealed the card detail
+          $ref: '#/components/schemas/embed-device-details'
+      required:
+        - event_type
+        - session_id
+        - card_token
+        - account_token
+        - embed_type
+        - device_details
     funding_events_created_webhook:
       title: Funding Event Webhook
       type: object
@@ -28025,6 +28312,54 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: dispute_evidence.upload_failed
+      tags:
+        - Event Types
+  embed.session_generated:
+    post:
+      description: Occurs when a card embed session is successfully generated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: embed.session_generated
+                      example: embed.session_generated
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/embed-session-generated'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: embed.session_generated
+      tags:
+        - Event Types
+  embed.viewed:
+    post:
+      description: Occurs when a card detail is successfully revealed through an embed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: embed.viewed
+                      example: embed.viewed
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/embed-viewed'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: embed.viewed
       tags:
         - Event Types
   external_bank_account.created:
