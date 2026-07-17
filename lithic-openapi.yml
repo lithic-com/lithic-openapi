@@ -16201,7 +16201,7 @@ components:
       description: |
         The type of event that occurred. Possible values:
 
-        - account_holder_document.updated: Occurs when an account holder's document upload status has been updated
+        - account_holder_document.updated: Occurs when an account holder's document upload status has been updated.
         - account_holder.created: Occurs when a new account_holder is created.
         - account_holder.updated: Occurs when an account_holder is updated.
         - account_holder.verification: Occurs when an asynchronous account_holder's verification is completed.
@@ -16237,10 +16237,14 @@ components:
         - digital_wallet.tokenization_updated: Occurs when a tokenization's status has changed.
 
         This event will be deprecated in the future. We recommend using `tokenization.updated` instead.
-        - dispute_evidence.upload_failed: Occurs when a dispute evidence upload fails.
-        - dispute_transaction.created: Occurs when a new dispute transaction is created
-        - dispute_transaction.updated: Occurs when a dispute transaction is updated
-        - dispute.updated: Occurs when a dispute is updated.
+        - dispute_evidence.upload_failed: Occurs when an evidence upload fails for a dispute filed through the Chargebacks API (`/v1/disputes`).
+
+        This event is not emitted for Managed Disputes.
+        - dispute_transaction.created: Occurs when a new dispute transaction is created for a Managed Disputes case.
+        - dispute_transaction.updated: Occurs when a dispute transaction for a Managed Disputes case is updated.
+        - dispute.updated: Occurs when a dispute filed through the Chargebacks API (`/v1/disputes`) is created or updated.
+
+        This event is not emitted for Managed Disputes. Use `dispute_transaction.created` and `dispute_transaction.updated` instead.
         - external_bank_account.created: Occurs when an external bank account is created.
         - external_bank_account.updated: Occurs when an external bank account is updated.
         - external_payment.created: Occurs when an external payment is created.
@@ -16259,7 +16263,7 @@ components:
         - payment_transaction.created: Occurs when a payment transaction is created.
         - payment_transaction.updated: Occurs when a payment transaction is updated.
         - settlement_report.updated: Occurs when a settlement report is created or updated.
-        - statements.created: Occurs when a statement has been created
+        - statements.created: Occurs when a statement has been created.
         - three_ds_authentication.challenge: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue its own challenge to the cardholder. After a cardholder challenge is successfully completed, the Card Program needs to respond back to Lithic by call to [/v1/three_ds_decisioning/challenge_response](https://docs.lithic.com/reference/post_v1-three-ds-decisioning-challenge-response). Then the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an `app_requestor_url` for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
         - three_ds_authentication.created: Occurs when a 3DS authentication is created.
         - three_ds_authentication.updated: Occurs when a 3DS authentication is updated (eg. challenge is completed).
@@ -27302,7 +27306,7 @@ webhooks:
         - Event Types
   account_holder_document.updated:
     post:
-      description: Occurs when an account holder's document upload status has been updated
+      description: Occurs when an account holder's document upload status has been updated.
       requestBody:
         content:
           application/json:
@@ -27970,7 +27974,10 @@ webhooks:
         - Event Types
   dispute.updated:
     post:
-      description: Occurs when a dispute is updated.
+      description: |-
+        Occurs when a dispute filed through the Chargebacks API (`/v1/disputes`) is created or updated.
+
+        This event is not emitted for Managed Disputes. Use `dispute_transaction.created` and `dispute_transaction.updated` instead.
       requestBody:
         content:
           application/json:
@@ -27994,7 +28001,10 @@ webhooks:
         - Event Types
   dispute_evidence.upload_failed:
     post:
-      description: Occurs when a dispute evidence upload fails.
+      description: |-
+        Occurs when an evidence upload fails for a dispute filed through the Chargebacks API (`/v1/disputes`).
+
+        This event is not emitted for Managed Disputes.
       requestBody:
         content:
           application/json:
@@ -28450,7 +28460,7 @@ webhooks:
         - Event Types
   statements.created:
     post:
-      description: Occurs when a statement has been created
+      description: Occurs when a statement has been created.
       requestBody:
         content:
           application/json:
@@ -28693,7 +28703,7 @@ webhooks:
         - 3DS
   dispute_transaction.created:
     post:
-      description: Occurs when a new dispute transaction is created
+      description: Occurs when a new dispute transaction is created for a Managed Disputes case.
       requestBody:
         content:
           application/json:
@@ -28761,7 +28771,7 @@ webhooks:
         - Event Types
   dispute_transaction.updated:
     post:
-      description: Occurs when a dispute transaction is updated
+      description: Occurs when a dispute transaction for a Managed Disputes case is updated.
       requestBody:
         content:
           application/json:
