@@ -1100,6 +1100,7 @@ paths:
         - Account
   /v2/auth_rules:
     post:
+      operationId: postAuthRules
       summary: Create a new rule
       description: Creates a new V2 Auth rule in draft mode
       tags:
@@ -1120,6 +1121,7 @@ paths:
         '404':
           $ref: '#/components/responses/responses-NotFound'
     get:
+      operationId: getAuthRules
       summary: List rules
       description: Lists V2 Auth rules
       tags:
@@ -1201,6 +1203,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}:
     get:
+      operationId: getAuthRuleByToken
       summary: Fetch a rule
       description: Fetches a V2 Auth rule by its token
       tags:
@@ -1215,6 +1218,7 @@ paths:
         '404':
           $ref: '#/components/responses/responses-NotFound'
     patch:
+      operationId: patchAuthRuleByToken
       summary: Update a rule
       description: |
         Updates a V2 Auth rule's properties
@@ -1239,6 +1243,7 @@ paths:
         '404':
           $ref: '#/components/responses/responses-NotFound'
     delete:
+      operationId: deleteAuthRuleByToken
       summary: Delete a rule
       description: Deletes a V2 Auth rule
       tags:
@@ -1254,6 +1259,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/draft:
     post:
+      operationId: postAuthRuleDraft
       summary: Draft a new rule version
       description: |
         Creates a new draft version of a rule that will be ran in shadow mode.
@@ -1285,6 +1291,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/features:
     get:
+      operationId: getAuthRuleFeatures
       summary: Calculated Feature values
       description: |
         Fetches the current calculated Feature values for the given Auth Rule
@@ -1319,6 +1326,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/promote:
     post:
+      operationId: postAuthRulePromote
       summary: Promote a rule version
       description: Promotes the draft version of an Auth rule to the currently active version such that it is enforced in the respective stream.
       tags:
@@ -1334,6 +1342,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/versions:
     get:
+      operationId: getAuthRuleVersions
       summary: List rule versions
       description: Returns all versions of an auth rule, sorted by version number descending (newest first).
       tags:
@@ -1360,6 +1369,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/report:
     get:
+      operationId: getAuthRuleReport
       summary: Retrieve a performance report
       description: |
         Retrieves a performance report for an Auth rule containing daily statistics and evaluation outcomes.
@@ -1401,6 +1411,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/backtests:
     get:
+      operationId: getAuthRuleBacktests
       summary: List backtests
       description: Lists backtests for an Auth Rule
       tags:
@@ -1433,6 +1444,7 @@ paths:
         '404':
           $ref: '#/components/responses/responses-NotFound'
     post:
+      operationId: postAuthRuleBacktest
       summary: Request a backtest
       description: |
         Initiates a request to asynchronously generate a backtest for an Auth rule. During backtesting, both the active version (if one exists) and the draft version of the Auth Rule are evaluated by replaying historical transaction data against the rule's conditions. This process allows customers to simulate and understand the effects of proposed rule changes before deployment.
@@ -1469,6 +1481,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}:
     get:
+      operationId: getAuthRuleBacktestByToken
       summary: Retrieve backtest results
       description: |
         Returns the backtest results of an Auth rule (if available).
@@ -1495,6 +1508,7 @@ paths:
           $ref: '#/components/responses/responses-NotFound'
   /v2/auth_rules/results:
     get:
+      operationId: getAuthRuleResults
       summary: List rule evaluation results
       description: |
         Lists Auth Rule evaluation results.
@@ -3055,7 +3069,7 @@ paths:
     post:
       description: |-
         Card program's response to Authorization Challenge.
-        Programs that have Authorization Challenges configured as Out of Band receive a [card_authorization.challenge](https://docs.lithic.com/reference/post_card-authorization-challenge) webhook when an authorization attempt triggers a challenge.
+        Programs that have Authorization Challenges configured as Out of Band receive a [card_authorization.challenge](https://docs.lithic.com/reference/cardauthorizationchallengewebhook) webhook when an authorization attempt triggers a challenge.
         The card program should respond using this endpoint after the cardholder completes the challenge.
       summary: Respond to Authorization Challenge
       operationId: respondToAuthorizationChallenge
@@ -5223,6 +5237,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/prime_rates_response'
           description: Successful Response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Get Credit Product Prime Rates
       tags:
         - Credit Product
@@ -5246,6 +5268,14 @@ paths:
       responses:
         '202':
           description: Successful Response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Post Credit Product Prime Rate
       tags:
         - Credit Product
@@ -5458,6 +5488,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/financial-account-credit-config-response'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
     patch:
       description: Update an account's credit configuration
       operationId: patchAccountCreditConfiguration
@@ -5478,6 +5518,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/financial-account-credit-config-response'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /v1/financial_accounts/{financial_account_token}/financial_transactions:
     get:
       description: List the financial transactions for a given financial account.
@@ -5825,6 +5875,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/statements_response'
           description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: List statements
       tags:
         - Statements
@@ -5857,6 +5917,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/statement_response'
           description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Get statement by token
       tags:
         - Statements
@@ -5916,6 +5986,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/statement_line_items_response'
           description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: List line items for a statement
       tags:
         - Statements
@@ -5985,6 +6065,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/loan_tapes_response'
           description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: List loan tapes
       tags:
         - Statements
@@ -6017,6 +6107,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/loan_tape_response'
           description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Get loan tape by token
       tags:
         - Statements
@@ -6041,6 +6141,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/loan_tape_configuration'
           description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Get loan tape configuration
       tags:
         - Statements
@@ -6948,6 +7058,16 @@ paths:
         '200':
           content: {}
           description: Endpoint disenrolled successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Disenroll a responder endpoint
       tags:
         - Responder Endpoints
@@ -6981,6 +7101,16 @@ paths:
                       - 'null'
                 type: object
           description: Responder endpoint status
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Check the status of a responder endpoint
       tags:
         - Responder Endpoints
@@ -7015,6 +7145,16 @@ paths:
                     type: boolean
                 type: object
           description: Endpoint enrolled successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       summary: Enroll a responder endpoint
       tags:
         - Responder Endpoints
@@ -7964,6 +8104,8 @@ paths:
                     type: string
                 type: object
           description: Endpoint for users to check whether they can reach the api.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       security:
         - {}
       summary: API status check
@@ -8006,6 +8148,7 @@ paths:
         - 3DS
   /v1/three_ds_decisioning/simulate/enter_otp:
     post:
+      operationId: postSimulateEnterOtp
       description: Endpoint for simulating entering OTP into 3DS Challenge UI. A call to [/v1/three_ds_authentication/simulate](https://docs.lithic.com/reference/postsimulateauthentication) that resulted in triggered SMS-OTP challenge must precede. Only a single attempt is supported; upon entering OTP, the challenge is either approved or declined.
       requestBody:
         content:
@@ -8113,9 +8256,10 @@ paths:
         - 3DS
   /v1/three_ds_decisioning/challenge_response:
     post:
+      operationId: postThreeDsChallengeResponse
       description: |-
         Card program's response to a 3DS Challenge Request.
-        Challenge Request is emitted as a webhook [three_ds_authentication.challenge](https://docs.lithic.com/reference/post_three-ds-authentication-challenge) and your Card Program needs to be configured with Out of Band (OOB) Challenges in order to receive it (see https://docs.lithic.com/docs/3ds-challenge-flow for more information).
+        Challenge Request is emitted as a webhook [three_ds_authentication.challenge](https://docs.lithic.com/reference/threedsauthenticationchallengewebhook) and your Card Program needs to be configured with Out of Band (OOB) Challenges in order to receive it (see https://docs.lithic.com/docs/3ds-challenge-flow for more information).
       summary: Respond to a Challenge Request
       security:
         - ApiKeyAuth: []
@@ -9055,6 +9199,8 @@ paths:
                 required:
                   - data
                   - has_more
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
   /v1/transaction_monitoring/queues/{queue_token}:
     get:
       operationId: getTransactionMonitoringQueue
@@ -15882,7 +16028,9 @@ components:
              - `NOT_FRAUDULENT`: The transaction is (explicitly) marked as not fraudulent. A transaction may immediately be moved into this state, or be graduated into this state from the `SUSPECTED_FRAUD` state.
              - `NO_REPORTED_FRAUD`: Indicates that no fraud report exists for the transaction. It is the default state for transactions that have not been analyzed or associated with any known fraudulent activity.
         fraud_type:
-          type: string
+          type:
+            - string
+            - 'null'
           enum:
             - FIRST_PARTY_FRAUD
             - ACCOUNT_TAKEOVER
@@ -15898,14 +16046,20 @@ components:
              - `IDENTITY_THEFT`: Identity theft fraud occurs when a fraudster uses stolen personal information, such as Social Security numbers or addresses, to open accounts, apply for loans, or conduct financial transactions in someone's name.
              - `CARDHOLDER_MANIPULATION`: This type of fraud occurs when a fraudster manipulates or coerces a legitimate cardholder into unauthorized transactions, often through social engineering tactics.
         comment:
-          type: string
+          type:
+            - string
+            - 'null'
           description: Provides additional context or details about the fraud report.
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
           description: Timestamp representing when the fraud report was created.
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
           description: Timestamp representing the last update to the fraud report.
       required:
@@ -16438,7 +16592,7 @@ components:
         - payment_transaction.updated: Occurs when a payment transaction is updated.
         - settlement_report.updated: Occurs when a settlement report is created or updated.
         - statements.created: Occurs when a statement has been created.
-        - three_ds_authentication.challenge: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue its own challenge to the cardholder. After a cardholder challenge is successfully completed, the Card Program needs to respond back to Lithic by call to [/v1/three_ds_decisioning/challenge_response](https://docs.lithic.com/reference/post_v1-three-ds-decisioning-challenge-response). Then the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an `app_requestor_url` for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
+        - three_ds_authentication.challenge: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue its own challenge to the cardholder. After a cardholder challenge is successfully completed, the Card Program needs to respond back to Lithic by call to [/v1/three_ds_decisioning/challenge_response](https://docs.lithic.com/reference/postthreedschallengeresponse). Then the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an `app_requestor_url` for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
         - three_ds_authentication.created: Occurs when a 3DS authentication is created.
         - three_ds_authentication.updated: Occurs when a 3DS authentication is updated (eg. challenge is completed).
         - tokenization.approval_request: Occurs when a tokenization approval request is made.
@@ -27468,6 +27622,7 @@ components:
 webhooks:
   account_holder.created:
     post:
+      operationId: accountHolderCreatedWebhook
       description: Occurs when a new account_holder is created.
       requestBody:
         content:
@@ -27492,6 +27647,7 @@ webhooks:
         - Event Types
   account_holder.updated:
     post:
+      operationId: accountHolderUpdatedWebhook
       description: Occurs when an account_holder is updated.
       requestBody:
         content:
@@ -27570,6 +27726,7 @@ webhooks:
         - Event Types
   account_holder.verification:
     post:
+      operationId: accountHolderVerificationWebhook
       description: Occurs when an asynchronous account_holder's verification is completed.
       requestBody:
         content:
@@ -27594,6 +27751,7 @@ webhooks:
         - Event Types
   account_holder_document.updated:
     post:
+      operationId: accountHolderDocumentUpdatedWebhook
       description: Occurs when an account holder's document upload status has been updated.
       requestBody:
         content:
@@ -27618,6 +27776,7 @@ webhooks:
         - Event Types
   card_authorization.approval_request:
     post:
+      operationId: cardAuthorizationApprovalRequestWebhook
       description: Auth Stream Access Request
       parameters:
         - $ref: '#/components/parameters/webhookId'
@@ -27652,6 +27811,7 @@ webhooks:
         - Auth Stream Access (ASA)
   card_authorization.challenge:
     post:
+      operationId: cardAuthorizationChallengeWebhook
       description: Occurs when an Out of Band challenge is issued during card authorization. The card program should issue its own challenge to the cardholder and then respond via [/v1/card_authorizations/{event_token}/challenge_response](https://docs.lithic.com/reference/respondtoauthorizationchallenge).
       requestBody:
         content:
@@ -27676,6 +27836,7 @@ webhooks:
         - Event Types
   card_authorization.challenge_response:
     post:
+      operationId: cardAuthorizationChallengeResponseWebhook
       description: Occurs when a cardholder responds to a challenge during card authorization.
       requestBody:
         content:
@@ -27700,6 +27861,7 @@ webhooks:
         - Event Types
   auth_rules.backtest_report.created:
     post:
+      operationId: authRulesBacktestReportCreatedWebhook
       description: Auth Rules backtest report created.
       requestBody:
         content:
@@ -27724,6 +27886,7 @@ webhooks:
         - Event Types
   balance.updated:
     post:
+      operationId: balanceUpdatedWebhook
       description: Financial Account Balance Update
       requestBody:
         content:
@@ -27748,6 +27911,7 @@ webhooks:
         - Event Types
   book_transfer_transaction.created:
     post:
+      operationId: bookTransferTransactionCreatedWebhook
       description: Occurs when a book transfer transaction is created.
       requestBody:
         content:
@@ -27772,6 +27936,7 @@ webhooks:
         - Event Types
   book_transfer_transaction.updated:
     post:
+      operationId: bookTransferTransactionUpdatedWebhook
       description: Occurs when a book transfer transaction is updated.
       requestBody:
         content:
@@ -27796,6 +27961,7 @@ webhooks:
         - Event Types
   card.created:
     post:
+      operationId: cardCreatedWebhook
       description: Occurs when a new card is created.
       requestBody:
         content:
@@ -27820,6 +27986,7 @@ webhooks:
         - Event Types
   card.converted:
     post:
+      operationId: cardConvertedWebhook
       description: Occurs when a card is converted from virtual to physical cards.
       requestBody:
         content:
@@ -27844,6 +28011,7 @@ webhooks:
         - Event Types
   card.renewed:
     post:
+      operationId: cardRenewedWebhook
       description: Occurs when a card is renewed.
       requestBody:
         content:
@@ -27868,6 +28036,7 @@ webhooks:
         - Event Types
   card.reissued:
     post:
+      operationId: cardReissuedWebhook
       description: Occurs when a card is reissued.
       requestBody:
         content:
@@ -27892,6 +28061,7 @@ webhooks:
         - Event Types
   card.shipped:
     post:
+      operationId: cardShippedWebhook
       description: Occurs when a card is shipped.
       requestBody:
         content:
@@ -27916,6 +28086,7 @@ webhooks:
         - Event Types
   card.updated:
     post:
+      operationId: cardUpdatedWebhook
       description: Occurs when a card is updated.
       requestBody:
         content:
@@ -27940,6 +28111,7 @@ webhooks:
         - Event Types
   card_transaction.updated:
     post:
+      operationId: cardTransactionUpdatedWebhook
       description: Occurs when a card transaction happens.
       requestBody:
         content:
@@ -27964,6 +28136,7 @@ webhooks:
         - Event Types
   card_transaction.enhanced_data.created:
     post:
+      operationId: cardTransactionEnhancedDataCreatedWebhook
       description: Occurs when L2/L3 enhanced commercial data is processed for a transaction event.
       requestBody:
         content:
@@ -27988,6 +28161,7 @@ webhooks:
         - Event Types
   card_transaction.enhanced_data.updated:
     post:
+      operationId: cardTransactionEnhancedDataUpdatedWebhook
       description: Occurs when L2/L3 enhanced commercial data is reprocessed for a transaction event.
       requestBody:
         content:
@@ -28012,6 +28186,7 @@ webhooks:
         - Event Types
   claim.created:
     post:
+      operationId: claimCreatedWebhook
       description: Occurs when a dispute intake claim is created.
       requestBody:
         content:
@@ -28036,6 +28211,7 @@ webhooks:
         - Event Types
   claim.updated:
     post:
+      operationId: claimUpdatedWebhook
       description: Occurs when a dispute intake claim is updated, such as a status change or a change to its outstanding requirements.
       requestBody:
         content:
@@ -28060,6 +28236,7 @@ webhooks:
         - Event Types
   claim_document.uploaded:
     post:
+      operationId: claimDocumentUploadedWebhook
       description: Occurs when a claim document is uploaded and begins validation.
       requestBody:
         content:
@@ -28084,6 +28261,7 @@ webhooks:
         - Event Types
   claim_document.accepted:
     post:
+      operationId: claimDocumentAcceptedWebhook
       description: Occurs when a claim document passes validation and is accepted.
       requestBody:
         content:
@@ -28108,6 +28286,7 @@ webhooks:
         - Event Types
   claim_document.rejected:
     post:
+      operationId: claimDocumentRejectedWebhook
       description: Occurs when a claim document fails validation and is rejected.
       requestBody:
         content:
@@ -28132,6 +28311,7 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_approval_request:
     post:
+      operationId: digitalWalletTokenizationApprovalRequestWebhook
       description: Tokenization Customer Decisioning Request. Use `tokenization.approval_request` for notification webhooks.
       parameters:
         - $ref: '#/components/parameters/webhookId'
@@ -28154,6 +28334,7 @@ webhooks:
         - Tokenization
   digital_wallet.tokenization_result:
     post:
+      operationId: digitalWalletTokenizationResultWebhook
       description: |-
         Occurs when a tokenization request succeeded or failed.
 
@@ -28181,6 +28362,7 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code:
     post:
+      operationId: digitalWalletTokenizationTwoFactorAuthenticationCodeWebhook
       description: |-
         Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
 
@@ -28208,6 +28390,7 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_two_factor_authentication_code_sent:
     post:
+      operationId: digitalWalletTokenizationTwoFactorAuthenticationCodeSentWebhook
       description: |-
         Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
 
@@ -28235,6 +28418,7 @@ webhooks:
         - Event Types
   digital_wallet.tokenization_updated:
     post:
+      operationId: digitalWalletTokenizationUpdatedWebhook
       description: |-
         Occurs when a tokenization's status has changed.
 
@@ -28262,6 +28446,7 @@ webhooks:
         - Event Types
   dispute.updated:
     post:
+      operationId: disputeUpdatedWebhook
       description: |-
         Occurs when a dispute filed through the Chargebacks API (`/v1/disputes`) is created or updated.
 
@@ -28289,6 +28474,7 @@ webhooks:
         - Event Types
   dispute_evidence.upload_failed:
     post:
+      operationId: disputeEvidenceUploadFailedWebhook
       description: |-
         Occurs when an evidence upload fails for a dispute filed through the Chargebacks API (`/v1/disputes`).
 
@@ -28316,6 +28502,7 @@ webhooks:
         - Event Types
   embed.session_generated:
     post:
+      operationId: embedSessionGeneratedWebhook
       description: Occurs when a card embed session is successfully generated.
       requestBody:
         content:
@@ -28340,6 +28527,7 @@ webhooks:
         - Event Types
   embed.viewed:
     post:
+      operationId: embedViewedWebhook
       description: Occurs when a card detail is successfully revealed through an embed.
       requestBody:
         content:
@@ -28364,6 +28552,7 @@ webhooks:
         - Event Types
   external_bank_account.created:
     post:
+      operationId: externalBankAccountCreatedWebhook
       description: Occurs when an external bank account is created.
       requestBody:
         content:
@@ -28388,6 +28577,7 @@ webhooks:
         - Event Types
   external_bank_account.updated:
     post:
+      operationId: externalBankAccountUpdatedWebhook
       description: Occurs when an external bank account is updated.
       requestBody:
         content:
@@ -28412,6 +28602,7 @@ webhooks:
         - Event Types
   external_payment.created:
     post:
+      operationId: externalPaymentCreatedWebhook
       description: Occurs when an external payment is created.
       requestBody:
         content:
@@ -28436,6 +28627,7 @@ webhooks:
         - Event Types
   external_payment.updated:
     post:
+      operationId: externalPaymentUpdatedWebhook
       description: Occurs when an external payment is updated.
       requestBody:
         content:
@@ -28460,6 +28652,7 @@ webhooks:
         - Event Types
   financial_account.created:
     post:
+      operationId: financialAccountCreatedWebhook
       description: Occurs when a financial account is created.
       requestBody:
         content:
@@ -28484,6 +28677,7 @@ webhooks:
         - Event Types
   financial_account.updated:
     post:
+      operationId: financialAccountUpdatedWebhook
       description: Occurs when a financial account is updated.
       requestBody:
         content:
@@ -28508,6 +28702,7 @@ webhooks:
         - Event Types
   funding_event.created:
     post:
+      operationId: fundingEventCreatedWebhook
       description: Occurs when a funding event is created.
       requestBody:
         content:
@@ -28532,6 +28727,7 @@ webhooks:
         - Event Types
   loan_tape.created:
     post:
+      operationId: loanTapeCreatedWebhook
       description: Occurs when a loan tape is created.
       requestBody:
         content:
@@ -28556,6 +28752,7 @@ webhooks:
         - Event Types
   loan_tape.updated:
     post:
+      operationId: loanTapeUpdatedWebhook
       description: Occurs when a loan tape is updated.
       requestBody:
         content:
@@ -28580,6 +28777,7 @@ webhooks:
         - Event Types
   management_operation.created:
     post:
+      operationId: managementOperationCreatedWebhook
       description: Occurs when an management operation is created.
       requestBody:
         content:
@@ -28604,6 +28802,7 @@ webhooks:
         - Event Types
   management_operation.updated:
     post:
+      operationId: managementOperationUpdatedWebhook
       description: Occurs when an management operation is updated.
       requestBody:
         content:
@@ -28628,6 +28827,7 @@ webhooks:
         - Event Types
   internal_transaction.created:
     post:
+      operationId: internalTransactionCreatedWebhook
       description: Occurs when an internal adjustment is created.
       requestBody:
         content:
@@ -28652,6 +28852,7 @@ webhooks:
         - Event Types
   internal_transaction.updated:
     post:
+      operationId: internalTransactionUpdatedWebhook
       description: Occurs when an internal adjustment is updated.
       requestBody:
         content:
@@ -28676,6 +28877,7 @@ webhooks:
         - Event Types
   network_total.created:
     post:
+      operationId: networkTotalCreatedWebhook
       description: Occurs when a network total is created.
       requestBody:
         content:
@@ -28700,6 +28902,7 @@ webhooks:
         - Event Types
   network_total.updated:
     post:
+      operationId: networkTotalUpdatedWebhook
       description: Occurs when a network total is updated.
       requestBody:
         content:
@@ -28724,6 +28927,7 @@ webhooks:
         - Event Types
   payment_transaction.created:
     post:
+      operationId: paymentTransactionCreatedWebhook
       description: Occurs when a payment transaction is created.
       requestBody:
         content:
@@ -28748,6 +28952,7 @@ webhooks:
         - Event Types
   payment_transaction.updated:
     post:
+      operationId: paymentTransactionUpdatedWebhook
       description: Occurs when a payment transaction is updated.
       requestBody:
         content:
@@ -28772,6 +28977,7 @@ webhooks:
         - Event Types
   settlement_report.updated:
     post:
+      operationId: settlementReportUpdatedWebhook
       description: Occurs when a settlement report is created or updated.
       requestBody:
         content:
@@ -28796,6 +29002,7 @@ webhooks:
         - Event Types
   statements.created:
     post:
+      operationId: statementsCreatedWebhook
       description: Occurs when a statement has been created.
       requestBody:
         content:
@@ -28820,6 +29027,7 @@ webhooks:
         - Event Types
   three_ds_authentication.created:
     post:
+      operationId: threeDsAuthenticationCreatedWebhook
       description: Occurs when a 3DS authentication is created.
       requestBody:
         content:
@@ -28844,6 +29052,7 @@ webhooks:
         - Event Types
   three_ds_authentication.updated:
     post:
+      operationId: threeDsAuthenticationUpdatedWebhook
       description: Occurs when a 3DS authentication is updated (eg. challenge is completed).
       requestBody:
         content:
@@ -28868,7 +29077,8 @@ webhooks:
         - Event Types
   three_ds_authentication.challenge:
     post:
-      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue its own challenge to the cardholder. After a cardholder challenge is successfully completed, the Card Program needs to respond back to Lithic by call to [/v1/three_ds_decisioning/challenge_response](https://docs.lithic.com/reference/post_v1-three-ds-decisioning-challenge-response). Then the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an `app_requestor_url` for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
+      operationId: threeDsAuthenticationChallengeWebhook
+      description: The `three_ds_authentication.challenge` event. Upon receiving this request, the Card Program should issue its own challenge to the cardholder. After a cardholder challenge is successfully completed, the Card Program needs to respond back to Lithic by call to [/v1/three_ds_decisioning/challenge_response](https://docs.lithic.com/reference/postthreedschallengeresponse). Then the cardholder must navigate back to the merchant checkout flow to complete the transaction. Some merchants will include an `app_requestor_url` for app-based purchases; Lithic recommends triggering a redirect to that URL after the cardholder completes an app-based challenge.
       requestBody:
         content:
           application/json:
@@ -28892,6 +29102,7 @@ webhooks:
         - Event Types
   tokenization.approval_request:
     post:
+      operationId: tokenizationApprovalRequestWebhook
       description: Occurs when a tokenization approval request is made.
       requestBody:
         content:
@@ -28916,6 +29127,7 @@ webhooks:
         - Event Types
   tokenization.result:
     post:
+      operationId: tokenizationResultWebhook
       description: Occurs when a tokenization request succeeded or failed.
       requestBody:
         content:
@@ -28940,6 +29152,7 @@ webhooks:
         - Event Types
   tokenization.two_factor_authentication_code:
     post:
+      operationId: tokenizationTwoFactorAuthenticationCodeWebhook
       description: Occurs when a tokenization request 2FA code is sent to the Lithic customer for self serve delivery.
       requestBody:
         content:
@@ -28964,6 +29177,7 @@ webhooks:
         - Event Types
   tokenization.two_factor_authentication_code_sent:
     post:
+      operationId: tokenizationTwoFactorAuthenticationCodeSentWebhook
       description: Occurs when a tokenization request 2FA code is sent to our downstream messaging providers for delivery.
       requestBody:
         content:
@@ -28988,6 +29202,7 @@ webhooks:
         - Event Types
   tokenization.updated:
     post:
+      operationId: tokenizationUpdatedWebhook
       description: Occurs when a tokenization's status has changed.
       requestBody:
         content:
@@ -29012,6 +29227,7 @@ webhooks:
         - Event Types
   three_ds_authentication.approval_request:
     post:
+      operationId: threeDsAuthenticationApprovalRequestWebhook
       description: Webhook for Card Programs to decision on 3DS Authentication Request. See https://docs.lithic.com/docs/3ds-decisioning for more details.
       summary: 3DS Decisioning Request
       requestBody:
@@ -29039,6 +29255,7 @@ webhooks:
         - 3DS
   dispute_transaction.created:
     post:
+      operationId: disputeTransactionCreatedWebhook
       description: Occurs when a new dispute transaction is created for a Managed Disputes case.
       requestBody:
         content:
@@ -29107,6 +29324,7 @@ webhooks:
         - Event Types
   dispute_transaction.updated:
     post:
+      operationId: disputeTransactionUpdatedWebhook
       description: Occurs when a dispute transaction for a Managed Disputes case is updated.
       requestBody:
         content:
