@@ -15357,6 +15357,8 @@ components:
         - RETURNED_PAYMENT
         - RETURNED_PAYMENT_REVERSAL
         - LITHIC_NETWORK_PAYMENT
+        - LITHIC_PROGRAM_TRANSFER
+        - BANK_PROGRAM_TRANSFER
         - ANNUAL
         - ANNUAL_REVERSAL
         - QUARTERLY
@@ -18212,6 +18214,7 @@ components:
         - MANAGEMENT_DISBURSEMENT
         - HOLD
         - PROGRAM_FUNDING
+        - PROGRAM_TRANSFER
     statement_line_item_response:
       title: Statement Line Item Response
       type: object
@@ -18699,6 +18702,7 @@ components:
         - INTERNAL
         - REWARD
         - PROGRAM_FUNDING
+        - PROGRAM_TRANSFER
         - TRANSFER
     book_transfer_type:
       type: string
@@ -18739,6 +18743,8 @@ components:
         - SERVICE
         - TRANSFER
         - COLLECTION
+        - LITHIC_PROGRAM_TRANSFER
+        - BANK_PROGRAM_TRANSFER
       description: Type of the book transfer
       title: Book Transfer Type
     book_transfer_detailed_results:
