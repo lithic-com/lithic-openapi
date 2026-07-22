@@ -6591,6 +6591,7 @@ paths:
               - DECLINED
               - PENDING
               - RETURNED
+              - REVERSED
               - SETTLED
             title: Status
             type: string
