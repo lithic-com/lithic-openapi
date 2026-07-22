@@ -20054,6 +20054,11 @@ components:
             - string
             - 'null'
           description: Receipt routing number
+        recipient_name:
+          type:
+            - string
+            - 'null'
+          description: Name of the recipient on ACH receipts. Reflects the originating bank's record
         trace_numbers:
           type: array
           items:
@@ -20294,6 +20299,11 @@ components:
                 - string
                 - 'null'
               description: Receipt routing number
+            recipient_name:
+              type:
+                - string
+                - 'null'
+              description: Name of the recipient on ACH receipts. Reflects the originating bank's record
             trace_numbers:
               type: array
               items:
@@ -20462,6 +20472,7 @@ components:
             retries: 0
             company_id: '1111111111'
             receipt_routing_number: null
+            recipient_name: null
             trace_numbers: []
             addenda: null
           financial_account_token: 35b0c466-a3e3-519a-9549-ead6a6a2277d
@@ -20506,6 +20517,7 @@ components:
             retries: 0
             company_id: '1111111111'
             receipt_routing_number: null
+            recipient_name: null
             trace_numbers: []
             addenda: null
           financial_account_token: f012262b-d18f-5c26-ad63-a09a11e633a6
@@ -20552,6 +20564,7 @@ components:
             retries: 0
             company_id: '1111111111'
             receipt_routing_number: '1234567890'
+            recipient_name: ACME CORP
             trace_numbers:
               - '316779406684861'
             addenda: null
