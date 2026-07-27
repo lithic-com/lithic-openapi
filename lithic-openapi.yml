@@ -15366,6 +15366,9 @@ components:
         - MONTHLY
         - MONTHLY_REVERSAL
         - ACCOUNT_TO_ACCOUNT
+        - STABLECOIN_RECEIVED
+        - STABLECOIN_REVIEWED
+        - STABLECOIN_SETTLED
     financial_event:
       title: Financial Event
       description: Financial Event
@@ -18194,6 +18197,7 @@ components:
       enum:
         - ACH
         - WIRE
+        - STABLECOIN
         - BALANCE_OR_FUNDING
         - FEE
         - REWARD
@@ -20149,6 +20153,11 @@ components:
         * `WIRE_RETURN_OUTBOUND_SENT` - Outbound wire return sent to the Federal Reserve and pending acceptance.
         * `WIRE_RETURN_OUTBOUND_SETTLED` - Outbound wire return accepted by the Federal Reserve and funds returned to sender.
         * `WIRE_RETURN_OUTBOUND_REJECTED` - Outbound wire return rejected by the Federal Reserve.
+
+        Stablecoin events:
+        * `STABLECOIN_RECEIVED` - Stablecoin pay-in received on-chain and pending release to available balance.
+        * `STABLECOIN_REVIEWED` - Stablecoin pay-in has completed the review process.
+        * `STABLECOIN_SETTLED` - Stablecoin pay-in funds released to available balance.
       type: string
       enum:
         - ACH_ORIGINATION_CANCELLED
@@ -20173,6 +20182,9 @@ components:
         - WIRE_RETURN_OUTBOUND_SENT
         - WIRE_RETURN_OUTBOUND_SETTLED
         - WIRE_RETURN_OUTBOUND_REJECTED
+        - STABLECOIN_RECEIVED
+        - STABLECOIN_REVIEWED
+        - STABLECOIN_SETTLED
     payment_event:
       title: Payment Event
       description: |-
