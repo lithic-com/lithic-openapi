@@ -22882,22 +22882,6 @@ components:
         - MEDIUM
         - HIGH
         - CRITICAL
-    resolution-outcome:
-      title: Resolution Outcome
-      type: string
-      description: |
-        Outcome recorded when a case is resolved:
-          - `CONFIRMED_FRAUD` - The reviewed activity was confirmed to be fraudulent
-          - `SUSPICIOUS_ACTIVITY` - The activity is suspicious but not confirmed fraud
-          - `FALSE_POSITIVE` - The activity was legitimate and the alert was a false positive
-          - `NO_ACTION_REQUIRED` - No further action is required
-          - `ESCALATED_EXTERNAL` - The case was escalated to an external party
-      enum:
-        - CONFIRMED_FRAUD
-        - SUSPICIOUS_ACTIVITY
-        - FALSE_POSITIVE
-        - NO_ACTION_REQUIRED
-        - ESCALATED_EXTERNAL
     entity-type-2:
       title: Entity Type
       type: string
@@ -22956,10 +22940,12 @@ components:
           format: uuid
           description: Token of the transaction monitoring rule that triggered the case
         resolution:
-          oneOf:
-            - type: 'null'
-            - $ref: '#/components/schemas/resolution-outcome'
-          description: Outcome recorded when the case was resolved
+          type:
+            - string
+            - 'null'
+          description: |-
+            Outcome recorded when the case was resolved, from the `allowed_resolutions`
+            configured on the case's queue
         resolution_notes:
           type:
             - string
@@ -23042,7 +23028,11 @@ components:
             - 'null'
           description: New assignee for the case, or `null` to unassign
         resolution:
-          $ref: '#/components/schemas/resolution-outcome'
+          type: string
+          description: |-
+            Resolution to record on the case. Must be one of the
+            `allowed_resolutions` configured on the case's queue, otherwise the request is
+            rejected with a `400`
         resolution_notes:
           type: string
           description: Notes describing the resolution
@@ -23473,6 +23463,13 @@ components:
             - string
             - 'null'
           description: Optional description of the queue
+        allowed_resolutions:
+          type: array
+          items:
+            type: string
+          description: |-
+            Resolutions that can be recorded on cases in this queue. Always the effective
+            list: the queue's own values when it defines them, otherwise the default list
         created:
           type: string
           format: date-time
@@ -23516,6 +23513,7 @@ components:
         - token
         - name
         - description
+        - allowed_resolutions
         - created
         - updated
         - case_counts
@@ -23532,6 +23530,18 @@ components:
             - string
             - 'null'
           description: Optional description of the queue
+        allowed_resolutions:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+            minLength: 1
+          minItems: 1
+          uniqueItems: true
+          description: |-
+            Resolutions that can be recorded on cases in this queue. Omit or send `null` to
+            use the default list. Values are free-form labels and must be non-empty and unique
       required:
         - name
     update-queue-request:
@@ -23547,6 +23557,20 @@ components:
             - string
             - 'null'
           description: New description for the queue, or `null` to clear it
+        allowed_resolutions:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+            minLength: 1
+          minItems: 1
+          uniqueItems: true
+          description: |-
+            New list of resolutions that can be recorded on cases in this queue, or `null` to
+            revert to the default list. Values are free-form labels and must be non-empty and
+            unique. Changing the list only affects what is selectable going forward; the
+            `resolution` already stored on a case is preserved as-is
     Transfer:
       properties:
         category:
