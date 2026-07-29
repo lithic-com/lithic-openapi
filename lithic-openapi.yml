@@ -3039,6 +3039,7 @@ paths:
               pinSettingEmbed:
                 summary: Create a PIN setting embed session
                 value:
+                  max_pin_length: 4
                   target_origin: https://example.com
                   type: PIN_SETTING_EMBED
             schema:
@@ -3879,10 +3880,15 @@ paths:
               - PIN_SETTING
             type: string
         - description: |
-            Optional base64-encoded JSON object containing CSS property and value pairs to apply to
-            the iframe. URL-encode the base64 value when adding it to the query string. Styles that
-            load external resources are not permitted. The encoded value cannot exceed 4096 characters.
-          example: eyJjb2xvciI6IiMxQTFBMUEiLCJmb250U2l6ZSI6IjE2cHgifQ==
+            Optional base64-encoded JSON object containing base CSS declarations and nested
+            pseudo-class declarations to apply to the iframe. URL-encode the base64 value when
+            adding it to the query string. Styles that load external resources are not permitted.
+            The encoded value cannot exceed 4096 characters.
+
+            Supported pseudo-classes are `:enabled`, `:read-write`, `:read-only`,
+            `:placeholder-shown`, `:valid`, `:invalid`, `:disabled`, `:hover`, `:focus-within`,
+            `:focus`, `:focus-visible`, and `:active`.
+          example: eyJjb2xvciI6ImJsYWNrIiwiOmhvdmVyIjp7ImNvbG9yIjoiYmx1ZSJ9fQ==
           in: query
           name: styles
           required: false
@@ -15608,6 +15614,15 @@ components:
             10 minutes after the request. If omitted, the session expires 10 minutes after the request.
           type: integer
           format: int64
+        max_pin_length:
+          description: |
+            Maximum number of digits accepted by a `PIN_SETTING_EMBED`. The value must be from 4 through 8
+            and defaults to 8. This parameter is not supported for `CARD_EMBED` sessions and will be rejected
+          type: integer
+          minimum: 4
+          maximum: 8
+          default: 8
+          example: 4
         target_origin:
           description: |
             Canonical HTTPS origin of the page that will embed the iframe. Lithic embeds will verify the `target_origin` against the parent application's origin.
