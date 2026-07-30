@@ -12920,6 +12920,7 @@ components:
                   * `TRANSACTION_AMOUNT`: The amount of the ACH transaction in minor units (cents). Use an integer value.
                   * `SEC_CODE`: Standard Entry Class code indicating the type of ACH transaction. Valid values include PPD (Prearranged Payment and Deposit Entry), CCD (Corporate Credit or Debit Entry), WEB (Internet-Initiated/Mobile Entry), TEL (Telephone-Initiated Entry), and others.
                   * `MEMO`: Optional memo or description field included with the ACH transaction.
+                  * `RECIPIENT_NAME`: The name of the recipient of the ACH transaction.
                 enum:
                   - COMPANY_NAME
                   - COMPANY_ID
@@ -12927,6 +12928,7 @@ components:
                   - TRANSACTION_AMOUNT
                   - SEC_CODE
                   - MEMO
+                  - RECIPIENT_NAME
               operation:
                 $ref: '#/components/schemas/conditional-operation'
               value:
