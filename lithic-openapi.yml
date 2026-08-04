@@ -17508,6 +17508,15 @@ components:
           type:
             - string
             - 'null'
+        blockchain_addresses:
+          type:
+            - object
+            - 'null'
+          description: Provisioned blockchain deposit addresses for this financial account, keyed by the blockchain network that each address belongs to
+          additionalProperties:
+            type: string
+          example:
+            ETH: '0x5f2b9e8a1c4d7f0e3a6b9c2d5e8f1a4b7c0d3e6f'
         nickname:
           type:
             - string
