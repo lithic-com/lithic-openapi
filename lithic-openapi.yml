@@ -7831,9 +7831,9 @@ paths:
                   description: The account score (1-5) that represents how the Digital Wallet's view on how reputable an end user's account is.
                   type: integer
                 cvv:
-                  description: The three digit cvv for the card.
+                  description: The three or four digit CVV for the card. AMEX cards use four digit CVVs.
                   example: '776'
-                  maxLength: 3
+                  maxLength: 4
                   minLength: 3
                   type: string
                 device_score:
@@ -15238,9 +15238,9 @@ components:
               minLength: 16
               type: string
             cvv:
-              description: Three digit cvv printed on the back of the card.
+              description: Three or four digit CVV printed on the card. Amex cards use four digit CVVs
               example: '776'
-              maxLength: 3
+              maxLength: 4
               minLength: 3
               type: string
           examples:
