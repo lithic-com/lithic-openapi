@@ -15398,8 +15398,11 @@ components:
         - MONTHLY_REVERSAL
         - ACCOUNT_TO_ACCOUNT
         - STABLECOIN_RECEIVED
+        - STABLECOIN_INITIATED
         - STABLECOIN_REVIEWED
+        - STABLECOIN_SENT
         - STABLECOIN_SETTLED
+        - STABLECOIN_REJECTED
     financial_event:
       title: Financial Event
       description: Financial Event
@@ -17512,11 +17515,11 @@ components:
           type:
             - object
             - 'null'
-          description: Provisioned blockchain deposit addresses for this financial account, keyed by the blockchain network that each address belongs to
+          description: Provisioned blockchain deposit addresses for this financial account, keyed by the full name of the blockchain network that each address belongs to (e.g. `ETHEREUM`)
           additionalProperties:
             type: string
           example:
-            ETH: '0x5f2b9e8a1c4d7f0e3a6b9c2d5e8f1a4b7c0d3e6f'
+            ETHEREUM: '0x5f2b9e8a1c4d7f0e3a6b9c2d5e8f1a4b7c0d3e6f'
         nickname:
           type:
             - string
@@ -20205,8 +20208,11 @@ components:
 
         Stablecoin events:
         * `STABLECOIN_RECEIVED` - Stablecoin pay-in received on-chain and pending release to available balance.
-        * `STABLECOIN_REVIEWED` - Stablecoin pay-in has completed the review process.
-        * `STABLECOIN_SETTLED` - Stablecoin pay-in funds released to available balance.
+        * `STABLECOIN_INITIATED` - Stablecoin withdrawal initiated, with the funds placed on hold.
+        * `STABLECOIN_REVIEWED` - Stablecoin pay-in or withdrawal has completed the review process.
+        * `STABLECOIN_SENT` - Stablecoin withdrawal accepted for on-chain submission to the destination address, and pending confirmation.
+        * `STABLECOIN_SETTLED` - Stablecoin pay-in funds released to available balance, or stablecoin withdrawal confirmed on-chain.
+        * `STABLECOIN_REJECTED` - Stablecoin withdrawal failed and the hold placed at initiation has been reversed.
       type: string
       enum:
         - ACH_ORIGINATION_CANCELLED
@@ -20232,8 +20238,11 @@ components:
         - WIRE_RETURN_OUTBOUND_SETTLED
         - WIRE_RETURN_OUTBOUND_REJECTED
         - STABLECOIN_RECEIVED
+        - STABLECOIN_INITIATED
         - STABLECOIN_REVIEWED
+        - STABLECOIN_SENT
         - STABLECOIN_SETTLED
+        - STABLECOIN_REJECTED
     payment_event:
       title: Payment Event
       description: |-
@@ -20278,6 +20287,8 @@ components:
           description: |
             Payment event external ID. For ACH transactions, this is the ACH trace number.
             For inbound wire transfers, this is the IMAD (Input Message Accountability Data).
+            For stablecoin payments, this is the on-chain transaction hash of the transfer; it is
+            present on events that reflect on-chain activity and null on internal lifecycle events.
           type:
             - string
             - 'null'
