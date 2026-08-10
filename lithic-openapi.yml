@@ -8870,7 +8870,7 @@ paths:
         - name: entity_token
           in: query
           required: false
-          description: Only return cases associated with the provided entity.
+          description: Only return cases associated with the provided entity. Accepts a card, account, or financial account token. Cases with a `PROGRAM` entity have no entity token and are never returned by this filter.
           schema:
             type: string
             format: uuid
@@ -13111,6 +13111,7 @@ components:
               enum:
                 - CARD
                 - ACCOUNT
+                - PROGRAM
               description: The scope of the case to create
             queue_token:
               type: string
@@ -13308,6 +13309,7 @@ components:
               type: string
               enum:
                 - FINANCIAL_ACCOUNT
+                - PROGRAM
               description: The scope of the case to create
             queue_token:
               type: string
@@ -22949,9 +22951,13 @@ components:
         The type of entity a case is associated with:
           - `CARD` - The case is associated with a card
           - `ACCOUNT` - The case is associated with an account
+          - `FINANCIAL_ACCOUNT` - The case is associated with a financial account
+          - `PROGRAM` - The case is associated with the whole program
       enum:
         - CARD
         - ACCOUNT
+        - FINANCIAL_ACCOUNT
+        - PROGRAM
     case-entity:
       title: Case Entity
       type: object
@@ -22960,9 +22966,14 @@ components:
         entity_type:
           $ref: '#/components/schemas/entity-type-2'
         entity_token:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          description: Globally unique identifier for the associated entity
+          description: |-
+            Globally unique identifier for the associated entity: the card token for `CARD`, the
+            account token for `ACCOUNT`, and the financial account token for `FINANCIAL_ACCOUNT`.
+            Null for `PROGRAM`, which is not scoped to an individual entity
       required:
         - entity_type
         - entity_token
