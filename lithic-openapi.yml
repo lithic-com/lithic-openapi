@@ -3885,12 +3885,32 @@ paths:
             adding it to the query string. Styles that load external resources are not permitted.
             The encoded value cannot exceed 4096 characters.
 
-            Supported pseudo-classes are `:enabled`, `:read-write`, `:read-only`,
-            `:placeholder-shown`, `:valid`, `:invalid`, `:disabled`, `:hover`, `:focus-within`,
-            `:focus`, `:focus-visible`, and `:active`.
+            Supported pseudo-classes are `:first-child`, `:last-child`, `:enabled`, `:read-write`,
+            `:read-only`, `:placeholder-shown`, `:valid`, `:invalid`, `:disabled`, `:hover`,
+            `:focus-within`, `:focus`, `:focus-visible`, and `:active`.
           example: eyJjb2xvciI6ImJsYWNrIiwiOmhvdmVyIjp7ImNvbG9yIjoiYmx1ZSJ9fQ==
           in: query
           name: styles
+          required: false
+          schema:
+            format: byte
+            maxLength: 4096
+            type: string
+        - description: |
+            Optional standard base64-encoded JSON configuration for the requested iframe. URL-encode
+            the base64 value when adding it to the query string. The encoded value cannot exceed 4096
+            characters; malformed or oversized values are rejected with a `400` response.
+
+            `PIN_SETTING` supports a `pin_setting` object with an optional `placeholder` string and an
+            optional `layout`. `placeholder` defaults to an empty string and applies only to the
+            single-input layout. `layout` accepts `SINGLE_INPUT` or `MULTI_INPUT` and defaults to
+            `SINGLE_INPUT`. The multi-input layout renders one single-digit input for each digit allowed
+            by the embed session's `max_pin_length`.
+
+            Decoded example: `{"pin_setting":{"layout":"MULTI_INPUT"}}`
+          example: eyJwaW5fc2V0dGluZyI6eyJsYXlvdXQiOiJNVUxUSV9JTlBVVCJ9fQ==
+          in: query
+          name: configuration
           required: false
           schema:
             format: byte
