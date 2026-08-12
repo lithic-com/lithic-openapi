@@ -20193,6 +20193,20 @@ components:
       required:
         - wire_network
         - wire_message_type
+    StablecoinMethodAttributes:
+      type: object
+      properties:
+        chain:
+          type: string
+          description: Blockchain the stablecoin transfer settled on
+          example: ETH
+        transaction_hash:
+          type:
+            - string
+            - 'null'
+          description: On-chain transaction hash of the transfer. Null until the transfer has settled on chain
+      required:
+        - chain
     payment_event_type:
       title: Payment Event Type
       description: |-
@@ -20455,6 +20469,20 @@ components:
           required:
             - wire_network
             - wire_message_type
+        StablecoinMethodAttributes:
+          type: object
+          properties:
+            chain:
+              type: string
+              description: Blockchain the stablecoin transfer settled on
+              example: ETH
+            transaction_hash:
+              type:
+                - string
+                - 'null'
+              description: On-chain transaction hash of the transfer. Null until the transfer has settled on chain
+          required:
+            - chain
       allOf:
         - $ref: '#/components/schemas/base_transaction'
         - type: object
@@ -20477,6 +20505,7 @@ components:
               oneOf:
                 - $ref: '#/components/schemas/AchMethodAttributes'
                 - $ref: '#/components/schemas/WireMethodAttributes'
+                - $ref: '#/components/schemas/StablecoinMethodAttributes'
               description: Method-specific attributes
             financial_account_token:
               type: string
@@ -20507,6 +20536,7 @@ components:
                 - ACH_NEXT_DAY
                 - ACH_SAME_DAY
                 - WIRE
+                - STABLECOIN
               description: Transfer method
             settled_amount:
               type: integer
