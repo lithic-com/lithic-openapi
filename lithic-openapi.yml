@@ -20718,6 +20718,12 @@ components:
                 - 'null'
               format: uuid
               description: External bank account token
+            blockchain_recipient_token:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: Token of the blockchain recipient the payout is sent to
             direction:
               type: string
               enum:
@@ -20928,6 +20934,38 @@ components:
           expected_release_date: null
           related_account_tokens: null
           type: RECEIPT_CREDIT
+        - family: PAYMENT
+          status: PENDING
+          token: 7d15d545-1211-4d51-9fc1-8e3f57846b7f
+          created: '2026-08-12T15:02:11Z'
+          updated: '2026-08-12T15:02:11Z'
+          category: STABLECOIN
+          result: APPROVED
+          method_attributes:
+            chain: ETHEREUM
+            transaction_hash: null
+          financial_account_token: 35b0c466-a3e3-519a-9549-ead6a6a2277d
+          external_bank_account_token: null
+          blockchain_recipient_token: 1e3fdb71-4b52-4a30-a7a9-52c85e26a1d9
+          direction: CREDIT
+          source: CUSTOMER
+          method: STABLECOIN
+          settled_amount: 0
+          pending_amount: -1588
+          currency: USD
+          events:
+            - amount: -1588
+              type: STABLECOIN_INITIATED
+              result: APPROVED
+              created: '2026-08-12T15:02:11Z'
+              token: 5c07e150-1f95-52a8-b06e-1d3ffab5a1b9
+              detailed_results:
+                - APPROVED
+          descriptor: Vendor payout
+          user_defined_id: null
+          expected_release_date: null
+          related_account_tokens: null
+          type: STABLECOIN
     external_payment_category:
       title: External Payment Category
       type: string
