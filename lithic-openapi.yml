@@ -10275,6 +10275,13 @@ paths:
           schema:
             format: uuid
             type: string
+        - description: Filter by the token of the claim the dispute was filed under. Returns the disputes created from that claim's disputed transaction events.
+          in: query
+          name: claim_token
+          required: false
+          schema:
+            format: uuid
+            type: string
         - description: Filter by card token.
           in: query
           name: card_token
@@ -24555,6 +24562,7 @@ components:
             - PROVISIONAL_CREDIT_GRANTED
             - PROVISIONAL_CREDIT_REVERSED
             - WRITTEN_OFF
+            - WRITE_OFF_REVERSED
         amount:
           description: Amount in minor units
           type: integer
@@ -24621,6 +24629,12 @@ components:
           description: Token for the account associated with the dispute, in UUID format.
           type: string
           format: uuid
+        claim_token:
+          description: Token for the claim this dispute was filed under, in UUID format. Null for disputes not initiated through the Dispute Intake API.
+          type:
+            - string
+            - 'null'
+          format: uuid
         network:
           description: Card network handling the dispute.
           type: string
@@ -24678,6 +24692,7 @@ components:
         - token
         - card_token
         - account_token
+        - claim_token
         - network
         - currency
         - created
@@ -29686,6 +29701,7 @@ webhooks:
                   token: 123e4567-e89b-12d3-a456-426614174000
                   card_token: 78ddee49-4558-4a79-80ce-339e12cc141c
                   account_token: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+                  claim_token: 0fee7a4e-e6a8-478a-9df9-b2d92b455133
                   network: VISA
                   currency: USD
                   created: '2024-02-07T10:00:00Z'
@@ -29755,6 +29771,7 @@ webhooks:
                   token: 123e4567-e89b-12d3-a456-426614174000
                   card_token: 78ddee49-4558-4a79-80ce-339e12cc141c
                   account_token: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+                  claim_token: 0fee7a4e-e6a8-478a-9df9-b2d92b455133
                   network: VISA
                   currency: USD
                   created: '2024-02-07T10:00:00Z'
