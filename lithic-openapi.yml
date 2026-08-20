@@ -2495,6 +2495,8 @@ paths:
                 summary: Provision a card in Google Pay
                 value:
                   digital_wallet: GOOGLE_PAY
+                  client_device_id: d3538acf-e5df-4446-8ce6-588fa4472ac1
+                  client_wallet_account_id: d3538acf-e5df-4446-8ce6-588fa4472ac1
             schema:
               properties:
                 certificate:
@@ -2502,10 +2504,10 @@ paths:
                   format: byte
                   type: string
                 client_wallet_account_id:
-                  description: Only applicable if `digital_wallet` is `GOOGLE_PAY` or `SAMSUNG_PAY` and the card is on the Visa network. Consumer ID that identifies the wallet account holder entity.
+                  description: Only applicable if `digital_wallet` is `GOOGLE_PAY` or `SAMSUNG_PAY`. Consumer ID that identifies the wallet account holder entity. Required for both wallets regardless of network, though the value is only used for cards on the Visa network and is ignored on Amex and Mastercard.
                   type: string
                 client_device_id:
-                  description: Only applicable if `digital_wallet` is `GOOGLE_PAY` or `SAMSUNG_PAY` and the card is on the Visa network. Stable device identification set by the wallet provider.
+                  description: Only applicable if `digital_wallet` is `GOOGLE_PAY` or `SAMSUNG_PAY`. Stable device identification set by the wallet provider. Required for both wallets regardless of network, though the value is only used for cards on the Visa network and is ignored on Amex and Mastercard.
                   type: string
                 digital_wallet:
                   description: Name of digital wallet provider.
