@@ -20578,7 +20578,6 @@ components:
         - WIRE_OUTBOUND_PAYMENT
         - WIRE_OUTBOUND_ADMIN
         - WIRE_INBOUND_DRAWDOWN_REQUEST
-        - STABLECOIN
         - STABLECOIN_INBOUND
         - STABLECOIN_OUTBOUND
       title: Transfer Type
@@ -20976,7 +20975,7 @@ components:
           user_defined_id: null
           expected_release_date: null
           related_account_tokens: null
-          type: STABLECOIN
+          type: STABLECOIN_OUTBOUND
     external_payment_category:
       title: External Payment Category
       type: string
