@@ -24472,10 +24472,6 @@ components:
       description: Details specific to workflow events
       type: object
       properties:
-        type:
-          description: Event type discriminator
-          type: string
-          const: WORKFLOW
         stage:
           description: Current stage of the dispute workflow
           type: string
@@ -24511,7 +24507,6 @@ components:
             - DENIED
             - null
       required:
-        - type
         - stage
         - action
         - reason
@@ -24522,10 +24517,6 @@ components:
       description: Details specific to financial events
       type: object
       properties:
-        type:
-          description: Event type discriminator
-          type: string
-          const: FINANCIAL
         stage:
           description: Stage at which the financial event occurred
           type: string
@@ -24545,7 +24536,6 @@ components:
             - CREDIT
             - DEBIT
       required:
-        - type
         - stage
         - amount
         - polarity
@@ -24554,10 +24544,6 @@ components:
       description: Details specific to cardholder liability events
       type: object
       properties:
-        type:
-          description: Event type discriminator
-          type: string
-          const: CARDHOLDER_LIABILITY
         action:
           description: Action taken regarding cardholder liability
           type: string
@@ -24571,15 +24557,16 @@ components:
           type: integer
         reason:
           description: Reason for the action
-          type: string
+          type:
+            - string
+            - 'null'
       required:
-        - type
         - action
         - amount
         - reason
-    event:
-      title: Event
-      description: Event that occurred in the dispute lifecycle
+    WorkflowEvent:
+      title: Workflow Event
+      description: Event tracking the dispute's case management workflow
       type: object
       properties:
         token:
@@ -24587,29 +24574,154 @@ components:
           type: string
           format: uuid
         type:
-          description: Type of event
+          description: Type of event. Always `WORKFLOW`
           type: string
-          enum:
-            - WORKFLOW
-            - FINANCIAL
-            - CARDHOLDER_LIABILITY
+          const: WORKFLOW
         created:
           description: When the event occurred
           type: string
           format: date-time
         data:
-          description: Details specific to the event type
-          oneOf:
-            - $ref: '#/components/schemas/workflow-event-data'
-            - $ref: '#/components/schemas/financial-event-data'
-            - $ref: '#/components/schemas/cardholder-liability-event-data'
-          discriminator:
-            propertyName: type
+          $ref: '#/components/schemas/workflow-event-data'
       required:
         - token
         - type
         - created
         - data
+    FinancialEvent:
+      title: Financial Event
+      description: Event tracking a funds movement between issuer and acquirer
+      type: object
+      properties:
+        token:
+          description: Unique identifier for the event, in UUID format
+          type: string
+          format: uuid
+        type:
+          description: Type of event. Always `FINANCIAL`
+          type: string
+          const: FINANCIAL
+        created:
+          description: When the event occurred
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/financial-event-data'
+      required:
+        - token
+        - type
+        - created
+        - data
+    CardholderLiabilityEvent:
+      title: Cardholder Liability Event
+      description: Event tracking a change in cardholder liability
+      type: object
+      properties:
+        token:
+          description: Unique identifier for the event, in UUID format
+          type: string
+          format: uuid
+        type:
+          description: Type of event. Always `CARDHOLDER_LIABILITY`
+          type: string
+          const: CARDHOLDER_LIABILITY
+        created:
+          description: When the event occurred
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/cardholder-liability-event-data'
+      required:
+        - token
+        - type
+        - created
+        - data
+    event:
+      title: Event
+      description: Event that occurred in the dispute lifecycle. The `type` field identifies the event variant and determines the shape of `data`
+      oneOf:
+        - $ref: '#/components/schemas/WorkflowEvent'
+        - $ref: '#/components/schemas/FinancialEvent'
+        - $ref: '#/components/schemas/CardholderLiabilityEvent'
+      discriminator:
+        propertyName: type
+        mapping:
+          WORKFLOW: '#/components/schemas/WorkflowEvent'
+          FINANCIAL: '#/components/schemas/FinancialEvent'
+          CARDHOLDER_LIABILITY: '#/components/schemas/CardholderLiabilityEvent'
+      $defs:
+        WorkflowEvent:
+          title: Workflow Event
+          description: Event tracking the dispute's case management workflow
+          type: object
+          properties:
+            token:
+              description: Unique identifier for the event, in UUID format
+              type: string
+              format: uuid
+            type:
+              description: Type of event. Always `WORKFLOW`
+              type: string
+              const: WORKFLOW
+            created:
+              description: When the event occurred
+              type: string
+              format: date-time
+            data:
+              $ref: '#/components/schemas/workflow-event-data'
+          required:
+            - token
+            - type
+            - created
+            - data
+        FinancialEvent:
+          title: Financial Event
+          description: Event tracking a funds movement between issuer and acquirer
+          type: object
+          properties:
+            token:
+              description: Unique identifier for the event, in UUID format
+              type: string
+              format: uuid
+            type:
+              description: Type of event. Always `FINANCIAL`
+              type: string
+              const: FINANCIAL
+            created:
+              description: When the event occurred
+              type: string
+              format: date-time
+            data:
+              $ref: '#/components/schemas/financial-event-data'
+          required:
+            - token
+            - type
+            - created
+            - data
+        CardholderLiabilityEvent:
+          title: Cardholder Liability Event
+          description: Event tracking a change in cardholder liability
+          type: object
+          properties:
+            token:
+              description: Unique identifier for the event, in UUID format
+              type: string
+              format: uuid
+            type:
+              description: Type of event. Always `CARDHOLDER_LIABILITY`
+              type: string
+              const: CARDHOLDER_LIABILITY
+            created:
+              description: When the event occurred
+              type: string
+              format: date-time
+            data:
+              $ref: '#/components/schemas/cardholder-liability-event-data'
+          required:
+            - token
+            - type
+            - created
+            - data
     dispute:
       title: Dispute
       description: The Dispute object tracks the progression of a dispute throughout its lifecycle.
@@ -29735,7 +29847,6 @@ webhooks:
                       created: '2024-02-07T10:00:00Z'
                       data:
                         stage: CLAIM
-                        type: WORKFLOW
                         action: OPENED
                         reason: Not Sent
                         amount: 100000
@@ -29805,7 +29916,6 @@ webhooks:
                       created: '2024-02-07T10:00:00Z'
                       data:
                         stage: CLAIM
-                        type: WORKFLOW
                         action: OPENED
                         reason: Not Sent
                         amount: 100000
@@ -29814,7 +29924,6 @@ webhooks:
                       type: CARDHOLDER_LIABILITY
                       created: '2024-02-07T10:30:00Z'
                       data:
-                        type: CARDHOLDER_LIABILITY
                         action: PROVISIONAL_CREDIT_GRANTED
                         amount: 100000
                         reason: Provisional Credit
@@ -29823,7 +29932,6 @@ webhooks:
                       created: '2024-02-09T10:00:00Z'
                       data:
                         stage: CHARGEBACK
-                        type: FINANCIAL
                         amount: 100000
                         polarity: CREDIT
             schema:
