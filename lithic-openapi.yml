@@ -16936,8 +16936,10 @@ components:
           description: Owner Type
           $ref: '#/components/schemas/owner_type'
         account_token:
-          description: The financial account the blockchain recipient belongs to
-          type: string
+          description: The financial account the blockchain recipient belongs to, or null when the recipient is registered against the program rather than a financial account
+          type:
+            - string
+            - 'null'
           format: uuid
         program_id:
           description: Globally unique identifier for the program the blockchain recipient is associated with
