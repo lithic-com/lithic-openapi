@@ -2880,6 +2880,69 @@ paths:
       summary: Renew a card
       tags:
         - Card
+  /v1/cards/{card_token}/reassign_account:
+    post:
+      description: |
+        Reassigns a card to another account. The card must be in an `OPEN` or `PAUSED` state, and the destination account must be in an `ACTIVE` state.
+
+        Clients must contact their Lithic account manager for access to this endpoint.
+      operationId: postCardReassignAccount
+      parameters:
+        - $ref: '#/components/parameters/cardToken'
+      requestBody:
+        content:
+          application/json:
+            example:
+              new_account_token: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+            schema:
+              $ref: '#/components/schemas/reassign-account-request'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_token: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+                card_program_token: 5e9483eb-8103-4e16-9794-2106111b2eca
+                cardholder_currency: USD
+                created: '2021-06-28T22:53:15Z'
+                cvv: '742'
+                exp_month: '05'
+                exp_year: '2027'
+                funding:
+                  account_name: Sandbox
+                  created: '2020-07-08T17:57:36Z'
+                  last_four: '5263'
+                  nickname: checking account
+                  state: ENABLED
+                  token: b0f0d91a-3697-46d8-85f3-20f0a585cbea
+                  type: DEPOSITORY_CHECKING
+                hostname: ''
+                last_four: '4938'
+                memo: Updated Name
+                pan: '4111111289144142'
+                spend_limit: 100
+                spend_limit_duration: FOREVER
+                state: OPEN
+                token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
+                type: PHYSICAL
+                pin_status: OK
+              schema:
+                $ref: '#/components/schemas/pci_card_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Reassign a card to another account
+      tags:
+        - Card
   /v1/cards/{card_token}/convert_physical:
     post:
       description: |-
@@ -15665,6 +15728,19 @@ components:
       oneOf:
         - $ref: '#/components/schemas/AppleWebPushProvisioningResponse'
         - $ref: '#/components/schemas/GoogleWebPushProvisioningResponse'
+    reassign-account-request:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Reassign Card Account Request
+      description: Parameters for reassigning a card to another account.
+      type: object
+      properties:
+        new_account_token:
+          description: Globally unique identifier for the account to associate with the card
+          example: 82d7c408-2bbb-4f63-889a-8a2a2b1601af
+          format: uuid
+          type: string
+      required:
+        - new_account_token
     CardSpendLimits:
       properties:
         available_spend_limit:
