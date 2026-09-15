@@ -2650,6 +2650,7 @@ paths:
       description: |-
         Initiate print and shipment of a duplicate physical card (e.g. card is physically damaged).  The PAN, expiry, and CVC2 will remain the same and the original card can continue to be used until the new card is activated.
         Only applies to cards of type `PHYSICAL`.  A card can be reissued or renewed a total of 8 times.
+        Returns `409` if the card is still ongoing manufacturing when using Thales as a manufacturer.
       operationId: postCardReissue
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2747,6 +2748,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
@@ -2762,6 +2765,7 @@ paths:
         A `PHYSICAL` card can be reissued or renewed a total of 8 times.
         For `VIRTUAL`, the card will retain the same card token and PAN and receive an updated expiry and CVC2 code.
         `product_id`, `shipping_method`, `shipping_address`, `carrier` are only relevant for renewing `PHYSICAL` cards.
+        Returns `409` if the card is still ongoing manufacturing when using Thales as a manufacturer.
       operationId: postCardRenew
       parameters:
         - $ref: '#/components/parameters/cardToken'
@@ -2873,6 +2877,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '429':
@@ -4910,6 +4916,40 @@ paths:
       summary: Create blockchain recipient
       tags:
         - Blockchain Recipient
+  /v1/blockchain_recipients/{blockchain_recipient_token}:
+    get:
+      description: |
+        Get a blockchain recipient by token
+
+        Use this to poll the `verification_state` after registering an address: a recipient cannot receive
+        a payout until screening completes and moves it out of `PENDING`
+      operationId: getBlockchainRecipient
+      parameters:
+        - in: path
+          name: blockchain_recipient_token
+          required: true
+          schema:
+            format: uuid
+            title: Blockchain Recipient Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/blockchain_recipient'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get blockchain recipient
+      tags:
+        - Blockchain Recipient
   /v1/external_bank_accounts:
     get:
       description: List all the external bank accounts for the provided search criteria.
@@ -6757,6 +6797,7 @@ paths:
           schema:
             enum:
               - ACH
+              - STABLECOIN
             title: Category
             type: string
         - $ref: '#/components/parameters/beginTime'
@@ -6792,7 +6833,13 @@ paths:
       tags:
         - Payment
     post:
-      description: Initiates a payment between a financial account and an external bank account.
+      description: |
+        Initiates an ACH payment between a financial account and an external bank account.
+
+        This endpoint originates on the ACH rail only. To send a stablecoin payout, use the
+        [Create stablecoin payment](https://docs.lithic.com/reference/createstablecoinpayment)
+        endpoint. Payments on every rail are read back through
+        [List payments](https://docs.lithic.com/reference/searchpayments).
       operationId: createPayment
       requestBody:
         content:
@@ -6815,6 +6862,58 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Create payment
+      tags:
+        - Payment
+  /v1/payments/stablecoin:
+    post:
+      description: |
+        Initiates a stablecoin payout from a financial account to a registered blockchain recipient.
+
+        The recipient must have been registered with
+        [Create blockchain recipient](https://docs.lithic.com/reference/createblockchainrecipient) and
+        have completed address screening — only a recipient in the `ENABLED` verification state can
+        receive a payout. The destination address and chain come from the recipient, so they are not
+        supplied here.
+
+        Only payouts are initiated through this endpoint. Stablecoin pay-ins are credited from
+        on-chain deposits to a financial account's deposit address and are not created through the
+        API. Funds are placed on hold when the payout is initiated, and a payout that fails on chain
+        reverses that hold. A payout cannot be cancelled once it has been submitted on chain.
+
+        This endpoint is only available to stablecoin-enabled programs. Contact your customer success
+        manager to learn more.
+      operationId: createStablecoinPayment
+      requestBody:
+        content:
+          application/json:
+            examples:
+              createStablecoinPayment:
+                summary: Send a stablecoin payout to a registered blockchain recipient
+                value:
+                  amount: 1588
+                  blockchain_recipient_token: 1e3fdb71-4b52-4a30-a7a9-52c85e26a1d9
+                  financial_account_token: 35b0c466-a3e3-519a-9549-ead6a6a2277d
+                  memo: Vendor payout
+                  type: PAYMENT
+            schema:
+              $ref: '#/components/schemas/CreateStablecoinPaymentRequest'
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPaymentResponse'
+          description: Accepted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create stablecoin payment
       tags:
         - Payment
   /v1/payments/{payment_token}:
@@ -15538,6 +15637,8 @@ components:
         - EXTERNAL_WIRE_SETTLED
         - FINANCIAL_AUTHORIZATION
         - FINANCIAL_CREDIT_AUTHORIZATION
+        - INSTALLMENT_FEE
+        - INSTALLMENT_FEE_REVERSAL
         - INTEREST
         - INTEREST_REVERSAL
         - INTERNAL_ADJUSTMENT
@@ -16706,6 +16807,7 @@ components:
         - card_transaction.updated
         - card.converted
         - card.created
+        - card.pin_updated
         - card.reissued
         - card.renewed
         - card.shipped
@@ -16770,6 +16872,7 @@ components:
         - card_transaction.updated: Occurs when a card transaction happens.
         - card.converted: Occurs when a card is converted from virtual to physical cards.
         - card.created: Occurs when a new card is created.
+        - card.pin_updated: Occurs when a card's PIN is set, changed, unblocked, or blocked due to excessive incorrect PIN attempts.
         - card.reissued: Occurs when a card is reissued.
         - card.renewed: Occurs when a card is renewed.
         - card.shipped: Occurs when a card is shipped.
@@ -21215,6 +21318,8 @@ components:
         - CURRENCY_CONVERSION_REVERSAL
         - INTEREST
         - INTEREST_REVERSAL
+        - INSTALLMENT_FEE
+        - INSTALLMENT_FEE_REVERSAL
         - LATE_PAYMENT
         - LATE_PAYMENT_REVERSAL
         - BILLING_ERROR
@@ -21465,6 +21570,57 @@ components:
               $ref: '#/components/schemas/balance'
           type: object
       title: PostPaymentResponse
+    CreateStablecoinPaymentRequest:
+      properties:
+        amount:
+          description: Payout amount in cents
+          minimum: 1
+          title: Amount
+          type: integer
+        blockchain_recipient_token:
+          description: Token of the blockchain recipient to send the payout to. The recipient must be in the `ENABLED` verification state
+          format: uuid
+          title: Blockchain Recipient Token
+          type: string
+        financial_account_token:
+          description: Token of the financial account the payout is funded from
+          format: uuid
+          title: Financial Account Token
+          type: string
+        hold:
+          description: Optional hold to settle when this payout is initiated
+          properties:
+            token:
+              description: Token of the hold to settle when this payout is initiated
+              format: uuid
+              type: string
+          required:
+            - token
+          type: object
+        memo:
+          description: Memo recorded on the payout. Defaults to `Stablecoin payout on <chain>` when omitted
+          maxLength: 512
+          pattern: ^[0-9A-Za-z \x20-\x7e\x40-\xff]*$
+          title: Memo
+          type: string
+        token:
+          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token
+          format: uuid
+          title: Token
+          type: string
+        type:
+          description: Direction of the payment. Stablecoin supports payouts only
+          enum:
+            - PAYMENT
+          title: Payment Type
+          type: string
+      required:
+        - amount
+        - blockchain_recipient_token
+        - financial_account_token
+        - type
+      title: CreateStablecoinPaymentRequest
+      type: object
     payment_return_request:
       title: Payment Return Request
       description: Request to return an ACH payment
@@ -23034,6 +23190,51 @@ components:
           enum:
             - NON_PAYMENT_AUTHENTICATION
             - PAYMENT_AUTHENTICATION
+        psd2_context:
+          type:
+            - object
+            - 'null'
+          description: PSD2/SCA context for EEA and UK transactions. Present when Lithic determines the transaction is in scope for PSD2 Strong Customer Authentication. Absent for out-of-scope transactions.
+          properties:
+            acquirer_exemption:
+              type: string
+              description: |-
+                SCA exemption declared by the acquirer in the 3DS authentication request.
+
+                * `NONE` - No exemption claimed
+                * `TRANSACTION_RISK_ANALYSIS` - Transaction Risk Analysis (TRA) exemption; acquirer asserts low fraud risk
+                * `LOW_VALUE` - Low-value payment exemption; transaction is below the EUR 30 threshold
+                * `RECURRING_PAYMENT` - Recurring payment with a fixed amount to the same payee
+                * `MERCHANT_INITIATED_TRANSACTION` - Merchant-initiated transaction (MIT); cardholder not present
+                * `TRUSTED_BENEFICIARY` - Trusted beneficiary; merchant is on cardholder's whitelist
+                * `STRONG_CUSTOMER_AUTHENTICATION_DELEGATION` - SCA already performed by a delegated third-party authenticator
+                * `SECURE_CORPORATE_PAYMENT` - Secure corporate payment using a dedicated corporate card or process
+                * `AUTHENTICATION_OUTAGE_EXCEPTION` - Authentication outage exception; scheme-level fallback during ACS downtime
+                * `BUNDLED` - Mastercard only; bundled exemption code where the exact exemption type cannot be distinguished
+              enum:
+                - NONE
+                - TRANSACTION_RISK_ANALYSIS
+                - LOW_VALUE
+                - RECURRING_PAYMENT
+                - MERCHANT_INITIATED_TRANSACTION
+                - TRUSTED_BENEFICIARY
+                - STRONG_CUSTOMER_AUTHENTICATION_DELEGATION
+                - SECURE_CORPORATE_PAYMENT
+                - AUTHENTICATION_OUTAGE_EXCEPTION
+                - BUNDLED
+            lithic_exemption_validation:
+              type: string
+              description: |-
+                Lithic's validation of the acquirer-declared exemption. Absent when no acquirer exemption was declared.
+
+                * `ACCEPTED` - Lithic signals support the acquirer's claim
+                * `REJECTED` - Lithic signals contradict the claim, or a required signal is missing
+                * `NOT_VALIDATED` - Exemption was declared but Lithic has no basis to evaluate it; treated as `REJECTED` for challenge purposes
+              enum:
+                - ACCEPTED
+                - REJECTED
+                - NOT_VALIDATED
+          required: []
         three_ds_requestor_challenge_indicator:
           type: string
           description: |-
@@ -26337,6 +26538,44 @@ components:
       required:
         - card_token
       type: object
+    card-pin-updated:
+      title: Card PIN Updated
+      examples:
+        - card_token: 4df9a19c-9e1e-40d1-b27a-05e01152ee07
+          pin_status: OK
+          status_reason: PIN_SET
+      properties:
+        card_token:
+          description: The token of the card whose PIN or PIN status was updated
+          example: 4df9a19c-9e1e-40d1-b27a-05e01152ee07
+          format: uuid
+          type: string
+        pin_status:
+          description: The card's PIN status after the update
+          enum:
+            - OK
+            - BLOCKED
+          example: OK
+          type: string
+        status_reason:
+          description: |
+            The reason for the PIN update:
+              * `PIN_SET` - The PIN was set for the first time; `pin_status` is `OK`
+              * `PIN_CHANGED` - The PIN was changed, including when changing a blocked PIN; `pin_status` is `OK`
+              * `PIN_UNBLOCKED` - The PIN was unblocked without changing it; `pin_status` is `OK`
+              * `EXCESSIVE_PIN_ATTEMPTS` - The PIN was blocked due to excessive incorrect PIN attempts; `pin_status` is `BLOCKED`
+          enum:
+            - PIN_SET
+            - PIN_CHANGED
+            - PIN_UNBLOCKED
+            - EXCESSIVE_PIN_ATTEMPTS
+          example: PIN_SET
+          type: string
+      required:
+        - card_token
+        - pin_status
+        - status_reason
+      type: object
     card-renewed:
       title: Card Renewed
       examples:
@@ -28113,6 +28352,23 @@ components:
           description: |-
             URL which may be used in the presentation of a 3DS Challenge UI to the cardholder. This value will be used by the ACS as the OOB App URL. When applicable, this URL may be used for automatic app switching or rendered directly as an element in the Challenge UI.
             This field is only used with CHALLENGE_REQUESTED decision and when customer orchestrates the 3DS challenge on their own.
+        exemption_applied:
+          type: string
+          description: |-
+            SCA exemption the card program asserts on an `APPROVE` decision. Ignored for `DECLINE` or `CHALLENGE_REQUESTED`.
+
+            When `psd2_context` is present in the decisioning request, this field must be set to approve with
+            an exemption. The card program would do this when they have their own grounds or knowledge that
+            override Lithic's validation. Lithic passes the value to the ACS to generate the correct ECI and
+            authentication value.
+
+            Omit (or send `NONE`) for full SCA with no exemption asserted.
+
+            * `TRANSACTION_RISK_ANALYSIS` - Transaction Risk Analysis (TRA); card program has independent fraud scoring that supports frictionless approval
+            * `RECURRING_PAYMENT` - Recurring payment with a fixed amount to the same payee; card program has explicit mandate data
+          enum:
+            - TRANSACTION_RISK_ANALYSIS
+            - RECURRING_PAYMENT
       required:
         - three_ds_authentication_decision
   responses:
@@ -28646,6 +28902,31 @@ webhooks:
         '200':
           description: Return a 200 status to indicate that the data was received successfully
       summary: card.converted
+      tags:
+        - Event Types
+  card.pin_updated:
+    post:
+      operationId: cardPinUpdatedWebhook
+      description: Occurs when a card's PIN is set, changed, unblocked, or blocked due to excessive incorrect PIN attempts.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - properties:
+                    event_type:
+                      description: The type of event that occurred.
+                      const: card.pin_updated
+                      example: card.pin_updated
+                      type: string
+                  type: object
+                  required:
+                    - event_type
+                - $ref: '#/components/schemas/card-pin-updated'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      summary: card.pin_updated
       tags:
         - Event Types
   card.renewed:
