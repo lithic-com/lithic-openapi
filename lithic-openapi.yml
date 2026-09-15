@@ -22184,6 +22184,7 @@ components:
         - ACH_RETURN_INITIATED
         - ACH_RETURN_PROCESSED
         - ACH_RETURN_SETTLED
+        - STABLECOIN_REVIEWED
       title: Supported Simulation Types
     supported_simulation_decline_reasons:
       type: string
