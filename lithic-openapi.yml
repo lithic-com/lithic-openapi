@@ -15636,6 +15636,8 @@ components:
         - EXTERNAL_WIRE_RELEASED
         - EXTERNAL_WIRE_REVERSED
         - EXTERNAL_WIRE_SETTLED
+        - FEE
+        - FEE_REVERSAL
         - FINANCIAL_AUTHORIZATION
         - FINANCIAL_CREDIT_AUTHORIZATION
         - INSTALLMENT_FEE
@@ -21339,6 +21341,8 @@ components:
         - QUARTERLY_REVERSAL
         - MONTHLY
         - MONTHLY_REVERSAL
+        - FEE
+        - FEE_REVERSAL
     management_operation_event:
       title: Management Operation Event
       type: object
