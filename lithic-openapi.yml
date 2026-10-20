@@ -267,6 +267,16 @@ paths:
                       postal_code: '61022'
                       state: NE
                     legal_business_name: Busy Business, Inc.
+              kybDelegatedInternationalRequest:
+                summary: Create an account holder with KYB_DELEGATED workflow and an international address
+                value:
+                  business_entity:
+                    address:
+                      address1: 12 Ermou Street
+                      city: Athens
+                      country: GRC
+                      postal_code: '10563'
+                    legal_business_name: Busy Business, Inc.
               kycExemptRequest:
                 summary: Create an account holder with KYC Exempt workflow
                 value:
@@ -280,6 +290,20 @@ paths:
                   email: tom@middle-earth.com
                   first_name: Tom
                   kyc_exemption_type: AUTHORIZED_USER
+                  last_name: Bombadil
+                  phone_number: '+15555555555'
+                  workflow: KYC_EXEMPT
+              kycExemptInternationalRequest:
+                summary: Create an account holder with KYC Exempt workflow and an international address
+                value:
+                  address:
+                    address1: 12 Ermou Street
+                    city: Athens
+                    country: GRC
+                    postal_code: '10563'
+                  email: tom@middle-earth.com
+                  first_name: Tom
+                  kyc_exemption_type: PREPAID_CARD_USER
                   last_name: Bombadil
                   phone_number: '+15555555555'
                   workflow: KYC_EXEMPT
@@ -1103,7 +1127,8 @@ paths:
     post:
       operationId: postAuthRules
       summary: Create a new rule
-      description: Creates a new V2 Auth rule in draft mode
+      description: |
+        Creates a new V2 Auth rule in draft mode
       tags:
         - Auth Rules
       parameters: []
@@ -1154,7 +1179,7 @@ paths:
           required: false
         - name: scope
           in: query
-          description: Only return Auth Rules that are bound to the provided scope.
+          description: Only return Auth Rules that are bound to the provided scope. When no token is provided, `CARD` also returns Auth Rules that include a `CARD_TAG` entity.
           schema:
             enum:
               - PROGRAM
@@ -1224,7 +1249,7 @@ paths:
       description: |
         Updates a V2 Auth rule's properties
 
-        If `account_tokens`, `card_tokens`, `program_level`, `excluded_card_tokens`, `excluded_account_tokens`, or `excluded_business_account_tokens` is provided, this will replace existing associations with the provided list of entities.
+        If `entities` is provided, this will replace the rule's existing entities with the provided `include` and `exclude` lists. To change entities incrementally, use `PATCH /v2/auth_rules/{auth_rule_token}/entities` instead.
       tags:
         - Auth Rules
       parameters:
@@ -1254,6 +1279,32 @@ paths:
       responses:
         '204':
           description: Auth Rule Deleted
+        '400':
+          $ref: '#/components/responses/responses-BadRequest'
+        '404':
+          $ref: '#/components/responses/responses-NotFound'
+  /v2/auth_rules/{auth_rule_token}/entities:
+    patch:
+      operationId: patchAuthRuleEntities
+      summary: Update rule entities
+      description: |
+        Adds entities to and removes entities from a V2 Auth rule's `include` and `exclude` lists
+
+        To replace all of the rule's entities at once, provide `entities` to `PATCH /v2/auth_rules/{auth_rule_token}` instead.
+      tags:
+        - Auth Rules
+      parameters:
+        - $ref: '#/components/parameters/AuthRuleToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/patch-auth-rule-entities-request'
+      responses:
+        '200':
+          description: Updated Auth Rule
+          $ref: '#/components/responses/AuthRule'
         '400':
           $ref: '#/components/responses/responses-BadRequest'
         '404':
@@ -1299,7 +1350,7 @@ paths:
 
         This only calculates the features for the active version.
         - VelocityLimit Rules calculates the current Velocity Feature data. This requires a `card_token` or `account_token` matching what the rule is Scoped to.
-        - ConditionalBlock Rules calculates the CARD_TRANSACTION_COUNT_* attributes on the rule. This requires a `card_token`
+        - ConditionalAction Rules calculates the CARD_TRANSACTION_COUNT_* attributes on the rule. This requires a `card_token`
       tags:
         - Auth Rules
       parameters:
@@ -1454,7 +1505,7 @@ paths:
         The generated backtest report will be delivered asynchronously through a webhook with `event_type` = `auth_rules.backtest_report.created`. See the docs on setting up [webhook subscriptions](https://docs.lithic.com/docs/events-api).
         It is also possible to request backtest reports on-demand through the `/v2/auth_rules/{auth_rule_token}/backtests/{auth_rule_backtest_token}` endpoint.
 
-        Lithic currently supports backtesting for `CONDITIONAL_BLOCK` / `CONDITIONAL_ACTION` rules. Backtesting for `VELOCITY_LIMIT` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
+        Lithic currently supports backtesting for `CONDITIONAL_ACTION` rules. Backtesting for `VELOCITY_LIMIT` rules is generally not supported. In specific cases (i.e. where Lithic has pre-calculated the requested velocity metrics for historical transactions), a backtest may be feasible. However, such cases are uncommon and customers should not anticipate support for velocity backtests under most configurations.
         If a historical transaction does not feature the required inputs to evaluate the rule, then it will not be included in the final backtest report.
       tags:
         - Auth Rules
@@ -1913,6 +1964,8 @@ paths:
                   spend_limit: 1000
                   spend_limit_duration: TRANSACTION
                   state: OPEN
+                  tags:
+                    risk-level: high
                   type: VIRTUAL
               createPhysicalCard:
                 summary: Create a physical card
@@ -2057,6 +2110,10 @@ paths:
                     - OPEN
                     - PAUSED
                   type: string
+                tags:
+                  $ref: '#/components/schemas/tags'
+                  description: |
+                    Key-value pairs to tag the card with. A replacement card does not inherit tags from the card it replaces. A card can have at most 50 tags, with keys up to 40 characters and values up to 500 characters
                 type:
                   default: VIRTUAL
                   description: |
@@ -2107,6 +2164,8 @@ paths:
                 spend_limit: 1000
                 spend_limit_duration: TRANSACTION
                 state: OPEN
+                tags:
+                  risk-level: high
                 token: 7ef7d65c-9023-4da3-b113-3b8583fd7951
                 type: VIRTUAL
                 pin_status: NOT_SET
@@ -2211,6 +2270,8 @@ paths:
                   spend_limit: 100
                   spend_limit_duration: FOREVER
                   state: OPEN
+                  tags:
+                    risk-level: high
             schema:
               properties:
                 digital_card_art_token:
@@ -2252,6 +2313,10 @@ paths:
                     - OPEN
                     - PAUSED
                   type: string
+                tags:
+                  $ref: '#/components/schemas/tags-patch'
+                  description: |
+                    Key-value pairs to merge into the card's tags. Supplied keys are added or overwritten, a key with a `null` value is removed, and omitted keys remain unchanged. A card can have at most 50 tags, with keys up to 40 characters and values up to 500 characters
                 substatus:
                   description: |
                     Card state substatus values:
@@ -2312,6 +2377,8 @@ paths:
                 spend_limit_duration: FOREVER
                 replacement_for: null
                 state: OPEN
+                tags:
+                  risk-level: high
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: VIRTUAL
                 pin_status: NOT_SET
@@ -2736,6 +2803,8 @@ paths:
                 spend_limit: 100
                 spend_limit_duration: FOREVER
                 state: OPEN
+                tags:
+                  risk-level: high
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
                 pin_status: OK
@@ -2865,6 +2934,8 @@ paths:
                 spend_limit: 100
                 spend_limit_duration: FOREVER
                 state: OPEN
+                tags:
+                  risk-level: high
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
                 pin_status: OK
@@ -2930,6 +3001,8 @@ paths:
                 spend_limit: 100
                 spend_limit_duration: FOREVER
                 state: OPEN
+                tags:
+                  risk-level: high
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
                 pin_status: OK
@@ -3045,6 +3118,8 @@ paths:
                 spend_limit: 100
                 spend_limit_duration: FOREVER
                 state: OPEN
+                tags:
+                  risk-level: high
                 token: f5f905f5-8a8e-49bf-a9b4-c0adaa401456
                 type: PHYSICAL
                 pin_status: OK
@@ -5668,6 +5743,54 @@ paths:
       summary: Get balances
       tags:
         - Balance
+  /v1/financial_accounts/{financial_account_token}/open_to_buy:
+    get:
+      description: |
+        Get the funds available for card spend backed by a given Security Account, along with the
+        balances that amount is derived from.
+
+        Open to buy is the amount Lithic authorizes card spend against. It is not a stored balance,
+        so it is recalculated on every request from the Security Account, the funds held against spend
+        Lithic has already paid out to the networks on your behalf, and the spend that has not yet been
+        collected. The accounts that feed the calculation depend on your program setup, so
+        `summary.settled_funds` is `null` outside Commercial Charge.
+
+        Supported for Commercial Charge, Dynamic Reserve, and Secured Charge programs. Returns `404`
+        if `financial_account_token` is not a Security Account you own, or if your program setup does
+        not use an open to buy calculation.
+      operationId: getOpenToBuy
+      parameters:
+        - description: Globally unique identifier for the Security Account to price
+          examples:
+            securityFinancialAccountTokenExample:
+              summary: A sample Security Account token
+              value: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/open-to-buy'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get open to buy
+      tags:
+        - Balance
   /v1/financial_accounts/{financial_account_token}/credit_configuration:
     get:
       description: Get an Account's credit configuration
@@ -6350,6 +6473,266 @@ paths:
       summary: Get loan tape configuration
       tags:
         - Statements
+  /v1/financial_accounts/{financial_account_token}/installment_plans:
+    get:
+      description: List the installment plans for a given financial account.
+      operationId: getInstallmentPlans
+      parameters:
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+            title: Ending Before
+            type: string
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          required: false
+          schema:
+            default: 50
+            description: Page size (for pagination).
+            maximum: 100
+            minimum: 1
+            title: Page Size
+            type: integer
+        - description: Only installment plans in this state will be included.
+          in: query
+          name: state
+          required: false
+          schema:
+            anyOf:
+              - $ref: '#/components/schemas/installment_plan_state'
+              - type: 'null'
+            description: Only installment plans in this state will be included.
+            title: State
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+            title: Starting After
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/installment_plans_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List installment plans
+      tags:
+        - Statements
+  /v1/financial_accounts/{financial_account_token}/installment_plans/{installment_plan_token}:
+    get:
+      description: Get a specific installment plan for a given financial account.
+      operationId: getInstallmentPlan
+      parameters:
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Globally unique identifier for installment plan.
+          in: path
+          name: installment_plan_token
+          required: true
+          schema:
+            description: Globally unique identifier for installment plan.
+            title: Installment Plan Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/installment_plan_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get installment plan by token
+      tags:
+        - Statements
+  /v1/financial_accounts/{financial_account_token}/installment_plans/{installment_plan_token}/statements:
+    get:
+      description: List the statement snapshots for a given installment plan.
+      operationId: getInstallmentPlanStatements
+      parameters:
+        - description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+          in: query
+          name: begin
+          required: false
+          schema:
+            description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+            format: date
+            title: Begin
+            type: string
+        - description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+          in: query
+          name: end
+          required: false
+          schema:
+            description: Date string in RFC 3339 format. Only entries created before the specified date will be included.
+            format: date
+            title: End
+            type: string
+        - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+          in: query
+          name: ending_before
+          required: false
+          schema:
+            description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
+            title: Ending Before
+            type: string
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Globally unique identifier for installment plan.
+          in: path
+          name: installment_plan_token
+          required: true
+          schema:
+            description: Globally unique identifier for installment plan.
+            title: Installment Plan Token
+            type: string
+        - description: Page size (for pagination).
+          in: query
+          name: page_size
+          required: false
+          schema:
+            default: 50
+            description: Page size (for pagination).
+            maximum: 100
+            minimum: 1
+            title: Page Size
+            type: integer
+        - description: Only snapshots in which the plan was in this state will be included.
+          in: query
+          name: state
+          required: false
+          schema:
+            anyOf:
+              - $ref: '#/components/schemas/installment_plan_state'
+              - type: 'null'
+            description: Only snapshots in which the plan was in this state will be included.
+            title: State
+        - description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+          in: query
+          name: starting_after
+          required: false
+          schema:
+            description: A cursor representing an item's token after which a page of results should begin. Used to retrieve the next page of results after this item.
+            title: Starting After
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/installment_plan_statements_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List installment plan statements
+      tags:
+        - Statements
+  /v1/financial_accounts/{financial_account_token}/installment_plans/{installment_plan_token}/statements/{statement_token}:
+    get:
+      description: Get a specific statement snapshot for a given installment plan.
+      operationId: getInstallmentPlanStatement
+      parameters:
+        - description: Globally unique identifier for financial account.
+          in: path
+          name: financial_account_token
+          required: true
+          schema:
+            description: Globally unique identifier for financial account.
+            format: uuid
+            title: Financial Account Token
+            type: string
+        - description: Globally unique identifier for installment plan.
+          in: path
+          name: installment_plan_token
+          required: true
+          schema:
+            description: Globally unique identifier for installment plan.
+            title: Installment Plan Token
+            type: string
+        - description: Globally unique identifier for statement.
+          in: path
+          name: statement_token
+          required: true
+          schema:
+            description: Globally unique identifier for statement.
+            title: Statement Token
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/installment_plan_statement_response'
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get installment plan statement by token
+      tags:
+        - Statements
   /v1/financial_accounts/{financial_account_token}/interest_tier_schedule:
     get:
       description: |-
@@ -6958,6 +7341,17 @@ paths:
             format: uuid
             title: Payment Token
             type: string
+      requestBody:
+        content:
+          application/json:
+            examples:
+              retryAsSameDay:
+                summary: Retry a returned origination as a same day ACH payment
+                value:
+                  method: ACH_SAME_DAY
+            schema:
+              $ref: '#/components/schemas/RetryPaymentRequest'
+        required: false
       responses:
         '202':
           content:
@@ -7507,6 +7901,14 @@ paths:
                   descriptor: COFFEE SHOP
                   pan: '4111111289144142'
                   status: FINANCIAL_CREDIT_AUTHORIZATION
+              simulateCadAuthorization:
+                summary: Simulate a CAD authorization
+                value:
+                  amount: 3831
+                  billing_currency: CAD
+                  descriptor: COFFEE SHOP
+                  pan: '4111111289144142'
+                  status: FINANCIAL_AUTHORIZATION
             schema:
               properties:
                 amount:
@@ -7514,6 +7916,10 @@ paths:
                   minimum: 0
                   maximum: 2000000000
                   type: integer
+                billing_currency:
+                  description: 3-character alphabetic ISO 4217 currency code for the cardholder billing amount. Permitted values are USD, GBP, EUR and CAD, and any other ISO 4217 code returns a 422. Defaults to USD
+                  example: CAD
+                  type: string
                 descriptor:
                   description: Merchant descriptor.
                   example: COFFEE SHOP
@@ -7552,7 +7958,7 @@ paths:
                   description: Amount of the transaction to be simulated in currency specified in merchant_currency, including any acquirer fees.
                   type: integer
                 merchant_currency:
-                  description: '3-character alphabetic ISO 4217 currency code. Note: Simulator only accepts USD, GBP, EUR and defaults to GBP if another ISO 4217 code is provided'
+                  description: 3-character alphabetic ISO 4217 currency code for the merchant amount. Only used when merchant_amount is set, and defaults to GBP in that case. Without merchant_amount, the merchant amount uses the billing currency. Permitted values are USD, GBP, EUR and CAD, and any other ISO 4217 code returns a 422
                   example: GBP
                   type: string
                 pan:
@@ -7572,6 +7978,10 @@ paths:
                   example: '1234'
                   maxLength: 12
                   minLength: 4
+                  type: string
+                settlement_currency:
+                  description: 3-character alphabetic ISO 4217 currency code for the settlement amount. Permitted values are USD, GBP, EUR and CAD, and any other ISO 4217 code returns a 422. Defaults to the value of billing_currency. Only single message (financial) authorizations carry a settlement amount, and the value is ignored for dual message authorizations
+                  example: CAD
                   type: string
                 status:
                   default: AUTHORIZATION
@@ -7713,6 +8123,10 @@ paths:
                   minimum: 0
                   maximum: 2000000000
                   type: integer
+                billing_currency:
+                  description: 3-character alphabetic ISO 4217 currency code for the cardholder billing amount. Permitted values are USD, GBP, EUR and CAD, and any other ISO 4217 code returns a 422. Defaults to USD
+                  example: CAD
+                  type: string
                 descriptor:
                   description: Merchant descriptor.
                   example: COFFEE SHOP
@@ -7962,6 +8376,10 @@ paths:
                   minimum: 0
                   maximum: 2000000000
                   type: integer
+                billing_currency:
+                  description: 3-character alphabetic ISO 4217 currency code for the cardholder billing amount. Permitted values are USD, GBP, EUR and CAD, and any other ISO 4217 code returns a 422. Defaults to USD
+                  example: CAD
+                  type: string
                 descriptor:
                   description: Merchant descriptor.
                   example: COFFEE SHOP
@@ -7973,6 +8391,10 @@ paths:
                   example: '4111111289144142'
                   maxLength: 16
                   minLength: 16
+                  type: string
+                settlement_currency:
+                  description: 3-character alphabetic ISO 4217 currency code for the settlement amount. Permitted values are USD, GBP, EUR and CAD, and any other ISO 4217 code returns a 422. Defaults to the value of billing_currency
+                  example: CAD
                   type: string
               required:
                 - amount
@@ -8003,6 +8425,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/SimulateAuthorizationFailure'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       summary: Simulate return
@@ -10845,23 +11269,39 @@ components:
           example: Omaha
           type: string
         country:
-          description: 'Valid country code, entered in uppercase ISO 3166-1 alpha-3 three-character format. Only USA is currently supported for all workflows. KYC_EXEMPT supports CAN additionally. '
+          description: Valid country code, entered in uppercase ISO 3166-1 alpha-3 three-character format. The KYB_DELEGATED and KYC_EXEMPT workflows support all countries except BLR, CUB, IRN, PRK, RUS, SDN, SYR, and UKR. Other workflows support USA only.
           example: USA
           type: string
         postal_code:
-          description: 'Valid postal code. USA postal codes (ZIP codes) are supported, entered as a five-digit postal code or nine-digit postal code (ZIP+4) using the format 12345-1234.  KYC_EXEMPT supports Canadian postal codes. '
+          description: 'Valid postal code. For USA addresses, enter either a five-digit postal code or a nine-digit postal code (ZIP+4) using the format 12345-1234. Required for all countries except the following, which do not use postal codes: ABW, AGO, ARE, ATG, BDI, BEN, BFA, BHS, BLZ, BOL, BWA, CIV, CMR, COD, COG, COK, COM, DJI, DMA, ERI, FJI, GAB, GMB, GNQ, GRD, GUY, HKG, KIR, MAC, MLI, MRT, NIU, NRU, QAT, RWA, SLB, SLE, SSD, SUR, SXM, SYC, TGO, TKL, TLS, TON, TUV, UGA, VUT, YEM, ZWE'
           example: '68022'
-          type: string
+          minLength: 1
+          maxLength: 16
+          type:
+            - string
+            - 'null'
         state:
-          description: Valid state code. USA state codes are supported, entered in uppercase ISO 3166-2 two-character format. KYC_EXEMPT supports Canadian province codes.
+          description: |-
+            Valid state, province, or subdivision code, entered as the uppercase ISO 3166-2 code for the country without the country prefix. For example, `CA` for California. Optional unless the address is in one of the following countries, where it is required:
+
+             - `USA`
+             - `CAN`
+             - `AUS`
+             - `CHN`
+             - `KOR`
+             - `MEX`
+             - `MYS`
+             - `NZL`
           example: NE
-          type: string
+          minLength: 1
+          maxLength: 30
+          type:
+            - string
+            - 'null'
       required:
         - address1
         - city
         - country
-        - postal_code
-        - state
       type: object
     AccountHolderIndividualResponse:
       description: Information about an individual associated with an account holder. A subset of the information provided via KYC. For example, we do not return the government id.
@@ -11152,7 +11592,7 @@ components:
         address:
           $ref: '#/components/schemas/Address'
           description: |
-            Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
+            Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are supported for the KYB and KYC workflows.
         dob:
           description: Individual's date of birth, as an RFC 3339 date.
           example: '1991-03-08 08:00:00'
@@ -11507,17 +11947,35 @@ components:
           example: Omaha
           type: string
         country:
-          description: Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
+          description: Valid country code, entered in uppercase ISO 3166-1 alpha-3 three-character format. Supported countries depend on the onboarding workflow used for the account holder.
           example: USA
           type: string
         postal_code:
-          description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+          description: 'Valid postal code. For USA addresses, enter either a five-digit postal code or a nine-digit postal code (ZIP+4) using the format 12345-1234. Required for all countries except the following, which do not use postal codes: ABW, AGO, ARE, ATG, BDI, BEN, BFA, BHS, BLZ, BOL, BWA, CIV, CMR, COD, COG, COK, COM, DJI, DMA, ERI, FJI, GAB, GMB, GNQ, GRD, GUY, HKG, KIR, MAC, MLI, MRT, NIU, NRU, QAT, RWA, SLB, SLE, SSD, SUR, SXM, SYC, TGO, TKL, TLS, TON, TUV, UGA, VUT, YEM, ZWE'
           example: '68022'
-          type: string
+          minLength: 1
+          maxLength: 16
+          type:
+            - string
+            - 'null'
         state:
-          description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+          description: |-
+            Valid state, province, or subdivision code, entered as the uppercase ISO 3166-2 code for the country without the country prefix. For example, `CA` for California. Optional unless the address is in one of the following countries, where it is required:
+
+             - `USA`
+             - `CAN`
+             - `AUS`
+             - `CHN`
+             - `KOR`
+             - `MEX`
+             - `MYS`
+             - `NZL`
           example: NE
-          type: string
+          minLength: 1
+          maxLength: 30
+          type:
+            - string
+            - 'null'
     individual-patch:
       title: Individual
       type: object
@@ -11528,7 +11986,7 @@ components:
           description: Globally unique identifier for an entity.
         address:
           $ref: '#/components/schemas/address-patch'
-          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
+          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are supported for the KYB and KYC workflows.
         dob:
           type: string
           example: '1991-03-08 08:00:00'
@@ -11731,30 +12189,46 @@ components:
           example: Omaha
           type: string
         country:
-          description: Valid country code. Only USA is currently supported, entered in uppercase ISO 3166-1 alpha-3 three-character format.
+          description: Valid country code, entered in uppercase ISO 3166-1 alpha-3 three-character format. Supported countries depend on the onboarding workflow used for the account holder.
           example: USA
           type: string
         postal_code:
-          description: Valid postal code. Only USA ZIP codes are currently supported, entered as a five-digit ZIP or nine-digit ZIP+4.
+          description: 'Valid postal code. For USA addresses, enter either a five-digit postal code or a nine-digit postal code (ZIP+4) using the format 12345-1234. Required for all countries except the following, which do not use postal codes: ABW, AGO, ARE, ATG, BDI, BEN, BFA, BHS, BLZ, BOL, BWA, CIV, CMR, COD, COG, COK, COM, DJI, DMA, ERI, FJI, GAB, GMB, GNQ, GRD, GUY, HKG, KIR, MAC, MLI, MRT, NIU, NRU, QAT, RWA, SLB, SLE, SSD, SUR, SXM, SYC, TGO, TKL, TLS, TON, TUV, UGA, VUT, YEM, ZWE'
           example: '68022'
-          type: string
+          minLength: 1
+          maxLength: 16
+          type:
+            - string
+            - 'null'
         state:
-          description: Valid state code. Only USA state codes are currently supported, entered in uppercase ISO 3166-2 two-character format.
+          description: |-
+            Valid state, province, or subdivision code, entered as the uppercase ISO 3166-2 code for the country without the country prefix. For example, `CA` for California. Optional unless the address is in one of the following countries, where it is required:
+
+             - `USA`
+             - `CAN`
+             - `AUS`
+             - `CHN`
+             - `KOR`
+             - `MEX`
+             - `MYS`
+             - `NZL`
           example: NE
-          type: string
+          minLength: 1
+          maxLength: 30
+          type:
+            - string
+            - 'null'
       required:
         - address1
         - city
         - country
-        - postal_code
-        - state
     individual:
       title: Individual
       type: object
       properties:
         address:
           $ref: '#/components/schemas/address'
-          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are currently supported.
+          description: Individual's current address - PO boxes, UPS drops, and FedEx drops are not acceptable; APO/FPO are acceptable. Only USA addresses are supported for the KYB and KYC workflows.
         dob:
           type: string
           example: '1991-03-08 08:00:00'
@@ -12469,54 +12943,203 @@ components:
     program-level:
       title: Auth Rule Program Level Parameter
       type: boolean
-      description: Whether the Auth Rule applies to all authorizations on the card program.
+      description: |-
+        Deprecated: Use `entities.include` with a `PROGRAM` entity instead.
+
+        Whether the Auth Rule applies to all authorizations on the card program.
+      deprecated: true
     card-tokens:
       title: Auth Rule Card Tokens
-      description: Card tokens to which the Auth Rule applies.
+      description: |-
+        Deprecated: Use `entities.include` with `CARD` entities instead.
+
+        Card tokens to which the Auth Rule applies. Cards the rule applies to through a `CARD_TAG` entity are not listed.
+      deprecated: true
       type: array
       items:
         type: string
         format: uuid
     excluded-card-tokens:
       title: Auth Rule Excluded Card Tokens
-      description: Card tokens to which the Auth Rule does not apply.
+      description: |-
+        Deprecated: Use `entities.exclude` with `CARD` entities instead.
+
+        Card tokens to which the Auth Rule does not apply. Cards excluded through a `CARD_TAG` entity are not listed.
+      deprecated: true
       type: array
       items:
         type: string
         format: uuid
     excluded-account-tokens:
       title: Auth Rule Excluded Account Tokens
-      description: Account tokens to which the Auth Rule does not apply.
+      description: |-
+        Deprecated: Use `entities.exclude` with `ACCOUNT` entities instead.
+
+        Account tokens to which the Auth Rule does not apply.
+      deprecated: true
       type: array
       items:
         type: string
         format: uuid
     excluded-business-account-tokens:
       title: Auth Rule Excluded Business Account Tokens
-      description: Business account tokens to which the Auth Rule does not apply.
+      description: |-
+        Deprecated: Use `entities.exclude` with `BUSINESS_ACCOUNT` entities instead.
+
+        Business account tokens to which the Auth Rule does not apply.
+      deprecated: true
       type: array
       items:
         type: string
         format: uuid
     account-tokens:
       title: Auth Rule Account Tokens
-      description: Account tokens to which the Auth Rule applies.
+      description: |-
+        Deprecated: Use `entities.include` with `ACCOUNT` entities instead.
+
+        Account tokens to which the Auth Rule applies.
+      deprecated: true
       type: array
       items:
         type: string
         format: uuid
     business-account-tokens:
       title: Auth Rule Business Account Tokens
-      description: Business Account tokens to which the Auth Rule applies.
+      description: |-
+        Deprecated: Use `entities.include` with `BUSINESS_ACCOUNT` entities instead.
+
+        Business Account tokens to which the Auth Rule applies.
+      deprecated: true
       type: array
       items:
         type: string
         format: uuid
+    auth-rule-program-entity:
+      title: Program Entity
+      description: The entire card program. Takes no other fields.
+      type: object
+      properties:
+        type:
+          type: string
+          const: PROGRAM
+      required:
+        - type
+    auth-rule-card-entity:
+      title: Card Entity
+      description: A single card.
+      type: object
+      properties:
+        type:
+          type: string
+          const: CARD
+        token:
+          type: string
+          format: uuid
+          description: Token of the card
+      required:
+        - type
+        - token
+    auth-rule-account-entity:
+      title: Account Entity
+      description: A single account.
+      type: object
+      properties:
+        type:
+          type: string
+          const: ACCOUNT
+        token:
+          type: string
+          format: uuid
+          description: Token of the account
+      required:
+        - type
+        - token
+    auth-rule-business-account-entity:
+      title: Business Account Entity
+      description: A single business account.
+      type: object
+      properties:
+        type:
+          type: string
+          const: BUSINESS_ACCOUNT
+        token:
+          type: string
+          format: uuid
+          description: Token of the business account
+      required:
+        - type
+        - token
+    auth-rule-card-tag-entity:
+      title: Card Tag Entity
+      description: Every card whose `tags` contain `key` set to `value`.
+      type: object
+      properties:
+        type:
+          type: string
+          const: CARD_TAG
+        key:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: Tag key. Keys starting with `lithic.` (case-insensitive) are reserved and rejected.
+        value:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Tag value
+      required:
+        - type
+        - key
+        - value
+    auth-rule-entity:
+      title: Auth Rule Entity
+      description: |
+        An entity that an Auth Rule can apply to. The `type` field determines which other fields are present.
+
+        - `PROGRAM`: the entire card program.
+        - `CARD`: a single card.
+        - `ACCOUNT`: a single account.
+        - `BUSINESS_ACCOUNT`: a single business account.
+        - `CARD_TAG`: every card that carries the given tag (`key` and `value`).
+
+        `CARD` and `CARD_TAG` entities can only be used with rules on the `AUTHORIZATION`, `THREE_DS_AUTHENTICATION`, `TOKENIZATION` and `CARD_TRANSACTION_UPDATE` event streams. Rules on the other event streams accept `PROGRAM`, `ACCOUNT` and `BUSINESS_ACCOUNT` only.
+      oneOf:
+        - $ref: '#/components/schemas/auth-rule-program-entity'
+        - $ref: '#/components/schemas/auth-rule-card-entity'
+        - $ref: '#/components/schemas/auth-rule-account-entity'
+        - $ref: '#/components/schemas/auth-rule-business-account-entity'
+        - $ref: '#/components/schemas/auth-rule-card-tag-entity'
+      discriminator:
+        propertyName: type
+        mapping:
+          PROGRAM: '#/components/schemas/auth-rule-program-entity'
+          CARD: '#/components/schemas/auth-rule-card-entity'
+          ACCOUNT: '#/components/schemas/auth-rule-account-entity'
+          BUSINESS_ACCOUNT: '#/components/schemas/auth-rule-business-account-entity'
+          CARD_TAG: '#/components/schemas/auth-rule-card-tag-entity'
+    auth-rule-entities-response:
+      title: Auth Rule Entities Response
+      description: |
+        The entities the Auth Rule applies to (`include`) and does not apply to (`exclude`). An exclusion overrides an inclusion.
+      type: object
+      properties:
+        include:
+          type: array
+          description: Entities the Auth Rule applies to
+          items:
+            $ref: '#/components/schemas/auth-rule-entity'
+        exclude:
+          type: array
+          description: Entities the Auth Rule does not apply to
+          items:
+            $ref: '#/components/schemas/auth-rule-entity'
+      required:
+        - include
+        - exclude
     auth-rule-type:
       title: Auth Rule Types
       type: string
       enum:
-        - CONDITIONAL_BLOCK
         - VELOCITY_LIMIT
         - MERCHANT_LOCK
         - CONDITIONAL_ACTION
@@ -12525,116 +13148,11 @@ components:
       description: |-
         The type of Auth Rule. For certain rule types, this determines the event stream during which it will be evaluated. For rules that can be applied to one of several event streams, the effective one is defined by the separate `event_stream` field.
 
-        - `CONDITIONAL_BLOCK`: Deprecated. Use `CONDITIONAL_ACTION` instead. AUTHORIZATION event stream.
         - `VELOCITY_LIMIT`: AUTHORIZATION event stream.
         - `MERCHANT_LOCK`: AUTHORIZATION event stream.
         - `CONDITIONAL_ACTION`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, CARD_TRANSACTION_UPDATE, or ACH_PAYMENT_UPDATE event stream.
         - `TYPESCRIPT_CODE`: AUTHORIZATION, THREE_DS_AUTHENTICATION, TOKENIZATION, ACH_CREDIT_RECEIPT, ACH_DEBIT_RECEIPT, CARD_TRANSACTION_UPDATE, or ACH_PAYMENT_UPDATE event stream.
         - `OTHER`: A rule whose type is not exposed through this API. Rules of this type are read-only; `OTHER` cannot be used when creating a rule.
-    conditional-operation:
-      title: Conditional Operation
-      type: string
-      description: The operation to apply to the attribute
-      enum:
-        - IS_ONE_OF
-        - IS_NOT_ONE_OF
-        - MATCHES
-        - DOES_NOT_MATCH
-        - IS_EQUAL_TO
-        - IS_NOT_EQUAL_TO
-        - IS_GREATER_THAN
-        - IS_GREATER_THAN_OR_EQUAL_TO
-        - IS_LESS_THAN
-        - IS_LESS_THAN_OR_EQUAL_TO
-        - IS_AFTER
-        - IS_BEFORE
-        - CONTAINS_ANY
-        - CONTAINS_ALL
-        - CONTAINS_NONE
-    conditional-value:
-      title: Conditional Value
-      anyOf:
-        - title: Regex
-          type: string
-          description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
-        - title: Number
-          anyOf:
-            - type: integer
-              format: int64
-            - type: number
-          description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
-        - title: List of Strings
-          type: array
-          minItems: 1
-          items:
-            type: string
-          description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
-        - title: Timestamp
-          type: string
-          format: date-time
-          description: A timestamp, to be used with `IS_AFTER` or `IS_BEFORE`
-    conditional-block-parameters:
-      title: Conditional Block Parameters
-      deprecated: true
-      description: 'Deprecated: Use CONDITIONAL_ACTION instead.'
-      type: object
-      properties:
-        conditions:
-          type: array
-          items:
-            type: object
-            properties:
-              attribute:
-                type: string
-                description: |-
-                  The attribute to target.
-
-                  The following attributes may be targeted:
-                  * `MCC`: A four-digit number listed in ISO 18245. An MCC is used to classify a business by the types of goods or services it provides.
-                  * `COUNTRY`: Country of entity of card acceptor. Possible values are: (1) all ISO 3166-1 alpha-3 country codes, (2) QZZ for Kosovo, and (3) ANT for Netherlands Antilles.
-                  * `CURRENCY`: 3-character alphabetic ISO 4217 code for the merchant currency of the transaction.
-                  * `MERCHANT_ID`: Unique alphanumeric identifier for the payment card acceptor (merchant).
-                  * `DESCRIPTOR`: Short description of card acceptor.
-                  * `LIABILITY_SHIFT`: Indicates whether chargeback liability shift to the issuer applies to the transaction. Valid values are `NONE`, `3DS_AUTHENTICATED`, or `TOKEN_AUTHENTICATED`.
-                  * `PAN_ENTRY_MODE`: The method by which the cardholder's primary account number (PAN) was entered. Valid values are `AUTO_ENTRY`, `BAR_CODE`, `CONTACTLESS`, `ECOMMERCE`, `ERROR_KEYED`, `ERROR_MAGNETIC_STRIPE`, `ICC`, `KEY_ENTERED`, `MAGNETIC_STRIPE`, `MANUAL`, `OCR`, `SECURE_CARDLESS`, `UNSPECIFIED`, `UNKNOWN`, `CREDENTIAL_ON_FILE`, or `ECOMMERCE`.
-                  * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder.
-                  * `RISK_SCORE`: Network-provided score assessing risk level associated with a given authorization. Scores are on a range of 0-999, with 0 representing the lowest risk and 999 representing the highest risk. For Visa transactions, where the raw score has a range of 0-99, Lithic will normalize the score by multiplying the raw score by 10x.
-                  * `CARD_TRANSACTION_COUNT_15M`: The number of transactions on the card in the trailing 15 minutes before the authorization.
-                  * `CARD_TRANSACTION_COUNT_1H`: The number of transactions on the card in the trailing hour up and until the authorization.
-                  * `CARD_TRANSACTION_COUNT_24H`: The number of transactions on the card in the trailing 24 hours up and until the authorization.
-                  * `CARD_STATE`: The current state of the card associated with the transaction. Valid values are `CLOSED`, `OPEN`, `PAUSED`, `PENDING_ACTIVATION`, `PENDING_FULFILLMENT`.
-                  * `PIN_ENTERED`: Indicates whether a PIN was entered during the transaction. Valid values are `TRUE`, `FALSE`.
-                  * `PIN_STATUS`: The current state of card's PIN. Valid values are `NOT_SET`, `OK`, `BLOCKED`.
-                  * `WALLET_TYPE`: For transactions using a digital wallet token, indicates the source of the token. Valid values are `APPLE_PAY`, `GOOGLE_PAY`, `SAMSUNG_PAY`, `MASTERPASS`, `MERCHANT`, `OTHER`, `NONE`.
-                  * `ADDRESS_MATCH`: Lithic's evaluation result comparing transaction's address data with the cardholder KYC data if it exists. Valid values are `MATCH`, `MATCH_ADDRESS_ONLY`, `MATCH_ZIP_ONLY`,`MISMATCH`,`NOT_PRESENT`.
-                enum:
-                  - MCC
-                  - COUNTRY
-                  - CURRENCY
-                  - MERCHANT_ID
-                  - DESCRIPTOR
-                  - LIABILITY_SHIFT
-                  - PAN_ENTRY_MODE
-                  - TRANSACTION_AMOUNT
-                  - RISK_SCORE
-                  - CARD_TRANSACTION_COUNT_15M
-                  - CARD_TRANSACTION_COUNT_1H
-                  - CARD_TRANSACTION_COUNT_24H
-                  - CARD_STATE
-                  - PIN_ENTERED
-                  - PIN_STATUS
-                  - WALLET_TYPE
-                  - ADDRESS_MATCH
-              operation:
-                $ref: '#/components/schemas/conditional-operation'
-              value:
-                $ref: '#/components/schemas/conditional-value'
-            required:
-              - attribute
-              - operation
-              - value
-      required:
-        - conditions
     velocity-scope:
       title: Velocity Limits Scope
       type: string
@@ -12864,13 +13382,18 @@ components:
               comment:
                 type: string
                 description: A comment or explanation about the merchant, used internally for rule management purposes.
-            oneOf:
+            anyOf:
               - required:
                   - merchant_id
               - required:
                   - descriptor
             description: Represents a specific merchant lock based on their ID or descriptor. Each merchant object allows transaction rules to work at a granular level and requires at least one of merchant_id or descriptor.
           description: A list of merchant locks defining specific merchants or groups of merchants (based on descriptors or IDs) that the lock applies to.
+        locked_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp of when the merchant lock was created
       required:
         - merchants
     authentication-3ds-action:
@@ -12879,6 +13402,48 @@ components:
       enum:
         - DECLINE
         - CHALLENGE
+    conditional-operation:
+      title: Conditional Operation
+      type: string
+      description: The operation to apply to the attribute
+      enum:
+        - IS_ONE_OF
+        - IS_NOT_ONE_OF
+        - MATCHES
+        - DOES_NOT_MATCH
+        - IS_EQUAL_TO
+        - IS_NOT_EQUAL_TO
+        - IS_GREATER_THAN
+        - IS_GREATER_THAN_OR_EQUAL_TO
+        - IS_LESS_THAN
+        - IS_LESS_THAN_OR_EQUAL_TO
+        - IS_AFTER
+        - IS_BEFORE
+        - CONTAINS_ANY
+        - CONTAINS_ALL
+        - CONTAINS_NONE
+    conditional-value:
+      title: Conditional Value
+      anyOf:
+        - title: Regex
+          type: string
+          description: A regex string, to be used with `MATCHES` or `DOES_NOT_MATCH`
+        - title: Number
+          anyOf:
+            - type: integer
+              format: int64
+            - type: number
+          description: A number, to be used with `IS_GREATER_THAN`, `IS_GREATER_THAN_OR_EQUAL_TO`, `IS_LESS_THAN`, `IS_LESS_THAN_OR_EQUAL_TO`, `IS_EQUAL_TO`, or `IS_NOT_EQUAL_TO`
+        - title: List of Strings
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: An array of strings, to be used with `IS_ONE_OF` or `IS_NOT_ONE_OF`
+        - title: Timestamp
+          type: string
+          format: date-time
+          description: A timestamp, to be used with `IS_AFTER` or `IS_BEFORE`
     conditional-3ds-action-parameters:
       title: Conditional Action (3DS) Parameters
       type: object
@@ -12903,9 +13468,14 @@ components:
                   * `MERCHANT_ID`: Unique alphanumeric identifier for the payment card acceptor (merchant).
                   * `DESCRIPTOR`: Short description of card acceptor.
                   * `TRANSACTION_AMOUNT`: The base transaction amount (in cents) plus the acquirer fee field in the settlement/cardholder billing currency. This is the amount the issuer should authorize against unless the issuer is paying the acquirer fee on behalf of the cardholder. Use an integer value.
-                  * `RISK_SCORE`: Mastercard only: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Use an integer value.
+                  * `RISK_SCORE`: Mastercard, and Visa in some markets: Assessment by the network of the authentication risk level, with a higher value indicating a higher amount of risk. Use an integer value.
                   * `MESSAGE_CATEGORY`: The category of the authentication being processed.
                   * `ADDRESS_MATCH`: Lithic's evaluation result comparing transaction's address data with the cardholder KYC data if it exists. Valid values are `MATCH`, `MATCH_ADDRESS_ONLY`, `MATCH_ZIP_ONLY`,`MISMATCH`,`NOT_PRESENT`.
+                  * `CARD_STATE`: The current state of the card associated with the authentication. Valid values are `CLOSED`, `OPEN`, `PAUSED`, `PENDING_ACTIVATION`, `PENDING_FULFILLMENT`.
+                  * `CARD_TYPE`: The type of the card associated with the authentication. Valid values are `MERCHANT_LOCKED`, `PHYSICAL`, `SINGLE_USE`, `VIRTUAL`.
+                  * `CARD_PROGRAM_FAMILY`: The program family of the card associated with the authentication. Valid values are `CONSUMER`, `COMMERCIAL`.
+                  * `PIN_STATUS`: The current state of card's PIN. Valid values are `NOT_SET`, `OK`, `BLOCKED`.
+                  * `CARD_AGE`: The age of the card in seconds at the time of the authentication. Use an integer value.
                 enum:
                   - MCC
                   - COUNTRY
@@ -12916,6 +13486,11 @@ components:
                   - RISK_SCORE
                   - MESSAGE_CATEGORY
                   - ADDRESS_MATCH
+                  - CARD_STATE
+                  - CARD_TYPE
+                  - CARD_PROGRAM_FAMILY
+                  - PIN_STATUS
+                  - CARD_AGE
               operation:
                 $ref: '#/components/schemas/conditional-operation'
               value:
@@ -12976,6 +13551,7 @@ components:
                   * `SERVICE_LOCATION_STATE`: The state/province code (ISO 3166-2) where the cardholder received the service, e.g. "NY". When a service location is present in the network data, the service location state is used. Otherwise, falls back to the card acceptor state.
                   * `SERVICE_LOCATION_POSTAL_CODE`: The postal code where the cardholder received the service, e.g. "10001". When a service location is present in the network data, the service location postal code is used. Otherwise, falls back to the card acceptor postal code.
                   * `CARD_AGE`: The age of the card in seconds at the time of the authorization. Use an integer value.
+                  * `IS_DOMESTIC`: Whether the merchant's country matches the card program's issuing country. Valid values are `TRUE`, `FALSE`. For programs with no issuing country configured, this attribute does not evaluate.
                   * `ACCOUNT_AGE`: The age of the account holder's account in seconds at the time of the authorization. Use an integer value. For programs where Lithic does not manage or retain account holder data, this attribute does not evaluate.
                   * `AMOUNT_Z_SCORE`: The z-score of the transaction amount relative to the entity's transaction history. Null if fewer than 30 approved transactions in the specified window. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
                   * `AVG_TRANSACTION_AMOUNT`: The average approved transaction amount for the entity over the specified window, in cents. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
@@ -13016,6 +13592,7 @@ components:
                   - SERVICE_LOCATION_STATE
                   - SERVICE_LOCATION_POSTAL_CODE
                   - CARD_AGE
+                  - IS_DOMESTIC
                   - ACCOUNT_AGE
                   - AMOUNT_Z_SCORE
                   - AVG_TRANSACTION_AMOUNT
@@ -13961,6 +14538,7 @@ components:
               * `SERVICE_LOCATION_STATE`: The state/province code (ISO 3166-2) where the cardholder received the service, e.g. "NY". When a service location is present in the network data, the service location state is used. Otherwise, falls back to the card acceptor state.
               * `SERVICE_LOCATION_POSTAL_CODE`: The postal code where the cardholder received the service, e.g. "10001". When a service location is present in the network data, the service location postal code is used. Otherwise, falls back to the card acceptor postal code.
               * `CARD_AGE`: The age of the card in seconds at the time of the authorization. Use an integer value.
+              * `IS_DOMESTIC`: Whether the merchant's country matches the card program's issuing country. Valid values are `TRUE`, `FALSE`. For programs with no issuing country configured, this attribute does not evaluate.
               * `ACCOUNT_AGE`: The age of the account holder's account in seconds at the time of the authorization. Use an integer value. For programs where Lithic does not manage or retain account holder data, this attribute does not evaluate.
               * `AMOUNT_Z_SCORE`: The z-score of the transaction amount relative to the entity's transaction history. Null if fewer than 30 approved transactions in the specified window. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
               * `AVG_TRANSACTION_AMOUNT`: The average approved transaction amount for the entity over the specified window, in cents. Requires `parameters.scope` and `parameters.interval`. Use a decimal value.
@@ -14001,6 +14579,7 @@ components:
               - SERVICE_LOCATION_STATE
               - SERVICE_LOCATION_POSTAL_CODE
               - CARD_AGE
+              - IS_DOMESTIC
               - ACCOUNT_AGE
               - AMOUNT_Z_SCORE
               - AVG_TRANSACTION_AMOUNT
@@ -14076,7 +14655,6 @@ components:
       title: Auth Rule Parameters
       description: Parameters for the Auth Rule
       anyOf:
-        - $ref: '#/components/schemas/conditional-block-parameters'
         - $ref: '#/components/schemas/velocity-limit-parameters'
         - $ref: '#/components/schemas/merchant-lock-parameters'
         - $ref: '#/components/schemas/conditional-3ds-action-parameters'
@@ -14168,6 +14746,8 @@ components:
           $ref: '#/components/schemas/account-tokens'
         business_account_tokens:
           $ref: '#/components/schemas/business-account-tokens'
+        entities:
+          $ref: '#/components/schemas/auth-rule-entities-response'
         type:
           $ref: '#/components/schemas/auth-rule-type'
         current_version:
@@ -14188,6 +14768,7 @@ components:
         - card_tokens
         - account_tokens
         - business_account_tokens
+        - entities
         - type
         - current_version
         - draft_version
@@ -14200,11 +14781,55 @@ components:
         error:
           type: string
           example: Invalid input
+    auth-rule-entities:
+      title: Auth Rule Entities
+      description: |
+        The entities an Auth Rule applies to (`include`) and does not apply to (`exclude`). An exclusion overrides an inclusion, so a card excluded here is skipped even when the program, its account or one of its tags is included.
+
+        The rule's resulting entities must satisfy these constraints after any write:
+
+        - `include` must contain at least one entity.
+        - If `PROGRAM` is included, it must be the only included entity.
+        - `PROGRAM` cannot be excluded.
+        - An entity cannot appear in both `include` and `exclude`, or twice in the same list.
+        - A rule can have at most 1,000 entities across `include` and `exclude`, not counting `PROGRAM`.
+        - Entity types must be valid for the rule's event stream.
+        - `CARD`, `ACCOUNT` and `BUSINESS_ACCOUNT` tokens must belong to your program.
+      type: object
+      properties:
+        include:
+          type: array
+          description: Entities the Auth Rule applies to. Defaults to an empty list in requests.
+          items:
+            $ref: '#/components/schemas/auth-rule-entity'
+        exclude:
+          type: array
+          description: Entities the Auth Rule does not apply to. Defaults to an empty list in requests.
+          items:
+            $ref: '#/components/schemas/auth-rule-entity'
     create-auth-rule-request:
       title: Auth Rule Parameters
       type: object
       anyOf:
+        - title: Rule
+          properties:
+            entities:
+              $ref: '#/components/schemas/auth-rule-entities'
+            type:
+              $ref: '#/components/schemas/auth-rule-type'
+            parameters:
+              $ref: '#/components/schemas/auth-rule-parameters'
+            name:
+              $ref: '#/components/schemas/auth-rule-name'
+            event_stream:
+              $ref: '#/components/schemas/event-stream'
+          required:
+            - type
+            - parameters
+            - entities
         - title: Account Level Rule
+          description: 'Deprecated: Use `entities` instead. Cannot be combined with `entities`.'
+          deprecated: true
           properties:
             account_tokens:
               $ref: '#/components/schemas/account-tokens'
@@ -14222,6 +14847,8 @@ components:
             - type
             - parameters
         - title: Card Level Rule
+          description: 'Deprecated: Use `entities` instead. Cannot be combined with `entities`.'
+          deprecated: true
           properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
@@ -14238,6 +14865,8 @@ components:
             - parameters
             - card_tokens
         - title: Program Level Rule
+          description: 'Deprecated: Use `entities` instead. Cannot be combined with `entities`.'
+          deprecated: true
           properties:
             program_level:
               $ref: '#/components/schemas/program-level'
@@ -14273,7 +14902,16 @@ components:
         name:
           $ref: '#/components/schemas/auth-rule-name'
       anyOf:
+        - title: Rule
+          description: |
+            Replaces the rule's existing entities with the provided `include` and `exclude` lists. A missing list is treated as empty, so `include` must always be provided.
+          type: object
+          properties:
+            entities:
+              $ref: '#/components/schemas/auth-rule-entities'
         - title: Account Level Rule
+          description: 'Deprecated: Use `entities` instead. Cannot be combined with `entities`.'
+          deprecated: true
           type: object
           properties:
             account_tokens:
@@ -14281,11 +14919,15 @@ components:
             business_account_tokens:
               $ref: '#/components/schemas/business-account-tokens'
         - title: Card Level Rule
+          description: 'Deprecated: Use `entities` instead. Cannot be combined with `entities`.'
+          deprecated: true
           type: object
           properties:
             card_tokens:
               $ref: '#/components/schemas/card-tokens'
         - title: Program Level Rule
+          description: 'Deprecated: Use `entities` instead. Cannot be combined with `entities`.'
+          deprecated: true
           type: object
           properties:
             program_level:
@@ -14296,6 +14938,20 @@ components:
               $ref: '#/components/schemas/excluded-account-tokens'
             excluded_business_account_tokens:
               $ref: '#/components/schemas/excluded-business-account-tokens'
+    patch-auth-rule-entities-request:
+      title: Auth Rule Entities Patch Request
+      description: |
+        Changes the rule's entities incrementally. `add` adds to the rule's `include` and `exclude` lists, and `remove` removes from them. Adding an entity that is already present, or removing one that is not, has no effect. A request with neither leaves entities unchanged.
+
+        The same entity cannot appear twice in one list, in both `add.include` and `remove.include`, or in both `add.exclude` and `remove.exclude`. To move an entity between `include` and `exclude`, remove it from one list and add it to the other in the same request.
+      type: object
+      properties:
+        add:
+          $ref: '#/components/schemas/auth-rule-entities'
+          description: Entities to add to the rule's `include` and `exclude` lists
+        remove:
+          $ref: '#/components/schemas/auth-rule-entities'
+          description: Entities to remove from the rule's `include` and `exclude` lists
     spend-feature-state:
       title: Spend Feature State
       type: object
@@ -15243,6 +15899,18 @@ components:
         - FOREVER
         - MONTHLY
         - TRANSACTION
+    tags:
+      title: Tags
+      description: Key-value pairs for tagging resources. Tags allow you to associate arbitrary metadata with a resource for your own purposes. A resource can have at most 50 tags, with keys up to 40 characters and values up to 500 characters
+      type: object
+      maxProperties: 50
+      propertyNames:
+        maxLength: 40
+      additionalProperties:
+        type: string
+        maxLength: 500
+      example:
+        risk-level: high
     non_pci_card_response:
       description: Card details without PCI information
       type: object
@@ -15377,6 +16045,8 @@ components:
         comment:
           description: Additional context or information related to the card.
           type: string
+        tags:
+          $ref: '#/components/schemas/tags'
         token:
           description: Globally unique identifier.
           example: 7ef7d65c-9023-4da3-b113-3b8583fd7951
@@ -15401,6 +16071,7 @@ components:
         - spend_limit
         - spend_limit_duration
         - state
+        - tags
         - token
         - type
     Carrier:
@@ -15507,6 +16178,20 @@ components:
           examples:
             - pan: '4111111289144142'
               cvv: '776'
+    tags-patch:
+      title: Tags Patch
+      description: Key-value pairs to merge into a resource's tags. Supplied keys are added or overwritten, a key with a `null` value is removed, and omitted keys remain unchanged
+      type: object
+      propertyNames:
+        maxLength: 40
+      additionalProperties:
+        type:
+          - string
+          - 'null'
+        maxLength: 500
+      example:
+        risk-level: high
+        legacy-program: null
     financial-account-balance:
       title: Financial Account Balance
       description: Balance of a Financial Account
@@ -15645,6 +16330,9 @@ components:
         - INTEREST
         - INTEREST_REVERSAL
         - INTERNAL_ADJUSTMENT
+        - INTRA_BANK_CANCELED
+        - INTRA_BANK_INITIATED
+        - INTRA_BANK_SETTLED
         - LATE_PAYMENT
         - LATE_PAYMENT_REVERSAL
         - LOSS_WRITE_OFF
@@ -15673,6 +16361,7 @@ components:
         - STABLECOIN_SENT
         - STABLECOIN_SETTLED
         - STABLECOIN_REJECTED
+        - INSTANCE_TO_INSTANCE
     financial_event:
       title: Financial Event
       description: Financial Event
@@ -16489,7 +17178,20 @@ components:
             - 'null'
         amount:
           title: Amount
-          description: The price of the item purchased in merchant currency.
+          description: 'Deprecated: Use unit_amount instead. The price of the item purchased in merchant currency.'
+          type:
+            - string
+            - 'null'
+          deprecated: true
+        unit_amount:
+          title: Unit Amount
+          description: The price per individual unit in merchant currency.
+          type:
+            - string
+            - 'null'
+        total_amount:
+          title: Total Amount
+          description: The total cost for the line item in merchant currency, covering all units purchased.
           type:
             - string
             - 'null'
@@ -18024,6 +18726,51 @@ components:
           type: string
       title: UpdateFinancialAccountRequest
       type: object
+    open-to-buy-summary:
+      description: Open to Buy Summary
+      properties:
+        security:
+          description: Available balance of the Security Account backing card spend, in the currency's smallest unit (e.g., cents for USD)
+          example: 300000
+          type: integer
+        settled_funds:
+          description: |
+            Funding that has moved out of the Security Account to cover card spend Lithic has already paid
+            out to the networks, in the currency's smallest unit (e.g., cents for USD). Open to buy counts it
+            alongside `security`, and it clears once collected from your business clients.
+            Only Commercial Charge tracks this separately, so this is `null` for every other program setup
+          example: 300000
+          type:
+            - integer
+            - 'null'
+        total_outstanding_spend:
+          description: |
+            Customer card spend that has not yet been collected, in the currency's
+            smallest unit (e.g., cents for USD). Reported as a negative amount, because it reduces open to buy
+          example: -250000
+          type: integer
+      required:
+        - security
+        - settled_funds
+        - total_outstanding_spend
+      type: object
+    open-to-buy:
+      description: Open to Buy
+      properties:
+        open_to_buy:
+          description: |
+            Funds available for card spend backed by this Security Account, in the currency's smallest unit
+            (e.g., cents for USD). Equal to the sum of the amounts in `summary`, and reaches zero once
+            outstanding spend has consumed all available funding
+          example: 350000
+          type: integer
+        summary:
+          $ref: '#/components/schemas/open-to-buy-summary'
+          description: Balances that open to buy is derived from
+      required:
+        - open_to_buy
+        - summary
+      type: object
     financial-account-credit-config-response:
       title: Financial Account Credit Configuration Response
       type: object
@@ -18106,24 +18853,11 @@ components:
         - SETTLED
         - EXPIRED
         - VOIDED
-    transaction_status:
-      title: Transaction Status
-      type: string
-      enum:
-        - PENDING
-        - SETTLED
-        - DECLINED
-        - REVERSED
-        - CANCELED
-        - RETURNED
-    base_transaction:
-      title: base_transaction
-      description: Base class for all transaction types in the ledger service
+    base_transaction_fields:
+      title: base_transaction_fields
+      description: Fields common to every transaction type in the ledger service. Excludes `status`, which each transaction family defines with its own enum
       type: object
       properties:
-        status:
-          $ref: '#/components/schemas/transaction_status'
-          description: The status of the transaction
         token:
           type: string
           description: Unique identifier for the transaction
@@ -18137,7 +18871,6 @@ components:
           description: ISO 8601 timestamp of when the transaction was last updated
           format: date-time
       required:
-        - status
         - token
         - created
         - updated
@@ -18207,7 +18940,7 @@ components:
       title: Hold Transaction
       description: A hold transaction representing reserved funds on a financial account. Holds move funds from available to pending balance in anticipation of future payments. They can be resolved via settlement (linked to payment), manual release, or expiration.
       allOf:
-        - $ref: '#/components/schemas/base_transaction'
+        - $ref: '#/components/schemas/base_transaction_fields'
         - type: object
           properties:
             family:
@@ -18673,6 +19406,7 @@ components:
         - ACH
         - WIRE
         - STABLECOIN
+        - INTRA_BANK
         - BALANCE_OR_FUNDING
         - FEE
         - REWARD
@@ -18921,6 +19655,11 @@ components:
             - 'null'
         payment_allocation:
           $ref: '#/components/schemas/payment_allocation'
+        payment_only_allocation:
+          description: Allocation of payments only, excluding credits
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/payment_allocation'
         minimum_payment_balance:
           $ref: '#/components/schemas/balance_details'
         previous_statement_balance:
@@ -18944,6 +19683,7 @@ components:
         - account_standing
         - credit_product_token
         - payment_allocation
+        - payment_only_allocation
         - balances
         - minimum_payment_balance
         - previous_statement_balance
@@ -19011,6 +19751,351 @@ components:
         - financial_account_token
         - created_at
         - updated_at
+    installment_plan_state:
+      type: string
+      description: State of the installment plan. A plan is REBUILD_IN_PROGRESS while its loan tapes are being rebuilt, during which its payment totals are being recomputed and should not be treated as final
+      enum:
+        - PENDING
+        - ACTIVE
+        - REBUILD_IN_PROGRESS
+        - FULLY_PAID
+        - CANCELLED
+      title: Installment Plan State
+    installment_plan_source:
+      type: string
+      enum:
+        - UNPAID_BALANCE
+        - TRANSACTION
+      title: Installment Plan Source
+    transaction_category_balances:
+      title: Transaction Category Balances
+      type: object
+      properties:
+        purchases:
+          description: Amounts attributable to purchases
+          $ref: '#/components/schemas/category_balances'
+        cash_advances:
+          description: Amounts attributable to cash advances
+          $ref: '#/components/schemas/category_balances'
+        balance_transfers:
+          description: Amounts attributable to balance transfers
+          $ref: '#/components/schemas/category_balances'
+      required:
+        - purchases
+        - cash_advances
+        - balance_transfers
+    installment_payment:
+      title: Installment Payment
+      type: object
+      properties:
+        date:
+          description: Date the payment was applied to the installment
+          type: string
+          format: date
+        amount:
+          description: Amount applied to the installment in cents
+          type: integer
+        amount_details:
+          $ref: '#/components/schemas/transaction_category_balances'
+      required:
+        - date
+        - amount
+        - amount_details
+    installment:
+      title: Installment
+      type: object
+      properties:
+        installment_num:
+          description: Position of this installment within the plan, starting at 0
+          type: integer
+        due_date:
+          description: Date the installment is scheduled to be assessed onto the account
+          type: string
+          format: date
+        payment_due_date:
+          description: Date the installment must be paid by before it is considered past due
+          type: string
+          format: date
+        date_assessed:
+          description: Date the installment was actually assessed onto the account, or null if it has not been assessed yet
+          type:
+            - string
+            - 'null'
+          format: date
+        amount_due:
+          description: Amount the installment was opened for in cents
+          type: integer
+        amount_due_details:
+          $ref: '#/components/schemas/transaction_category_balances'
+        amount_paid:
+          description: Amount paid towards the installment in cents
+          type: integer
+        amount_paid_details:
+          $ref: '#/components/schemas/transaction_category_balances'
+        amount_outstanding:
+          description: Amount still owed on the installment in cents
+          type: integer
+        amount_outstanding_details:
+          $ref: '#/components/schemas/transaction_category_balances'
+        payments:
+          description: Payments applied to this installment, oldest first
+          type: array
+          items:
+            $ref: '#/components/schemas/installment_payment'
+      required:
+        - installment_num
+        - due_date
+        - payment_due_date
+        - date_assessed
+        - amount_due
+        - amount_due_details
+        - amount_paid
+        - amount_paid_details
+        - amount_outstanding
+        - amount_outstanding_details
+        - payments
+    installment_plan_response:
+      title: Installment Plan Response
+      type: object
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for an installment plan
+          title: Installment Plan Token
+        financial_account_token:
+          description: Globally unique identifier for a financial account
+          type: string
+          format: uuid
+        num_installments:
+          description: Number of installments the plan is broken into
+          type: integer
+        principal_amount:
+          description: Balance the plan was opened on in cents, excluding the enrollment fee
+          type: integer
+        fee_amount:
+          description: Enrollment fee charged when the plan was created in cents
+          type: integer
+        installment_plan_total:
+          description: Total owed on the plan in cents, the principal amount plus the enrollment fee
+          type: integer
+        total_paid:
+          description: Amount paid towards the plan to date in cents
+          type: integer
+        installments_paid:
+          description: Number of installments that have been paid off
+          type: integer
+        installments_outstanding:
+          description: Number of installments that still carry a balance
+          type: integer
+        state:
+          $ref: '#/components/schemas/installment_plan_state'
+        start_date:
+          description: Date the plan was created
+          type: string
+          format: date
+        closed_at:
+          description: Date the plan was paid off or cancelled, or null while it is still open
+          type:
+            - string
+            - 'null'
+          format: date
+        source_type:
+          $ref: '#/components/schemas/installment_plan_source'
+        source_id:
+          description: Identifier of the record the plan was opened from, such as the closing statement for an unpaid balance
+          type: string
+        source_amounts:
+          description: Balance the plan was opened on, broken out by category, or null if it was not recorded
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/transaction_category_balances'
+        created:
+          description: Timestamp of when the installment plan was created
+          type: string
+          format: date-time
+        updated:
+          description: Timestamp of when the installment plan was updated
+          type: string
+          format: date-time
+        installments:
+          description: Installments that make up the plan, oldest first
+          type: array
+          items:
+            $ref: '#/components/schemas/installment'
+      required:
+        - token
+        - financial_account_token
+        - num_installments
+        - principal_amount
+        - fee_amount
+        - installment_plan_total
+        - total_paid
+        - installments_paid
+        - installments_outstanding
+        - state
+        - start_date
+        - closed_at
+        - source_type
+        - source_id
+        - source_amounts
+        - created
+        - updated
+        - installments
+    installment_plans_response:
+      title: Installment Plans Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/installment_plan_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
+    installment_plan_statement_payment:
+      title: Installment Plan Statement Payment
+      type: object
+      properties:
+        date:
+          description: Date the payment was applied to the installment
+          type: string
+          format: date
+        amount:
+          description: Amount applied to the installment in cents
+          type: integer
+      required:
+        - date
+        - amount
+    installment_plan_statement_installment:
+      title: Installment Plan Statement Installment
+      description: One installment of a plan as of the statement. Amounts are totalled across transaction categories rather than broken out by them, which the installment plan endpoint does
+      type: object
+      properties:
+        installment_num:
+          description: Position of this installment within the plan, starting at 0
+          type: integer
+        due_date:
+          description: Date the installment is scheduled to be assessed onto the account
+          type: string
+          format: date
+        payment_due_date:
+          description: Date the installment must be paid by before it is considered past due
+          type: string
+          format: date
+        date_assessed:
+          description: Date the installment was actually assessed onto the account, or null if it had not been assessed as of this statement
+          type:
+            - string
+            - 'null'
+          format: date
+        amount_due:
+          description: Amount the installment was opened for in cents
+          type: integer
+        amount_due_details:
+          $ref: '#/components/schemas/category_balances'
+        amount_paid:
+          description: Amount paid towards the installment in cents
+          type: integer
+        amount_paid_details:
+          $ref: '#/components/schemas/category_balances'
+        amount_outstanding:
+          description: Amount still owed on the installment in cents
+          type: integer
+        amount_outstanding_details:
+          $ref: '#/components/schemas/category_balances'
+        payments:
+          description: Payments applied to this installment, oldest first
+          type: array
+          items:
+            $ref: '#/components/schemas/installment_plan_statement_payment'
+      required:
+        - installment_num
+        - due_date
+        - payment_due_date
+        - date_assessed
+        - amount_due
+        - amount_due_details
+        - amount_paid
+        - amount_paid_details
+        - amount_outstanding
+        - amount_outstanding_details
+        - payments
+    installment_plan_statement_response:
+      title: Installment Plan Statement Response
+      description: An immutable snapshot of an installment plan as of the statement it is attached to. Lithic cuts one per open plan when a statement is generated and never reissues it
+      type: object
+      properties:
+        token:
+          type: string
+          description: Globally unique identifier for this snapshot, which is the token of the statement it is attached to. A plan is snapshotted at most once per statement, so the statement identifies the snapshot within the plan. Pass it as a pagination cursor
+          title: Token
+        installment_plan_token:
+          type: string
+          description: Globally unique identifier for the installment plan this snapshot is of
+          title: Installment Plan Token
+        num_installments:
+          description: Number of installments the plan is broken into
+          type: integer
+        principal_amount:
+          description: Balance the plan was opened on in cents, excluding the enrollment fee
+          type: integer
+        fee_amount:
+          description: Enrollment fee charged when the plan was created in cents
+          type: integer
+        installment_plan_total:
+          description: Total owed on the plan in cents, the principal amount plus the enrollment fee
+          type: integer
+        total_paid:
+          description: Amount paid towards the plan as of this statement in cents
+          type: integer
+        installments_paid:
+          description: Number of installments that had been paid off as of this statement
+          type: integer
+        installments_outstanding:
+          description: Number of installments that still carried a balance as of this statement
+          type: integer
+        state:
+          $ref: '#/components/schemas/installment_plan_state'
+        start_date:
+          description: Date the plan was created
+          type: string
+          format: date
+        source_type:
+          $ref: '#/components/schemas/installment_plan_source'
+        installments:
+          description: Installments that make up the plan, oldest first
+          type: array
+          items:
+            $ref: '#/components/schemas/installment_plan_statement_installment'
+      required:
+        - token
+        - installment_plan_token
+        - num_installments
+        - principal_amount
+        - fee_amount
+        - installment_plan_total
+        - total_paid
+        - installments_paid
+        - installments_outstanding
+        - state
+        - start_date
+        - source_type
+        - installments
+    installment_plan_statements_response:
+      title: Installment Plan Statements Response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/installment_plan_statement_response'
+        has_more:
+          type: boolean
+      required:
+        - data
+        - has_more
     category_tier:
       title: Category Tier
       description: Rate and rate cap for interest on a category
@@ -19118,6 +20203,28 @@ components:
       examples:
         - status: CLOSED
           substatus: END_USER_REQUEST
+    transaction_status:
+      title: Transaction Status
+      type: string
+      enum:
+        - PENDING
+        - SETTLED
+        - DECLINED
+        - REVERSED
+        - CANCELED
+        - RETURNED
+    base_transaction:
+      title: base_transaction
+      description: Base class for transaction types in the ledger service that use the shared ledger status vocabulary. Families with their own status enum reference `base_transaction_fields.yaml` directly
+      allOf:
+        - $ref: '#/components/schemas/base_transaction_fields'
+        - type: object
+          properties:
+            status:
+              description: The status of the transaction
+              $ref: '#/components/schemas/transaction_status'
+          required:
+            - status
     financial-transaction:
       title: Financial Transaction
       description: Financial transaction with inheritance from unified base transaction
@@ -19225,6 +20332,7 @@ components:
         - COLLECTION
         - LITHIC_PROGRAM_TRANSFER
         - BANK_PROGRAM_TRANSFER
+        - INSTANCE_TO_INSTANCE
       description: Type of the book transfer
       title: Book Transfer Type
     book_transfer_detailed_results:
@@ -20176,14 +21284,6 @@ components:
           type: string
       required:
         - wallet_type
-    tags:
-      title: Tags
-      description: Key-value pairs for tagging resources. Tags allow you to associate arbitrary metadata with a resource for your own purposes.
-      type: object
-      additionalProperties:
-        type: string
-      example:
-        risk-level: high
     card_transaction:
       title: Card Transaction
       type: object
@@ -20283,6 +21383,7 @@ components:
         network:
           description: Card network of the authorization. Value is `UNKNOWN` when Lithic cannot determine the network code from the upstream provider.
           enum:
+            - ALLPOINT
             - AMEX
             - INTERLINK
             - MAESTRO
@@ -20465,7 +21566,7 @@ components:
       title: Card Transaction
       description: Card transaction with ledger base properties
       allOf:
-        - $ref: '#/components/schemas/base_transaction'
+        - $ref: '#/components/schemas/base_transaction_fields'
         - $ref: '#/components/schemas/card_transaction'
         - type: object
           properties:
@@ -21625,6 +22726,22 @@ components:
         - financial_account_token
         - type
       title: CreateStablecoinPaymentRequest
+      type: object
+    RetryPaymentRequest:
+      description: Optional overrides to apply when retrying a returned origination
+      properties:
+        method:
+          description: |
+            Settlement speed to retry the payment at. Defaults to the original payment's method.
+            An `ACH_SAME_DAY` retry is rejected if the payment is for $1,000,000.00 or more, or if
+            it is submitted after the same day ACH cutoff
+          enum:
+            - ACH_NEXT_DAY
+            - ACH_SAME_DAY
+          example: ACH_SAME_DAY
+          title: Payment Method
+          type: string
+      title: RetryPaymentRequest
       type: object
     payment_return_request:
       title: Payment Return Request
@@ -24349,6 +25466,10 @@ components:
         company_id:
           description: Company ID
           type: string
+        financial_entity_id:
+          description: Financial entity ID the limits are scoped to
+          type: string
+          format: uuid
         is_fbo:
           description: Whether the company is a FBO; based on the company ID prefix
           type: boolean
@@ -24367,6 +25488,7 @@ components:
           $ref: '#/components/schemas/directional_limits'
       required:
         - company_id
+        - financial_entity_id
         - is_fbo
         - date
         - program_limit_per_transaction
@@ -25521,6 +26643,7 @@ components:
         - spend_limit
         - spend_limit_duration
         - state
+        - tags
         - token
         - type
       properties:
@@ -25553,6 +26676,8 @@ components:
             - PAUSED
             - PENDING_ACTIVATION
             - PENDING_FULFILLMENT
+        tags:
+          $ref: '#/components/schemas/tags'
         type:
           $ref: '#/components/schemas/card-type'
         token:
@@ -25883,6 +27008,7 @@ components:
           type: string
           description: Card network of the authorization.
           enum:
+            - ALLPOINT
             - AMEX
             - INTERLINK
             - MAESTRO
@@ -26218,6 +27344,7 @@ components:
             - spend_limit
             - spend_limit_duration
             - state
+            - tags
             - token
             - type
           properties:
@@ -26250,6 +27377,8 @@ components:
                 - PAUSED
                 - PENDING_ACTIVATION
                 - PENDING_FULFILLMENT
+            tags:
+              $ref: '#/components/schemas/tags'
             type:
               $ref: '#/components/schemas/card-type'
             token:
@@ -26788,6 +27917,11 @@ components:
           description: Unique identifier for the claim, in UUID format
           type: string
           format: uuid
+        reference_id:
+          description: Identifier for the claim as displayed in the Lithic dashboard. Populated depending on your program's setup, null otherwise. Use it to match claims received through the API and webhooks to the dashboard. This is not the claim `token`, which is the identifier to use in API requests
+          type:
+            - string
+            - 'null'
         card_tokens:
           description: Tokens for the cards associated with the disputed transactions
           type: array
@@ -26868,6 +28002,7 @@ components:
           format: date-time
       required:
         - token
+        - reference_id
         - card_tokens
         - account_token
         - account_holder_token
