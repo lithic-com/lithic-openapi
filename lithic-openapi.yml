@@ -7808,6 +7808,39 @@ paths:
       summary: Enroll a responder endpoint
       tags:
         - Responder Endpoints
+  /v1/ip_ranges:
+    get:
+      description: Returns the IP addresses Lithic sends responder requests from (Auth Stream Access, 3DS decisioning, and tokenization decisioning), so you can allowlist them in your firewall. Each environment returns its own set of addresses. Lithic announces new addresses at least 30 days before sending traffic from them. Event webhooks are not sent from these addresses
+      operationId: getIpRanges
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  responders:
+                    description: IP ranges that responder requests are sent from, in CIDR notation
+                    example:
+                      - 3.130.20.154/32
+                      - 18.227.57.16/32
+                    items:
+                      type: string
+                    type: array
+                  updated:
+                    description: Date and time the IP ranges were last changed
+                    format: date-time
+                    type: string
+                required:
+                  - responders
+                  - updated
+                type: object
+          description: Lithic IP ranges
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      security: []
+      summary: List Lithic IP ranges
+      tags:
+        - Responder Endpoints
   /v1/simulate/authorization_advice:
     post:
       description: |
