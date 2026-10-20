@@ -20113,20 +20113,26 @@ components:
       type: object
       properties:
         tier_name:
-          type: string
+          type:
+            - string
+            - 'null'
           description: Name of a tier contained in the credit product. Mutually exclusive with tier_rates
         effective_date:
           type: string
           format: date
           description: Date the tier should be effective in YYYY-MM-DD format
         tier_rates:
-          type: object
+          type:
+            - object
+            - 'null'
           patternProperties:
             ^.*$:
               $ref: '#/components/schemas/category_tier'
           description: Custom rates per category.  Mutually exclusive with tier_name
         penalty_rates:
-          type: object
+          type:
+            - object
+            - 'null'
           patternProperties:
             ^.*$:
               $ref: '#/components/schemas/category_tier'
@@ -20157,16 +20163,22 @@ components:
       type: object
       properties:
         tier_name:
-          type: string
+          type:
+            - string
+            - 'null'
           description: Name of a tier contained in the credit product. Mutually exclusive with tier_rates
         tier_rates:
-          type: object
+          type:
+            - object
+            - 'null'
           patternProperties:
             ^.*$:
               $ref: '#/components/schemas/category_tier'
           description: Custom rates per category.  Mutually exclusive with tier_name
         penalty_rates:
-          type: object
+          type:
+            - object
+            - 'null'
           patternProperties:
             ^.*$:
               $ref: '#/components/schemas/category_tier'
