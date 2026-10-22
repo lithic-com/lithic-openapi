@@ -2486,6 +2486,7 @@ paths:
         - $ref: '#/components/parameters/cardToken'
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/endingBefore'
+        - $ref: '#/components/parameters/pageSize'
         - $ref: '#/components/parameters/startingAfter'
       responses:
         '200':
@@ -5886,6 +5887,7 @@ paths:
         - $ref: '#/components/parameters/endTime'
         - $ref: '#/components/parameters/endingBefore'
         - $ref: '#/components/parameters/financialAccountToken'
+        - $ref: '#/components/parameters/pageSize'
         - $ref: '#/components/parameters/startingAfter'
       responses:
         '200':
@@ -10747,6 +10749,8 @@ paths:
       description: Get all funding events for program
       operationId: getFundingEvents
       parameters:
+        - $ref: '#/components/parameters/beginTime'
+        - $ref: '#/components/parameters/endTime'
         - description: A cursor representing an item's token before which a page of results should end. Used to retrieve the previous page of results before this item.
           in: query
           name: ending_before
@@ -10754,6 +10758,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - description: Only funding events with a settlement breakout for this network settlement date will be included.
+          in: query
+          name: network_settlement_date
+          required: false
+          schema:
+            type: string
+            format: date
         - description: Page size (for pagination).
           in: query
           name: page_size
@@ -19572,6 +19583,11 @@ components:
         next_statement_due:
           description: Amount due for the current billing cycle. Any amounts not paid off by early payments or credits will be considered due at the end of the current billing period
           $ref: '#/components/schemas/category_balances'
+        installments:
+          description: Amounts converted into installment plans
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/category_balances'
       required:
         - past_due
         - due
