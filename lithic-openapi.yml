@@ -21320,6 +21320,7 @@ components:
         - type
     pos:
       title: Point of Sale
+      description: Point of sale data for the transaction. Null when no point of sale data is available, such as clearing-only records that never went through authorization
       type: object
       properties:
         entry_mode:
@@ -21460,7 +21461,9 @@ components:
         result:
           $ref: '#/components/schemas/decline_result'
         pos:
-          $ref: '#/components/schemas/pos'
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/pos'
         settled_amount:
           title: Settled Amount
           description: The settled amount of the transaction in the settlement currency.
