@@ -16266,11 +16266,15 @@ components:
         last_transaction_event_token:
           description: Globally unique identifier for the last financial transaction event that impacted this balance.
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         last_transaction_token:
           description: Globally unique identifier for the last financial transaction that impacted this balance.
           format: uuid
-          type: string
+          type:
+            - string
+            - 'null'
         pending_amount:
           description: Funds not available for spend due to card authorizations or pending ACH release. Shown in the currency's smallest unit (e.g., cents for USD).
           type: integer
