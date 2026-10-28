@@ -5819,7 +5819,11 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
     patch:
-      description: Update an account's credit configuration
+      description: |-
+        Update an account's credit configuration. A credit product can only be
+        attached while the financial account is in the `PENDING` state; once a
+        credit product has been assigned the account transitions to `OPEN` and
+        `credit_product_token` can no longer be changed
       operationId: patchAccountCreditConfiguration
       summary: Update account credit configuration
       tags:
@@ -5842,6 +5846,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '422':
@@ -18876,7 +18882,12 @@ components:
           format: uuid
         credit_product_token:
           type: string
-          description: Globally unique identifier for the credit product
+          description: |-
+            Globally unique identifier for the credit product. This can only be set
+            while the financial account is in the `PENDING` state. Because assigning a
+            credit product transitions the account to `OPEN`, a credit product can be
+            attached only once; updating it on an account in any other state returns a
+            `403`
         tier:
           type: string
           description: Tier to assign to a financial account
