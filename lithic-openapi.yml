@@ -20028,23 +20028,9 @@ components:
       required:
         - data
         - has_more
-    installment_plan_statement_payment:
-      title: Installment Plan Statement Payment
-      type: object
-      properties:
-        date:
-          description: Date the payment was applied to the installment
-          type: string
-          format: date
-        amount:
-          description: Amount applied to the installment in cents
-          type: integer
-      required:
-        - date
-        - amount
     installment_plan_statement_installment:
       title: Installment Plan Statement Installment
-      description: One installment of a plan as of the statement. Amounts are totalled across transaction categories rather than broken out by them, which the installment plan endpoint does
+      description: One installment of a plan as of the statement
       type: object
       properties:
         installment_num:
@@ -20068,22 +20054,25 @@ components:
           description: Amount the installment was opened for in cents
           type: integer
         amount_due_details:
-          $ref: '#/components/schemas/category_balances'
+          $ref: '#/components/schemas/transaction_category_balances'
         amount_paid:
           description: Amount paid towards the installment in cents
           type: integer
         amount_paid_details:
-          $ref: '#/components/schemas/category_balances'
+          $ref: '#/components/schemas/transaction_category_balances'
         amount_outstanding:
           description: Amount still owed on the installment in cents
           type: integer
         amount_outstanding_details:
-          $ref: '#/components/schemas/category_balances'
+          $ref: '#/components/schemas/transaction_category_balances'
         payments:
           description: Payments applied to this installment, oldest first
           type: array
           items:
-            $ref: '#/components/schemas/installment_plan_statement_payment'
+            $ref: '#/components/schemas/installment_payment'
+        installment_adjustment:
+          description: Amount from installment_plan_adjustment credited to this installment as of this statement
+          type: integer
       required:
         - installment_num
         - due_date
@@ -20136,13 +20125,38 @@ components:
           description: Date the plan was created
           type: string
           format: date
+        closed_at:
+          description: Date the plan was paid off or cancelled, or null if it was still open as of this statement
+          type:
+            - string
+            - 'null'
+          format: date
         source_type:
           $ref: '#/components/schemas/installment_plan_source'
+        source_id:
+          description: Identifier of the record the plan was opened from, such as the closing statement for an unpaid balance
+          type: string
+        source_amounts:
+          description: Balance the plan was opened on, broken out by category, or null if it was not recorded
+          anyOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/transaction_category_balances'
+        created:
+          description: Timestamp of when the installment plan was created
+          type: string
+          format: date-time
+        updated:
+          description: Timestamp of when the installment plan was last updated as of this statement
+          type: string
+          format: date-time
         installments:
           description: Installments that make up the plan, oldest first
           type: array
           items:
             $ref: '#/components/schemas/installment_plan_statement_installment'
+        installment_plan_adjustment:
+          description: Amount credited to this plan after the plan was recalculated, as of this statement. The plan amount is not changed, and this credit reduces the amount owed
+          type: integer
       required:
         - token
         - installment_plan_token
@@ -20155,8 +20169,14 @@ components:
         - installments_outstanding
         - state
         - start_date
+        - closed_at
         - source_type
+        - source_id
+        - source_amounts
+        - created
+        - updated
         - installments
+        - installment_plan_adjustment
     installment_plan_statements_response:
       title: Installment Plan Statements Response
       type: object
