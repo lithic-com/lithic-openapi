@@ -1591,7 +1591,7 @@ paths:
           required: false
         - name: begin
           in: query
-          description: Date string in RFC 3339 format. Only events evaluated after the specified time will be included. UTC time zone.
+          description: Date string in RFC 3339 format. Only events evaluated on or after the specified time will be included. UTC time zone.
           schema:
             type: string
             format: date-time
@@ -4666,7 +4666,7 @@ paths:
   /v1/event_subscriptions/{event_subscription_token}/replay_missing:
     post:
       description: |
-        Replays messages to the endpoint. Only messages that were created after `begin` will be sent. Messages that were previously sent to the endpoint are not resent.
+        Replays messages to the endpoint. Only messages that were created on or after `begin` will be sent. Messages that were previously sent to the endpoint are not resent.
         Message will be retried if endpoint responds with a non-2xx status code. See [Retry Schedule](https://docs.lithic.com/docs/events-api#retry-schedule) for details.
       operationId: replayMissingEventSubscription
       parameters:
@@ -6132,12 +6132,12 @@ paths:
       description: List the statements for a given financial account.
       operationId: getStatements
       parameters:
-        - description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+        - description: Date string in RFC 3339 format. Only entries created on or after the specified date will be included.
           in: query
           name: begin
           required: false
           schema:
-            description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+            description: Date string in RFC 3339 format. Only entries created on or after the specified date will be included.
             format: date
             title: Begin
             type: string
@@ -6331,12 +6331,12 @@ paths:
       description: List the loan tapes for a given financial account.
       operationId: getLoanTapes
       parameters:
-        - description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+        - description: Date string in RFC 3339 format. Only entries created on or after the specified date will be included.
           in: query
           name: begin
           required: false
           schema:
-            description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+            description: Date string in RFC 3339 format. Only entries created on or after the specified date will be included.
             format: date
             title: Begin
             type: string
@@ -6599,12 +6599,12 @@ paths:
       description: List the statement snapshots for a given installment plan.
       operationId: getInstallmentPlanStatements
       parameters:
-        - description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+        - description: Date string in RFC 3339 format. Only entries created on or after the specified date will be included.
           in: query
           name: begin
           required: false
           schema:
-            description: Date string in RFC 3339 format. Only entries created after the specified date will be included.
+            description: Date string in RFC 3339 format. Only entries created on or after the specified date will be included.
             format: date
             title: Begin
             type: string
@@ -7616,7 +7616,7 @@ paths:
           name: settlement_institution_id
           schema:
             type: string
-        - description: Datetime in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
+        - description: Datetime in RFC 3339 format. Only entries created on or after the specified time will be included. UTC time zone.
           in: query
           name: begin
           schema:
@@ -9065,7 +9065,7 @@ paths:
           schema:
             format: uuid
             type: string
-        - description: Filter for tokenizations created after this date.
+        - description: Filter for tokenizations created on or after this date.
           in: query
           name: begin
           schema:
@@ -10674,7 +10674,7 @@ paths:
             maximum: 100
             minimum: 1
             type: integer
-        - description: Date string in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
+        - description: Date string in RFC 3339 format. Only entries created on or after the specified time will be included. UTC time zone.
           in: query
           name: begin
           schema:
@@ -11023,7 +11023,7 @@ components:
       schema:
         type: string
     beginTime:
-      description: Date string in RFC 3339 format. Only entries created after the specified time will be included. UTC time zone.
+      description: Date string in RFC 3339 format. Only entries created on or after the specified time will be included. UTC time zone.
       in: query
       name: begin
       schema:
