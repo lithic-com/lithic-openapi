@@ -15384,10 +15384,15 @@ components:
                 - type: 'null'
                   description: No results available for the draft version.
                 - $ref: '#/components/schemas/backtest-stats'
+        created:
+          type: string
+          description: Date and time when the backtest was requested
+          format: date-time
       required:
         - backtest_token
         - simulation_parameters
         - results
+        - created
     action_explanation:
       type: object
       properties:
@@ -24556,6 +24561,10 @@ components:
             - currency_exponent
             - date_time
             - type
+        updated:
+          type: string
+          description: 'Date and time when the authentication was last updated in Lithic''s system. Equal to `created` until the authentication is updated (e.g. a challenge is completed). Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
+          format: date-time
       required:
         - account_type
         - authentication_result
@@ -24568,6 +24577,7 @@ components:
         - message_category
         - three_ds_requestor_challenge_indicator
         - token
+        - updated
     challenge-response:
       title: Challenge Response object
       type: object
@@ -29221,11 +29231,16 @@ components:
           $ref: '#/components/schemas/authentication'
         challenge:
           $ref: '#/components/schemas/challenge'
+        created:
+          type: string
+          description: 'Date and time when the challenge event was emitted. Permitted values: Date string in the ISO 8601 format yyyy-MM-dd''T''hh:mm:ssZ.'
+          format: date-time
         event_type:
           const: three_ds_authentication.challenge
       required:
         - authentication_object
         - challenge
+        - created
         - event_type
     tokenization-approval-request:
       description: An event webhook (no responder) to inform that a Tokenization Request was decisioned on.
