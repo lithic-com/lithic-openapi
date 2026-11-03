@@ -9051,6 +9051,412 @@ paths:
       summary: Rotate the Tokenization Decisioning HMAC secret key
       tags:
         - Tokenization
+  /v1/cards/{card_token}/tokenizations:
+    post:
+      summary: Create a tokenization
+      description: |-
+        > 🚧 Beta API
+        >
+        > This endpoint is in beta and subject to change.
+
+        Create a tokenization for an OPEN card. Contact your Lithic representative to configure tokenization for your program and card network.
+
+        If the status is PENDING_2FA, select an available tfa_methods entry and submit the cardholder's authentication code. An ACTIVE tokenization can then be used to create payment credentials.
+
+        Additional attempts to create the same tokenizations on a card will result in a 409 Conflict.
+      operationId: createTokenization
+      tags:
+        - Tokenization
+      parameters:
+        - name: card_token
+          in: path
+          required: true
+          description: Card token
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create-tokenization-request'
+            examples:
+              tokenization:
+                summary: Create a tokenization
+                value:
+                  type: AGENT
+                  agent_token: 20f418a7-27c2-486c-aeee-3ad2beb87c91
+      responses:
+        '201':
+          description: Tokenization created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+              examples:
+                pendingAuthentication:
+                  summary: Tokenization required additional authentication to activate
+                  value:
+                    account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
+                    card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+                    created_at: '2026-10-28T15:00:00Z'
+                    device_id: null
+                    digital_card_art_token: null
+                    events:
+                      - created_at: '2026-10-28T15:00:00Z'
+                        result: REQUIRE_ADDITIONAL_AUTHENTICATION
+                        token: a690b617-d3d4-4976-82f6-901f817ad98a
+                        type: TOKENIZATION_AUTHORIZATION
+                        tokenization_decline_reasons: []
+                        tokenization_tfa_reasons: []
+                        rule_results: []
+                    status: PENDING_2FA
+                    tfa_methods:
+                      - method: SMS
+                        destination: XXXX1234
+                      - method: EMAIL
+                        destination: h***@example.com
+                    token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                    token_requestor_name: Example token requestor
+                    token_unique_reference: V-12345678901234567890123456789012
+                    dpan: null
+                    payment_account_reference_id: null
+                    tokenization_channel: AGENT_PAY
+                    updated_at: '2026-10-28T15:00:00Z'
+                active:
+                  summary: Tokenization is active and can be used to create payment credentials
+                  value:
+                    account_token: 61c3acef-3c2c-4d61-9352-941397b92ca3
+                    card_token: 16a410c9-7f5c-43e9-8108-bb8a72c063f7
+                    created_at: '2026-10-28T15:00:00Z'
+                    device_id: null
+                    digital_card_art_token: null
+                    events:
+                      - created_at: '2026-10-28T15:00:00Z'
+                        result: TOKEN_ACTIVATED
+                        token: a690b617-d3d4-4976-82f6-901f817ad98a
+                        type: TOKENIZATION_AUTHORIZATION
+                        tokenization_decline_reasons: []
+                        tokenization_tfa_reasons: []
+                        rule_results: []
+                    status: ACTIVE
+                    tfa_methods: []
+                    token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                    token_requestor_name: Example token requestor
+                    token_unique_reference: V-12345678901234567890123456789012
+                    dpan: null
+                    payment_account_reference_id: null
+                    tokenization_channel: AGENT_PAY
+                    updated_at: '2026-10-28T15:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          description: The card or tokenization configuration could not be found for your program.
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: A non-deactivated tokenization already exists for this card and token requestor, or the tokenization configuration is incomplete.
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+          description: The request is invalid, the card is not OPEN, or the account holder does not have the required email address.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          description: An internal error prevented the request from completing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '503':
+          description: The card network or a required upstream service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /v1/tokenizations/{tokenization_token}/select_tfa_method:
+    post:
+      summary: Select a tokenization authentication method
+      description: |-
+        > 🚧 Beta API
+        >
+        > This endpoint is in beta and subject to change.
+
+        Select an available SMS or EMAIL authentication method for a tokenization with status PENDING_2FA. Use a method returned in the tokenization's list of tfa_methods. The card network initiates delivery of the authentication code to the corresponding destination.
+
+        A successful response confirms method selection, not tokenization activation. Submit the code using submit_tfa after the cardholder receives it.
+      operationId: selectTfaMethodForTokenization
+      tags:
+        - Tokenization
+      parameters:
+        - name: tokenization_token
+          in: path
+          required: true
+          description: Tokenization token
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/select-tfa-method-request'
+            examples:
+              sms:
+                summary: Select SMS
+                value:
+                  method: SMS
+              email:
+                summary: Select email
+                value:
+                  method: EMAIL
+      responses:
+        '200':
+          description: Authentication method selected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/select-tfa-method-response'
+              examples:
+                selected:
+                  value:
+                    success: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          description: The requested authentication method is not available for this tokenization.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          description: The tokenization or its configuration could not be found for your program.
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The tokenization is not PENDING_2FA, or the tokenization configuration is incomplete.
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+          description: The request is invalid or the tokenization does not support authentication method selection.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          description: An internal error prevented the request from completing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '503':
+          description: The card network or a required upstream service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /v1/tokenizations/{tokenization_token}/submit_tfa:
+    post:
+      summary: Submit a tokenization authentication code
+      description: |-
+        > 🚧 Beta API
+        >
+        > This endpoint is in beta and subject to change.
+
+        Submit the cardholder's one-time authentication code for a tokenization with status PENDING_2FA. A successful select_tfa_method request must precede submission. Send the code as a string to preserve leading zeros.
+
+        A successful response means that the network accepted the authentication code. The activation of a tokenization will occur asynchronously initiated by the card network.
+      operationId: submitTfaForTokenization
+      tags:
+        - Tokenization
+      parameters:
+        - name: tokenization_token
+          in: path
+          required: true
+          description: Tokenization token
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/submit-tfa-request'
+            examples:
+              code:
+                summary: Submit the authentication code
+                value:
+                  value: '01929'
+      responses:
+        '200':
+          description: Authentication code processed. Check success to determine whether it was accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/submit-tfa-response'
+              examples:
+                accepted:
+                  summary: Code accepted
+                  value:
+                    success: true
+                rejected:
+                  summary: Code rejected
+                  value:
+                    success: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          description: The tokenization or its configuration could not be found for your program.
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The tokenization is not PENDING_2FA, or the tokenization configuration is incomplete.
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+          description: The request is invalid, the tokenization does not support authentication code submission, or no successful method selection is available.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          description: An internal error prevented the request from completing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '503':
+          description: The card network or a required upstream service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /v1/tokenizations/{tokenization_token}/payment_credentials:
+    post:
+      summary: Create payment credentials
+      description: |-
+        > 🚧 Beta API
+        >
+        > This endpoint is in beta and subject to change.
+
+        Create payment credentials and a purchase mandate for an ACTIVE tokenization.
+
+        The credential value, expiration date, and CVV are only available in this response and cannot be retrieved later.
+      operationId: createPaymentCredentials
+      tags:
+        - Tokenization
+      parameters:
+        - name: tokenization_token
+          in: path
+          required: true
+          description: Tokenization token
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create-payment-credentials-request'
+            examples:
+              oneTime:
+                summary: One-time purchase
+                value:
+                  type: HUMAN_IN_THE_LOOP
+                  mandate:
+                    frequency: ONE_TIME
+                    expires_at: '2026-10-29T15:00:00Z'
+                    amount: 1250
+                    merchant:
+                      name: Example merchant
+                      url: https://merchant.example
+                  device:
+                    ip_address: 192.0.2.1
+                    type: Mobile
+                    brand: Example brand
+                    application_name: Example app
+              recurring:
+                summary: Monthly recurring purchase
+                value:
+                  type: RECURRING
+                  mandate:
+                    frequency: MONTHLY
+                    expires_at: '2027-10-28T15:00:00Z'
+                    amount: 1250
+                    merchant:
+                      name: Example merchant
+                      url: https://merchant.example
+                  device:
+                    ip_address: 192.0.2.1
+                    type: Mobile
+                    brand: Example brand
+                    application_name: Example app
+      responses:
+        '201':
+          description: Payment credentials and mandate created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create-payment-credentials-response'
+              examples:
+                created:
+                  summary: Credentials for a one-time purchase
+                  value:
+                    token: da186f0c-535f-4dde-9c4f-a122621a4874
+                    tokenization_token: 3e9a10da-11be-4a62-a510-d43548bfcec1
+                    agent_token: 20f418a7-27c2-486c-aeee-3ad2beb87c91
+                    status: ACTIVE
+                    type: HUMAN_IN_THE_LOOP
+                    mandate:
+                      frequency: ONE_TIME
+                      expires_at: '2026-10-29T15:00:00Z'
+                      amount: 1250
+                      merchant:
+                        name: Example merchant
+                        url: https://merchant.example
+                      token: 5c988775-c23c-4c43-b2d1-a263515495aa
+                      status: PENDING
+                    credentials:
+                      value: '4111111111111111'
+                      expiration_month: '12'
+                      expiration_year: '2027'
+                      cvv: '123'
+                      expires_at: '2026-10-28T15:10:00Z'
+                    created_at: '2026-10-28T15:00:00Z'
+                    updated_at: '2026-10-28T15:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          description: The tokenization or its configuration could not be found for your program.
+        '409':
+          $ref: '#/components/responses/Conflict'
+          description: The tokenization is not ACTIVE, or the tokenization configuration is incomplete.
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+          description: The request is invalid, the tokenization does not support payment credentials, or the account holder identity or email is unavailable.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          description: An internal error prevented the request from completing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '503':
+          description: The card network or a required upstream service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
   /v1/tokenizations:
     get:
       description: List card tokenizations
@@ -9087,6 +9493,7 @@ paths:
             enum:
               - DIGITAL_WALLET
               - MERCHANT
+              - AGENT_PAY
               - ALL
             type: string
         - $ref: '#/components/parameters/endingBefore'
@@ -23574,6 +23981,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/tokenization-rule-result'
+    tfa-method:
+      title: Tokenization TFA Method
+      type: object
+      properties:
+        method:
+          description: Method used to deliver the one-time authentication code
+          type: string
+          enum:
+            - SMS
+            - EMAIL
+        destination:
+          description: Destination for the authentication code, as provided by the card network
+          type: string
+          example: XXXX1234
+      required:
+        - method
+        - destination
     tokenization:
       title: Tokenization
       properties:
@@ -23616,6 +24040,11 @@ components:
             - PENDING_ACTIVATION
             - UNKNOWN
           type: string
+        tfa_methods:
+          description: Available authentication methods for an agent tokenization pending two-factor authentication. Empty when no methods are available or authentication is no longer pending
+          type: array
+          items:
+            $ref: '#/components/schemas/tfa-method'
         token:
           description: Globally unique identifier for a Tokenization
           format: uuid
@@ -23660,6 +24089,7 @@ components:
           enum:
             - DIGITAL_WALLET
             - MERCHANT
+            - AGENT_PAY
           type: string
         updated_at:
           description: Latest date and time when the tokenization was updated. UTC time zone.
@@ -24606,6 +25036,251 @@ components:
           description: Error message explaining why the challenge could not be completed
       required:
         - message
+    create-tokenization-request:
+      title: Create Tokenization Request
+      type: object
+      properties:
+        type:
+          description: Type of tokenization to create
+          type: string
+          enum:
+            - AGENT
+        agent_token:
+          description: Globally unique identifier for the active agent configured for your program
+          type: string
+          format: uuid
+      required:
+        - type
+        - agent_token
+      additionalProperties: false
+    method:
+      description: Method used to deliver the one-time authentication code
+      type: string
+      enum:
+        - SMS
+        - EMAIL
+    select-tfa-method-request:
+      title: Select TFA Method Request
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/method'
+          description: An available method from the tokenization's list of tfa_methods
+      required:
+        - method
+      additionalProperties: false
+    select-tfa-method-response:
+      title: Select TFA Method Response
+      type: object
+      properties:
+        success:
+          description: Whether the card network accepted the authentication method selection
+          type: boolean
+      required:
+        - success
+    submit-tfa-request:
+      title: Submit TFA Request
+      type: object
+      properties:
+        value:
+          description: One-time authentication code received by the cardholder, including any leading zeros
+          type: string
+          example: '01929'
+      required:
+        - value
+      additionalProperties: false
+    submit-tfa-response:
+      title: Submit TFA Response
+      type: object
+      properties:
+        success:
+          description: Whether the card network accepted the authentication code. A true value does not mean the tokenization is already active
+          type: boolean
+      required:
+        - success
+    payment-credentials-type:
+      title: Payment Credentials Type
+      description: Type of purchase for which payment credentials are requested
+      type: string
+      enum:
+        - AUTONOMOUS
+        - HUMAN_IN_THE_LOOP
+        - RECURRING
+    payment-credentials-mandate:
+      title: Payment Credentials Mandate
+      type: object
+      properties:
+        frequency:
+          description: Purchase frequency. RECURRING purchases require WEEKLY, MONTHLY, or YEARLY
+          type: string
+          enum:
+            - ONE_TIME
+            - WEEKLY
+            - MONTHLY
+            - YEARLY
+        expires_at:
+          description: Date and time when the mandate expires, independent of the payment credentials' expiration
+          type: string
+          format: date-time
+        amount:
+          description: Purchase amount and mandate limit in USD cents
+          type: integer
+          example: 1250
+        merchant:
+          type: object
+          properties:
+            name:
+              description: Merchant name
+              type: string
+            url:
+              description: Merchant website URL
+              type: string
+          required:
+            - name
+            - url
+          additionalProperties: false
+      required:
+        - frequency
+        - expires_at
+        - amount
+        - merchant
+    payment-credentials-device:
+      title: Payment Credentials Device
+      description: Device used for the purchase
+      type: object
+      properties:
+        ip_address:
+          description: IP address of the device
+          type: string
+        type:
+          description: Device type
+          type: string
+          example: Mobile
+        brand:
+          description: Device brand
+          type: string
+        application_name:
+          description: Name of the application used for the purchase
+          type: string
+      required:
+        - ip_address
+        - type
+        - brand
+        - application_name
+      additionalProperties: false
+    create-payment-credentials-request:
+      title: Create Payment Credentials Request
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/payment-credentials-type'
+        mandate:
+          $ref: '#/components/schemas/payment-credentials-mandate'
+        device:
+          $ref: '#/components/schemas/payment-credentials-device'
+      required:
+        - type
+        - mandate
+        - device
+      additionalProperties: false
+    payment-credentials-mandate-response:
+      title: Payment Credentials Mandate Response
+      allOf:
+        - $ref: '#/components/schemas/payment-credentials-mandate'
+        - type: object
+          properties:
+            token:
+              description: Globally unique identifier for the mandate
+              type: string
+              format: uuid
+            status:
+              description: Status of the mandate. New mandates have status PENDING
+              type: string
+              enum:
+                - PENDING
+                - COMPLETED
+                - CANCELLED
+          required:
+            - token
+            - status
+    payment-credentials:
+      title: Payment Credentials
+      description: Payment credential and dynamic security code for the purchase
+      type: object
+      properties:
+        value:
+          description: Payment credential to use as the card number for the purchase
+          type: string
+          minLength: 1
+        expiration_month:
+          description: Expiration month of the payment credential
+          type: string
+          example: '12'
+        expiration_year:
+          description: Expiration year of the payment credential
+          type: string
+          example: '2027'
+        cvv:
+          description: Dynamic card security code for the purchase
+          type: string
+        expires_at:
+          description: Date and time when the dynamic security code expires
+          type: string
+          format: date-time
+      required:
+        - value
+        - expiration_month
+        - expiration_year
+        - cvv
+        - expires_at
+    create-payment-credentials-response:
+      title: Create Payment Credentials Response
+      type: object
+      properties:
+        token:
+          description: Globally unique identifier for the payment credential resource
+          type: string
+          format: uuid
+        tokenization_token:
+          description: Globally unique identifier for the associated tokenization
+          type: string
+          format: uuid
+        agent_token:
+          description: Globally unique identifier for the associated agent
+          type: string
+          format: uuid
+        status:
+          description: Status of the payment credential resource. New credentials have status ACTIVE
+          type: string
+          enum:
+            - ACTIVE
+            - DEACTIVATED
+            - COMPLETED
+            - CANCELLED
+        type:
+          $ref: '#/components/schemas/payment-credentials-type'
+        mandate:
+          $ref: '#/components/schemas/payment-credentials-mandate-response'
+        credentials:
+          $ref: '#/components/schemas/payment-credentials'
+        created_at:
+          description: Date and time when the payment credential resource was created
+          type: string
+          format: date-time
+        updated_at:
+          description: Date and time when the payment credential resource was last updated
+          type: string
+          format: date-time
+      required:
+        - token
+        - tokenization_token
+        - agent_token
+        - status
+        - type
+        - mandate
+        - credentials
+        - created_at
+        - updated_at
     card_transaction_status_filter:
       title: Card Transaction Status Filter
       type: string
