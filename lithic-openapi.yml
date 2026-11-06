@@ -10981,7 +10981,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/create_management_operation_request'
+              $ref: '#/components/schemas/create_management_operation_public_request'
         required: true
       responses:
         '200':
@@ -26305,14 +26305,32 @@ components:
       required:
         - data
         - has_more
-    create_management_operation_request:
+    create_management_operation_event_type:
+      title: Create Management Operation Event Type
+      type: string
+      enum:
+        - CASH_BACK
+        - CURRENCY_CONVERSION
+        - INSTALLMENT_FEE
+        - LATE_PAYMENT
+        - BILLING_ERROR
+        - PROVISIONAL_CREDIT
+        - RETURNED_PAYMENT
+        - DISPUTE_WON
+        - DISBURSE
+        - ANNUAL
+        - QUARTERLY
+        - MONTHLY
+        - FEE
+    create_management_operation_public_request:
       title: Create Management Operation Request
       type: object
       properties:
         category:
           $ref: '#/components/schemas/management_operation_category'
         event_type:
-          $ref: '#/components/schemas/management_operation_event_type'
+          description: Type of management operation to create. To reverse an existing management operation, use the reverse management operation endpoint
+          $ref: '#/components/schemas/create_management_operation_event_type'
         subtype:
           type: string
         financial_account_token:
@@ -26329,7 +26347,7 @@ components:
           type: string
           format: date
         token:
-          description: Customer-provided token that will serve as an idempotency token. This token will become the transaction token.
+          description: Client-provided token that will serve as an idempotency token. This token will become the transaction token.
           type: string
           format: uuid
         direction:
