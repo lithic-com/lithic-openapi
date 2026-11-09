@@ -12154,7 +12154,10 @@ components:
           example: '2022-03-08 08:00:00'
           type: string
         naics_code:
-          description: 6-digit North American Industry Classification System (NAICS) code for the business.
+          description: |
+            6-digit North American Industry Classification System (NAICS) code for the business.
+
+            This parameter is required if workflow type is `KYB_BASIC`
           example: '541512'
           type: string
         nature_of_business:
