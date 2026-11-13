@@ -7598,6 +7598,7 @@ paths:
           schema:
             type: string
             enum:
+              - ALLPOINT
               - AMEX
               - VISA
               - MASTERCARD
@@ -23216,6 +23217,7 @@ components:
         network:
           description: Card network where the transaction took place.
           enum:
+            - ALLPOINT
             - AMEX
             - INTERLINK
             - MAESTRO
@@ -23325,6 +23327,7 @@ components:
         network:
           description: Card network where the transaction took place
           enum:
+            - ALLPOINT
             - AMEX
             - INTERLINK
             - MAESTRO
@@ -23438,12 +23441,13 @@ components:
         network:
           type: string
           enum:
+            - ALLPOINT
             - AMEX
             - VISA
             - MASTERCARD
             - MAESTRO
             - INTERLINK
-          description: Card network where the transaction took place. AMEX, VISA, MASTERCARD, MAESTRO, or INTERLINK.
+          description: Card network where the transaction took place. ALLPOINT, AMEX, VISA, MASTERCARD, MAESTRO, or INTERLINK.
         institution_id:
           type: string
           description: 'The institution that activity occurred on. For Mastercard: ICA (Interbank Card Association). For Maestro: institution ID. For Visa: lowest level SRE (Settlement Reporting Entity).'
